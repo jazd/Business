@@ -28,6 +28,101 @@
 </constraints>
 <comments></comments>
 </table>
+<table name="Sentence" order="3">
+<fields>
+  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+  <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" order="2" />
+  <field name="value" data_type="varchar" size="256" is_nullable="0" order="3" />
+</fields>
+<indices>
+ <index name="sentence_id_culture" type="NORMAL" fields="id,culture" />
+ <index name="sentence_culture_value" type="UNIQUE" fields="culture,value" />
+</indices>
+<constraints>
+ <constraint name="" type="NOT NULL" fields="value" reference_table="" reference_fields="" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+<comments></comments>
+</table>
+<table name="Paragraph" order="4">
+<fields>
+  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+  <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" order="2" />
+  <field name="value" data_type="string" size="0" is_nullable="0" order="3" />
+</fields>
+<indices>
+ <index name="paragraph_id_culture" type="NORMAL" fields="id,culture" />
+ <index name="paragraph_culture_value" type="UNIQUE" fields="culture,value" />
+</indices>
+<constraints>
+ <constraint name="" type="NOT NULL" fields="value" reference_table="" reference_fields="" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+<comments></comments>
+</table>
+
+<table name="Individual" order="20">
+<fields>
+ <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="2" />
+</fields>
+</table>
+<table name="Person" order="21">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" is_auto_increment="0" is_primary_key="0" is_foreign_key="1" order="1" />
+ <field name="title" data_type="integer" size="10" is_nullable="1" is_auto_increment="0" is_primary_key="0" is_foreign_key="1" order="2" />
+ <field name="given" data_type="varchar" size="40" is_nullable="1" order="3" />
+ <field name="middle" data_type="varchar" size="40" is_nullable="1" order="4" />
+ <field name="family" data_type="varchar" size="40" is_nullable="1" order="5" />
+ <field name="goesby" data_type="varchar" size="40" is_nullable="1" order="6" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="title" reference_table="Sentence" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+<table name="Company" order="22">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" is_auto_increment="0" is_primary_key="0" is_foreign_key="1" order="1" />
+ <field name="name" data_type="varchar" size="40" is_nullable="1" order="2" />
+ <field name="goesby" data_type="varchar" size="40" is_nullable="1" order="3" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
+<table name="Email" order="25">
+<fields>
+ <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
+ <field name="username" data_type="varchar" size="30" is_nullable="1" order="2" />
+ <field name="host" data_type="varchar" size="30" is_nullable="1" order="3" />
+ <field name="get" data_type="varchar" size="30" is_nullable="1" order="4" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="5" />
+</fields>
+</table>
+
+<table name="IndividualListName" order="30">
+<fields>
+ <field name="individualList" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
+ <field name="name" data_type="integer" size="10" is_nullable="0" order="2" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+<table name="IndividualList" order="31">
+<fields>
+ <field name="id" data_type="integer" size="10" is_nullable="1" order="1" />
+ <field name="unlist" data_type="timestamp" size="0" is_nullable="1" order="2" />
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="id" reference_table="IndividualListName" reference_fields="individualList" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
 </tables>
 <views></views>
 <triggers></triggers>
