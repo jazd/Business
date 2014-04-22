@@ -1,0 +1,35 @@
+<schema name="" database="" xmlns="http://sqlfairy.sourceforge.net/sqlfairy.xml">
+<tables>
+<comments>[Sun Apr 20 20:53:09 2014]</comments>
+<table name="Culture" order="1">
+<fields>
+ <field name="code" data_type="integer" size="10" is_nullable="0" is_auto_increment="0" is_primary_key="1" order="2">
+  <comments>Like 1033 http://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx</comments></field>
+ <field name="name" data_type="varchar" size="9" is_nullable="0" is_auto_increment="0" is_primary_key="0" order="3">
+  <comments>Like en-US</comments></field>
+</fields>
+<indices>
+ <index name="culture_code" type="UNIQUE" fields="code" />
+</indices>
+</table>
+<table name="Word" order="2">
+<fields>
+  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+  <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" order="2" />
+  <field name="value" data_type="varchar" size="20" is_nullable="0" order="3" />
+</fields>
+<indices>
+ <index name="word_id_culture" type="NORMAL" fields="id,culture" />
+ <index name="word_culture_value" type="UNIQUE" fields="culture,value" />
+</indices>
+<constraints>
+ <constraint name="" type="NOT NULL" fields="value" reference_table="" reference_fields="" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+<comments></comments>
+</table>
+</tables>
+<views></views>
+<triggers></triggers>
+<procedures></procedures>
+</schema>
