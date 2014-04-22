@@ -1,6 +1,6 @@
 <schema name="" database="" xmlns="http://sqlfairy.sourceforge.net/sqlfairy.xml">
 <tables>
-<comments>[Sun Apr 20 20:53:09 2014]</comments>
+<comments>The MIT License (MIT) Copyright (c) 2014 Stephen A Jazdzewski</comments>
 <table name="Culture" order="1">
 <fields>
  <field name="code" data_type="integer" size="10" is_nullable="0" is_auto_increment="0" is_primary_key="1" order="2">
