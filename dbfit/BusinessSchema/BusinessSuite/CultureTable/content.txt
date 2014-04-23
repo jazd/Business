@@ -1,0 +1,11 @@
+!path lib/*.jar
+!include -c .BusinessSchema.GlobalSetup
+!|Insert|Culture|
+|code|name|
+|1033|en-US|
+
+!|Query| select code, name FROM Culture|
+|code | name|
+|1033|en-US|
+
+!|Rollback|

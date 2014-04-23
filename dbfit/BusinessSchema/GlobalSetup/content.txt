@@ -1,0 +1,3 @@
+!path lib/*.jar
+!|dbfit.PostgresTest|
+!|Connect|localhost|test|dbfit|MyCo|

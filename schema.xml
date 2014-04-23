@@ -1,4 +1,4 @@
-<schema name="" database="" xmlns="http://sqlfairy.sourceforge.net/sqlfairy.xml">
+<schema name="Business" database="MyCo" xmlns="http://sqlfairy.sourceforge.net/sqlfairy.xml">
 <comments>The MIT License (MIT) Copyright (c) 2014 Stephen A Jazdzewski</comments>
 <tables>
 <table name="Culture" order="1">
