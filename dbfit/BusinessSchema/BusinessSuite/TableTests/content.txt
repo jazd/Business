@@ -1,0 +1,24 @@
+!path lib/*.jar
+!include -c .BusinessSchema.GlobalSetup
+
+At least en-US
+
+!|Ordered Query| select code, name FROM Culture WHERE code = 1033|
+|code | name|
+|fail[NULL]|fail[NULL]|
+
+Only en-US
+
+!|Query| select code, name FROM Culture|
+|code | name|
+|1033|en-US|
+
+Longest Code Insert
+
+!|Insert|Culture|
+|code|name|
+|2115|Cy-uz-UZ|
+
+!|Query| select code, name FROM Culture WHERE code = 2115|
+|code | name|
+|2115|Cy-uz-UZ|
