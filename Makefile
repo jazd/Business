@@ -16,7 +16,7 @@ db2: schema.db2
 
 schema.pgsql: schema.xml
 	@echo $(ECHO) PostgreSQL file $@
-	sqlt -f XML-SQLFairy -t PostgreSQL $< > $@
+	sqlt -f XML-SQLFairy -t PostgreSQL --add-drop-table $< > $@
 
 schema.mysql: schema.xml
 	@echo MySQL file $@
@@ -33,3 +33,6 @@ schema.db2: schema.xml
 clean:
 	@echo Removing target files $(TARGETS)
 	rm -f $(TARGETS)
+
+pgsqldb:
+	cat schema.pgsql | psql -h localhost -U test MyCo
