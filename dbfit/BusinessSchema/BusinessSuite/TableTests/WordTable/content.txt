@@ -12,3 +12,10 @@ Verify en-US is the default culture.
 !|Ordered Query| SELECT id, culture FROM Word WHERE value = 'Zippy'|
 |id|culture|
 |fail[NULL]|1033|
+
+The word table should be case insensitive, but will use the DB2 way and use and UPPER(value) index.
+!|Query| SELECT value FROM Word WHERE UPPER(value) = UPPER('zippY')|
+|value|
+|Zippy|
+
+TODO: Need to test inserting 'zippY' and 'Zippy' fails

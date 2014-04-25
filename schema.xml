@@ -20,7 +20,6 @@
 </fields>
 <indices>
  <index name="word_id_culture" type="NORMAL" fields="id,culture" />
- <index name="word_culture_value" type="UNIQUE" fields="culture,value" />
 </indices>
 <constraints>
  <constraint name="" type="NOT NULL" fields="value" reference_table="" reference_fields="" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />

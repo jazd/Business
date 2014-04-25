@@ -13,10 +13,8 @@ Restart
 
 As postres user
 createdb -E UNICODE MyCo
-createlang plpgsql MyCo
 
 psql MyCo
-MyCo=# CREATE EXTENSION citext;
 MyCo=# CREATE USER test WITH PASSWORD 'dbfit';
 MyCo=# ALTER ROLE test WITH LOGIN;
 MyCo=# CREATE SCHEMA Business;

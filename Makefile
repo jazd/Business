@@ -35,4 +35,4 @@ clean:
 	rm -f $(TARGETS)
 
 pgsqldb: schema.pgsql
-	cat pgsql-pre.sql schema.pgsql static.sql | psql -h localhost -U test MyCo
+	cat pgsql-pre.sql schema.pgsql static.sql pgsql-post.sql | psql -h localhost -U test MyCo
