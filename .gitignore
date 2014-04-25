@@ -1,0 +1,7 @@
+# Personal
+notes.txt
+# Targets
+*.pgsql
+*.mysql
+*.sqlite
+*.db2
