@@ -16,7 +16,7 @@ db2: schema.db2
 
 schema.pgsql: schema.xml
 	@echo $(ECHO) PostgreSQL file $@
-	sqlt -f XML-SQLFairy -t PostgreSQL --add-drop-table $< > $@
+	sqlt -f XML-SQLFairy -t PostgreSQL --add-drop-table $< | sed -e 's|["'\'']||g' > $@
 
 schema.mysql: schema.xml
 	@echo MySQL file $@
@@ -35,4 +35,4 @@ clean:
 	rm -f $(TARGETS)
 
 pgsqldb: schema.pgsql
-	cat schema.pgsql static.sql | psql -h localhost -U test MyCo
+	cat pgsql-pre.sql schema.pgsql static.sql | psql -h localhost -U test MyCo

@@ -1,0 +1,14 @@
+!include -c .BusinessSchema.GlobalSetup
+
+Single words for names of stuff
+
+
+Verify en-US is the default culture.
+
+!|Insert|Word|
+|value|
+|Zippy|
+
+!|Ordered Query| SELECT id, culture FROM Word WHERE value = 'Zippy'|
+|id|culture|
+|fail[NULL]|1033|
