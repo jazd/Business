@@ -34,5 +34,5 @@ clean:
 	@echo Removing target files $(TARGETS)
 	rm -f $(TARGETS)
 
-pgsqldb:
-	cat schema.pgsql | psql -h localhost -U test MyCo
+pgsqldb: schema.pgsql
+	cat schema.pgsql static.sql | psql -h localhost -U test MyCo
