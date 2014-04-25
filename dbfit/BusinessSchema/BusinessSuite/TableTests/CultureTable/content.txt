@@ -1,5 +1,7 @@
 !include -c .BusinessSchema.GlobalSetup
 
+http://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx
+
 At least en-US
 
 !|Ordered Query| select code, name FROM Culture WHERE code = 1033|

@@ -1,0 +1,24 @@
+!include -c .BusinessSchema.GlobalSetup
+
+!2 All of these should result in Exceptions.
+Any passes are a failure.
+Failures are still failures.
+
+Verify words can't be inserted twice, even with only case differences.
+!style_error(duplicate key value violates unique constraint "word_value")
+!|Insert|Word|
+|value|
+|Zippy|
+|zIPPY|
+
+Word to long
+!style_error(value too long for type character varying(20))
+!|Insert|Word|
+|value|
+|123456789012345678901|
+
+Do not insert if no references culture exists
+!style_error(insert or update on table "word" violates foreign key constraint "word_culture_fkey")
+!|Insert|Word|
+|id|culture|value|
+|0|2058|título|

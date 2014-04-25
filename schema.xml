@@ -14,7 +14,7 @@
 </table>
 <table name="Word" order="2">
 <fields>
-  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
   <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
   <field name="value" data_type="varchar" size="20" is_nullable="0" order="3" />
 </fields>
