@@ -15,19 +15,19 @@ sqlite: schema.sqlite
 db2: schema.db2
 
 schema.pgsql: schema.xml
-	@echo $(ECHO) PostgreSQL file $@
+	@echo Creating PostgreSQL file $@
 	sqlt -f XML-SQLFairy -t PostgreSQL --add-drop-table $< | sed -e 's|["'\'']||g' > $@
 
 schema.mysql: schema.xml
-	@echo MySQL file $@
+	@echo Creating MySQL file $@
 	sqlt -f XML-SQLFairy -t MySQL $< > $@
 
 schema.sqlite: schema.xml
-	@echo MySQL file $@
+	@echo Creating MySQL file $@
 	sqlt -f XML-SQLFairy -t SQLite $< > $@
 
 schema.db2: schema.xml
-	@echo MySQL file $@
+	@echo Creating MySQL file $@
 	sqlt -f XML-SQLFairy -t DB2 $< > $@
 
 clean:
@@ -35,4 +35,5 @@ clean:
 	rm -f $(TARGETS)
 
 pgsqldb: schema.pgsql
-	cat pgsql-pre.sql schema.pgsql static.sql pgsql-post.sql | psql -h localhost -U test MyCo
+	@echo Creating new PostgreSQL database with $@
+	cat pgsql-pre.sql schema.pgsql static.sql pgsql-post.sql | psql -h localhost -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true
