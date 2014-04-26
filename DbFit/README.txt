@@ -22,7 +22,7 @@ MyCo=# GRANT ALL ON SCHEMA Business TO test;
 MyCo=# ALTER USER test SET search_path TO Business;
 
 
-symbolic link Business/dbfit/BusinessSchema to <dbfit install directory>/dbfit/FitNesseRoot
+symbolic link Business/DbFit/BusinessSchema to <dbfit install directory>/dbfit/FitNesseRoot
 
 http://localhost:8085/BusinessSchema
 Top of a test page
