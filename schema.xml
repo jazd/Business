@@ -117,13 +117,23 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 </fields>
 </table>
 
-<table name="untestedPath" order="9999">
+<table name="untestedSchemaVersion" order="999">
+<fields>
+ <field name="major" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="minor" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="patch" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+
+<table name="untestedPath" order="999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
  <field name="protocal" data_type="varchar" size="4" is_nullable="1" order="2" />
  <field name="secure" data_type="smallint" size="1" is_nullable="1" order="3" />
  <field name="host" data_type="varchar" size="30" is_nullable="1" order="4" />
- <field name="path" data_type="varchar" size="30" is_nullable="1" order="5" />
+ <field name="value" data_type="varchar" size="30" is_nullable="1" order="5" />
  <field name="get" data_type="varchar" size="30" is_nullable="1" order="6" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
@@ -143,6 +153,14 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 <constraints>
 </constraints>
 </table>
+<table name="untestedAttribute" order="999">
+<comments>Try for non-duplicated name value pares</comments>
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="value" data_type="integer" size="10" is_nullable="1" order="3" />
+</fields>
+</table>
 <table name="untestedIndividualList" order="31">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="1" order="1" />
@@ -156,10 +174,258 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 </constraints>
 </table>
 
+
+<table name="unfinishedArea" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="shape" data_type="bytea" size="100" is_nullable="1" order="3" />
+ <field name="timezone" data_type="varchar" size="30" is_nullable="1" order="3" />
+</fields>
+</table>
+<table name="unfinishedLocation" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="parent" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="marquee" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="latitude" data_type="float" size="10" is_nullable="1" order="3" />
+ <field name="longitude" data_type="float" size="10" is_nullable="1" order="3" />
+ <field name="level" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="altitudeFeetAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="area" data_type="integer" size="10" is_nullable="1" order="3" />
+</fields>
+</table>
+<table name="unfinishedCountry" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="code" data_type="varchar" size="4" is_nullable="1" order="3" />
+ <field name="dial" data_type="varchar" size="8" is_nullable="1" order="3" />
+ <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
+</fields>
+</table>
+<table name="unfinishedPostal" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="country" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="code" data_type="varchar" size="10" is_nullable="1" order="3" />
+ <field name="state" data_type="varchar" size="4" is_nullable="1" order="3">
+  <comments>Province Territory or Zone</comments>
+ </field>
+ <field name="city" data_type="varchar" size="40" is_nullable="1" order="3">
+  <comments>Township</comments>
+ </field>
+ <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
+</fields>
+</table>
+<table name="unfinishedAddress" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="line1" data_type="varchar" size="50" is_nullable="1" order="3" />
+ <field name="line2" data_type="varchar" size="50" is_nullable="1" order="3" />
+ <field name="line3" data_type="varchar" size="50" is_nullable="1" order="3" />
+ <field name="line4" data_type="varchar" size="50" is_nullable="1" order="3" />
+ <field name="postal" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="postalPlus" data_type="varchar" size="4" is_nullable="1" order="3" />
+ <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+<table name="unfinishedAddressAttribute" order="9999">
+<comments>usps address fields for example.  address line source fields.</comments>
+<fields>
+ <field name="address" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="attribute" data_type="integer" size="10" is_nullable="1" order="3" />
+</fields>
+</table>
+<table name="unfinishedPhone" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="number" data_type="varchar" size="20" is_nullable="1" order="3" />
+ <field name="country" data_type="integer" size="10" is_nullable="1" order="3" />
+</fields>
+</table>
+<table name="unfinishedPastIndividualName" order="9999">
+<comments>individual name/edit history</comments>
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="person" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="company" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="changedBy" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+<table name="unfinishedIndividualAttribute" order="9999">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="attribute" data_type="integer" size="10" is_nullable="1" order="3" />
+</fields>
+</table>
+<table name="unfinishedIndividualProperty" order="9999">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="property" data_type="integer" size="10" is_nullable="1" order="3" />
+</fields>
+</table>
+
+<table name="unfinishedIndividualEMail" order="9999">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="first" data_type="smallint" size="1" is_nullable="1" order="3">
+  <comments>0 not primary, >0 is true and can be sorted on, null if old and should no longer use</comments>
+ </field>
+ <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="email" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+<table name="unfinishedIndividualAddress" order="9999">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="first" data_type="smallint" size="1" is_nullable="1" order="3">
+  <comments>0 not primary, >0 is true and can be sorted on, null if old and should no longer use</comments>
+ </field>
+ <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="address" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+<table name="unfinishedIndividualPath" order="9999">
+<comments>Web Site, Social page, feed etc.</comments>
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="first" data_type="smallint" size="1" is_nullable="1" order="3">
+  <comments>0 not primary, >0 is true and can be sorted on, null if old and should no longer use</comments>
+ </field>
+ <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="path" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="unfinishedRelease" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="name" data_type="integer" size="10" is_nullable="1" order="3">
+  <comments>Tag name/Branch</comments>
+ </field>
+ <field name="path" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="version" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="revision" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="build" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="unfinishedApplication" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="path" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="unfinishedApplicationRelease" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="application" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="release" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="unfinishedIndividualApplicationCreated" order="9999">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="applicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="createdBy" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="unfinishedSite" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="application" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+
+<table name="unfinishedSiteApplication" order="9999">
+<fields>
+ <field name="site" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="applicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="unfinishedSession" order="9999">
+<fields>
+ <field name="id" data_type="varchar" size="24" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="siteApplication" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="initialized" data_type="smallint" size="1" is_nullable="1" order="3" />
+ <field name="timeout" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="items" data_type="bytea" size="10" is_nullable="1" order="3" />
+ <field name="touched" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="unfinishedPassword" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="provider" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="generator" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="value" data_type="varchar" size="70" is_nullable="1" order="3" />
+ <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="revoked" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="unfinishedCredential" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="person" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="username" data_type="varchar" size="20" is_nullable="1" order="3" />
+ <field name="email" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="password" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="culture" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="revoked" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="unfinishedSessionCredential" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="12" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="session" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="credential" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="fromAddress" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="referring" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="unfinishedIndividualSessionCreated" order="9999">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="sessionCredential" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+
+
+
 <comments>Template</comments>
 <table name="unfinished" order="9999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="field" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
