@@ -1,4 +1,4 @@
-dbfit http://dbfit.github.io/
+dbfit http://dbfit.github.io/dbfit/
 PostgreSQL database schema test server setup
 
 As root
