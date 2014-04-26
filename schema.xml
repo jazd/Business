@@ -14,9 +14,9 @@
 </table>
 <table name="Word" order="2">
 <fields>
-  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
-  <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
-  <field name="value" data_type="varchar" size="20" is_nullable="0" order="3" />
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
+ <field name="value" data_type="varchar" size="20" is_nullable="0" order="3" />
 </fields>
 <indices>
  <index name="word_id_culture" type="NORMAL" fields="id,culture" />
@@ -29,12 +29,12 @@
 </table>
 <table name="Sentence" order="3">
 <fields>
-  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
-  <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
-  <field name="value" data_type="varchar" size="256" is_nullable="0" order="3" />
-  <field name="length" data_type="smallint" size="3" is_nullable="1" order="4" >
-   <comments>Used for dynamic drop list item sorting</comments>
-  </field>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
+ <field name="value" data_type="varchar" size="256" is_nullable="0" order="3" />
+ <field name="length" data_type="smallint" size="3" is_nullable="1" order="4" >
+  <comments>Used for dynamic drop list item sorting</comments>
+ </field>
 </fields>
 <indices>
  <index name="sentence_id_culture" type="NORMAL" fields="id,culture" />
@@ -46,11 +46,11 @@
 </constraints>
 <comments></comments>
 </table>
-<table name="Paragraph" order="4">
+<table name="untestedParagraph" order="4">
 <fields>
-  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
-  <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
-  <field name="value" data_type="text" size="0" is_nullable="0" order="3" />
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
+ <field name="value" data_type="text" size="0" is_nullable="0" order="3" />
 </fields>
 <indices>
  <index name="paragraph_id_culture" type="NORMAL" fields="id,culture" />
@@ -76,7 +76,13 @@
 <constraints>
 </constraints>
 </table>
-<table name="Company" order="21">
+
+<comments>
+untested[TableName] are tables that should work, but are un-tested.  Use at your own risk
+unfinished[TableName] are tables that are mostly place holders or note taking.  These should not be used and are probably completely wrong.
+</comments>
+
+<table name="untestedCompany" order="21">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="varchar" size="40" is_nullable="1" order="2" />
@@ -84,7 +90,7 @@
 <constraints>
 </constraints>
 </table>
-<table name="Individual" order="22">
+<table name="unfinishedIndividual" order="22">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
  <field name="person" data_type="integer" size="10" order="2" />
@@ -101,17 +107,18 @@
 </table>
 
 
-<table name="Email" order="25">
+<table name="unfinishedEmail" order="25">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
  <field name="username" data_type="varchar" size="30" is_nullable="1" order="2" />
- <field name="host" data_type="varchar" size="30" is_nullable="1" order="3" />
- <field name="get" data_type="varchar" size="30" is_nullable="1" order="4" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="5" />
+ <field name="plus" data_type="varchar" size="30" is_nullable="1" order="3" />
+ <field name="host" data_type="varchar" size="30" is_nullable="1" order="4" />
+ <field name="get" data_type="varchar" size="30" is_nullable="1" order="5" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="6" />
 </fields>
 </table>
 
-<table name="IndividualListName" order="30">
+<table name="unfinishedIndividualListName" order="30">
 <fields>
  <field name="individualList" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
  <field name="name" data_type="integer" size="10" is_nullable="0" order="2" />
@@ -119,7 +126,7 @@
 <constraints>
 </constraints>
 </table>
-<table name="IndividualList" order="31">
+<table name="unfinishedIndividualList" order="31">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="1" order="1" />
  <field name="unlist" data_type="timestamp" size="0" is_nullable="1" order="2" />
@@ -131,6 +138,15 @@
  <constraint name="" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
+
+<comments>Template</comments>
+<table name="unfinished" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
 </tables>
 <views></views>
 <triggers></triggers>
