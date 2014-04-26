@@ -15,6 +15,11 @@ The word table should be case sensitive.
 |value|
 
 
+Sentence Length defaults NULL
+!|Ordered Query| SELECT id, length FROM Sentence WHERE value = 'Zippy the Pinhead.'|
+|id|length|
+|fail[NULL]|NULL|
+
 Longest Word
 !|Insert|Sentence|
 |value|
