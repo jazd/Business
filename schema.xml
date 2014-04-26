@@ -113,20 +113,37 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="username" data_type="varchar" size="30" is_nullable="1" order="2" />
  <field name="plus" data_type="varchar" size="30" is_nullable="1" order="3" />
  <field name="host" data_type="varchar" size="30" is_nullable="1" order="4" />
- <field name="get" data_type="varchar" size="30" is_nullable="1" order="5" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="6" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="5" />
 </fields>
 </table>
 
-<table name="unfinishedIndividualListName" order="30">
+<table name="untestedPath" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="protocal" data_type="varchar" size="4" is_nullable="1" order="2" />
+ <field name="secure" data_type="smallint" size="1" is_nullable="1" order="3" />
+ <field name="host" data_type="varchar" size="30" is_nullable="1" order="4" />
+ <field name="path" data_type="varchar" size="30" is_nullable="1" order="5" />
+ <field name="get" data_type="varchar" size="30" is_nullable="1" order="6" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+
+<table name="untestedIndividualListName" order="30">
 <fields>
  <field name="individualList" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
  <field name="name" data_type="integer" size="10" is_nullable="0" order="2" />
+ <field name="sequence" data_type="smallint" size="5" is_nullable="0" order="2" />
+ <field name="optinStyle" data_type="smallint" size="1" is_nullable="0" order="2">
+  <comments>optin or optout style list</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
 </constraints>
 </table>
-<table name="unfinishedIndividualList" order="31">
+<table name="untestedIndividualList" order="31">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="1" order="1" />
  <field name="unlist" data_type="timestamp" size="0" is_nullable="1" order="2" />
