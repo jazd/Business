@@ -1,0 +1,54 @@
+!4 One or more words, case sensitive
+
+Verify en-US is the default culture.
+
+!|Insert|Sentence|
+|value|
+|Zippy the Pinhead.|
+
+!|Ordered Query| SELECT id, culture FROM Sentence WHERE value = 'Zippy the Pinhead.'|
+|id|culture|
+|fail[NULL]|1033|
+
+The word table should be case sensitive.
+!|Query| SELECT value FROM Sentence WHERE value = 'zippy the Pinhead.'|
+|value|
+
+
+Longest Word
+!|Insert|Sentence|
+|value|
+|1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456|
+!|Ordered Query| SELECT id FROM Sentence WHERE value LIKE '1234567890123456789012345678901234567890%'|
+|id|
+|fail[NULL]|
+
+English, Spanish and Programming words.
+All words with the same meaning should have the same id. So id can't be a primary key.
+
+Words used inside software only should not have culture set
+!|Insert|Sentence|
+|id|culture|value|
+|0|NULL|title|
+
+Should still be able to insert an en-US version of the word
+!|Insert|Sentence|
+|id|culture|value|
+|0|1033|Title|
+
+!|Insert|Culture|
+|code|name|
+|2058|es-MX|
+
+http://www.spanishdict.com/translate/Title
+!|Insert|Sentence|
+|id|culture|value|
+|0|2058|Título|
+
+Be sure we have all the different versions of the word Title
+NULLs should display first when order is descending.
+!|Ordered Query| SELECT id,culture FROM Sentence WHERE id = 0 ORDER BY culture DESC|
+|id|culture|
+|0|NULL|
+|0|2058|
+|0|1033|
