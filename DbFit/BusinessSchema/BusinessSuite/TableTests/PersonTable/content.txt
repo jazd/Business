@@ -1,0 +1,49 @@
+A Person Name
+Multiple people can share the same name
+
+!|Insert|Person|
+|given|middle|family|
+|Zippy|The|Pinhead|
+
+No Middle
+!|Insert|Person|
+|given|family|
+|Zippy|Pinhead|
+
+Just First
+!|Insert|Person|
+|given|
+|Zippy|
+
+Just Last
+!|Insert|Person|
+|family|
+|Pinhead|
+
+Insert maximum length name
+!|Insert|Person|
+|given|middle|family|
+|1234567890123456789012345678901234567890|1234567890123456789012345678901234567890|1234567890123456789012345678901234567890|
+
+Get the correct number of PinHeads, case sensitive
+!|Ordered Query|SELECT family FROM Person WHERE family = 'PinHead'|
+|family|
+
+Get the correct number of Pinheads
+!|Ordered Query|SELECT family FROM Person WHERE family = 'Pinhead'|
+|family|
+|Pinhead|
+|Pinhead|
+|Pinhead|
+
+Get the correct number of Zippies, case sensitive
+!|Ordered Query|SELECT given FROM Person WHERE given = 'ZIPPY'|
+|given|
+
+Get the correct number of Zippies
+!|Ordered Query|SELECT given FROM Person WHERE given = 'Zippy'|
+|given|
+|Zippy|
+|Zippy|
+|Zippy|
+

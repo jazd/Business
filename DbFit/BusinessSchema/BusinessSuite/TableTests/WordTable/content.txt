@@ -12,6 +12,11 @@ Verify en-US is the default culture.
 |id|culture|
 |fail[NULL]|1033|
 
+First inserted word id should be >= 10000
+!|Ordered Query| SELECT id FROM Word WHERE id >= 10000 LIMIT 1|
+|id|
+|fail[NULL}|
+
 The word table should be case insensitive, but will use the DB2 way and use and UPPER(value) index.
 !|Query| SELECT value FROM Word WHERE UPPER(value) = UPPER('zippY')|
 |value|

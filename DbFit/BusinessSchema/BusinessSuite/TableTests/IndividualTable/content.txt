@@ -1,0 +1,22 @@
+Be sure inserted individuals >=10000 (templates)
+
+Insert a unique Title
+!|Insert|Sentence|
+|value|
+|Ruler of the Universe|
+!|Query|SELECT id FROM Sentence WHERE value = 'Ruler of the Universe'|
+|id?|
+|>>uniqueTitle|
+
+Insert a unique Suffix
+!|Insert|Sentence|
+|value|
+|One and Only|
+!|Query|SELECT id FROM Sentence WHERE value = 'One and Only'|
+|id?|
+|>>uniqueSuffix|
+
+
+Insert a full name
+TODO: see if we can get cross-server parameters.  For now we know we have at
+least 2 inserted sentence by now

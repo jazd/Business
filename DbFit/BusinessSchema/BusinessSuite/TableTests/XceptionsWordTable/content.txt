@@ -43,3 +43,26 @@ Do not insert if no references culture exists
 !|Insert|Sentence|
 |id|culture|value|
 |0|2058|título|
+
+!4 Person Table
+
+Don't allow duplicates
+!style_error(THIS MUST BE AN EXCEPTION)
+!|Insert|Person|
+|family|
+|Pinhead|
+|Pinhead|
+
+Don't allow duplicates
+!style_error(duplicate key value violates unique constraint "person_given_middle_family)
+!|Insert|Person|
+|given|middle|family|
+|Zippy|The|Pinhead|
+|Zippy|The|Pinhead|
+
+Insert person name to long
+!style_error(value too long for type character varying(40))
+!|Insert|Person|
+|given|middle|family|
+|1234567890123456789012345678901234567890x|1234567890123456789012345678901234567890x|1234567890123456789012345678901234567890x|
+

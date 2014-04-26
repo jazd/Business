@@ -63,35 +63,43 @@
 <comments></comments>
 </table>
 
-<table name="Individual" order="20">
+<table name="Person" order="20">
 <fields>
- <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="2" />
-</fields>
-</table>
-<table name="Person" order="21">
-<fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" is_auto_increment="0" is_primary_key="0" is_foreign_key="1" order="1" />
- <field name="title" data_type="integer" size="10" is_nullable="1" is_auto_increment="0" is_primary_key="0" is_foreign_key="1" order="2" />
+ <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="given" data_type="varchar" size="40" is_nullable="1" order="3" />
  <field name="middle" data_type="varchar" size="40" is_nullable="1" order="4" />
  <field name="family" data_type="varchar" size="40" is_nullable="1" order="5" />
- <field name="goesby" data_type="varchar" size="40" is_nullable="1" order="6" />
 </fields>
+<indices>
+ <index name="person_given_middle_family" type="UNIQUE" fields="given,middle,family" />
+</indices>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
-<table name="Company" order="22">
+<table name="Company" order="21">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" is_auto_increment="0" is_primary_key="0" is_foreign_key="1" order="1" />
+ <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="varchar" size="40" is_nullable="1" order="2" />
- <field name="goesby" data_type="varchar" size="40" is_nullable="1" order="3" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
+<table name="Individual" order="22">
+<fields>
+ <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
+ <field name="person" data_type="integer" size="10" order="2" />
+ <field name="company" data_type="integer" size="10" order="3" />
+ <field name="prefix" data_type="integer" size="10" is_nullable="1" order="4" />
+ <field name="suffix" data_type="integer" size="10" is_nullable="1" order="5" />
+ <field name="goesby" data_type="varchar" size="40" is_nullable="1" order="6" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="7" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="person" reference_table="Person" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="company" reference_table="Company" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+</table>
+
 
 <table name="Email" order="25">
 <fields>

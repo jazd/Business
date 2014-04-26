@@ -5,3 +5,5 @@ notes.txt
 *.mysql
 *.sqlite
 *.db2
+# Temporary files
+*~
