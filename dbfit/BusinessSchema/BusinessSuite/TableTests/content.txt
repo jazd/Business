@@ -1,4 +1,3 @@
-!include -c .BusinessSchema.GlobalSetup
 
 At least en-US
 

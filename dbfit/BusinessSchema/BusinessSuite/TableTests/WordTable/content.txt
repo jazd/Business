@@ -1,4 +1,3 @@
-!include -c .BusinessSchema.GlobalSetup
 
 Single words for names of stuff
 

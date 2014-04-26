@@ -1,2 +1,4 @@
+!path lib/*.jar
 !1 Test suite for Business Schema
+!2 These pages are linked to from Database specific test suites
 !contents -R2 -g -p -f -h
