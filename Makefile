@@ -36,4 +36,4 @@ clean:
 
 pgsqldb: schema.pgsql
 	@echo Creating new PostgreSQL database with $@
-	cat pgsql-pre.sql schema.pgsql static.sql pgsql-post.sql | psql -h localhost -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true
+	cat PostgreSQL/pre.sql schema.pgsql static.sql PostgreSQL/post.sql | psql -h localhost -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true
