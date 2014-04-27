@@ -442,17 +442,26 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 </tables>
 <views>
  <comments>SQLFairy does not handle XML escape codes.  So need to convert post process.</comments>
- <view name="People" fields="individual,person,goesBy,fullName,given,middle,family,birth,death,created" order="1">
+ <view name="People" fields="individual,person,goesBy,fullName,honorific,given,middle,family,suffix,birth,death,aged,created" order="1">
  <sql>
  SELECT Individual.id AS individual, Person.id AS person,
-  COALESCE(goesBy,given) AS goesBy,
-  given || !apos; !apos; ||
-  COALESCE(middle || !apos; !apos;,!apos;!apos;) ||
-  family AS fullName,
-  given, middle, family,
-  birth, death, created
+  COALESCE(goesBy,given,family) AS goesBy,
+  COALESCE(honorific.value || !apos; !apos;,!apos;!apos;) ||
+   COALESCE(given || !apos; !apos;,!apos;!apos;) ||
+   COALESCE(middle || !apos; !apos;,!apos;!apos;) ||
+   COALESCE(family || !apos; !apos;,!apos;!apos;) ||
+   COALESCE(suffix.value || !apos; !apos;,!apos;!apos;)
+   AS fullName,
+  honorific.value AS honorific, given, middle, family, suffix.value AS suffix,
+  birth, death,
+  COALESCE(age(death,birth),age(birth)) AS aged,
+  Individual.created
  FROM Individual
  JOIN Person ON Person.id = Individual.person
+ LEFT JOIN Word AS honorific ON honorific.id = Individual.prefix
+  AND honorific.culture = 1033
+ LEFT JOIN Word AS suffix ON suffix.id = Individual.suffix
+  AND suffix.culture = 1033
  </sql>
  </view>
 </views>

@@ -1,5 +1,13 @@
+INSERT INTO Individual (person, goesBy, suffix, birth, death) VALUES (8, 'Terry', 141, '1942-07-24', '1977-03-16');
+INSERT INTO Individual (person, goesBy, suffix, birth, death) VALUES (8, 'Butch', 140, '1962-08-18', '1973-09-01');
 INSERT INTO Individual (person, goesBy, birth) VALUES (1, 'Steve', '1963-11-22');
+INSERT INTO Individual (person, goesBy, birth) VALUES (9, 'Chuck', '1965-02-09');
 INSERT INTO Individual (person, birth) VALUES (2, '1986-01-31');
 INSERT INTO Individual (person, birth) VALUES (3, '1988-12-29');
 INSERT INTO Individual (person, birth) VALUES (4, '1982-10-28');
+INSERT INTO Individual (person, birth, death) VALUES (6, '1907-07-07', '1988-05-08');
+INSERT INTO Individual (person, prefix, suffix, birth, death) VALUES (7, 105, 153, '1920-01-01', '1949-01-01');
 INSERT INTO Individual (company, goesBy, birth) VALUES (1, 'IBM', '1911-06-16');
+INSERT INTO Individual (person, suffix, birth) VALUES (10, 151, '1950-04-11');
+INSERT INTO Individual (person, suffix, goesBy, birth) VALUES (10, 152, 'Rob', '1975-08-28');
+INSERT INTO Individual (person, suffix, goesBy, birth) VALUES (10, 153, 'Trey', '2009-02-17');
