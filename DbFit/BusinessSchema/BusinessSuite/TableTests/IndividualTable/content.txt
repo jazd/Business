@@ -1,13 +1,24 @@
-Be sure inserted individuals >=10000 (templates)
 
+Duplicates are Okay as long as they are indeed different legal entities
+!|Insert|Individual|
+|goesBy|
+|Zipmeister|
+|Zipmeister|
+
+First inserted Individual id should be >= 20000
+!|Ordered Query| SELECT id FROM Individual WHERE id >= 20000 LIMIT 1|
+|id|
+|fail[NULL}|
+
+
+TODO: see if we can get cross-server parameters.  For now we know we have at
 Insert a unique Title
 !|Insert|Sentence|
 |value|
 |Ruler of the Universe|
 !|Query|SELECT id FROM Sentence WHERE value = 'Ruler of the Universe'|
 |id?|
-|>>uniqueTitle|
-
+|>>uniquePrefix|
 Insert a unique Suffix
 !|Insert|Sentence|
 |value|
@@ -16,7 +27,15 @@ Insert a unique Suffix
 |id?|
 |>>uniqueSuffix|
 
+!|Insert|Individual|
+|company|goesby|
+|1|IBM|
 
-Insert a full name
-TODO: see if we can get cross-server parameters.  For now we know we have at
-least 2 inserted sentence by now
+!|Insert|Individual|
+|person|prefix|suffix|goesBy|
+|1|1|1|Steve|
+
+Insert maximum length goesBy
+!|Insert|Individual|
+|goesBy|
+|1234567890123456789012345678901234567890|

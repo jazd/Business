@@ -89,19 +89,14 @@
 </constraints>
 </table>
 
-<comments>
-untested[TableName] are tables that should work, but are un-tested.  Use at your own risk
-unfinished[TableName] are tables that are mostly place holders or note taking.  These should not be used and are probably completely wrong.
-</comments>
-
-<table name="unfinishedIndividual" order="22">
+<table name="Individual" order="22">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
  <field name="person" data_type="integer" size="10" order="2" />
  <field name="company" data_type="integer" size="10" order="3" />
  <field name="prefix" data_type="integer" size="10" is_nullable="1" order="4" />
  <field name="suffix" data_type="integer" size="10" is_nullable="1" order="5" />
- <field name="goesby" data_type="varchar" size="40" is_nullable="1" order="6" />
+ <field name="goesBy" data_type="varchar" size="40" is_nullable="1" order="6" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="7" />
 </fields>
 <constraints>
@@ -110,6 +105,10 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 </constraints>
 </table>
 
+<comments>
+untested[TableName] are tables that should work, but are un-tested.  Use at your own risk
+unfinished[TableName] are tables that are mostly place holders or note taking.  These should not be used and are probably completely wrong.
+</comments>
 
 <table name="unfinishedEmail" order="25">
 <fields>
@@ -324,6 +323,8 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 <table name="unfinishedApplication" order="9999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="name" data_type="integer" size="10" is_nullable="1" order="2" />
+ <field name="goesBy" data_type="varchar" size="40" is_nullable="1" order="6" />
  <field name="path" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
@@ -435,7 +436,14 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 </table>
 
 </tables>
-<views></views>
+<views>
+ <view name="People" fields="fullName" order="1"><sql>
+ SELECT Person.given AS fullName
+ FROM Individual
+ JOIN Person ON Person.id = Individual.person
+ </sql>
+ </view>
+</views>
 <triggers></triggers>
 <procedures></procedures>
 </schema>
