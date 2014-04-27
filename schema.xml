@@ -122,7 +122,7 @@
 
 <table name="Individual" order="22">
 <fields>
- <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
+ <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="0" order="1" />
  <field name="person" data_type="integer" size="10" order="2" />
  <field name="company" data_type="integer" size="10" order="3" />
  <field name="prefix" data_type="integer" size="10" is_nullable="1" order="4" />
@@ -131,9 +131,13 @@
  <field name="birth" data_type="timestamp" size="0" is_nullable="1" order="7">
   <comments>Consider birth and death being event attributes with location, thus time zone information.</comments>
  </field>
- <field name="death" data_type="timestamp" size="0" is_nullable="1" order="8" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="8" />
+ <field name="nameChange" data_type="timestamp" size="0" is_nullable="1" order="8" />
+ <field name="death" data_type="timestamp" size="0" is_nullable="1" order="9" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="10" />
 </fields>
+<indices>
+ <index name="individual_id" type="NORMAL" fields="id" />
+</indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="person" reference_table="Person" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="company" reference_table="Company" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -208,7 +212,6 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 </fields>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="id" reference_table="IndividualListName" reference_fields="individualList" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
 
@@ -500,6 +503,8 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
   AND honorific.culture = 1033
  LEFT JOIN Word AS suffix ON suffix.id = Individual.suffix
   AND suffix.culture = 1033
+ WHERE Individual.nameChange IS NULL
+  OR Individual.nameChange > NOW()
  </sql>
  </view>
 </views>

@@ -8,4 +8,8 @@ INSERT INTO Person (id,family) VALUES (7,4);
 INSERT INTO Person (id,given,middle,family) VALUES (8,11,12,1);
 INSERT INTO Person (id,given,middle,family) VALUES (9,13,14,1);
 INSERT INTO Person (id,given,middle,family) VALUES (10,9,15,2);
+INSERT INTO Person (id,given,middle,family) VALUES (11,16,17,5);
+INSERT INTO Person (id,given,middle,family) VALUES (12,16,17,1);
+INSERT INTO Person (id,given,middle,family) VALUES (13,16,17,6);
+INSERT INTO Person (id,given,middle,family) VALUES (14,16,17,7);
 

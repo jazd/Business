@@ -13,4 +13,5 @@ INSERT INTO Given (id,value) VALUES (12,'Edward');
 INSERT INTO Given (id,value) VALUES (13,'Charles');
 INSERT INTO Given (id,value) VALUES (14,'Paul');
 INSERT INTO Given (id,value) VALUES (15,'Patterson');
-
+INSERT INTO Given (id,value) VALUES (16,'Candace');
+INSERT INTO Given (id,value) VALUES (17,'Lauren');
