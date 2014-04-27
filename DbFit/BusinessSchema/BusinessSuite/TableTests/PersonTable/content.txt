@@ -5,6 +5,11 @@ Multiple people can share the same name
 |given|middle|family|
 |Zippy|The|Pinhead|
 
+First inserted Person id should be >= 10000
+!|Ordered Query| SELECT id FROM Person WHERE id >= 10000 LIMIT 1|
+|id|
+|fail[NULL}|
+
 No Middle
 !|Insert|Person|
 |given|family|

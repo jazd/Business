@@ -1,0 +1,21 @@
+A Company full name
+
+!|Insert|Company|
+|name|
+|International Business Machines, Inc.|
+
+First inserted Company id should be >= 10000
+!|Ordered Query| SELECT id FROM Company WHERE id >= 10000 LIMIT 1|
+|id|
+|fail[NULL}|
+
+
+Insert maximum length name
+!|Insert|Company|
+|name|
+|12345678901234567890123456789012345678901234567890|
+
+Get the correct number of Companies, case sensitive
+!|Ordered Query|SELECT name FROM Company WHERE name = 'international business machines, inc.'|
+|name|
+

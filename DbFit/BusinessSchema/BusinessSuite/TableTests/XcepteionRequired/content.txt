@@ -66,3 +66,17 @@ Insert person name to long
 |given|middle|family|
 |1234567890123456789012345678901234567890x|1234567890123456789012345678901234567890x|1234567890123456789012345678901234567890x|
 
+!4 Company Table
+
+Insert to long length name
+!style_error(value too long for type character varying(50))
+!|Insert|Company|
+|name|
+|12345678901234567890123456789012345678901234567890x|
+
+No duplicates
+!style_error(duplicate key value violates unique constraint "company_name")
+!|Insert|Company|
+|name|
+|Zyppy's house of pancakes|
+|Zyppy's house of pancakes|

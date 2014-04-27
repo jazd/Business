@@ -6,3 +6,5 @@ CREATE UNIQUE INDEX word_value ON word(culture,upper(value));
 -- This leaves room for global constants that are guaranteed to exist
 ALTER SEQUENCE word_id_seq RESTART WITH 10000;
 ALTER SEQUENCE sentence_id_seq RESTART WITH 10000;
+ALTER SEQUENCE person_id_seq RESTART WITH 10000;
+ALTER SEQUENCE company_id_seq RESTART WITH 10000;

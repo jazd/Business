@@ -77,19 +77,23 @@
 </constraints>
 </table>
 
+<table name="Company" order="21">
+<fields>
+ <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="name" data_type="varchar" size="50" is_nullable="1" order="2" />
+</fields>
+<indices>
+ <index name="company_name" type="UNIQUE" fields="name" />
+</indices>
+<constraints>
+</constraints>
+</table>
+
 <comments>
 untested[TableName] are tables that should work, but are un-tested.  Use at your own risk
 unfinished[TableName] are tables that are mostly place holders or note taking.  These should not be used and are probably completely wrong.
 </comments>
 
-<table name="untestedCompany" order="21">
-<fields>
- <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="name" data_type="varchar" size="40" is_nullable="1" order="2" />
-</fields>
-<constraints>
-</constraints>
-</table>
 <table name="unfinishedIndividual" order="22">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
