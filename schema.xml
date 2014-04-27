@@ -97,7 +97,9 @@
  <field name="prefix" data_type="integer" size="10" is_nullable="1" order="4" />
  <field name="suffix" data_type="integer" size="10" is_nullable="1" order="5" />
  <field name="goesBy" data_type="varchar" size="40" is_nullable="1" order="6" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="7" />
+ <field name="birth" data_type="timestamp" size="0" is_nullable="1" order="7" />
+ <field name="death" data_type="timestamp" size="0" is_nullable="1" order="8" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="8" />
 </fields>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="person" reference_table="Person" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -437,8 +439,16 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 
 </tables>
 <views>
- <view name="People" fields="fullName" order="1"><sql>
- SELECT Person.given AS fullName
+ <comments>SQLFairy does not handle XML escape codes.  So need to convert post process.</comments>
+ <view name="People" fields="individual,person,goesBy,fullName,given,middle,family,birth,death,created" order="1">
+ <sql>
+ SELECT Individual.id AS individual, Person.id AS person,
+  COALESCE(goesBy,given) AS goesBy,
+  given || !apos; !apos; ||
+  COALESCE(middle || !apos; !apos;,!apos;!apos;) ||
+  family AS fullName,
+  given, middle, family,
+  birth, death, created
  FROM Individual
  JOIN Person ON Person.id = Individual.person
  </sql>

@@ -32,8 +32,8 @@ Insert a unique Suffix
 |1|IBM|
 
 !|Insert|Individual|
-|person|prefix|suffix|goesBy|
-|1|1|1|Steve|
+|person|prefix|suffix|goesBy|birth|death|
+|1|1|1|Steve|1963-11-22|2103-11-23|
 
 Insert maximum length goesBy
 !|Insert|Individual|
