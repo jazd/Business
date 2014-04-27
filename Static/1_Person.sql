@@ -6,6 +6,6 @@ INSERT INTO Person (id,given,middle,family) VALUES (5,7,8,1);
 INSERT INTO Person (id,given,middle,family) VALUES (6,9,10,3);
 INSERT INTO Person (id,family) VALUES (7,4);
 INSERT INTO Person (id,given,middle,family) VALUES (8,11,12,1);
-INSERT INTO Person (id,given,middle,family) VALUES (9,12,14,1);
+INSERT INTO Person (id,given,middle,family) VALUES (9,13,14,1);
 INSERT INTO Person (id,given,middle,family) VALUES (10,9,15,2);
 
