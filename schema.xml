@@ -477,8 +477,8 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <sql>
  SELECT Individual.id AS individual, Person.id AS person,
   COALESCE(goesBy,Given.value,Family.value) AS goesBy,
-  birthday(CAST(birth AS date)) AS birthday,
-  days_until_birthday(CAST(birth AS date)) AS in_days,
+  birthday(CAST(birth AS date),CAST(NOW() AS date)) AS birthday,
+  days_until_birthday(CAST(birth AS date), CAST(NOW() AS date)) AS in_days,
   COALESCE(honorific.value || !apos; !apos;,!apos;!apos;) ||
    COALESCE(Given.value || !apos; !apos;,!apos;!apos;) ||
    COALESCE(middle.value || !apos; !apos;,!apos;!apos;) ||
