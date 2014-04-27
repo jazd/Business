@@ -3,7 +3,7 @@ Multiple people can share the same name
 
 !|Insert|Person|
 |given|middle|family|
-|Zippy|The|Pinhead|
+|1|2|3|
 
 First inserted Person id should be >= 10000
 !|Ordered Query| SELECT id FROM Person WHERE id >= 10000 LIMIT 1|
@@ -13,42 +13,27 @@ First inserted Person id should be >= 10000
 No Middle
 !|Insert|Person|
 |given|family|
-|Zippy|Pinhead|
+|1|2|
 
 Just First
 !|Insert|Person|
 |given|
-|Zippy|
+|1|
 
 Just Last
 !|Insert|Person|
 |family|
-|Pinhead|
+|3|
 
-Insert maximum length name
-!|Insert|Person|
-|given|middle|family|
-|1234567890123456789012345678901234567890|1234567890123456789012345678901234567890|1234567890123456789012345678901234567890|
-
-Get the correct number of PinHeads, case sensitive
-!|Ordered Query|SELECT family FROM Person WHERE family = 'PinHead'|
+Get the correct number family
+!|Ordered Query|SELECT family FROM Person WHERE id >= 10000 AND family = 3|
 |family|
+|3|
+|3|
 
-Get the correct number of Pinheads
-!|Ordered Query|SELECT family FROM Person WHERE family = 'Pinhead'|
-|family|
-|Pinhead|
-|Pinhead|
-|Pinhead|
-
-Get the correct number of Zippies, case sensitive
-!|Ordered Query|SELECT given FROM Person WHERE given = 'ZIPPY'|
+Get the correct number of first names
+!|Ordered Query|SELECT given FROM Person WHERE id >= 10000 AND given = 1|
 |given|
-
-Get the correct number of Zippies
-!|Ordered Query|SELECT given FROM Person WHERE given = 'Zippy'|
-|given|
-|Zippy|
-|Zippy|
-|Zippy|
-
+|1|
+|1|
+|1|
