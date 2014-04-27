@@ -473,10 +473,12 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 </tables>
 <views>
  <comments>SQLFairy does not handle XML escape codes.  So need to convert post process.</comments>
- <view name="People" fields="individual,person,goesBy,fullName,honorific,given,middle,family,suffix,birth,death,aged,created" order="1">
+ <view name="People" fields="individual,person,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,birth,death,aged,created" order="1">
  <sql>
  SELECT Individual.id AS individual, Person.id AS person,
   COALESCE(goesBy,Given.value,Family.value) AS goesBy,
+  birthday(CAST(birth AS date)) AS birthday,
+  days_until_birthday(CAST(birth AS date)) AS in_days,
   COALESCE(honorific.value || !apos; !apos;,!apos;!apos;) ||
    COALESCE(Given.value || !apos; !apos;,!apos;!apos;) ||
    COALESCE(middle.value || !apos; !apos;,!apos;!apos;) ||
