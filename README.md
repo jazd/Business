@@ -17,3 +17,6 @@ TODO: List
 * Linking tables almost always consist of the names of the tables that are linked
 * Queries read well
 * No schema rules carried out outside of the database server
+
+The original idea for this schema comes from my gilr Origins/peopleSchema.sql,
+a schema I created back in 2002.  Back then I was using the RCS source control system.
