@@ -97,7 +97,9 @@
  <field name="prefix" data_type="integer" size="10" is_nullable="1" order="4" />
  <field name="suffix" data_type="integer" size="10" is_nullable="1" order="5" />
  <field name="goesBy" data_type="varchar" size="40" is_nullable="1" order="6" />
- <field name="birth" data_type="timestamp" size="0" is_nullable="1" order="7" />
+ <field name="birth" data_type="timestamp" size="0" is_nullable="1" order="7">
+  <comments>Consider birth and death being event attributes with location, thus time zone information.</comments>
+ </field>
  <field name="death" data_type="timestamp" size="0" is_nullable="1" order="8" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="8" />
 </fields>
