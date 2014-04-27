@@ -63,17 +63,48 @@
 <comments></comments>
 </table>
 
+<table name="Given" order="18">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="value" data_type="varchar" size="20" is_nullable="0" order="3" />
+</fields>
+<indices>
+ <index name="given_value" type="UNIQUE" fields="value" />
+</indices>
+<constraints>
+ <constraint name="" type="NOT NULL" fields="value" reference_table="" reference_fields="" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+<comments></comments>
+</table>
+
+<table name="Family" order="19">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="value" data_type="varchar" size="20" is_nullable="0" order="3" />
+</fields>
+<indices>
+ <index name="family_value" type="UNIQUE" fields="value" />
+</indices>
+<constraints>
+ <constraint name="" type="NOT NULL" fields="value" reference_table="" reference_fields="" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+<comments></comments>
+</table>
+
 <table name="Person" order="20">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="given" data_type="varchar" size="40" is_nullable="1" order="3" />
- <field name="middle" data_type="varchar" size="40" is_nullable="1" order="4" />
- <field name="family" data_type="varchar" size="40" is_nullable="1" order="5" />
+ <field name="given" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" order="3" />
+ <field name="middle" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" order="4" />
+ <field name="family" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" order="5" />
 </fields>
 <indices>
  <index name="person_given_middle_family" type="UNIQUE" fields="given,middle,family" />
 </indices>
 <constraints>
+ <constraint name="" type="FOREIGN KEY" fields="given" reference_table="Given" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="middle" reference_table="Given" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="family" reference_table="Family" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
@@ -445,19 +476,24 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <view name="People" fields="individual,person,goesBy,fullName,honorific,given,middle,family,suffix,birth,death,aged,created" order="1">
  <sql>
  SELECT Individual.id AS individual, Person.id AS person,
-  COALESCE(goesBy,given,family) AS goesBy,
+  COALESCE(goesBy,Given.value,Family.value) AS goesBy,
   COALESCE(honorific.value || !apos; !apos;,!apos;!apos;) ||
-   COALESCE(given || !apos; !apos;,!apos;!apos;) ||
-   COALESCE(middle || !apos; !apos;,!apos;!apos;) ||
-   COALESCE(family || !apos; !apos;,!apos;!apos;) ||
+   COALESCE(Given.value || !apos; !apos;,!apos;!apos;) ||
+   COALESCE(middle.value || !apos; !apos;,!apos;!apos;) ||
+   COALESCE(Family.value || !apos; !apos;,!apos;!apos;) ||
    COALESCE(suffix.value || !apos; !apos;,!apos;!apos;)
    AS fullName,
-  honorific.value AS honorific, given, middle, family, suffix.value AS suffix,
+  honorific.value AS honorific,
+  Given.value AS given, middle.value AS middle, Family.value AS family,
+  suffix.value AS suffix,
   birth, death,
   COALESCE(age(death,birth),age(birth)) AS aged,
   Individual.created
  FROM Individual
  JOIN Person ON Person.id = Individual.person
+ LEFT JOIN Given ON Given.id = Person.given
+ LEFT JOIN Given AS middle ON middle.id = Person.middle
+ LEFT JOIN Family ON Family.id = Person.family
  LEFT JOIN Word AS honorific ON honorific.id = Individual.prefix
   AND honorific.culture = 1033
  LEFT JOIN Word AS suffix ON suffix.id = Individual.suffix
