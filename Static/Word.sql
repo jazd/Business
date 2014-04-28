@@ -22,3 +22,6 @@ INSERT INTO Word (id,culture,value) VALUES (153,1033,'III');
 INSERT INTO Word (id,culture,value) VALUES (154,1033,'IV');
 INSERT INTO Word (id,culture,value) VALUES (155,1033,'V');
 INSERT INTO Word (id,culture,value) VALUES (156,1033,'VI');
+INSERT INTO Word (id,culture,value) VALUES (200,1033,'Born');
+INSERT INTO Word (id,culture,value) VALUES (201,1033,'Died');
+INSERT INTO Word (id,culture,value) VALUES (202,1033,'Changed name');

@@ -16,7 +16,7 @@ db2: schema.db2
 
 schema.pgsql: schema.xml
 	@echo Creating PostgreSQL file $@
-	sqlt -f XML-SQLFairy -t PostgreSQL --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" > $@
+	sqlt -f XML-SQLFairy -t PostgreSQL --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g"> $@
 
 schema.mysql: schema.xml
 	@echo Creating MySQL file $@

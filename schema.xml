@@ -137,6 +137,8 @@
 </fields>
 <indices>
  <index name="individual_id" type="NORMAL" fields="id" />
+ <index name="individual_id_person_goesBy" type="NORMAL" fields="id,person,goesBy" />
+ <index name="individual_id_company_goesBy" type="NORMAL" fields="id,company,goesBy" />
 </indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="person" reference_table="Person" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -476,35 +478,134 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 </tables>
 <views>
  <comments>SQLFairy does not handle XML escape codes.  So need to convert post process.</comments>
- <view name="People" fields="individual,person,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,birth,death,aged,created" order="1">
+ <view name="People" fields="individual,person,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,birth,death,aged,created" order="1">
  <sql>
- SELECT Individual.id AS individual, Person.id AS person,
-  COALESCE(goesBy,Given.value,Family.value) AS goesBy,
-  birthday(CAST(birth AS date),CAST(NOW() AS date)) AS birthday,
-  days_until_birthday(CAST(birth AS date), CAST(NOW() AS date)) AS in_days,
-  COALESCE(honorific.value || !apos; !apos;,!apos;!apos;) ||
-   COALESCE(Given.value || !apos; !apos;,!apos;!apos;) ||
-   COALESCE(middle.value || !apos; !apos;,!apos;!apos;) ||
-   COALESCE(Family.value || !apos; !apos;,!apos;!apos;) ||
-   COALESCE(suffix.value || !apos; !apos;,!apos;!apos;)
-   AS fullName,
-  honorific.value AS honorific,
-  Given.value AS given, middle.value AS middle, Family.value AS family,
-  suffix.value AS suffix,
-  birth, death,
-  COALESCE(age(death,birth),age(birth)) AS aged,
-  Individual.created
- FROM Individual
- JOIN Person ON Person.id = Individual.person
- LEFT JOIN Given ON Given.id = Person.given
+SELECT Individual.id AS individual, Person.id AS person,
+ COALESCE(goesBy,Given.value,Family.value) AS goesBy,
+ birthday(CAST(birth AS date),CAST(NOW() AS date)) AS birthday,
+ days_until_birthday(CAST(birth AS date), CAST(NOW() AS date)) AS in_days,
+ COALESCE(honorific.value || !apos; !apos;,!apos;!apos;) ||
+  COALESCE(Given.value || !apos; !apos;,!apos;!apos;) ||
+  COALESCE(middle.value || !apos; !apos;,!apos;!apos;) ||
+  COALESCE(Family.value || !apos; !apos;,!apos;!apos;) ||
+  COALESCE(suffix.value || !apos; !apos;,!apos;!apos;)
+  AS fullName,
+ Individual.prefix AS honorific,
+ Person.given, Person.middle, Person.family,
+ Individual.suffix,
+ honorific.value AS honorificValue,
+ Given.value AS GivenValue, middle.value AS middleValue, Family.value AS FamilyValue,
+ suffix.value AS suffixValue,
+ birth, death,
+ COALESCE(age(death,birth),age(birth)) AS aged,
+ Individual.created
+FROM Individual
+JOIN Person ON Person.id = Individual.person
+LEFT JOIN Given ON Given.id = Person.given
+LEFT JOIN Given AS middle ON middle.id = Person.middle
+LEFT JOIN Family ON Family.id = Person.family
+LEFT JOIN Word AS honorific ON honorific.id = Individual.prefix
+ AND honorific.culture = 1033
+LEFT JOIN Word AS suffix ON suffix.id = Individual.suffix
+ AND suffix.culture = 1033
+WHERE Individual.nameChange IS NULL
+ OR Individual.nameChange > NOW()
+ </sql>
+ </view>
+
+ <view name="IndividualPersonEvent" fields="individual,person,honorific,suffix,goesby,birth,death,event" order="2">
+ <comments>
+  Convert individual table transactions into individual person life events.
+  Primarily as an input to the PeopleEvent view.
+ </comments>
+ <sql>
+SELECT DISTINCT Individual.id AS individual,
+ Individual.person,
+ COALESCE(future.prefix, Individual.prefix) AS honorific,
+ COALESCE(future.suffix, Individual.suffix) AS suffix,
+ COALESCE(future.goesBy, Individual.goesBy) AS goesBy,
+ Individual.birth,
+ Individual.death,
+ CASE WHEN previous.id IS NULL THEN
+  -- Check for single event
+  CASE WHEN future.id IS NULL THEN
+   COALESCE(Individual.death,Individual.nameChange,Individual.birth)
+  ELSE
+   -- Check for individual attribute change only
+   CASE WHEN (future.goesBy != Individual.goesBy)
+     OR (future.goesBY IS NOT NULL AND Individual.goesBy IS NULL)
+     OR (future.goesBY IS NULL AND Individual.goesBy IS NOT NULL)
+     OR (future.prefix != Individual.prefix)
+     OR (future.goesBY IS NOT NULL AND Individual.prefix IS NULL)
+     OR (future.goesBY IS NULL AND Individual.prefix IS NOT NULL)
+     OR (future.suffix != Individual.suffix)
+     OR (future.goesBY IS NOT NULL AND Individual.suffix IS NULL)
+     OR (future.goesBY IS NULL AND Individual.suffix IS NOT NULL)
+   THEN
+    -- individual attriute change only
+    Individual.nameChange
+   ELSE
+    Individual.birth
+   END
+  END
+ ELSE
+  CASE WHEN future.id IS NULL THEN
+   COALESCE(Individual.death,previous.nameChange,Individual.nameChange,Individual.birth)
+  ELSE
+   Individual.nameChange
+  END
+ END AS event
+FROM Individual
+CROSS JOIN Person
+LEFT JOIN Individual AS previous ON previous.id = Individual.id
+ AND (
+  (COALESCE(previous.nameChange,previous.death) !lt; COALESCE(Individual.nameChange,Individual.death))
+  OR
+  (Individual.death IS NULL AND Individual.nameChange IS NULL
+   AND previous.nameChange IS NOT NULL)
+ )
+LEFT JOIN Individual AS future ON future.id = Individual.id
+ AND COALESCE(future.nameChange,future.birth) !gt;= COALESCE(Individual.nameChange,Individual.death)
+ AND future.death IS NULL
+WHERE Person.id = Individual.person
+ </sql>
+ </view>
+
+ <view name="PeopleEvent" fields="individual,person,goesby,fullname,date,event,eventname,honorific,given,middle,family,suffix,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue" order="3">
+ <sql>
+SELECT IndividualPersonEvent.individual, IndividualPersonEvent.person,
+ COALESCE(IndividualPersonEvent.goesBy,Given.value,Family.value) AS goesBy,
+ COALESCE(honorific.value || !apos; !apos;,!apos;!apos;) ||
+  COALESCE(Given.value || !apos; !apos;,!apos;!apos;) ||
+  COALESCE(middle.value || !apos; !apos;,!apos;!apos;) ||
+  COALESCE(Family.value || !apos; !apos;,!apos;!apos;) ||
+  COALESCE(suffix.value || !apos; !apos;,!apos;!apos;)
+  AS fullName,
+ event AS date,
+ COALESCE(born.id, death.id, change.id) AS event,
+ COALESCE(born.value, death.value, change.value) AS eventName,
+ IndividualPersonEvent.honorific,
+ Person.given,
+ Person.middle,
+ Person.family,
+ IndividualPersonEvent.suffix,
+ honorific.value AS honorificValue,
+ Given.value AS GivenValue,
+ middle.value AS middleValue,
+ Family.value AS FamilyValue,
+ suffix.value AS suffixValue
+FROM IndividualPersonEvent
+ JOIN Person ON Person.id = IndividualPersonEvent.person
+ LEFT JOIN Given On Given.id = Person.given
  LEFT JOIN Given AS middle ON middle.id = Person.middle
  LEFT JOIN Family ON Family.id = Person.family
- LEFT JOIN Word AS honorific ON honorific.id = Individual.prefix
+ LEFT JOIN Word AS honorific ON honorific.id = IndividualPersonEvent.honorific
   AND honorific.culture = 1033
- LEFT JOIN Word AS suffix ON suffix.id = Individual.suffix
+ LEFT JOIN Word AS suffix ON suffix.id = IndividualPersonEvent.suffix
   AND suffix.culture = 1033
- WHERE Individual.nameChange IS NULL
-  OR Individual.nameChange > NOW()
+ LEFT JOIN Word AS born ON born.value = !apos;Born!apos; AND born.culture = 1033 AND birth = event
+ LEFT JOIN Word AS death ON death.value = !apos;Died!apos; AND death.culture  = 1033 AND death = event
+ LEFT JOIN Word AS change ON change.value = !apos;Changed name!apos; AND change.culture  = 1033
  </sql>
  </view>
 </views>
