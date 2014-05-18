@@ -47,24 +47,67 @@ Do not insert if no references culture exists
 !4 Person Table
 
 Don't allow duplicates
-!style_error(THIS MUST BE AN EXCEPTION)
-!|Insert|Person|
-|family|
-|Pinhead|
-|Pinhead|
-
-Don't allow duplicates
 !style_error(duplicate key value violates unique constraint "person_given_middle_family)
 !|Insert|Person|
 |given|middle|family|
-|Zippy|The|Pinhead|
-|Zippy|The|Pinhead|
+|1|14|1|
+|1|14|1|
 
-Insert person name to long
-!style_error(value too long for type character varying(40))
+Don't allow duplicates 1 NULL
+!style_error(THIS MUST BE AN EXCEPTION)
 !|Insert|Person|
-|given|middle|family|
-|1234567890123456789012345678901234567890x|1234567890123456789012345678901234567890x|1234567890123456789012345678901234567890x|
+|given|middle|
+|1|1|
+|1|1|
+
+!style_error(THIS MUST BE AN EXCEPTION)
+!|Insert|Person|
+|given|family|
+|1|1|
+|1|1|
+
+!style_error(THIS MUST BE AN EXCEPTION)
+!|Insert|Person|
+|middle|given|
+|1|1|
+|1|1|
+
+!style_error(THIS MUST BE AN EXCEPTION)
+!|Insert|Person|
+|middle|family|
+|1|1|
+|1|1|
+
+!style_error(THIS MUST BE AN EXCEPTION)
+!|Insert|Person|
+|family|given|
+|1|1|
+|1|1|
+
+!style_error(THIS MUST BE AN EXCEPTION)
+!|Insert|Person|
+|family|middle|
+|1|1|
+|1|1|
+
+Don't allow duplicates 2 NULLs
+!style_error(THIS MUST BE AN EXCEPTION)
+!|Insert|Person|
+|family|
+|1|
+|1|
+
+!style_error(THIS MUST BE AN EXCEPTION)
+!|Insert|Person|
+|middle|
+|1|
+|1|
+
+!style_error(THIS MUST BE AN EXCEPTION)
+!|Insert|Person|
+|given|
+|1|
+|1|
 
 !4 Company Table
 
