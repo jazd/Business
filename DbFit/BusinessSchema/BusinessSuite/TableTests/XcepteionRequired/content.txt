@@ -54,56 +54,38 @@ Don't allow duplicates
 |1|14|1|
 
 Don't allow duplicates 1 NULL
-!style_error(THIS MUST BE AN EXCEPTION)
+!style_error(duplicate key value violates unique constraint "person_given_middle_null")
 !|Insert|Person|
 |given|middle|
 |1|1|
 |1|1|
 
-!style_error(THIS MUST BE AN EXCEPTION)
+!style_error(duplicate key value violates unique constraint "person_given_null_family")
 !|Insert|Person|
 |given|family|
 |1|1|
 |1|1|
 
-!style_error(THIS MUST BE AN EXCEPTION)
-!|Insert|Person|
-|middle|given|
-|1|1|
-|1|1|
-
-!style_error(THIS MUST BE AN EXCEPTION)
+!style_error(duplicate key value violates unique constraint "person_null_middle_family")
 !|Insert|Person|
 |middle|family|
 |1|1|
 |1|1|
 
-!style_error(THIS MUST BE AN EXCEPTION)
-!|Insert|Person|
-|family|given|
-|1|1|
-|1|1|
-
-!style_error(THIS MUST BE AN EXCEPTION)
-!|Insert|Person|
-|family|middle|
-|1|1|
-|1|1|
-
 Don't allow duplicates 2 NULLs
-!style_error(THIS MUST BE AN EXCEPTION)
+!style_error(duplicate key value violates unique constraint "person_null_null_family")
 !|Insert|Person|
 |family|
 |1|
 |1|
 
-!style_error(THIS MUST BE AN EXCEPTION)
+!style_error(duplicate key value violates unique constraint "person_null_middle_null")
 !|Insert|Person|
 |middle|
 |1|
 |1|
 
-!style_error(THIS MUST BE AN EXCEPTION)
+!style_error(duplicate key value violates unique constraint "person_given_null_null")
 !|Insert|Person|
 |given|
 |1|
