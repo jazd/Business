@@ -36,4 +36,5 @@ clean:
 
 pgsqldb: schema.pgsql
 	@echo Creating new PostgreSQL database with $@
+	@echo Ignore: ERROR:  view \"*\" does not exist
 	cat PostgreSQL/pre.sql schema.pgsql Static/*.sql PostgreSQL/post.sql | psql -h localhost -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true

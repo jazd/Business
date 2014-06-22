@@ -217,7 +217,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="id" reference_table="IndividualListName" reference_fields="individualList" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="id" reference_table="untestedIndividualListName" reference_fields="individualList" deferrable="1" />
 </constraints>
 </table>
 
