@@ -292,16 +292,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="country" data_type="integer" size="10" is_nullable="1" order="3" />
 </fields>
 </table>
-<table name="unfinishedPastIndividualName" order="9999">
-<comments>individual name/edit history</comments>
-<fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="person" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="company" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="changedBy" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-</table>
+
 <table name="unfinishedIndividualAttribute" order="9999">
 <fields>
  <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
@@ -438,7 +429,6 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
  <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="person" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="username" data_type="varchar" size="20" is_nullable="1" order="3" />
  <field name="email" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="password" data_type="integer" size="10" is_nullable="1" order="3" />
