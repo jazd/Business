@@ -23,10 +23,15 @@ MyCo=# ALTER USER test SET search_path TO Business;
 
 
 symbolic link Business/DbFit/BusinessSchema to <dbfit install directory>/dbfit/FitNesseRoot
+cd <dbfit install directory>
+./startFitnesse.sh
 
 http://localhost:8085/BusinessSchema
 Top of a test page
 !path lib/*.jar
 !|dbfit.PostgresTest|
 !|Connect|localhost|test|dbfit|MyCo|
+
+For PostgreSQL tests
+http://localhost:8085/BusinessSchema.PostgreSqlSuite?suite
 

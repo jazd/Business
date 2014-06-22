@@ -122,7 +122,9 @@
 
 <table name="Individual" order="22">
 <fields>
- <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="0" order="1" />
+ <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="0" order="1">
+  <comments>One or more entries for specific individuals.  Records WHERE nameChange IS NULL are the current records for any specific individual id.</comments>
+ </field>
  <field name="person" data_type="integer" size="10" order="2" />
  <field name="company" data_type="integer" size="10" order="3" />
  <field name="prefix" data_type="integer" size="10" is_nullable="1" order="4" />
@@ -143,6 +145,8 @@
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="person" reference_table="Person" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="company" reference_table="Company" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="prefix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="suffix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
