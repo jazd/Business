@@ -12,6 +12,7 @@
  <index name="culture_code" type="UNIQUE" fields="code" />
 </indices>
 </table>
+
 <table name="Word" order="2">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
@@ -27,6 +28,7 @@
 </constraints>
 <comments></comments>
 </table>
+
 <table name="Sentence" order="3">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
@@ -46,6 +48,7 @@
 </constraints>
 <comments></comments>
 </table>
+
 <table name="untestedParagraph" order="4">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
@@ -201,6 +204,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 <constraints>
 </constraints>
 </table>
+
 <table name="untestedAttribute" order="999">
 <comments>Try for non-duplicated name value pares</comments>
 <fields>
@@ -209,6 +213,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="value" data_type="integer" size="10" is_nullable="1" order="3" />
 </fields>
 </table>
+
 <table name="untestedIndividualList" order="31">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="1" order="1" />
@@ -230,6 +235,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="timezone" data_type="varchar" size="30" is_nullable="1" order="3" />
 </fields>
 </table>
+
 <table name="unfinishedLocation" order="9999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
@@ -242,6 +248,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="area" data_type="integer" size="10" is_nullable="1" order="3" />
 </fields>
 </table>
+
 <table name="unfinishedCountry" order="9999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
@@ -251,6 +258,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
 </fields>
 </table>
+
 <table name="unfinishedPostal" order="9999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
@@ -265,6 +273,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
 </fields>
 </table>
+
 <table name="unfinishedAddress" order="9999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
@@ -278,6 +287,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
+
 <table name="unfinishedAddressAttribute" order="9999">
 <comments>usps address fields for example.  address line source fields.</comments>
 <fields>
@@ -285,6 +295,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="attribute" data_type="integer" size="10" is_nullable="1" order="3" />
 </fields>
 </table>
+
 <table name="unfinishedPhone" order="9999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
@@ -299,6 +310,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="attribute" data_type="integer" size="10" is_nullable="1" order="3" />
 </fields>
 </table>
+
 <table name="unfinishedIndividualProperty" order="9999">
 <fields>
  <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
@@ -317,6 +329,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
+
 <table name="unfinishedIndividualAddress" order="9999">
 <fields>
  <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
@@ -328,6 +341,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
+
 <table name="unfinishedIndividualPath" order="9999">
 <comments>Web Site, Social page, feed etc.</comments>
 <fields>
