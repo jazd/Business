@@ -5,7 +5,7 @@ mkdir -p diagrams
 
 ARGS="--gutter=50 --db=XML"
 
-INDIVIDUAL="Given Family Person Individual Company Word"
+INDIVIDUAL="Given Family Name Individual Company Word"
 
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
