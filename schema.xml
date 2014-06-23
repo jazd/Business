@@ -94,7 +94,7 @@
 <comments></comments>
 </table>
 
-<table name="Person" order="20">
+<table name="Name" order="20">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="given" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" order="3" />
@@ -102,7 +102,7 @@
  <field name="family" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" order="5" />
 </fields>
 <indices>
- <index name="person_given_middle_family" type="UNIQUE" fields="given,middle,family" />
+ <index name="name_given_middle_family" type="UNIQUE" fields="given,middle,family" />
 </indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="given" reference_table="Given" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -128,7 +128,7 @@
  <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="0" order="1">
   <comments>One or more entries for specific individuals.  Records WHERE nameChange IS NULL are the current records for any specific individual id.</comments>
  </field>
- <field name="person" data_type="integer" size="10" order="2" />
+ <field name="name" data_type="integer" size="10" order="2" />
  <field name="company" data_type="integer" size="10" order="3" />
  <field name="prefix" data_type="integer" size="10" is_nullable="1" order="4" />
  <field name="suffix" data_type="integer" size="10" is_nullable="1" order="5" />
@@ -142,11 +142,11 @@
 </fields>
 <indices>
  <index name="individual_id" type="NORMAL" fields="id" />
- <index name="individual_id_person_goesBy" type="NORMAL" fields="id,person,goesBy" />
+ <index name="individual_id_name_goesBy" type="NORMAL" fields="id,name,goesBy" />
  <index name="individual_id_company_goesBy" type="NORMAL" fields="id,company,goesBy" />
 </indices>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="person" reference_table="Person" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="name" reference_table="Name" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="company" reference_table="Company" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="prefix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="suffix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
@@ -486,9 +486,9 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 </tables>
 <views>
  <comments>SQLFairy does not handle XML escape codes.  So need to convert post process.</comments>
- <view name="People" fields="individual,person,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,birth,death,aged,created" order="1">
+ <view name="People" fields="individual,name,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,birth,death,aged,created" order="1">
  <sql>
-SELECT Individual.id AS individual, Person.id AS person,
+SELECT Individual.id AS individual, Name.id AS name,
  COALESCE(goesBy,Given.value,Family.value) AS goesBy,
  birthday(CAST(birth AS date),CAST(NOW() AS date)) AS birthday,
  days_until_birthday(CAST(birth AS date), CAST(NOW() AS date)) AS in_days,
@@ -499,7 +499,7 @@ SELECT Individual.id AS individual, Person.id AS person,
   COALESCE(suffix.value || !apos; !apos;,!apos;!apos;)
   AS fullName,
  Individual.prefix AS honorific,
- Person.given, Person.middle, Person.family,
+ Name.given, Name.middle, Name.family,
  Individual.suffix,
  honorific.value AS honorificValue,
  Given.value AS GivenValue, middle.value AS middleValue, Family.value AS FamilyValue,
@@ -508,10 +508,10 @@ SELECT Individual.id AS individual, Person.id AS person,
  COALESCE(age(death,birth),age(birth)) AS aged,
  Individual.created
 FROM Individual
-JOIN Person ON Person.id = Individual.person
-LEFT JOIN Given ON Given.id = Person.given
-LEFT JOIN Given AS middle ON middle.id = Person.middle
-LEFT JOIN Family ON Family.id = Person.family
+JOIN Name ON Name.id = Individual.name
+LEFT JOIN Given ON Given.id = Name.given
+LEFT JOIN Given AS middle ON middle.id = Name.middle
+LEFT JOIN Family ON Family.id = Name.family
 LEFT JOIN Word AS honorific ON honorific.id = Individual.prefix
  AND honorific.culture = 1033
 LEFT JOIN Word AS suffix ON suffix.id = Individual.suffix
@@ -521,14 +521,14 @@ WHERE Individual.nameChange IS NULL
  </sql>
  </view>
 
- <view name="IndividualPersonEvent" fields="individual,person,honorific,suffix,goesby,birth,death,event" order="2">
+ <view name="IndividualPersonEvent" fields="individual,name,honorific,suffix,goesby,birth,death,event" order="2">
  <comments>
   Convert individual table transactions into individual person life events.
   Primarily as an input to the PeopleEvent view.
  </comments>
  <sql>
 SELECT DISTINCT Individual.id AS individual,
- Individual.person,
+ Individual.name,
  COALESCE(future.prefix, Individual.prefix) AS honorific,
  COALESCE(future.suffix, Individual.suffix) AS suffix,
  COALESCE(future.goesBy, Individual.goesBy) AS goesBy,
@@ -564,7 +564,7 @@ SELECT DISTINCT Individual.id AS individual,
   END
  END AS event
 FROM Individual
-CROSS JOIN Person
+CROSS JOIN Name
 LEFT JOIN Individual AS previous ON previous.id = Individual.id
  AND (
   (COALESCE(previous.nameChange,previous.death) !lt; COALESCE(Individual.nameChange,Individual.death))
@@ -575,13 +575,13 @@ LEFT JOIN Individual AS previous ON previous.id = Individual.id
 LEFT JOIN Individual AS future ON future.id = Individual.id
  AND COALESCE(future.nameChange,future.birth) !gt;= COALESCE(Individual.nameChange,Individual.death)
  AND future.death IS NULL
-WHERE Person.id = Individual.person
+WHERE Name.id = Individual.name
  </sql>
  </view>
 
- <view name="PeopleEvent" fields="individual,person,goesby,fullname,date,event,eventname,honorific,given,middle,family,suffix,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue" order="3">
+ <view name="PeopleEvent" fields="individual,name,goesby,fullname,date,event,eventname,honorific,given,middle,family,suffix,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue" order="3">
  <sql>
-SELECT IndividualPersonEvent.individual, IndividualPersonEvent.person,
+SELECT IndividualPersonEvent.individual, IndividualPersonEvent.name,
  COALESCE(IndividualPersonEvent.goesBy,Given.value,Family.value) AS goesBy,
  COALESCE(honorific.value || !apos; !apos;,!apos;!apos;) ||
   COALESCE(Given.value || !apos; !apos;,!apos;!apos;) ||
@@ -593,9 +593,9 @@ SELECT IndividualPersonEvent.individual, IndividualPersonEvent.person,
  COALESCE(born.id, death.id, change.id) AS event,
  COALESCE(born.value, death.value, change.value) AS eventName,
  IndividualPersonEvent.honorific,
- Person.given,
- Person.middle,
- Person.family,
+ Name.given,
+ Name.middle,
+ Name.family,
  IndividualPersonEvent.suffix,
  honorific.value AS honorificValue,
  Given.value AS GivenValue,
@@ -603,10 +603,10 @@ SELECT IndividualPersonEvent.individual, IndividualPersonEvent.person,
  Family.value AS FamilyValue,
  suffix.value AS suffixValue
 FROM IndividualPersonEvent
- JOIN Person ON Person.id = IndividualPersonEvent.person
- LEFT JOIN Given On Given.id = Person.given
- LEFT JOIN Given AS middle ON middle.id = Person.middle
- LEFT JOIN Family ON Family.id = Person.family
+ JOIN Name ON Name.id = IndividualPersonEvent.name
+ LEFT JOIN Given On Given.id = Name.given
+ LEFT JOIN Given AS middle ON middle.id = Name.middle
+ LEFT JOIN Family ON Family.id = Name.family
  LEFT JOIN Word AS honorific ON honorific.id = IndividualPersonEvent.honorific
   AND honorific.culture = 1033
  LEFT JOIN Word AS suffix ON suffix.id = IndividualPersonEvent.suffix
