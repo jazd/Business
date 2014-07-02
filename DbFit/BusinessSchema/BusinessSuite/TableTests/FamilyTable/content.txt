@@ -1,0 +1,25 @@
+Family portion of a Person's name.
+
+First inserted should be >= 10000
+!|Insert|Family|
+|value|
+|Zippy|
+
+First inserted word id should be >= 10000
+!|Ordered Query| SELECT id FROM Family WHERE id >= 10000 LIMIT 1|
+|id|
+|fail[NULL}|
+
+Entries are case sensitive.
+!|Insert|Family|
+|value|
+|McVille|
+|Mcville|
+
+Longest Family
+!|Insert|Family|
+|value|
+|12345678901234567890|
+!|Ordered Query| SELECT id FROM Family WHERE value = '12345678901234567890'|
+|id|
+|fail[NULL]|

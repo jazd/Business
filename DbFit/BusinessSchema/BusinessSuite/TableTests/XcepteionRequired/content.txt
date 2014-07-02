@@ -130,3 +130,18 @@ Insert long
 !|Insert|Given|
 |value|
 |12345678901234567890x|
+
+!4 Family Table
+
+Insert Duplicates
+!style_error(duplicate key value violates unique constraint "given_value")
+!|Insert|Family|
+|value|
+|Zippy|
+|Zippy|
+
+Insert long
+!style_error(value too long for type character varying(20))
+!|Insert|Family|
+|value|
+|12345678901234567890x|

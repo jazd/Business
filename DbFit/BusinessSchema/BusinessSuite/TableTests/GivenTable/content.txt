@@ -1,4 +1,4 @@
-Given portion of a Persons name. Includes middle name also.
+Given portion of a Person's name. Includes middle name also.
 
 First inserted should be >= 10000
 !|Insert|Given|
