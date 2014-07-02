@@ -145,3 +145,59 @@ Insert long
 !|Insert|Family|
 |value|
 |12345678901234567890x|
+
+!4 Email Table
+
+No duplicates
+
+Full email address should be case insensitive
+!|Insert|Email|
+|username|plus|host|
+|Zippy|Zippy|Zippy.com|
+
+!style_error(duplicate key value violates unique constraint "email_username_plus_host")
+!|Insert|Email|
+|username|plus|host|
+|zippy|Zippy|Zippy.com|
+!style_error(duplicate key value violates unique constraint "email_username_plus_host")
+!|Insert|Email|
+|username|plus|host|
+|Zippy|zippy|Zippy.com|
+!style_error(duplicate key value violates unique constraint "email_username_plus_host")
+!|Insert|Email|
+|username|plus|host|
+|Zippy|Zippy|zippy.com|
+
+Insert parts to long
+!style_error(value too long for type character varying(30))
+!|Insert|Email|
+|username|host|
+|123456789012345678901234567890x|zippy.com|
+
+!style_error(value too long for type character varying(30))
+!|Insert|Email|
+|plus|username|host|
+|123456789012345678901234567890x|zippy|zippy.com|
+
+
+!style_error(value too long for type character varying(30))
+!|Insert|Email|
+|host|username|
+|123456789012345678901234567890x|zippy|
+
+
+Valid email addresses only
+!style_error(null value in column "username" violates not-null constraint)
+!|Insert|Email|
+|host|
+|zippy.com|
+
+!style_error(null value in column "host" violates not-null constraint)
+!|Insert|Email|
+|username|
+|zippy|
+
+!style_error(null value in column "username" violates not-null constraint)
+!|Insert|Email|
+|plus|
+|zippy|

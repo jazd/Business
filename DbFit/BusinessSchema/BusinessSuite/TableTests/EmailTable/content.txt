@@ -1,0 +1,15 @@
+Full email address
+!|Insert|Email|
+|username|plus|host|
+|spiffy|monkeywards|ibm.com|
+
+First inserted email id should be >= 10000
+!|Ordered Query| SELECT id FROM Email WHERE id >= 10000 LIMIT 1|
+|id|
+|fail[NULL}|
+
+Insert maximum parts
+!|Insert|Email|
+|username|plus|host|
+|123456789012345678901234567890|123456789012345678901234567890|123456789012345678901234567890|
+
