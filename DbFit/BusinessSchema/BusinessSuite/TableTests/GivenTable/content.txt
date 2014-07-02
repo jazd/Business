@@ -1,0 +1,25 @@
+Given portion of a Persons name. Includes middle name also.
+
+First inserted should be >= 10000
+!|Insert|Given|
+|value|
+|Zippy|
+
+First inserted word id should be >= 10000
+!|Ordered Query| SELECT id FROM Given WHERE id >= 10000 LIMIT 1|
+|id|
+|fail[NULL}|
+
+Entries are case sensitive.
+!|Insert|Given|
+|value|
+|VeAnne|
+|Veanne|
+
+Longest Given
+!|Insert|Given|
+|value|
+|12345678901234567890|
+!|Ordered Query| SELECT id FROM Given WHERE value = '12345678901234567890'|
+|id|
+|fail[NULL]|

@@ -114,3 +114,19 @@ Insert long length goesBy
 !|Insert|Individual|
 |goesBy|
 |1234567890123456789012345678901234567890x|
+
+
+!4 Given Table
+
+Insert Duplicates
+!style_error(duplicate key value violates unique constraint "given_value")
+!|Insert|Given|
+|value|
+|Zippy|
+|Zippy|
+
+Insert long
+!style_error(value too long for type character varying(20))
+!|Insert|Given|
+|value|
+|12345678901234567890x|
