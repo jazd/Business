@@ -1,0 +1,39 @@
+A Person Name
+Multiple people can share the same name
+
+!|Insert|Name|
+|given|middle|family|
+|1|2|3|
+
+First inserted Name id should be >= 10000
+!|Ordered Query| SELECT id FROM Name WHERE id >= 10000 LIMIT 1|
+|id|
+|fail[NULL}|
+
+No Middle
+!|Insert|Name|
+|given|family|
+|1|2|
+
+Just First
+!|Insert|Name|
+|given|
+|1|
+
+Just Last
+!|Insert|Name|
+|family|
+|3|
+
+Get the correct number family
+!|Ordered Query|SELECT family FROM Name WHERE id >= 10000 AND family = 3|
+|family|
+|3|
+|3|
+
+Get the correct number of first names
+!|Ordered Query|SELECT given FROM Name WHERE id >= 10000 AND given = 1|
+|given|
+|1|
+|1|
+|1|
