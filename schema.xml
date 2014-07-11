@@ -166,32 +166,44 @@
 </constraints>
 </table>
 
-<table name="untestedIndividualList" order="30">
-<fields>
- <field name="id" data_type="integer" size="10" is_nullable="1" order="1" />
- <field name="unlist" data_type="timestamp" size="0" is_nullable="1" order="2" />
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
-</fields>
-<constraints>
- <constraint name="" type="FOREIGN KEY" fields="id" reference_table="untestedIndividualListName" reference_fields="individualList" deferrable="1" />
-</constraints>
-</table>
-
-<table name="untestedIndividualListName" order="31">
+<table name="IndividualListName" order="30">
 <fields>
  <field name="individualList" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
  <field name="name" data_type="integer" size="10" is_nullable="0" order="2" />
- <field name="sequence" data_type="smallint" size="5" is_nullable="0" order="2" />
- <field name="optinStyle" data_type="smallint" size="1" is_nullable="0" order="2">
-  <comments>optin or optout style list</comments>
+ <field name="group" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="sequence" data_type="smallint" size="5" is_nullable="0" order="4">
+  <comments>Order in a displayed list.</comments>
+ </field>
+ <field name="optinStyle" data_type="smallint" size="1" is_nullable="0" order="5">
+  <comments>Optin or optout style list.</comments>
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<indices>
+ <index name="individuallistname_name_group" type="UNIQUE" fields="name,group" />
+</indices>
 <constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="group" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
+<table name="IndividualList" order="31">
+<fields>
+ <field name="id" data_type="integer" size="10" is_nullable="1" order="1">
+  <comments>NULL applies to all lists.</comments>
+ </field>
+ <field name="unlist" data_type="timestamp" size="0" is_nullable="1" order="2">
+  <comments>Not NULL to remove from list</comments>
+ </field>
+ <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="id" reference_table="IndividualListName" reference_fields="individualList" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
 
 <comments>
 untested[TableName] are tables that should work, but are un-tested.  Use at your own risk
