@@ -232,17 +232,6 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 </fields>
 </table>
 
-
-<table name="untestedAttribute" order="999">
-<comments>Try for non-duplicated name value pares</comments>
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="value" data_type="integer" size="10" is_nullable="1" order="3" />
-</fields>
-</table>
-
-
 <table name="unfinishedArea" order="9999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
@@ -270,24 +259,36 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
  <field name="code" data_type="varchar" size="4" is_nullable="1" order="3" />
  <field name="dial" data_type="varchar" size="8" is_nullable="1" order="3" />
- <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="name" data_type="integer" size="10" is_nullable="0" order="3" />
  <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
 </fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="location" reference_table="unfinishedLocation" reference_fields="id" deferrable="1" />
+</constraints>
 </table>
 
 <table name="unfinishedPostal" order="9999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="country" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="code" data_type="varchar" size="10" is_nullable="1" order="3" />
- <field name="state" data_type="varchar" size="4" is_nullable="1" order="3">
+ <field name="country" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="code" data_type="varchar" size="10" is_nullable="0" order="3" />
+ <field name="state" data_type="integer" size="10" is_nullable="0" order="3">
   <comments>Province Territory or Zone</comments>
  </field>
- <field name="city" data_type="varchar" size="40" is_nullable="1" order="3">
+ <field name="stateAbbreviation" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="city" data_type="integer" size="10" is_nullable="0" order="3">
   <comments>Township</comments>
  </field>
  <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
 </fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="country" reference_table="unfinishedCountry" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="state" reference_table="Word" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="stateAbbreviation" reference_table="Word" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="city" reference_table="Word" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="location" reference_table="unfinishedLocation" reference_fields="id" deferrable="1" />
+</constraints>
 </table>
 
 <table name="unfinishedAddress" order="9999">
@@ -307,30 +308,32 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 <table name="unfinishedAddressAttribute" order="9999">
 <comments>usps address fields for example.  address line source fields.</comments>
 <fields>
- <field name="address" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="attribute" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="address" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="attribute" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="value" data_type="integer" size="10" is_nullable="0" order="3" />
 </fields>
 </table>
 
 <table name="unfinishedPhone" order="9999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="number" data_type="varchar" size="20" is_nullable="1" order="3" />
- <field name="country" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="country" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="number" data_type="varchar" size="20" is_nullable="0" order="3" />
 </fields>
 </table>
 
 <table name="unfinishedIndividualAttribute" order="9999">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="attribute" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="attribute" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="value" data_type="integer" size="10" is_nullable="0" order="3" />
 </fields>
 </table>
 
 <table name="unfinishedIndividualProperty" order="9999">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="property" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="property" data_type="integer" size="10" is_nullable="0" order="3" />
 </fields>
 </table>
 
