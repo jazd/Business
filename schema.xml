@@ -133,13 +133,14 @@
  <field name="company" data_type="integer" size="10" order="3" />
  <field name="prefix" data_type="integer" size="10" is_nullable="1" order="4" />
  <field name="suffix" data_type="integer" size="10" is_nullable="1" order="5" />
- <field name="goesBy" data_type="varchar" size="40" is_nullable="1" order="6" />
- <field name="birth" data_type="timestamp" size="0" is_nullable="1" order="7">
+ <field name="post" data_type="integer" size="10" is_nullable="1" order="6" />
+ <field name="goesBy" data_type="varchar" size="40" is_nullable="1" order="7" />
+ <field name="birth" data_type="timestamp" size="0" is_nullable="1" order="8">
   <comments>Consider birth and death being event attributes with location, thus time zone information.</comments>
  </field>
- <field name="nameChange" data_type="timestamp" size="0" is_nullable="1" order="8" />
- <field name="death" data_type="timestamp" size="0" is_nullable="1" order="9" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="10" />
+ <field name="nameChange" data_type="timestamp" size="0" is_nullable="1" order="9" />
+ <field name="death" data_type="timestamp" size="0" is_nullable="1" order="10" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="11" />
 </fields>
 <indices>
  <index name="individual_id" type="NORMAL" fields="id" />
@@ -151,6 +152,7 @@
  <constraint name="" type="FOREIGN KEY" fields="company" reference_table="Company" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="prefix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="suffix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="post" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
@@ -515,7 +517,8 @@ SELECT Individual.id AS individual, Name.id AS name,
   COALESCE(Given.value || !apos; !apos;,!apos;!apos;) ||
   COALESCE(middle.value || !apos; !apos;,!apos;!apos;) ||
   COALESCE(Family.value || !apos; !apos;,!apos;!apos;) ||
-  COALESCE(suffix.value || !apos; !apos;,!apos;!apos;)
+  COALESCE(suffix.value || !apos; !apos;,!apos;!apos;) ||
+  COALESCE(post.value || !apos; !apos;,!apos;!apos;)
   AS fullName,
  Individual.prefix AS honorific,
  Name.given, Name.middle, Name.family,
@@ -535,6 +538,8 @@ LEFT JOIN Word AS honorific ON honorific.id = Individual.prefix
  AND honorific.culture = 1033
 LEFT JOIN Word AS suffix ON suffix.id = Individual.suffix
  AND suffix.culture = 1033
+LEFT JOIN Word AS post ON post.id = Individual.post
+ AND post.culture = 1033
 WHERE Individual.nameChange IS NULL
  OR Individual.nameChange > NOW()
  </sql>

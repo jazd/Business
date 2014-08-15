@@ -10,7 +10,7 @@ INSERT INTO Individual (id, name, birth, death) VALUES (8, 6, '1907-07-07', '198
 INSERT INTO Individual (id, name, prefix, suffix, birth, death) VALUES (9, 7, 105, 153, '1920-01-01', '1949-01-01');
 INSERT INTO Individual (id, company, goesBy, birth) VALUES (10, 1, 'IBM', '1911-06-16');
 INSERT INTO Individual (id, name, suffix, birth) VALUES (11, 10, 151, '1950-04-11');
-INSERT INTO Individual (id, name, suffix, goesBy, birth) VALUES (12, 10, 152, 'Rob', '1975-08-28');
+INSERT INTO Individual (id, name, suffix, post, goesBy, birth) VALUES (12, 10, 152, 160, 'Rob', '1975-08-28');
 INSERT INTO Individual (id, name, suffix, goesBy, birth) VALUES (13, 10, 153, 'Trey', '2009-02-17');
 -- Guesing at the dates for now
 INSERT INTO Individual (id, name, birth, nameChange) VALUES (14, 11, '1942-08-27', '1953-01-01');
