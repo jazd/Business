@@ -507,7 +507,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 </tables>
 <views>
  <comments>SQLFairy does not handle XML escape codes.  So need to convert post process.</comments>
- <view name="People" fields="individual,name,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,birth,death,aged,created" order="1">
+ <view name="People" fields="individual,name,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,post,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,postvalue,birth,death,aged,created" order="1">
  <sql>
 SELECT Individual.id AS individual, Name.id AS name,
  COALESCE(goesBy,Given.value,Family.value) AS goesBy,
@@ -523,9 +523,11 @@ SELECT Individual.id AS individual, Name.id AS name,
  Individual.prefix AS honorific,
  Name.given, Name.middle, Name.family,
  Individual.suffix,
+ Individual.post,
  honorific.value AS honorificValue,
  Given.value AS GivenValue, middle.value AS middleValue, Family.value AS FamilyValue,
  suffix.value AS suffixValue,
+ post.value AS postValue,
  birth, death,
  COALESCE(age(death,birth),age(birth)) AS aged,
  Individual.created
@@ -545,7 +547,7 @@ WHERE Individual.nameChange IS NULL
  </sql>
  </view>
 
- <view name="IndividualPersonEvent" fields="individual,name,honorific,suffix,goesby,birth,death,event" order="2">
+ <view name="IndividualPersonEvent" fields="individual,name,honorific,suffix,post,goesby,birth,death,event" order="2">
  <comments>
   Convert individual table transactions into individual person life events.
   Primarily as an input to the PeopleEvent view.
@@ -555,6 +557,7 @@ SELECT DISTINCT Individual.id AS individual,
  Individual.name,
  COALESCE(future.prefix, Individual.prefix) AS honorific,
  COALESCE(future.suffix, Individual.suffix) AS suffix,
+ COALESCE(future.post, Individual.post) AS post,
  COALESCE(future.goesBy, Individual.goesBy) AS goesBy,
  Individual.birth,
  Individual.death,
@@ -568,11 +571,14 @@ SELECT DISTINCT Individual.id AS individual,
      OR (future.goesBY IS NOT NULL AND Individual.goesBy IS NULL)
      OR (future.goesBY IS NULL AND Individual.goesBy IS NOT NULL)
      OR (future.prefix != Individual.prefix)
-     OR (future.goesBY IS NOT NULL AND Individual.prefix IS NULL)
-     OR (future.goesBY IS NULL AND Individual.prefix IS NOT NULL)
+     OR (future.prefix IS NOT NULL AND Individual.prefix IS NULL)
+     OR (future.prefix IS NULL AND Individual.prefix IS NOT NULL)
      OR (future.suffix != Individual.suffix)
-     OR (future.goesBY IS NOT NULL AND Individual.suffix IS NULL)
-     OR (future.goesBY IS NULL AND Individual.suffix IS NOT NULL)
+     OR (future.suffix IS NOT NULL AND Individual.suffix IS NULL)
+     OR (future.suffix IS NULL AND Individual.suffix IS NOT NULL)
+     OR (future.post != Individual.post)
+     OR (future.post IS NOT NULL AND Individual.post IS NULL)
+     OR (future.post IS NULL AND Individual.post IS NOT NULL)
    THEN
     -- individual attriute change only
     Individual.nameChange
@@ -603,7 +609,7 @@ WHERE Name.id = Individual.name
  </sql>
  </view>
 
- <view name="PeopleEvent" fields="individual,name,goesby,fullname,date,event,eventname,honorific,given,middle,family,suffix,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue" order="3">
+ <view name="PeopleEvent" fields="individual,name,goesby,fullname,date,event,eventname,honorific,given,middle,family,suffix,post,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,postvalue" order="3">
  <sql>
 SELECT IndividualPersonEvent.individual, IndividualPersonEvent.name,
  COALESCE(IndividualPersonEvent.goesBy,Given.value,Family.value) AS goesBy,
@@ -611,7 +617,8 @@ SELECT IndividualPersonEvent.individual, IndividualPersonEvent.name,
   COALESCE(Given.value || !apos; !apos;,!apos;!apos;) ||
   COALESCE(middle.value || !apos; !apos;,!apos;!apos;) ||
   COALESCE(Family.value || !apos; !apos;,!apos;!apos;) ||
-  COALESCE(suffix.value || !apos; !apos;,!apos;!apos;)
+  COALESCE(suffix.value || !apos; !apos;,!apos;!apos;) ||
+  COALESCE(post.value || !apos; !apos;,!apos;!apos;)
   AS fullName,
  event AS date,
  COALESCE(born.id, death.id, change.id) AS event,
@@ -621,11 +628,13 @@ SELECT IndividualPersonEvent.individual, IndividualPersonEvent.name,
  Name.middle,
  Name.family,
  IndividualPersonEvent.suffix,
+ IndividualPersonEvent.post,
  honorific.value AS honorificValue,
  Given.value AS GivenValue,
  middle.value AS middleValue,
  Family.value AS FamilyValue,
- suffix.value AS suffixValue
+ suffix.value AS suffixValue,
+ post.value AS postValue
 FROM IndividualPersonEvent
  JOIN Name ON Name.id = IndividualPersonEvent.name
  LEFT JOIN Given On Given.id = Name.given
@@ -635,6 +644,8 @@ FROM IndividualPersonEvent
   AND honorific.culture = 1033
  LEFT JOIN Word AS suffix ON suffix.id = IndividualPersonEvent.suffix
   AND suffix.culture = 1033
+ LEFT JOIN Word AS post ON post.id = IndividualPersonEvent.post
+  AND post.culture = 1033
  LEFT JOIN Word AS born ON born.value = !apos;Born!apos; AND born.culture = 1033 AND birth = event
  LEFT JOIN Word AS death ON death.value = !apos;Died!apos; AND death.culture  = 1033 AND death = event
  LEFT JOIN Word AS change ON change.value = !apos;Changed name!apos; AND change.culture  = 1033
