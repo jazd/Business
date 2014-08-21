@@ -112,13 +112,13 @@
 </constraints>
 </table>
 
-<table name="Company" order="21">
+<table name="Entity" order="21">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="varchar" size="50" is_nullable="1" order="2" />
 </fields>
 <indices>
- <index name="company_name" type="UNIQUE" fields="name" />
+ <index name="entity_name" type="UNIQUE" fields="name" />
 </indices>
 <constraints>
 </constraints>
@@ -130,7 +130,7 @@
   <comments>One or more entries for specific individuals.  Records WHERE nameChange IS NULL are the current records for any specific individual id.</comments>
  </field>
  <field name="name" data_type="integer" size="10" order="2" />
- <field name="company" data_type="integer" size="10" order="3" />
+ <field name="entity" data_type="integer" size="10" order="3" />
  <field name="prefix" data_type="integer" size="10" is_nullable="1" order="4" />
  <field name="suffix" data_type="integer" size="10" is_nullable="1" order="5" />
  <field name="post" data_type="integer" size="10" is_nullable="1" order="6" />
@@ -145,11 +145,11 @@
 <indices>
  <index name="individual_id" type="NORMAL" fields="id" />
  <index name="individual_id_name_goesBy" type="NORMAL" fields="id,name,goesBy" />
- <index name="individual_id_company_goesBy" type="NORMAL" fields="id,company,goesBy" />
+ <index name="individual_id_entity_goesBy" type="NORMAL" fields="id,entity,goesBy" />
 </indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="name" reference_table="Name" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="company" reference_table="Company" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="entity" reference_table="Entity" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="prefix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="suffix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="post" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
