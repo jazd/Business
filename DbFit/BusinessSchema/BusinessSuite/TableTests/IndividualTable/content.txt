@@ -28,7 +28,7 @@ Insert a unique Suffix
 |>>uniqueSuffix|
 
 !|Insert|Individual|
-|company|goesby|
+|entity|goesby|
 |1|IBM|
 
 !|Insert|Individual|

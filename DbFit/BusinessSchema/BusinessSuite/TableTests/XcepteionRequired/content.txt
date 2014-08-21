@@ -91,17 +91,17 @@ Don't allow duplicates 2 NULLs
 |1|
 |1|
 
-!4 Company Table
+!4 Entity Table
 
 Insert to long length name
 !style_error(value too long for type character varying(50))
-!|Insert|Company|
+!|Insert|Entity|
 |name|
 |12345678901234567890123456789012345678901234567890x|
 
 No duplicates
-!style_error(duplicate key value violates unique constraint "company_name")
-!|Insert|Company|
+!style_error(duplicate key value violates unique constraint "entity_name")
+!|Insert|Entity|
 |name|
 |Zyppy's house of pancakes|
 |Zyppy's house of pancakes|
