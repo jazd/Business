@@ -180,7 +180,6 @@
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="id" reference_table="IndividualListName" reference_fields="individualList" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
@@ -202,8 +201,9 @@
  <index name="individuallistname_name_set" type="UNIQUE" fields="name,set" />
 </indices>
 <constraints>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="set" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individualList" reference_table="IndividualList" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="set" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
