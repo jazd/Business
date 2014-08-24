@@ -12,4 +12,5 @@ INSERT INTO Name (id,given,middle,family) VALUES (11,16,17,5);
 INSERT INTO Name (id,given,middle,family) VALUES (12,16,17,1);
 INSERT INTO Name (id,given,middle,family) VALUES (13,16,17,6);
 INSERT INTO Name (id,given,middle,family) VALUES (14,16,17,7);
-
+INSERT INTO Name (id,given,middle,family) VALUES (15,18,19,8);
+INSERT INTO Name (id,given,middle,family) VALUES (16,20,21,9);

@@ -18,3 +18,6 @@ INSERT INTO Individual (id, name, goesBy, birth, nameChange) VALUES (14, 11, 'Ca
 INSERT INTO Individual (id, name, goesBy, birth, nameChange) VALUES (14, 12, 'Candy', '1942-08-27', '1978-01-01');
 INSERT INTO Individual (id, name, goesBy, birth, nameChange) VALUES (14, 13, 'Candy', '1942-08-27', '1985-01-01');
 INSERT INTO Individual (id, name, goesBy, birth, death) VALUES (14, 14, 'Candy', '1942-08-27', '2008-09-23');
+--
+INSERT INTO Individual (id, name, goesBy, birth) VALUES (15, 15, 'Larry', '1938-04-30');
+INSERT INTO Individual (id, name, suffix, goesBy, birth, death) VALUES (16, 16, 140, 'Frank', '1920-10-08', '1986-02-11');
