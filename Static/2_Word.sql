@@ -54,3 +54,5 @@ INSERT INTO Word (id,culture,value) VALUES (188,1033,'D.D.');
 INSERT INTO Word (id,culture,value) VALUES (200,1033,'Born');
 INSERT INTO Word (id,culture,value) VALUES (201,1033,'Died');
 INSERT INTO Word (id,culture,value) VALUES (202,1033,'Changed name');
+---
+INSERT INTO Word (id,culture,value) VALUES (1000,1033,'Writers');

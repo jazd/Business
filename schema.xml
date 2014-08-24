@@ -663,6 +663,28 @@ JOIN Entity ON Entity.id = Individual.entity
 WHERE Individual.nameChange IS NULL
   </sql>
  </view>
+ <view name="List" fields="id,individual,name,namevalue,set,setvalue,sequence" order="30">
+  <sql>
+SELECT IndividualList.id,
+ IndividualList.individual,
+ IndividualListName.name,
+ Name.value AS nameValue,
+ IndividualListName.set,
+ Set.value AS setValue,
+ IndividualListName.sequence
+FROM IndividualList
+JOIN IndividualListName ON IndividualListName.IndividualList = IndividualList.id
+ AND IndividualListName.optinStyle = 1
+JOIN Word AS Name ON IndividualListName.name = Name.id
+ AND Name.culture = 1033
+LEFT JOIN Word AS Set ON IndividualListName.set = Set.id
+ AND Set.culture = 1033
+LEFT JOIN IndividualList AS unlistAll ON unlistAll.individual = IndividualList.individual
+ AND unlistAll.id IS NULL
+WHERE unlistAll.individual IS NULL
+ AND IndividualList.unlist IS NULL
+  </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>
