@@ -651,6 +651,18 @@ FROM IndividualPersonEvent
  LEFT JOIN Word AS change ON change.value = !apos;Changed name!apos; AND change.culture  = 1033
  </sql>
  </view>
+
+ <view name="Entities" fields="individual,entity,goesBy,name,formed,dissolved,aged,created" order="20">
+  <sql>
+SELECT Individual.id AS individual, Individual.entity, Individual.goesBy,
+ Entity.name, Individual.birth AS formed, Individual.death AS dissolved,
+ COALESCE(age(death,birth),age(birth)) AS aged,
+ Individual.created
+FROM Individual
+JOIN Entity ON Entity.id = Individual.entity
+WHERE Individual.nameChange IS NULL
+  </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>
