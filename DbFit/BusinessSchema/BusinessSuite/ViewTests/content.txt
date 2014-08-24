@@ -1,0 +1,6 @@
+Testing Views
+
+!|Ordered Query| SELECT 1 AS id FROM DUAL|
+|id|
+|fail[NULL]|
+

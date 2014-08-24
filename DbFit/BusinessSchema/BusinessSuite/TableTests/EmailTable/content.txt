@@ -6,7 +6,7 @@ Full email address
 First inserted email id should be >= 10000
 !|Ordered Query| SELECT id FROM Email WHERE id >= 10000 LIMIT 1|
 |id|
-|fail[NULL}|
+|fail[NULL]|
 
 Insert maximum parts
 !|Insert|Email|

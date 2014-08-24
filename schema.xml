@@ -685,6 +685,15 @@ WHERE unlistAll.individual IS NULL
  AND IndividualList.unlist IS NULL
   </sql>
  </view>
+ <view name="EmailAddress" fields="email,username,plus,host,value">
+ <sql>
+SELECT id AS email, username, plus, host,
+ username ||
+ COALESCE(!apos;+!apos; || plus, !apos;!apos;) ||
+ !apos;@!apos; || host AS value
+FROM Email
+ </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>

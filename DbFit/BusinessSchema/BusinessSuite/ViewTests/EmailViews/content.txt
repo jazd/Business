@@ -1,0 +1,20 @@
+Full email address
+!|Insert|Email|
+|username|host|
+|timmy|ibm.com|
+
+Formatted email
+!|Ordered Query| SELECT value FROM EmailAddress WHERE username = 'timmy' AND host = 'ibm.com'|
+|value|
+|timmy@ibm.com|
+
+Formatted email in plus format
+!|Insert|Email|
+|username|plus|host|
+|timmy|amazon|ibm.com|
+
+!|Ordered Query| SELECT value FROM EmailAddress WHERE username = 'timmy' AND plus='amazon' AND host = 'ibm.com'|
+|value|
+|timmy+amazon@ibm.com|
+
+

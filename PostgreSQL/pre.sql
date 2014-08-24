@@ -28,3 +28,10 @@ AS $$
  SELECT
  CAST(extract(days FROM CAST(birthday(birth) AS date) - CAST(asOf AS timestamp)) AS integer) AS days
 $$ language sql immutable strict;
+
+-- Simulate the DUAL fake table used on other servers
+DROP TABLE DUAL CASCADE;
+CREATE TABLE DUAL (
+ value INTEGER
+);
+INSERT INTO DUAL (value) VALUES (NULL); -- Only a single value
