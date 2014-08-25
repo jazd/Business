@@ -168,6 +168,18 @@
 </constraints>
 </table>
 
+<table name="Path" order="26">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="protocol" data_type="varchar" size="4" is_nullable="1" order="2" />
+ <field name="secure" data_type="smallint" size="1" is_nullable="1" order="3" />
+ <field name="host" data_type="varchar" size="30" is_nullable="1" order="4" />
+ <field name="value" data_type="varchar" size="30" is_nullable="1" order="5" />
+ <field name="get" data_type="varchar" size="30" is_nullable="1" order="6" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
 <table name="IndividualList" order="30">
 <fields>
  <field name="id" data_type="integer" size="10" is_nullable="1" order="1">
@@ -217,19 +229,6 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="major" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="minor" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="patch" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-</table>
-
-
-<table name="untestedPath" order="999">
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="protocal" data_type="varchar" size="4" is_nullable="1" order="2" />
- <field name="secure" data_type="smallint" size="1" is_nullable="1" order="3" />
- <field name="host" data_type="varchar" size="30" is_nullable="1" order="4" />
- <field name="value" data_type="varchar" size="30" is_nullable="1" order="5" />
- <field name="get" data_type="varchar" size="30" is_nullable="1" order="6" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
@@ -693,6 +692,21 @@ SELECT id AS email, username, plus, host,
  !apos;@!apos; || host AS value
 FROM Email
  </sql>
+ </view>
+ <view name="URL" fields="id,protocol,host,value,created">
+  <sql>
+SELECT id, protocol, host,
+ protocol ||
+ CASE WHEN secure = 1 THEN !apos;s!apos; ELSE !apos;!apos; END ||
+ !apos;://!apos; || host || !apos;/!apos; ||
+ COALESCE(value,!apos;!apos;) ||
+ CASE WHEN get IS NULL
+ THEN !apos;!apos;
+ ELSE !apos;?!apos; || get
+ END AS value,
+ created
+FROM Path
+  </sql>
  </view>
 </views>
 <triggers></triggers>

@@ -1,0 +1,26 @@
+HTTP Paths
+!|Insert|Path|
+|protocol|host|value|
+|http|NoCRUD.com|TestPath2|
+
+Formatted HTTP
+!|Ordered Query| SELECT value FROM URL WHERE host = 'NoCRUD.com'|
+|value|
+|http://NoCRUD.com/TestPath2|
+
+!|Insert|Path|
+|protocol|secure|host|value|
+|http|1|www0.NoCRUD.com|TestPath1|
+Formatted HTTPS
+!|Ordered Query| SELECT value FROM URL WHERE host = 'www0.NoCRUD.com'|
+|value|
+|https://www0.NoCRUD.com/TestPath1|
+
+!|Insert|Path|
+|protocol|host|value|get|
+|http|www1.NoCRUD.com|TestPath1|r=1|
+Formatted HTTP GET
+!|Ordered Query| SELECT value FROM URL WHERE host = 'www1.NoCRUD.com'|
+|value|
+|http://www1.NoCRUD.com/TestPath1?r=1|
+

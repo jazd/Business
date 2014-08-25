@@ -1,0 +1,16 @@
+HTTP URL path
+
+!|Insert|Path|
+|protocol|host|value|
+|http|NoCRUD.com|testPath1|
+
+First inserted path id should be >= 10000
+!|Ordered Query| SELECT id FROM Path WHERE id >= 10000 LIMIT 1|
+|id|
+|fail[NULL]|
+
+Insert maximum parts
+!|Insert|Path|
+|protocol|host|value|get|
+|1234|123456789012345678901234567890|123456789012345678901234567890|123456789012345678901234567890|
+
