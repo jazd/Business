@@ -1,0 +1,4 @@
+Using static information for individual 1
+!|Ordered Query| SELECT individual, goesBy, fullname FROM People WHERE individual = 1|
+| individual | goesby |            fullname |
+|1|Terry|Terrence Edward Jazdzewski Sr|
