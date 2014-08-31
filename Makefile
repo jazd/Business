@@ -17,18 +17,22 @@ db2: schema.db2
 schema.pgsql: schema.xml
 	@echo Creating PostgreSQL file $@
 	sqlt -f XML-SQLFairy -t PostgreSQL --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g"> $@
+	chmod -w $@
 
 schema.mysql: schema.xml
 	@echo Creating MySQL file $@
 	sqlt -f XML-SQLFairy -t MySQL $< > $@
+	chmod -w $@
 
 schema.sqlite: schema.xml
 	@echo Creating MySQL file $@
 	sqlt -f XML-SQLFairy -t SQLite $< > $@
+	chmod -w $@
 
 schema.db2: schema.xml
 	@echo Creating MySQL file $@
 	sqlt -f XML-SQLFairy -t DB2 $< > $@
+	chmod -w $@
 
 clean:
 	@echo Removing target files $(TARGETS)
