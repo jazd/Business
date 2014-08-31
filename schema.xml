@@ -4,7 +4,7 @@
 <tables>
 <table name="Culture" order="1">
 <fields>
- <field name="code" data_type="integer" size="10" is_nullable="0" is_auto_increment="0" is_primary_key="1" order="2">
+ <field name="code" data_type="integer" size="10" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="2">
   <comments>Like 1033 http://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx</comments></field>
  <field name="name" data_type="varchar" size="9" is_nullable="0" is_auto_increment="0" is_primary_key="0" order="3">
   <comments>Like en-US</comments></field>
@@ -52,7 +52,7 @@
 
 <table name="untestedParagraph" order="4">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
  <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
  <field name="value" data_type="text" size="0" is_nullable="0" order="3" />
 </fields>
@@ -69,7 +69,7 @@
 
 <table name="Given" order="18">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="value" data_type="varchar" size="20" is_nullable="0" order="3" />
 </fields>
 <indices>
@@ -83,7 +83,7 @@
 
 <table name="Family" order="19">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="value" data_type="varchar" size="20" is_nullable="0" order="3" />
 </fields>
 <indices>
@@ -157,7 +157,7 @@
 
 <table name="Email" order="25">
 <fields>
- <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
+ <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="username" data_type="varchar" size="30" is_nullable="0" order="2" />
  <field name="plus" data_type="varchar" size="30" is_nullable="1" order="3" />
  <field name="host" data_type="varchar" size="30" is_nullable="0" order="4" />
@@ -169,7 +169,7 @@
 
 <table name="Path" order="26">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
  <field name="protocol" data_type="varchar" size="4" is_nullable="1" order="2" />
  <field name="secure" data_type="smallint" size="1" is_nullable="1" order="3" />
  <field name="host" data_type="varchar" size="30" is_nullable="1" order="4" />
@@ -191,13 +191,13 @@
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
 <table name="IndividualListName" order="31">
 <fields>
- <field name="individualList" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" order="1" />
+ <field name="individualList" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="integer" size="10" is_nullable="0" order="2" />
  <field name="set" data_type="integer" size="10" order="3" />
  <field name="sequence" data_type="smallint" size="5" order="4">
@@ -215,6 +215,27 @@
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individualList" reference_table="IndividualList" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="set" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="IndividualPath" order="9999">
+<comments>Web Site, Social page, feed etc.</comments>
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="1" />
+ <field name="first" data_type="smallint" size="1" is_nullable="1" order="2">
+  <comments>0 not primary, >0 is true and can be sorted on, null if old and should no longer use</comments>
+ </field>
+ <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="path" data_type="integer" size="10" is_nullable="1" order="4" />
+ <field name="track" data_type="varchar" size="30" is_nullable="1" order="5">
+  <comments>Added to end of path in the Get section for tracking links to same path</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
@@ -357,19 +378,6 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  </field>
  <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="address" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-</table>
-
-<table name="unfinishedIndividualPath" order="9999">
-<comments>Web Site, Social page, feed etc.</comments>
-<fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="first" data_type="smallint" size="1" is_nullable="1" order="3">
-  <comments>0 not primary, >0 is true and can be sorted on, null if old and should no longer use</comments>
- </field>
- <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="path" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>

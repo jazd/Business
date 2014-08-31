@@ -1,0 +1,13 @@
+
+Using static data for tests
+
+Duplicates are Okay as long as they are indeed different legal entities
+!|Insert|IndividualPath|
+|individual|type|path|track|
+|10|10|10|NoCRUD|
+
+Be sure it was inserted
+!|Ordered Query| SELECT individual FROM IndividualPath WHERE individual = 10 AND type = 10 AND path = 10|
+|individual|
+|fail[NULL}|
+
