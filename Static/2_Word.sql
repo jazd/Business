@@ -1,4 +1,6 @@
 INSERT INTO Word (id,culture,value) VALUES (1,1033,'IMS');
+---- Types for .type fields
+---- Name words
 INSERT INTO Word (id,culture,value) VALUES (100,1033,'Mr');
 INSERT INTO Word (id,culture,value) VALUES (101,1033,'Master');
 INSERT INTO Word (id,culture,value) VALUES (102,1033,'Ms');
@@ -54,5 +56,6 @@ INSERT INTO Word (id,culture,value) VALUES (188,1033,'D.D.');
 INSERT INTO Word (id,culture,value) VALUES (200,1033,'Born');
 INSERT INTO Word (id,culture,value) VALUES (201,1033,'Died');
 INSERT INTO Word (id,culture,value) VALUES (202,1033,'Changed name');
----
+--- List words
 INSERT INTO Word (id,culture,value) VALUES (1000,1033,'Writers');
+--- Country, City, State words

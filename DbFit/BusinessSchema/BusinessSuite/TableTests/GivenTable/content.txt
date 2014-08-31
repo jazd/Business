@@ -1,11 +1,11 @@
 Given portion of a Person's name. Includes middle name also.
 
-First inserted should be >= 10000
+First inserted should be >= 2000000
 !|Insert|Given|
 |value|
 |Zippy|
 
-First inserted word id should be >= 2000000
+First inserted given id should be >= 2000000
 !|Ordered Query| SELECT id FROM Given WHERE id >= 2000000 LIMIT 1|
 |id|
 |fail[NULL}|

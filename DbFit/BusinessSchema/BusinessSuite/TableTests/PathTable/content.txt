@@ -4,8 +4,8 @@ HTTP URL path
 |protocol|host|value|
 |http|NoCRUD.com|testPath1|
 
-First inserted path id should be >= 10000
-!|Ordered Query| SELECT id FROM Path WHERE id >= 10000 LIMIT 1|
+First inserted path id should be >= 2000000
+!|Ordered Query| SELECT id FROM Path WHERE id >= 2000000 LIMIT 1|
 |id|
 |fail[NULL]|
 

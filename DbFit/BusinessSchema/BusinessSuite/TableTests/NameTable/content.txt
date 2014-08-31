@@ -26,13 +26,13 @@ Just Last
 |3|
 
 Get the correct number family
-!|Ordered Query|SELECT family FROM Name WHERE id >= 10000 AND family = 3|
+!|Ordered Query|SELECT family FROM Name WHERE id >= 2000000 AND family = 3|
 |family|
 |3|
 |3|
 
 Get the correct number of first names
-!|Ordered Query|SELECT given FROM Name WHERE id >= 10000 AND given = 1|
+!|Ordered Query|SELECT given FROM Name WHERE id >= 2000000 AND given = 1|
 |given|
 |1|
 |1|

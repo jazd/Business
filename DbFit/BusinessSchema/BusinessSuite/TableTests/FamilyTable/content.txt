@@ -1,12 +1,12 @@
 Family portion of a Person's name.
 
-First inserted should be >= 10000
+First inserted should be >= 2000000
 !|Insert|Family|
 |value|
 |Zippy|
 
-First inserted word id should be >= 10000
-!|Ordered Query| SELECT id FROM Family WHERE id >= 10000 LIMIT 1|
+First inserted family id should be >= 2000000
+!|Ordered Query| SELECT id FROM Family WHERE id >= 2000000 LIMIT 1|
 |id|
 |fail[NULL}|
 

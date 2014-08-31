@@ -10,8 +10,8 @@ Verify en-US is the default culture.
 |id|culture|
 |fail[NULL]|1033|
 
-First inserted sentance id should be >= 10000
-!|Ordered Query| SELECT id FROM Sentence WHERE id >= 10000 LIMIT 1|
+First inserted sentance id should be >= 2000000
+!|Ordered Query| SELECT id FROM Sentence WHERE id >= 2000000 LIMIT 1|
 |id|
 |fail[NULL}|
 
