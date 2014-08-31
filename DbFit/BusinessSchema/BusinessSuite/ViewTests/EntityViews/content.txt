@@ -1,0 +1,4 @@
+Using static information for individual 1
+!|Ordered Query| SELECT individual, goesBy, name FROM Entities WHERE individual = 10|
+| individual | goesby |            name |
+|10|IBM|International Business Machines, Inc.|

@@ -1,9 +1,9 @@
 
 Duplicates are Okay as long as they are indeed different legal entities
 !|Insert|Individual|
-|goesBy|
-|Zipmeister|
-|Zipmeister|
+|name|
+|1|
+|1|
 
 First inserted Individual id should be >= 4000000
 !|Ordered Query| SELECT id FROM Individual WHERE id >= 4000000 LIMIT 1|
@@ -27,16 +27,13 @@ Insert a unique Suffix
 |id?|
 |>>uniqueSuffix|
 
+Duplicate individual entities are Okay as long as they are indeed different legal entities
 !|Insert|Individual|
-|entity|goesby|
-|1|IBM|
+|entity|
+|1|
+|1|
 
 !|Insert|Individual|
-|name|prefix|suffix|goesBy|birth|death|nameChange|
-|1|1|1|Steve|1963-11-22|2103-11-23|1981-11-22|
-|1|1|1|Steve|1963-11-22|2103-11-23|NULL|
-
-Insert maximum length goesBy
-!|Insert|Individual|
-|goesBy|
-|1234567890123456789012345678901234567890|
+|name|prefix|suffix|birth|death|nameChange|
+|1|1|1|1963-11-22|2103-11-23|1981-11-22|
+|1|1|1|1963-11-22|2103-11-23|NULL|

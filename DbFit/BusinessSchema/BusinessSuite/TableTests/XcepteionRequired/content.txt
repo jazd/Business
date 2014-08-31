@@ -109,13 +109,6 @@ No duplicates
 
 !4 Individual Table
 
-Insert long length goesBy
-!style_error(value too long for type character varying(40))
-!|Insert|Individual|
-|goesBy|
-|1234567890123456789012345678901234567890x|
-
-
 !4 Given Table
 
 Insert Duplicates

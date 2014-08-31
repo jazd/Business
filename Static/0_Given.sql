@@ -19,3 +19,14 @@ INSERT INTO Given (id,value) VALUES (18,'Laurence');
 INSERT INTO Given (id,value) VALUES (19,'van Cott');
 INSERT INTO Given (id,value) VALUES (20,'Franklin');
 INSERT INTO Given (id,value) VALUES (21,'Patrick');
+INSERT INTO Given (id,value) VALUES (22,'Steve');
+INSERT INTO Given (id,value) VALUES (23,'Terry');
+INSERT INTO Given (id,value) VALUES (24,'Butch');
+INSERT INTO Given (id,value) VALUES (25,'Chuck');
+INSERT INTO Given (id,value) VALUES (26,'Rob');
+INSERT INTO Given (id,value) VALUES (27,'Trey');
+INSERT INTO Given (id,value) VALUES (28,'Candy');
+INSERT INTO Given (id,value) VALUES (29,'Larry');
+INSERT INTO Given (id,value) VALUES (30,'Frank');
+---
+INSERT INTO Given (id,value) VALUES (100000,'IBM');

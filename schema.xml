@@ -134,7 +134,7 @@
  <field name="prefix" data_type="integer" size="10" is_nullable="1" order="4" />
  <field name="suffix" data_type="integer" size="10" is_nullable="1" order="5" />
  <field name="post" data_type="integer" size="10" is_nullable="1" order="6" />
- <field name="goesBy" data_type="varchar" size="40" is_nullable="1" order="7" />
+ <field name="goesBy" data_type="integer" size="10" is_nullable="1" order="7" />
  <field name="birth" data_type="timestamp" size="0" is_nullable="1" order="8">
   <comments>Consider birth and death being event attributes with location, thus time zone information.</comments>
  </field>
@@ -144,12 +144,11 @@
 </fields>
 <indices>
  <index name="individual_id" type="NORMAL" fields="id" />
- <index name="individual_id_name_goesBy" type="NORMAL" fields="id,name,goesBy" />
- <index name="individual_id_entity_goesBy" type="NORMAL" fields="id,entity,goesBy" />
 </indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="name" reference_table="Name" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="entity" reference_table="Entity" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="goesBy" reference_table="Given" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="prefix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="suffix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="post" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
@@ -509,7 +508,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <view name="People" fields="individual,name,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,post,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,postvalue,birth,death,aged,created" order="1">
  <sql>
 SELECT Individual.id AS individual, Name.id AS name,
- COALESCE(goesBy,Given.value,Family.value) AS goesBy,
+ COALESCE(goesBy.value,Given.value,Family.value) AS goesBy,
  birthday(CAST(birth AS date),CAST(NOW() AS date)) AS birthday,
  days_until_birthday(CAST(birth AS date), CAST(NOW() AS date)) AS in_days,
  COALESCE(honorific.value,!apos;!apos;) ||
@@ -534,6 +533,7 @@ FROM Individual
 JOIN Name ON Name.id = Individual.name
 LEFT JOIN Given ON Given.id = Name.given
 LEFT JOIN Given AS middle ON middle.id = Name.middle
+LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
 LEFT JOIN Family ON Family.id = Name.family
 LEFT JOIN Word AS honorific ON honorific.id = Individual.prefix
  AND honorific.culture = 1033
@@ -611,7 +611,7 @@ WHERE Name.id = Individual.name
  <view name="PeopleEvent" fields="individual,name,goesby,fullname,date,event,eventname,honorific,given,middle,family,suffix,post,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,postvalue" order="3">
  <sql>
 SELECT IndividualPersonEvent.individual, IndividualPersonEvent.name,
- COALESCE(IndividualPersonEvent.goesBy,Given.value,Family.value) AS goesBy,
+ COALESCE(goesBy.value,Given.value,Family.value) AS goesBy,
  COALESCE(honorific.value || !apos; !apos;,!apos;!apos;) ||
   COALESCE(Given.value || !apos; !apos;,!apos;!apos;) ||
   COALESCE(middle.value || !apos; !apos;,!apos;!apos;) ||
@@ -638,6 +638,7 @@ FROM IndividualPersonEvent
  JOIN Name ON Name.id = IndividualPersonEvent.name
  LEFT JOIN Given On Given.id = Name.given
  LEFT JOIN Given AS middle ON middle.id = Name.middle
+ LEFT JOIN Given AS goesBy ON goesBy.id = IndividualPersonEvent.goesBy
  LEFT JOIN Family ON Family.id = Name.family
  LEFT JOIN Word AS honorific ON honorific.id = IndividualPersonEvent.honorific
   AND honorific.culture = 1033
@@ -653,12 +654,13 @@ FROM IndividualPersonEvent
 
  <view name="Entities" fields="individual,entity,goesBy,name,formed,dissolved,aged,created" order="20">
   <sql>
-SELECT Individual.id AS individual, Individual.entity, Individual.goesBy,
+SELECT Individual.id AS individual, Individual.entity, goesBy.value AS goesBy,
  Entity.name, Individual.birth AS formed, Individual.death AS dissolved,
  COALESCE(age(death,birth),age(birth)) AS aged,
  Individual.created
 FROM Individual
 JOIN Entity ON Entity.id = Individual.entity
+JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
 WHERE Individual.nameChange IS NULL
   </sql>
  </view>
