@@ -237,6 +237,9 @@
  <comments invalid=""><constraint name="" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
 </constraints>
+<indices>
+ <index name="individualpath_individual_type_path" type="NORMAL" fields="individual,type,path" />
+</indices>
 </table>
 
 <comments>
@@ -703,9 +706,9 @@ SELECT id AS email, username, plus, host,
 FROM Email
  </sql>
  </view>
- <view name="URL" fields="id,protocol,host,value,created">
+ <view name="URL" fields="path,protocol,host,value,created">
   <sql>
-SELECT id, protocol, host,
+SELECT id AS path, protocol, host,
  protocol ||
  CASE WHEN secure = 1 THEN !apos;s!apos; ELSE !apos;!apos; END ||
  !apos;://!apos; || host || !apos;/!apos; ||
@@ -716,6 +719,35 @@ SELECT id, protocol, host,
  END AS value,
  created
 FROM Path
+  </sql>
+ </view>
+ <view name="IndividualURL" fields="individual,type,path,protocol,host,value,created">
+  <sql>
+WITH latest (individual,type,path,created) AS (
+ SELECT individual, type, path, MAX(created) AS created
+ FROM IndividualPath
+ GROUP BY individual, type, path
+)
+SELECT latest.individual, latest.type, Path.id AS path, Path.protocol, Path.host,
+ Path.protocol ||
+ CASE WHEN secure = 1 THEN !apos;s!apos; ELSE !apos;!apos; END ||
+ !apos;://!apos; || host || !apos;/!apos; ||
+ COALESCE(Path.value,!apos;!apos;) ||
+ CASE WHEN COALESCE(Path.get,IndividualPath.track) IS NULL
+ THEN !apos;!apos;
+ ELSE !apos;?!apos; ||
+ COALESCE(Path.get,!apos;!apos;) ||
+ COALESCE(CASE WHEN (Path.get IS NOT NULL AND IndividualPath.track IS NOT  NULL) THEN !apos;!amp;!apos; ELSE !apos;!apos; END ||  IndividualPath.track, !apos;!apos;)
+ END AS value,
+ latest.created
+FROM latest
+JOIN IndividualPath ON IndividualPath.individual = latest.individual
+ AND IndividualPath.type = latest.type
+ AND IndividualPath.path = latest.path
+ AND IndividualPath.created = latest.created
+JOIN Individual ON Individual.id = latest.individual
+ AND Individual.nameChange IS NULL
+JOIN Path ON Path.id = latest.path
   </sql>
  </view>
 </views>

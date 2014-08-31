@@ -24,3 +24,20 @@ Formatted HTTP GET
 |value|
 |http://www1.NoCRUD.com/TestPath1?r=1|
 
+Individual Paths
+Using Static
+
+!|Ordered Query| SELECT value FROM IndividualURL WHERE individual = 10 AND type = 10|
+|value|
+|http://www.IBM.com/?NoCRUD|
+
+Put in a new one with no tracking
+!|Insert|IndividualPath|
+|individual|type|path|
+|10|10|10|
+
+!|Ordered Query| SELECT value FROM IndividualURL WHERE individual = 10 AND type = 10|
+|value|
+|http://www.IBM.com/|
+
+
