@@ -4,8 +4,8 @@ A Company or Entities full name
 |name|
 |Zippy's house of flapjacks|
 
-First inserted Entity id should be >= 10000
-!|Ordered Query| SELECT id FROM Entity WHERE id >= 10000 LIMIT 1|
+First inserted Entity id should be >= 2000000
+!|Ordered Query| SELECT id FROM Entity WHERE id >= 2000000 LIMIT 1|
 |id|
 |fail[NULL}|
 

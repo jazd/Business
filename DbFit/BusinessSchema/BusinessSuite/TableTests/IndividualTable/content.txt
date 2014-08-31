@@ -5,8 +5,8 @@ Duplicates are Okay as long as they are indeed different legal entities
 |Zipmeister|
 |Zipmeister|
 
-First inserted Individual id should be >= 20000
-!|Ordered Query| SELECT id FROM Individual WHERE id >= 20000 LIMIT 1|
+First inserted Individual id should be >= 4000000
+!|Ordered Query| SELECT id FROM Individual WHERE id >= 4000000 LIMIT 1|
 |id|
 |fail[NULL}|
 

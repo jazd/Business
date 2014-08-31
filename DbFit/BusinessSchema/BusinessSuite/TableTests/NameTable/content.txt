@@ -5,8 +5,8 @@ Multiple people can share the same name
 |given|middle|family|
 |1|2|3|
 
-First inserted Name id should be >= 10000
-!|Ordered Query| SELECT id FROM Name WHERE id >= 10000 LIMIT 1|
+First inserted Name id should be >= 2000000
+!|Ordered Query| SELECT id FROM Name WHERE id >= 2000000 LIMIT 1|
 |id|
 |fail[NULL}|
 

@@ -5,8 +5,8 @@ First inserted should be >= 10000
 |value|
 |Zippy|
 
-First inserted word id should be >= 10000
-!|Ordered Query| SELECT id FROM Given WHERE id >= 10000 LIMIT 1|
+First inserted word id should be >= 2000000
+!|Ordered Query| SELECT id FROM Given WHERE id >= 2000000 LIMIT 1|
 |id|
 |fail[NULL}|
 

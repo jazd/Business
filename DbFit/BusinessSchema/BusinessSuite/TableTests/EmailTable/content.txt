@@ -3,8 +3,8 @@ Full email address
 |username|plus|host|
 |spiffy|monkeywards|ibm.com|
 
-First inserted email id should be >= 10000
-!|Ordered Query| SELECT id FROM Email WHERE id >= 10000 LIMIT 1|
+First inserted email id should be >= 2000000
+!|Ordered Query| SELECT id FROM Email WHERE id >= 2000000 LIMIT 1|
 |id|
 |fail[NULL]|
 
