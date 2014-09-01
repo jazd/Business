@@ -256,40 +256,38 @@
 </indices>
 </table>
 
-
-<comments>
-untested[TableName] are tables that should work, but are un-tested.  Use at your own risk
-unfinished[TableName] are tables that are mostly place holders or note taking.  These should not be used and are probably completely wrong.
-</comments>
-
-<table name="untestedSchemaVersion" order="999">
+<table name="timezone" order="60">
 <fields>
- <field name="major" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="minor" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="patch" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+ <field name="name" data_type="varchar" size="40" is_nullable="0" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="abbrev" data_type="varchar" size="8" is_nullable="0" is_primary_key="0" order="2" />
+ <field name="utc_offset" data_type="interval" size="" is_nullable="0" is_auto_increment="0" order="3" />
+ <field name="is_dst" data_type="smallint" size="1" is_nullable="0" order="4" />
 </fields>
 </table>
 
-<table name="unfinishedArea" order="9999">
+<table name="unfinishedArea" order="61">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
  <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="shape" data_type="bytea" size="100" is_nullable="1" order="3" />
- <field name="timezone" data_type="varchar" size="30" is_nullable="1" order="3" />
+ <field name="shape" data_type="bytea" size="" is_nullable="1" order="3">
+  <comments>GIS shape information</comments>
+ </field>
+ <field name="timezone" data_type="varchar" size="40" is_nullable="1" order="3" />
 </fields>
 </table>
 
-<table name="unfinishedLocation" order="9999">
+<table name="unfinishedLocation" order="62">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
  <field name="parent" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="marquee" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="latitude" data_type="float" size="10" is_nullable="1" order="3" />
  <field name="longitude" data_type="float" size="10" is_nullable="1" order="3" />
  <field name="level" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="altitudeFeetAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="area" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="area" data_type="integer" size="10" is_nullable="1" order="3" >
+  <comments>For timezone information for small locations</comments>
+ </field>
 </fields>
 </table>
 
@@ -305,6 +303,30 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <constraint name="" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="location" reference_table="unfinishedLocation" reference_fields="id" deferrable="1" />
 </constraints>
+</table>
+
+<table name="unfinishedPhone" order="9999">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="country" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="number" data_type="varchar" size="20" is_nullable="0" order="3" />
+</fields>
+</table>
+
+
+<comments>
+untested[TableName] are tables that should work, but are un-tested.  Use at your own risk
+unfinished[TableName] are tables that are mostly place holders or note taking.  These should not be used and are probably completely wrong.
+</comments>
+
+<table name="untestedSchemaVersion" order="999">
+<fields>
+ <field name="major" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="minor" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="patch" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
 </table>
 
 <table name="unfinishedPostal" order="9999">
@@ -350,14 +372,6 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="address" data_type="integer" size="10" is_nullable="0" order="3" />
  <field name="attribute" data_type="integer" size="10" is_nullable="0" order="3" />
  <field name="value" data_type="integer" size="10" is_nullable="0" order="3" />
-</fields>
-</table>
-
-<table name="unfinishedPhone" order="9999">
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="country" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="number" data_type="varchar" size="20" is_nullable="0" order="3" />
 </fields>
 </table>
 
