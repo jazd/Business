@@ -265,7 +265,7 @@
 </fields>
 </table>
 
-<table name="unfinishedArea" order="61">
+<table name="Area" order="61">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
  <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
@@ -274,44 +274,61 @@
  </field>
  <field name="timezone" data_type="varchar" size="40" is_nullable="1" order="3" />
 </fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
 </table>
 
-<table name="unfinishedLocation" order="62">
+<table name="Location" order="62">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
  <field name="parent" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="marquee" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="latitude" data_type="float" size="10" is_nullable="1" order="3" />
  <field name="longitude" data_type="float" size="10" is_nullable="1" order="3" />
- <field name="level" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="altitudeFeetAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="level" data_type="integer" size="10" is_nullable="1" order="3">
+  <comments>Floor. Negative numbers for basements</comments>
+ </field>
+ <field name="altitudeFeetAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="3">
+  <comments>In feet for now</comments>
+ </field>
  <field name="area" data_type="integer" size="10" is_nullable="1" order="3" >
   <comments>For timezone information for small locations</comments>
  </field>
 </fields>
-</table>
-
-<table name="unfinishedCountry" order="9999">
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="code" data_type="varchar" size="4" is_nullable="1" order="3" />
- <field name="dial" data_type="varchar" size="8" is_nullable="1" order="3" />
- <field name="name" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
-</fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="location" reference_table="unfinishedLocation" reference_fields="id" deferrable="1" />
+ <constraint name="location_area" type="FOREIGN KEY" fields="area" reference_table="Area" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="marquee" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
-<table name="unfinishedPhone" order="9999">
+<table name="Country" order="63">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
+ <field name="code" data_type="varchar" size="4" is_nullable="1" order="3" />
+ <field name="dial" data_type="varchar" size="8" is_nullable="1" order="3" />
+ <field name="name" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="location" data_type="integer" size="10" is_nullable="1" order="3">
+  <comments>For center of country only</comments>
+ </field>
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="Phone" order="64">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
  <field name="country" data_type="integer" size="10" is_nullable="0" order="3" />
  <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="number" data_type="varchar" size="20" is_nullable="0" order="3" />
 </fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="country" reference_table="Country" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
+</constraints>
 </table>
 
 
@@ -344,10 +361,10 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="country" reference_table="unfinishedCountry" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="state" reference_table="Word" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="stateAbbreviation" reference_table="Word" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="city" reference_table="Word" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="country" reference_table="Country" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="state" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="stateAbbreviation" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalud2" type="FOREIGN KEY" fields="city" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <constraint name="" type="FOREIGN KEY" fields="location" reference_table="unfinishedLocation" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
