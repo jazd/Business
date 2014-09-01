@@ -17,4 +17,19 @@ Formatted email in plus format
 |value|
 |timmy+amazon@ibm.com|
 
+Individual Email addresses
+Using Static
+
+!|Ordered Query| SELECT value FROM IndividualEmailAddress WHERE individual = 3 AND type = 11|
+|value|
+|Steve+NoCRUD@Jazd.com|
+
+Put in a new one with no tracking
+!|Insert|IndividualEmail|
+|individual|type|email|
+|3|11|2|
+
+!|Ordered Query| SELECT value FROM IndividualEmailAddress WHERE individual = 3 AND type = 11|
+|value|
+|Steve+NoCRUD@ADB.Net|
 

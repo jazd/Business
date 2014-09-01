@@ -218,7 +218,7 @@
 </constraints>
 </table>
 
-<table name="IndividualPath" order="9999">
+<table name="IndividualPath" order="50">
 <comments>Web Site, Social page, feed etc.</comments>
 <fields>
  <field name="individual" data_type="integer" size="10" is_nullable="1" order="1" />
@@ -231,13 +231,31 @@
 </fields>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
- <comments invalid=""><constraint name="" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 <indices>
- <index name="individualpath_individual_type_path" type="NORMAL" fields="individual,type,path" />
+ <index name="individualpath_individual_type" type="NORMAL" fields="individual,type" />
 </indices>
 </table>
+
+<table name="IndividualEmail" order="51">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="email" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="email" reference_table="Email" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+<indices>
+ <index name="individualemail_individual_type" type="NORMAL" fields="individual,type" />
+</indices>
+</table>
+
 
 <comments>
 untested[TableName] are tables that should work, but are un-tested.  Use at your own risk
@@ -355,15 +373,6 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 <fields>
  <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
  <field name="property" data_type="integer" size="10" is_nullable="0" order="3" />
-</fields>
-</table>
-
-<table name="unfinishedIndividualEMail" order="9999">
-<fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="email" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
 
@@ -714,10 +723,10 @@ FROM Path
  </view>
  <view name="IndividualURL" fields="individual,type,path,protocol,host,value,created">
   <sql>
-WITH latest (individual,type,path,created) AS (
- SELECT individual, type, path, MAX(created) AS created
+WITH latest (individual,type,created) AS (
+ SELECT individual, type, MAX(created) AS created
  FROM IndividualPath
- GROUP BY individual, type, path
+ GROUP BY individual, type
 )
 SELECT latest.individual, latest.type, Path.id AS path, Path.protocol, Path.host,
  Path.protocol ||
@@ -734,11 +743,28 @@ SELECT latest.individual, latest.type, Path.id AS path, Path.protocol, Path.host
 FROM latest
 JOIN IndividualPath ON IndividualPath.individual = latest.individual
  AND IndividualPath.type = latest.type
- AND IndividualPath.path = latest.path
  AND IndividualPath.created = latest.created
 JOIN Individual ON Individual.id = latest.individual
  AND Individual.nameChange IS NULL
-JOIN Path ON Path.id = latest.path
+JOIN Path ON Path.id = IndividualPath.path
+  </sql>
+ </view>
+ <view name="IndividualEmailAddress" fields="individual,type,email,username,plus,host,value,created">
+  <sql>
+WITH latest (individual,type,created) AS (
+ SELECT individual, type, MAX(created) AS created
+ FROM IndividualEmail
+ GROUP BY individual, type
+)
+SELECT latest.individual, latest.type, IndividualEmail.email, EmailAddress.username,
+ EmailAddress.plus, EmailAddress.host, EmailAddress.value, latest.created
+FROM latest
+JOIN Individual ON Individual.id = latest.individual
+ AND Individual.nameChange IS NULL
+JOIN IndividualEmail ON IndividualEmail.individual = latest.individual
+ AND IndividualEmail.type = latest.type
+ AND IndividualEmail.created = latest.created
+JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email
   </sql>
  </view>
 </views>

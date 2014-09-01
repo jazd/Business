@@ -1,5 +1,13 @@
 INSERT INTO Word (id,culture,value) VALUES (1,1033,'IMS');
 ---- Types for .type fields
+INSERT INTO Word (id,culture,value) VALUES (10,1033,'Home');   -- Home page
+INSERT INTO Word (id,culture,value) VALUES (11,1033,'Primary'); -- Primary address
+INSERT INTO Word (id,culture,value) VALUES (12,1033,'Work');
+INSERT INTO Word (id,culture,value) VALUES (13,1033,'Business');
+INSERT INTO Word (id,culture,value) VALUES (14,1033,'Pager');
+INSERT INTO Word (id,culture,value) VALUES (15,1033,'Fax');
+INSERT INTO Word (id,culture,value) VALUES (16,1033,'Desk');
+INSERT INTO Word (id,culture,value) VALUES (17,1033,'Mobile');
 ---- Name words
 INSERT INTO Word (id,culture,value) VALUES (100,1033,'Mr');
 INSERT INTO Word (id,culture,value) VALUES (101,1033,'Master');
