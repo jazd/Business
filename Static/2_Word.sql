@@ -66,4 +66,11 @@ INSERT INTO Word (id,culture,value) VALUES (201,1033,'Died');
 INSERT INTO Word (id,culture,value) VALUES (202,1033,'Changed name');
 --- List words
 INSERT INTO Word (id,culture,value) VALUES (1000,1033,'Writers');
+--- Areas
+INSERT INTO Word (id,culture,value) VALUES (10000,1033,'Alaska');
+INSERT INTO Word (id,culture,value) VALUES (10001,1033,'Hawaiian');
+INSERT INTO Word (id,culture,value) VALUES (10002,1033,'Pacific');
+INSERT INTO Word (id,culture,value) VALUES (10003,1033,'Mountain');
+INSERT INTO Word (id,culture,value) VALUES (10004,1033,'Central');
+INSERT INTO Word (id,culture,value) VALUES (10005,1033,'Eastern');
 --- Country, City, State words

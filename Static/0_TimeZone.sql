@@ -1,4 +1,5 @@
 INSERT INTO Timezone (name,abbrev,utc_offset,is_dst) VALUES ('Pacific/Honolulu','HST','-10:00:00',0);
+INSERT INTO Timezone (name,abbrev,utc_offset,is_dst) VALUES ('America/Adak','HADT','-09:00:00',1);
 INSERT INTO Timezone (name,abbrev,utc_offset,is_dst) VALUES ('US/Pacific','PDT','-07:00:00',1);
 INSERT INTO Timezone (name,abbrev,utc_offset,is_dst) VALUES ('America/Los_Angeles','PDT','-07:00:00',1);
 INSERT INTO Timezone (name,abbrev,utc_offset,is_dst) VALUES ('US/Arizona','MST','-07:00:00',0);

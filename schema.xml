@@ -275,6 +275,7 @@
  <field name="timezone" data_type="varchar" size="40" is_nullable="1" order="3" />
 </fields>
 <constraints>
+ <constraint name="area_timezone" type="FOREIGN KEY" fields="timezone" reference_table="Timezone" reference_fields="name" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
