@@ -67,6 +67,56 @@
 <comments></comments>
 </table>
 
+<table name="timezone" order="10">
+<fields>
+ <field name="name" data_type="varchar" size="40" is_nullable="0" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="abbrev" data_type="varchar" size="8" is_nullable="0" is_primary_key="0" order="2" />
+ <field name="utc_offset" data_type="interval" size="" is_nullable="0" is_auto_increment="0" order="3" />
+ <field name="is_dst" data_type="smallint" size="1" is_nullable="0" order="4" />
+</fields>
+</table>
+
+<table name="Area" order="11">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
+ <field name="name" data_type="integer" size="10" is_nullable="0" order="3" />
+ <comments><field name="shape" data_type="GEOMETRY" size="" is_nullable="1" order="3">
+  <comments>GIS shape information</comments>
+ </field>Add this field if using GIS</comments>
+ <field name="timezone" data_type="varchar" size="40" is_nullable="1" order="3" />
+</fields>
+<constraints>
+ <constraint name="area_timezone" type="FOREIGN KEY" fields="timezone" reference_table="Timezone" reference_fields="name" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+<indices>
+ <index name="area_name" type="UNIQUE" fields="name" />
+</indices>
+</table>
+
+<table name="Location" order="12">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
+ <field name="parent" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="marquee" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="latitude" data_type="float" size="10" is_nullable="1" order="3" />
+ <field name="longitude" data_type="float" size="10" is_nullable="1" order="3" />
+ <field name="level" data_type="integer" size="10" is_nullable="0" default_value="1" order="3">
+  <comments>Floor. Negative numbers for basements</comments>
+ </field>
+ <field name="altitudeFeetAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="3">
+  <comments>In feet for now</comments>
+ </field>
+ <field name="area" data_type="integer" size="10" is_nullable="1" order="3" >
+  <comments>For timezone information for small locations</comments>
+ </field>
+</fields>
+<constraints>
+ <constraint name="location_area" type="FOREIGN KEY" fields="area" reference_table="Area" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="marquee" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 <table name="Given" order="18">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
@@ -140,7 +190,8 @@
  </field>
  <field name="nameChange" data_type="timestamp" size="0" is_nullable="1" order="9" />
  <field name="death" data_type="timestamp" size="0" is_nullable="1" order="10" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="11" />
+ <field name="location" data_type="integer" size="10" is_nullable="1" order="11" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="12" />
 </fields>
 <indices>
  <index name="individual_id" type="NORMAL" fields="id" />
@@ -152,6 +203,7 @@
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="prefix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="suffix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="post" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
 
@@ -256,56 +308,6 @@
 </indices>
 </table>
 
-<table name="timezone" order="60">
-<fields>
- <field name="name" data_type="varchar" size="40" is_nullable="0" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="abbrev" data_type="varchar" size="8" is_nullable="0" is_primary_key="0" order="2" />
- <field name="utc_offset" data_type="interval" size="" is_nullable="0" is_auto_increment="0" order="3" />
- <field name="is_dst" data_type="smallint" size="1" is_nullable="0" order="4" />
-</fields>
-</table>
-
-<table name="Area" order="61">
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="name" data_type="integer" size="10" is_nullable="0" order="3" />
- <comments><field name="shape" data_type="GEOMETRY" size="" is_nullable="1" order="3">
-  <comments>GIS shape information</comments>
- </field>Add this field if using GIS</comments>
- <field name="timezone" data_type="varchar" size="40" is_nullable="1" order="3" />
-</fields>
-<constraints>
- <constraint name="area_timezone" type="FOREIGN KEY" fields="timezone" reference_table="Timezone" reference_fields="name" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
-</constraints>
-<indices>
- <index name="area_name" type="UNIQUE" fields="name" />
-</indices>
-</table>
-
-<table name="Location" order="62">
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="parent" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="marquee" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="latitude" data_type="float" size="10" is_nullable="1" order="3" />
- <field name="longitude" data_type="float" size="10" is_nullable="1" order="3" />
- <field name="level" data_type="integer" size="10" is_nullable="0" default_value="1" order="3">
-  <comments>Floor. Negative numbers for basements</comments>
- </field>
- <field name="altitudeFeetAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="3">
-  <comments>In feet for now</comments>
- </field>
- <field name="area" data_type="integer" size="10" is_nullable="1" order="3" >
-  <comments>For timezone information for small locations</comments>
- </field>
-</fields>
-<constraints>
- <constraint name="location_area" type="FOREIGN KEY" fields="area" reference_table="Area" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="marquee" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
-</constraints>
-</table>
-
 <table name="Country" order="63">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
@@ -389,7 +391,7 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="state" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="stateAbbreviation" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalud2" type="FOREIGN KEY" fields="city" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="location" reference_table="unfinishedLocation" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
 
