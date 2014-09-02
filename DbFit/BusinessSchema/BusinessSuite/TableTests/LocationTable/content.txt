@@ -1,0 +1,13 @@
+Location
+
+Specific location on the globe
+
+!|Insert|Location|
+|marquee|level|
+|10000|1|
+
+First inserted location should be >= 10000
+!|Ordered Query| SELECT id FROM Location WHERE id >= 10000 LIMIT 1|
+|id|
+|fail[NULL}|
+

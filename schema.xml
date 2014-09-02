@@ -269,9 +269,9 @@
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
  <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="shape" data_type="bytea" size="" is_nullable="1" order="3">
+ <comments><field name="shape" data_type="GEOMETRY" size="" is_nullable="1" order="3">
   <comments>GIS shape information</comments>
- </field>
+ </field>Add this field if using GIS</comments>
  <field name="timezone" data_type="varchar" size="40" is_nullable="1" order="3" />
 </fields>
 <constraints>
@@ -306,10 +306,17 @@
 <table name="Country" order="63">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
- <field name="code" data_type="varchar" size="4" is_nullable="1" order="3" />
- <field name="dial" data_type="varchar" size="8" is_nullable="1" order="3" />
- <field name="name" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="location" data_type="integer" size="10" is_nullable="1" order="3">
+ <field name="name" data_type="integer" size="10" is_nullable="0" order="2" />
+ <field name="code" data_type="varchar" size="4" is_nullable="1" order="3">
+  <comments>Long ISO Country code. See http://countrycode.org/</comments>
+ </field>
+ <field name="idd" data_type="varchar" size="8" is_nullable="1" order="4">
+  <comments>International Dialing Prefix. See http://countrycode.org/</comments>
+ </field>
+ <field name="ndd" data_type="varchar" size="4" is_nullable="1" order="5">
+  <comments>Country Code. See http://countrycode.org/</comments>
+ </field>
+ <field name="location" data_type="integer" size="10" is_nullable="1" order="6">
   <comments>For center of country only</comments>
  </field>
 </fields>
