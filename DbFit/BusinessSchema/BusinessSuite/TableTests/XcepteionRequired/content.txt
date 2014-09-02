@@ -194,3 +194,42 @@ Valid email addresses only
 !|Insert|Email|
 |plus|
 |zippy|
+
+!4 Area
+
+Do not allow duplicate area names
+
+!style_error(duplicate key value violates unique constraint "area_name")
+!|Insert|Area|
+|name|
+|200|
+|200|
+
+
+!4 Country
+
+Do not allow duplicate country names
+
+!style_error(duplicate key value violates unique constraint "country_name")
+!|Insert|Country|
+|name|
+|1|
+|1|
+
+Do not allow duplicate country codes
+!style_error(duplicate key value violates unique constraint "country_code")
+!|Insert|Country|
+|name|code|
+|200|Zip|
+|201|zip|
+
+
+!4 Phone
+
+Do not allow duplicate phone numbers for same country
+
+!style_error(duplicate key value violates unique constraint "phone_country_area_number")
+!|Insert|Phone|
+|area|number|
+|503|5551212|
+|503|5551212|

@@ -14,6 +14,9 @@ CREATE UNIQUE INDEX name_null_null_family ON Name (family) WHERE given IS NULL A
 -- Do not allow duplicate email addresses
 CREATE UNIQUE INDEX email_username_plus_host ON Email (UPPER(username),UPPER(plus),UPPER(host));
 
+-- Do not allow duplicate country codes
+CREATE UNIQUE INDEX country_code ON Country (UPPER(code));
+
 -- Application or user insert on these tables should start at 2000000
 -- This leaves room for global constants that are guaranteed to exist
 ALTER SEQUENCE word_id_seq RESTART WITH 2000000;
@@ -29,3 +32,4 @@ ALTER SEQUENCE path_id_seq RESTART WITH 2000000;
 ALTER SEQUENCE area_id_seq RESTART WITH 10000;
 ALTER SEQUENCE location_id_seq RESTART WITH 10000;
 ALTER SEQUENCE country_id_seq RESTART WITH 10000;
+ALTER SEQUENCE phone_id_seq RESTART WITH 10000;

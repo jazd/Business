@@ -1,0 +1,12 @@
+Telephone numbers
+
+Default to USA for country
+!|Insert|Phone|
+|area|number|
+|503|5551212|
+
+First inserted email id should be >= 10000
+!|Ordered Query| SELECT id FROM Phone WHERE id >= 10000 AND area = '503' AND number='5551212' AND country = 1|
+|id|
+|fail[NULL]|
+

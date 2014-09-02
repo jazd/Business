@@ -4,10 +4,10 @@ GIS shapes
 
 !|Insert|Area|
 |name|
-|10000|
+|200|
 
 First inserted area should be >= 10000
-!|Ordered Query| SELECT id FROM Area WHERE id >= 10000 LIMIT 1|
+!|Ordered Query| SELECT id FROM Area WHERE id >= 10000 AND name = 200|
 |id|
 |fail[NULL}|
 

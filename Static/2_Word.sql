@@ -75,4 +75,6 @@ INSERT INTO Word (id,culture,value) VALUES (10004,1033,'Central');
 INSERT INTO Word (id,culture,value) VALUES (10005,1033,'Eastern');
 --- Country
 INSERT INTO Word (id,culture,value) VALUES (50000,1033,'USA');
+INSERT INTO Word (id,culture,value) VALUES (50001,1033,'CAN');
+INSERT INTO Word (id,culture,value) VALUES (50002,1033,'MEX');
 --- City, State words

@@ -268,7 +268,7 @@
 <table name="Area" order="61">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="name" data_type="integer" size="10" is_nullable="0" order="3" />
  <comments><field name="shape" data_type="GEOMETRY" size="" is_nullable="1" order="3">
   <comments>GIS shape information</comments>
  </field>Add this field if using GIS</comments>
@@ -278,6 +278,9 @@
  <constraint name="area_timezone" type="FOREIGN KEY" fields="timezone" reference_table="Timezone" reference_fields="name" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
+<indices>
+ <index name="area_name" type="UNIQUE" fields="name" />
+</indices>
 </table>
 
 <table name="Location" order="62">
@@ -287,7 +290,7 @@
  <field name="marquee" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="latitude" data_type="float" size="10" is_nullable="1" order="3" />
  <field name="longitude" data_type="float" size="10" is_nullable="1" order="3" />
- <field name="level" data_type="integer" size="10" is_nullable="1" order="3">
+ <field name="level" data_type="integer" size="10" is_nullable="0" default_value="1" order="3">
   <comments>Floor. Negative numbers for basements</comments>
  </field>
  <field name="altitudeFeetAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="3">
@@ -324,19 +327,32 @@
  <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
+<indices>
+ <index name="country_name" type="UNIQUE" fields="name" />
+</indices>
 </table>
 
 <table name="Phone" order="64">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="country" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="number" data_type="varchar" size="20" is_nullable="0" order="3" />
+ <field name="country" data_type="integer" size="10" is_nullable="0" default_value="1" order="3">
+  <comments>Default to USA</comments>
+ </field>
+ <field name="location" data_type="integer" size="10" is_nullable="1" order="2" />
+ <field name="area" data_type="varchar" size="4" is_nullable="0" order="3">
+  <comments>Strip out all formatting characters.</comments>
+ </field>
+ <field name="number" data_type="varchar" size="10" is_nullable="0" order="4">
+  <comments>Strip out all formatting characters.</comments>
+ </field>
 </fields>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="country" reference_table="Country" reference_fields="id" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
 </constraints>
+<indices>
+ <index name="phone_country_area_number" type="UNIQUE" fields="country,area,number" />
+</indices>
 </table>
 
 
