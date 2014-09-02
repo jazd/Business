@@ -105,7 +105,7 @@
   <comments>Floor. Negative numbers for basements</comments>
  </field>
  <field name="altitudeFeetAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="3">
-  <comments>In feet for now</comments>
+  <comments>In feet</comments>
  </field>
  <field name="area" data_type="integer" size="10" is_nullable="1" order="3" >
   <comments>For timezone information for small locations</comments>
