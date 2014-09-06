@@ -842,6 +842,17 @@ JOIN IndividualEmail ON IndividualEmail.individual = latest.individual
 JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email
   </sql>
  </view>
+ <view name = "Phones" fields="phone,country,location,area,number,idd,ndd,code,local,international" >
+  <sql>
+SELECT Phone.id AS phone, Phone.country, Phone.location,
+ Phone.area, Phone.number, Country.idd, Country.ndd,
+ Country.code,
+ Phone.area || !apos;-!apos; || LEFT(number,3) || !apos;-!apos; || RIGHT(number,4) AS local,
+ Country.idd || !apos;-!apos; || Country.ndd || !apos;-!apos; ||   Phone.area || !apos;-!apos; || LEFT(number,3) || !apos;-!apos; || RIGHT(number,4)AS international
+FROM Phone
+JOIN Country ON Country.id = Phone.country
+  </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>
