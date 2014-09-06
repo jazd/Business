@@ -357,6 +357,24 @@
 </indices>
 </table>
 
+<table name="IndividualPhone" order="65">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="phone" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="phone" reference_table="Phone" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+<indices>
+ <index name="individualphone_individual_type" type="NORMAL" fields="individual,type" />
+</indices>
+</table>
+
+
 
 <comments>
 untested[TableName] are tables that should work, but are un-tested.  Use at your own risk

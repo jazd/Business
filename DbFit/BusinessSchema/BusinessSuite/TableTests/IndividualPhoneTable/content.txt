@@ -1,0 +1,12 @@
+
+Using static data for tests
+
+!|Insert|IndividualPhone|
+|individual|type|phone|
+|1|11|1|
+
+Be sure it was inserted
+!|Ordered Query| SELECT individual FROM IndividualPhone WHERE individual = 1 AND type = 11 AND phone = 1|
+|individual|
+|fail[NULL}|
+
