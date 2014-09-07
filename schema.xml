@@ -374,6 +374,51 @@
 </indices>
 </table>
 
+<table name="Postal" order="70">
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
+ <field name="country" data_type="integer" size="10" is_nullable="0" order="2" />
+ <field name="code" data_type="varchar" size="10" is_nullable="0" order="3" />
+ <field name="state" data_type="integer" size="10" is_nullable="0" order="4">
+  <comments>Province Territory or Zone</comments>
+ </field>
+ <field name="stateAbbreviation" data_type="integer" size="10" is_nullable="0" order="5" />
+ <field name="city" data_type="integer" size="10" is_nullable="0" order="6">
+  <comments>Township</comments>
+ </field>
+ <field name="location" data_type="integer" size="10" is_nullable="1" order="7" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="country" reference_table="Country" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="state" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="stateAbbreviation" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalud2" type="FOREIGN KEY" fields="city" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
+</constraints>
+<indices>
+ <index name="postal_country_code" type="UNIQUE" fields="country,code" />
+</indices>
+</table>
+
+<table name="Address" order="71">
+<fields>
+ <comments>A lot of work needs to be done to be sure duplicate addresses are not entered.  This work will be centered around validation and the AddressAttribute table.</comments>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="line1" data_type="varchar" size="50" is_nullable="1" order="2" />
+ <field name="line2" data_type="varchar" size="50" is_nullable="1" order="3" />
+ <field name="line3" data_type="varchar" size="50" is_nullable="1" order="4" />
+ <field name="line4" data_type="varchar" size="50" is_nullable="1" order="5" />
+ <field name="postal" data_type="integer" size="10" is_nullable="1" order="6" />
+ <field name="postalPlus" data_type="varchar" size="4" is_nullable="1" order="7" />
+ <field name="location" data_type="integer" size="10" is_nullable="1" order="8" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="9" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="postal" reference_table="Postal" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
 
 
 <comments>
@@ -386,43 +431,6 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="major" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="minor" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="patch" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-</table>
-
-<table name="unfinishedPostal" order="9999">
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="country" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="code" data_type="varchar" size="10" is_nullable="0" order="3" />
- <field name="state" data_type="integer" size="10" is_nullable="0" order="3">
-  <comments>Province Territory or Zone</comments>
- </field>
- <field name="stateAbbreviation" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="city" data_type="integer" size="10" is_nullable="0" order="3">
-  <comments>Township</comments>
- </field>
- <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
-</fields>
-<constraints>
- <constraint name="" type="FOREIGN KEY" fields="country" reference_table="Country" reference_fields="id" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="state" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="stateAbbreviation" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <comments invalid=""><constraint name="invalud2" type="FOREIGN KEY" fields="city" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
-</constraints>
-</table>
-
-<table name="unfinishedAddress" order="9999">
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="line1" data_type="varchar" size="50" is_nullable="1" order="3" />
- <field name="line2" data_type="varchar" size="50" is_nullable="1" order="3" />
- <field name="line3" data_type="varchar" size="50" is_nullable="1" order="3" />
- <field name="line4" data_type="varchar" size="50" is_nullable="1" order="3" />
- <field name="postal" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="postalPlus" data_type="varchar" size="4" is_nullable="1" order="3" />
- <field name="location" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
