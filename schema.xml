@@ -97,17 +97,20 @@
 <table name="Location" order="12">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="parent" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="parent" data_type="integer" size="10" is_nullable="1" order="2" />
  <field name="marquee" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="latitude" data_type="float" size="10" is_nullable="1" order="3" />
- <field name="longitude" data_type="float" size="10" is_nullable="1" order="3" />
- <field name="level" data_type="integer" size="10" is_nullable="0" default_value="1" order="3">
+ <field name="latitude" data_type="float" size="10" is_nullable="1" order="4" />
+ <field name="longitude" data_type="float" size="10" is_nullable="1" order="5" />
+ <field name="accuracy" data_type="integer" size="10" is_nullable="1" order="6">
+  <comments>From GeoNames.org accuracy of lat/lng from 1=estimated to 6=centroid</comments>
+ </field>
+ <field name="level" data_type="integer" size="10" is_nullable="0" default_value="1" order="7">
   <comments>Floor. Negative numbers for basements</comments>
  </field>
- <field name="altitudeFeetAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="3">
+ <field name="altitudeFeetAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="8">
   <comments>In feet</comments>
  </field>
- <field name="area" data_type="integer" size="10" is_nullable="1" order="3" >
+ <field name="area" data_type="integer" size="10" is_nullable="1" order="9" >
   <comments>For timezone information for small locations</comments>
  </field>
 </fields>
@@ -383,16 +386,20 @@
   <comments>Province Territory or Zone</comments>
  </field>
  <field name="stateAbbreviation" data_type="integer" size="10" is_nullable="0" order="5" />
- <field name="city" data_type="integer" size="10" is_nullable="0" order="6">
+ <field name="county" data_type="integer" size="10" is_nullable="0" order="6">
+  <comments>Province</comments>
+ </field>
+ <field name="city" data_type="integer" size="10" is_nullable="0" order="7">
   <comments>Township</comments>
  </field>
- <field name="location" data_type="integer" size="10" is_nullable="1" order="7" />
+ <field name="location" data_type="integer" size="10" is_nullable="1" order="8" />
 </fields>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="country" reference_table="Country" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="state" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="stateAbbreviation" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <comments invalid=""><constraint name="invalud2" type="FOREIGN KEY" fields="city" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalud2" type="FOREIGN KEY" fields="county" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalud3" type="FOREIGN KEY" fields="city" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
 </constraints>
 <indices>
