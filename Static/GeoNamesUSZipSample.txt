@@ -1,0 +1,109 @@
+US	39530	Biloxi	Mississippi	MS	Harrison	047			30.4035	-88.8971	
+US	39531	Biloxi	Mississippi	MS	Harrison	047			30.4033	-88.9605	
+US	39532	Biloxi	Mississippi	MS	Harrison	047			30.511	-88.9681	
+US	39533	Biloxi	Mississippi	MS	Harrison	047			30.4158	-89.0684	
+US	39534	Biloxi	Mississippi	MS	Harrison	047			30.4067	-88.9211	
+US	39535	Biloxi	Mississippi	MS	Harrison	047			30.4158	-89.0684	
+US	42256	Lewisburg	Kentucky	KY	Logan	141			37.0037	-86.9887	
+US	43060	North Lewisburg	Ohio	OH	Champaign	021			40.2229	-83.5615	
+US	45338	Lewisburg	Ohio	OH	Preble	135			39.8534	-84.5368	
+US	17837	Lewisburg	Pennsylvania	PA	Union	119			40.9702	-76.9099	
+US	37091	Lewisburg	Tennessee	TN	Marshall	117			35.4596	-86.7812	
+US	24901	Lewisburg	West Virginia	WV	Greenbrier	025			37.8083	-80.4407	
+US	55002	Almelund	Minnesota	MN	Chisago	025			45.5134	-92.8942	
+US	55012	Center City	Minnesota	MN	Chisago	025			45.4482	-92.7894	
+US	55013	Chisago City	Minnesota	MN	Chisago	025			45.3611	-92.8921	
+US	55032	Harris	Minnesota	MN	Chisago	025			45.5962	-93.0395	
+US	55045	Lindstrom	Minnesota	MN	Chisago	025			45.3873	-92.8421	
+US	55056	North Branch	Minnesota	MN	Chisago	025			45.5165	-92.9371	
+US	55069	Rush City	Minnesota	MN	Chisago	025			45.6845	-92.9979	
+US	55074	Shafer	Minnesota	MN	Chisago	025			45.3576	-92.7609	
+US	55078	Stacy	Minnesota	MN	Chisago	025			45.5134	-92.8942	
+US	55079	Stacy	Minnesota	MN	Chisago	025			45.3975	-93.0177	
+US	55084	Taylors Falls	Minnesota	MN	Chisago	025			45.4576	-92.733	
+US	55092	Wyoming	Minnesota	MN	Chisago	025			45.3364	-92.9675	
+US	97502	Central Point	Oregon	OR	Jackson	029			42.3899	-122.9222	
+US	99753	Koyuk	Alaska	AK	Nome (CA)	180			64.7556	-165.6723	
+US	49753	Lachine	Michigan	MI	Alpena	007			45.0429	-83.7491	
+US	48812	Cedar Lake	Michigan	MI	Montcalm	117			43.4138	-84.9753	
+US	39753	Mayhew	Mississippi	MS	Lowndes	087			33.4838	-88.6409	
+US	10172	New York City	New York	NY	New York	061			40.7558	-73.9753	
+US	97530	Jacksonville	Oregon	OR	Jackson	029			42.1813	-123.0241	
+US	97535	Phoenix	Oregon	OR	Jackson	029			42.2766	-122.8227	
+US	97536	Prospect	Oregon	OR	Jackson	029			42.7544	-122.509	
+US	97537	Rogue River	Oregon	OR	Jackson	029			42.4889	-123.1587	
+US	97539	Shady Cove	Oregon	OR	Jackson	029			42.6212	-122.7561	
+US	97531	Kerby	Oregon	OR	Josephine	033			42.2093	-123.6573	
+US	97532	Merlin	Oregon	OR	Josephine	033			42.5297	-123.4393	
+US	97533	Murphy	Oregon	OR	Josephine	033			42.308	-123.3273	
+US	97534	O Brien	Oregon	OR	Josephine	033			42.0879	-123.689	
+US	97538	Selma	Oregon	OR	Josephine	033			42.2654	-123.5515	
+US	15332	Finleyville	Pennsylvania	PA	Washington	125			40.2593	-79.9753	
+US	79021	Cotton Center	Texas	TX	Hale	189			33.9753	-102.0314	
+US	84652	Redmond	Utah	UT	Sevier	041			38.9065	-111.9753	
+US	99146	Laurier	Washington	WA	Ferry	019			48.9753	-118.2208	
+US	97222	Portland	Oregon	OR	Clackamas	005			45.4373	-122.6147	
+US	97267	Portland	Oregon	OR	Clackamas	005			45.4021	-122.6144	
+US	97268	Portland	Oregon	OR	Clackamas	005			45.1733	-122.2599	
+US	97269	Portland	Oregon	OR	Clackamas	005			45.1733	-122.2599	
+US	97201	Portland	Oregon	OR	Multnomah	051			45.5078	-122.6897	
+US	97202	Portland	Oregon	OR	Multnomah	051			45.484	-122.6365	
+US	97203	Portland	Oregon	OR	Multnomah	051			45.5889	-122.7347	
+US	97204	Portland	Oregon	OR	Multnomah	051			45.5181	-122.6745	
+US	97205	Portland	Oregon	OR	Multnomah	051			45.5207	-122.6888	
+US	97206	Portland	Oregon	OR	Multnomah	051			45.484	-122.5973	
+US	97207	Portland	Oregon	OR	Multnomah	051			45.4803	-122.7111	
+US	97208	Portland	Oregon	OR	Multnomah	051			45.5322	-122.5648	
+US	97209	Portland	Oregon	OR	Multnomah	051			45.527	-122.6854	
+US	97210	Portland	Oregon	OR	Multnomah	051			45.5303	-122.7033	
+US	97211	Portland	Oregon	OR	Multnomah	051			45.5653	-122.6448	
+US	97212	Portland	Oregon	OR	Multnomah	051			45.5441	-122.6423	
+US	97213	Portland	Oregon	OR	Multnomah	051			45.5373	-122.5987	
+US	97214	Portland	Oregon	OR	Multnomah	051			45.5142	-122.6364	
+US	97215	Portland	Oregon	OR	Multnomah	051			45.5143	-122.599	
+US	97216	Portland	Oregon	OR	Multnomah	051			45.5137	-122.5569	
+US	97217	Portland	Oregon	OR	Multnomah	051			45.5742	-122.6842	
+US	97218	Portland	Oregon	OR	Multnomah	051			45.56	-122.6001	
+US	97219	Portland	Oregon	OR	Multnomah	051			45.458	-122.7074	
+US	97220	Portland	Oregon	OR	Multnomah	051			45.5411	-122.5566	
+US	97221	Portland	Oregon	OR	Multnomah	051			45.4918	-122.7267	
+US	97227	Portland	Oregon	OR	Multnomah	051			45.5496	-122.6743	
+US	97228	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97230	Portland	Oregon	OR	Multnomah	051			45.5472	-122.5001	
+US	97231	Portland	Oregon	OR	Multnomah	051			45.6401	-122.838	
+US	97232	Portland	Oregon	OR	Multnomah	051			45.5287	-122.6363	
+US	97233	Portland	Oregon	OR	Multnomah	051			45.5142	-122.4985	
+US	97236	Portland	Oregon	OR	Multnomah	051			45.4887	-122.5091	
+US	97238	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97239	Portland	Oregon	OR	Multnomah County	051			45.4983	-122.6913	
+US	97240	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97242	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97251	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97253	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97254	Portland	Oregon	OR	Multnomah	051			45.5967	-122.5942	
+US	97255	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97256	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97258	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97259	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97266	Portland	Oregon	OR	Multnomah	051			45.4762	-122.5596	
+US	97271	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97272	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97280	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97282	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97283	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97286	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97290	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97292	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97293	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97294	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97296	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97299	Portland	Oregon	OR	Multnomah	051			45.5806	-122.3748	
+US	97223	Portland	Oregon	OR	Washington	067			45.4403	-122.7793	
+US	97224	Portland	Oregon	OR	Washington	067			45.4094	-122.8014	
+US	97225	Portland	Oregon	OR	Washington	067			45.4985	-122.7787	
+US	97229	Portland	Oregon	OR	Washington	067			45.5483	-122.8276	
+US	97281	Portland	Oregon	OR	Washington	067			45.5486	-123.1147	
+US	97291	Portland	Oregon	OR	Washington	067			45.5486	-123.1147	
+US	97298	Portland	Oregon	OR	Washington	067			45.5486	-123.1147	
+US	97501	Medford	Oregon	OR	Jackson	029			42.2818	-122.9054	
+US	97504	Medford	Oregon	OR	Jackson	029			42.3363	-122.8398	

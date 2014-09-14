@@ -99,16 +99,16 @@
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
  <field name="parent" data_type="integer" size="10" is_nullable="1" order="2" />
  <field name="marquee" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="latitude" data_type="float" size="10" is_nullable="1" order="4" />
- <field name="longitude" data_type="float" size="10" is_nullable="1" order="5" />
+ <field name="latitude" data_type="float" size="10,7" is_nullable="1" order="4" />
+ <field name="longitude" data_type="float" size="11,7" is_nullable="1" order="5" />
  <field name="accuracy" data_type="integer" size="10" is_nullable="1" order="6">
   <comments>From GeoNames.org accuracy of lat/lng from 1=estimated to 6=centroid</comments>
  </field>
  <field name="level" data_type="integer" size="10" is_nullable="0" default_value="1" order="7">
   <comments>Floor. Negative numbers for basements</comments>
  </field>
- <field name="altitudeFeetAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="8">
-  <comments>In feet</comments>
+ <field name="altitudeAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="8">
+  <comments>In meters</comments>
  </field>
  <field name="area" data_type="integer" size="10" is_nullable="1" order="9" >
   <comments>For timezone information for small locations</comments>
@@ -116,7 +116,7 @@
 </fields>
 <constraints>
  <constraint name="location_area" type="FOREIGN KEY" fields="area" reference_table="Area" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="marquee" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="marquee" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
@@ -334,6 +334,7 @@
 </constraints>
 <indices>
  <index name="country_name" type="UNIQUE" fields="name" />
+ <index name="country_code" type="UNIQUE" fields="code" />
 </indices>
 </table>
 
