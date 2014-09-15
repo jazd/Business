@@ -1,3 +1,5 @@
+SET search_path TO Business,"$user",public;
+
 CREATE OR REPLACE FUNCTION GetWord (
  word_value varchar,
  culture_name varchar

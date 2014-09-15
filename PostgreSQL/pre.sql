@@ -1,6 +1,6 @@
 SET search_path TO Business,"$user",public;
 
--- Functions
+-- Functions used in views
 
 -- Brute force birthday calculation
 CREATE OR REPLACE FUNCTION birthday(birth date, asOf date)
