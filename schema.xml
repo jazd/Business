@@ -334,7 +334,6 @@
 </constraints>
 <indices>
  <index name="country_name" type="UNIQUE" fields="name" />
- <index name="country_code" type="UNIQUE" fields="code" />
 </indices>
 </table>
 

@@ -45,4 +45,5 @@ clean:
 pgsqldb: schema.pgsql
 	@echo Creating new PostgreSQL database with $@
 	@echo Ignore: ERROR:  view \"*\" does not exist
-	cat PostgreSQL/pre.sql schema.pgsql Static/*.sql PostgreSQL/post.sql | psql -h localhost -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true
+	cat PostgreSQL/pre.sql schema.pgsql PostgreSQL/procedures.sql Static/*.sql PostgreSQL/post.sql | psql -h localhost -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true
+	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | psql -h localhost -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
