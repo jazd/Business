@@ -43,13 +43,18 @@ CREATE OR REPLACE FUNCTION GetLocation (
  accuracy_code integer
 ) RETURNS integer AS $$
 DECLARE
+ inLatitude NUMERIC(10,7);
+ inLongitude NUMERIC(11,7);
 BEGIN
+ inLatitude := lat;
+ inLongitude := long;
+
  IF lat IS NOT NULL AND long IS NOT NULL THEN
   INSERT INTO Location (latitude, longitude, accuracy) (
-   SELECT lat, long, accuracy
+   SELECT inLatitude, inLongitude, accuracy
    FROM Dual
-   LEFT JOIN Location AS exists ON exists.latitude = lat
-    AND exists.longitude = long
+   LEFT JOIN Location AS exists ON exists.latitude = inLatitude
+    AND exists.longitude = inLongitude
     AND ((exists.accuracy = accuracy_code) OR (exists.accuracy IS NULL AND accuracy_code IS NULL))
    WHERE exists.id IS NULL
   );
@@ -59,8 +64,8 @@ BEGIN
   FROM Location
   WHERE parent IS NULL
    AND marquee IS NULL
-   AND longitude = long
-   AND latitude = lat
+   AND longitude = inLongitude
+   AND latitude = inLatitude
    AND ((accuracy = accuracy_code) OR (accuracy IS NULL AND accuracy_code IS NULL))
    AND level = 1 -- Default level
    AND altitudeabovesealevel IS NULL
@@ -146,5 +151,88 @@ BEGIN
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Default to USA
+CREATE OR REPLACE FUNCTION GetAddress (
+ street varchar,
+ zipcode varchar,
+ inPostalplus varchar(4),
+ lat float,
+ long float,
+ inAccuracy integer
+) RETURNS integer AS $$
+DECLARE
+ location_id integer;
+ zipcode_id integer;
+BEGIN
+  location_id := (SELECT GetLocation(lat,long,inAccuracy));
+  zipcode_id := (SELECT GetPostal(zipcode));
+
+  IF zipcode_id IS NOT NULL THEN
+   INSERT INTO Address (line1, postal, postalplus, location) (
+    SELECT street, zipcode_id, inPostalplus, location_id
+    FROM Dual
+    LEFT JOIN Address AS exists ON exists.postal = zipcode_id
+     AND ((exists.postalplus = inPostalplus) OR (exists.postalplus IS NULL AND inPostalplus IS NULL))
+     AND ((exists.location = location_id) OR (exists.location IS NULL AND location_id IS NULL))
+     AND UPPER(exists.line1) = UPPER(street)
+     AND exists.line2 IS NULL
+     AND exists.line3 IS NULL
+     AND exists.line4 IS NULL
+    WHERE exists.id IS NULL
+   );
+  END IF;
+  RETURN (
+   SELECT id
+   FROM Address
+   WHERE postal = zipcode_id
+    AND ((postalplus = inPostalplus) OR (postalplus IS NULL AND inPostalplus IS NULL))
+    AND ((location = location_id) OR (location IS NULL AND location_id IS NULL))
+    AND UPPER(line1) = UPPER(street)
+    AND line2 IS NULL
+    AND line3 IS NULL
+    AND line4 IS NULL
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Default to USA
+CREATE OR REPLACE FUNCTION GetAddress (
+ street varchar,
+ zipcode varchar,
+ inPostalplus varchar(4)
+) RETURNS integer AS $$
+DECLARE
+ zipcode_id integer;
+BEGIN
+  -- Do not call GetPostal with nulls so that this will return addresses with locaiton information
+  zipcode_id := (SELECT GetPostal(zipcode));
+
+  IF zipcode_id IS NOT NULL THEN
+   INSERT INTO Address (line1, postal, postalplus) (
+    SELECT street, zipcode_id, inPostalplus
+    FROM Dual
+    LEFT JOIN Address AS exists ON exists.postal = zipcode_id
+     AND ((exists.postalplus = inPostalplus) OR (exists.postalplus IS NULL AND inPostalplus IS NULL))
+     AND UPPER(exists.line1) = UPPER(street)
+     AND exists.line2 IS NULL
+     AND exists.line3 IS NULL
+     AND exists.line4 IS NULL
+    WHERE exists.id IS NULL
+   );
+  END IF;
+  RETURN (
+   SELECT id
+   FROM Address
+   WHERE postal = zipcode_id
+    AND ((postalplus = inPostalplus) OR (postalplus IS NULL AND inPostalplus IS NULL))
+    AND UPPER(line1) = UPPER(street)
+    AND line2 IS NULL
+    AND line3 IS NULL
+    AND line4 IS NULL
+   ORDER BY location LIMIT 1 -- pickup a location based address first
+  );
 END;
 $$ LANGUAGE plpgsql;
