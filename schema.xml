@@ -424,6 +424,9 @@
  <constraint name="" type="FOREIGN KEY" fields="postal" reference_table="Postal" reference_fields="id" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
 </constraints>
+<indices>
+ <index name="address_postal_postalplus_location" type="NORMAL" fields="postal, postalPlus, location" />
+</indices>
 </table>
 
 

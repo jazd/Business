@@ -171,6 +171,20 @@ BEGIN
   zipcode_id := (SELECT GetPostal(zipcode));
 
   IF zipcode_id IS NOT NULL THEN
+   IF location_id IS NOT NULL THEN
+    -- Attempt update location of existing address
+    UPDATE Address
+    SET location = location_id
+    WHERE location IS NULL
+     AND postal = zipcode_id
+     AND ((postalplus = inPostalplus) OR (postalplus IS NULL AND inPostalplus IS NULL))
+     AND UPPER(line1) = UPPER(street)
+     AND line2 IS NULL
+     AND line3 IS NULL
+     AND line4 IS NULL
+    ;
+   END IF;
+
    INSERT INTO Address (line1, postal, postalplus, location) (
     SELECT street, zipcode_id, inPostalplus, location_id
     FROM Dual
