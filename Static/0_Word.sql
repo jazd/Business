@@ -105,6 +105,8 @@ INSERT INTO Word (id,culture,value) VALUES (60023,1033,'UT');
 INSERT INTO Word (id,culture,value) VALUES (60024,1033,'Utah');
 INSERT INTO Word (id,culture,value) VALUES (60025,1033,'WA');
 INSERT INTO Word (id,culture,value) VALUES (60026,1033,'Washington');
+INSERT INTO Word (id,culture,value) VALUES (60027,1033,'DC');
+
 -- City words
 INSERT INTO Word (id,culture,value) VALUES (61000,1033,'Harrison');
 INSERT INTO Word (id,culture,value) VALUES (61001,1033,'Lewisburg');
@@ -160,3 +162,6 @@ INSERT INTO Word (id,culture,value) VALUES (61050,1033,'Portland');
 INSERT INTO Word (id,culture,value) VALUES (61051,1033,'Clackamas');
 INSERT INTO Word (id,culture,value) VALUES (61052,1033,'Multnomah');
 INSERT INTO Word (id,culture,value) VALUES (61053,1033,'Medford');
+INSERT INTO Word (id,culture,value) VALUES (61054,1033,'Westchester');
+INSERT INTO Word (id,culture,value) VALUES (61055,1033,'District of Columbia');
+

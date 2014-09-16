@@ -1,0 +1,2 @@
+SELECT GetAddress('1 New Orchard Road', '10504', '1716', 41.10509638465931, -73.71933460235596, NULL);
+SELECT GetAddress('1600 Pennsylvania Avenue NW','20500','0005',38.897778,-77.036389,NULL);
