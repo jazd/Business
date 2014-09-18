@@ -7,7 +7,7 @@ ARGS="--gutter=50 --db=XML"
 
 INDIVIDUAL="Given Family Name Individual Entity Word"
 LISTS="Individual IndividualList IndividualListName Word"
-ADDRESSES="Address Postal Country Location Area Word"
+ADDRESSES="Address Postal Country Location Area Sentence Word"
 PHONES="Phone Country Location Area Timezone Word"
 
 INDIVIDUAL_EMAIL="Individual IndividualEmail Email Word"
