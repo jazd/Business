@@ -4,7 +4,9 @@ Business SQL Database schema
 
 Virtually [CRUD]( http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) free database schema with minimum business logic included.
 
-Currently in *pre-Alpha*, and may change significantly before Alpha release.  Use in this state *at your own risk*.
+Currently in **pre-Alpha**, and may change significantly before Alpha release.  Use in this state **at your own risk**.
+
+[Documentation](wiki)
 
 *Features*
 * I8N from the start
