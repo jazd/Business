@@ -6,7 +6,7 @@ Virtually [CRUD]( http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) 
 
 Currently in **pre-Alpha**, and may change significantly before Alpha release.  Use in this state **at your own risk**.
 
-[Documentation](wiki)
+[Documentation](jazd/Business/wiki)
 
 *Features*
 * I8N from the start
