@@ -871,6 +871,30 @@ FROM Phone
 JOIN Country ON Country.id = Phone.country
   </sql>
  </view>
+ <view name="Addresses" fields="address,line1,line2,line3,city,state,zipcode,postalcode,country,countrycode,marquee,location,latitude,longitude">
+  <sql>
+SELECT Address.id AS address,
+ line1, line2, line3,
+ City.value AS city, State.value AS state,
+ Postal.code ||
+ CASE WHEN (postalplus IS NOT NULL) THEN !apos;-!apos; ELSE !apos;!apos; END ||
+ Address.postalplus AS zipcode,
+ Postal.code AS postalcode,
+ Country.id AS country,
+ Country.code AS countrycode,
+ COALESCE(AddressLocation.marquee, PostalLocation.marquee) AS marquee,
+ COALESCE(AddressLocation.id, PostalLocation.id) AS location,
+ COALESCE(AddressLocation.latitude, PostalLocation.latitude) AS latitude,
+ COALESCE(AddressLocation.longitude, PostalLocation.longitude) AS longitude
+FROM Address
+JOIN Postal ON Postal.id = Address.postal
+JOIN Country ON Country.id = Postal.country
+JOIN Word AS City ON City.id = Postal.city
+JOIN Word AS State ON State.id = Postal.stateAbbreviation
+LEFT JOIN Location AS AddressLocation On AddressLocation.id = Address.location
+LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
+  </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>
