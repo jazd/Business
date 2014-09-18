@@ -67,13 +67,16 @@
 <comments></comments>
 </table>
 
-<table name="timezone" order="10">
+<table name="Timezone" order="10">
 <fields>
  <field name="name" data_type="varchar" size="40" is_nullable="0" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="abbrev" data_type="varchar" size="8" is_nullable="0" is_primary_key="0" order="2" />
  <field name="utc_offset" data_type="interval" size="" is_nullable="0" is_auto_increment="0" order="3" />
  <field name="is_dst" data_type="smallint" size="1" is_nullable="0" order="4" />
 </fields>
+<indices>
+ <index name="timezone_name" type="UNIQUE" fields="name" />
+</indices>
 </table>
 
 <table name="Area" order="11">
@@ -296,8 +299,8 @@
 
 <table name="IndividualEmail" order="51">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="1" />
+ <field name="type" data_type="integer" size="10" is_nullable="1" order="2" />
  <field name="email" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
@@ -882,10 +885,10 @@ SELECT Address.id AS address,
  Postal.code AS postalcode,
  Country.id AS country,
  Country.code AS countrycode,
- COALESCE(AddressLocation.marquee, PostalLocation.marquee) AS marquee,
- COALESCE(AddressLocation.id, PostalLocation.id) AS location,
- COALESCE(AddressLocation.latitude, PostalLocation.latitude) AS latitude,
- COALESCE(AddressLocation.longitude, PostalLocation.longitude) AS longitude
+ COALESCE(AddressLocation.marquee, PostalLocation.marquee, CountryLocation.marquee) AS marquee,
+ COALESCE(AddressLocation.id, PostalLocation.id, CountryLocation.id) AS location,
+ COALESCE(AddressLocation.latitude, PostalLocation.latitude, CountryLocation.latitude) AS latitude,
+ COALESCE(AddressLocation.longitude, PostalLocation.longitude, CountryLocation.longitude) AS longitude
 FROM Address
 JOIN Postal ON Postal.id = Address.postal
 JOIN Country ON Country.id = Postal.country
@@ -893,6 +896,7 @@ JOIN Word AS City ON City.id = Postal.city
 JOIN Word AS State ON State.id = Postal.stateAbbreviation
 LEFT JOIN Location AS AddressLocation On AddressLocation.id = Address.location
 LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
+LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
   </sql>
  </view>
 </views>
