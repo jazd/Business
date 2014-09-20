@@ -11,7 +11,7 @@ Currently in **pre-Alpha**, and may change significantly before Alpha release.  
 *Features*
 * I8N from the start
 * Extensive Test coverage
-* Highly normalized
+* Highly [normalized](http://en.wikipedia.org/wiki/Database_normalization)
 * Common Views are included
 * Records are almost never DELETEd
 * Fields are almost never UPDATEd and when they are, they have started out NULL

@@ -878,7 +878,8 @@ JOIN Country ON Country.id = Phone.country
   <sql>
 SELECT Address.id AS address,
  line1, line2, line3,
- City.value AS city, State.value AS state,
+ City.value AS city,
+ UPPER(State.value) AS state,
  Postal.code ||
  CASE WHEN (postalplus IS NOT NULL) THEN !apos;-!apos; ELSE !apos;!apos; END ||
  Address.postalplus AS zipcode,
