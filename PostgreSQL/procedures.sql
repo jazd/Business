@@ -332,7 +332,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION GetName (
+CREATE OR REPLACE FUNCTION GetIndividual (
  inFirst varchar,
  inMiddle varchar,
  inLast varchar,
@@ -343,13 +343,43 @@ CREATE OR REPLACE FUNCTION GetName (
 DECLARE
  name_id integer;
  goesBy_id integer;
+ exists_id integer;
+ return_id integer;
 BEGIN
- name_id := (SELECT GetName(inFist,inMiddle,inLast));
- goesBy_id := (SELECT GetGiven(inGoesBy));
+ -- Check for possible duplicate before inserting Name
+ exists_id := (
+   SELECT exists.id
+   FROM DUAL -- If first, last and birthday match any existing, consider it a duplicate and refuse to insert new Individual with this function
+   LEFT JOIN Given ON Given.value = inFirst
+   LEFT JOIN Family ON Family.value = inLast
+   LEFT JOIN Name ON ((Name.given = Given.id) OR (Name.given IS NULL AND Given.id IS NULL))
+    AND ((Name.family = Family.id) OR (Name.family IS NULL AND Family.id IS NULL))
+   LEFT JOIN Individual AS exists ON exists.name IN (name_id, Name.id)
+    AND ((CAST(exists.birth AS DATE) = inBirth) OR (inBirth IS NULL))
+   LIMIT 1
+ );
 
- IF name_id IS NOT NULL THEN
-  
+ IF exists_id IS NULL THEN
+  name_id := (SELECT GetName(inFirst,inMiddle,inLast));
+  goesBy_id := (SELECT GetGiven(inGoesBy));
+
+  IF name_id IS NOT NULL THEN
+   INSERT INTO Individual(name, goesBy, birth, death) VALUES (name_id, goesBy_id, inBirth, inDeath);
+  END IF;
+
+  return_id := (
+   SELECT id
+   FROM Individual
+   WHERE Individual.name = name_id
+   AND (CAST(Individual.birth AS DATE) = inBirth) -- Null birth inserts are not allowd in this function
+   AND ((Individual.goesBy = goesBy_id) OR (goesBy_id IS NULL))
+   AND ((CAST(Individual.death AS DATE) = inDeath) OR (Individual.death IS NULL AND inDeath IS NULL))
+   LIMIT 1
+  );
+ ELSE
+  return_id := exists_id;
  END IF;
 
+ RETURN return_id;
 END;
 $$ LANGUAGE plpgsql;
