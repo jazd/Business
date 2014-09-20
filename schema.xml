@@ -285,6 +285,9 @@
  <field name="track" data_type="varchar" size="30" is_nullable="1" order="5">
   <comments>Added to end of path in the Get section for tracking links to same path</comments>
  </field>
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="6">
+  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
+ </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -302,6 +305,9 @@
  <field name="individual" data_type="integer" size="10" is_nullable="1" order="1" />
  <field name="type" data_type="integer" size="10" is_nullable="1" order="2" />
  <field name="email" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="4">
+  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
+ </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -365,9 +371,12 @@
 
 <table name="IndividualPhone" order="65">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="1" />
+ <field name="type" data_type="integer" size="10" is_nullable="1" order="2" />
  <field name="phone" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="4">
+  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
+ </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -462,6 +471,10 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
  <field name="attribute" data_type="integer" size="10" is_nullable="0" order="3" />
  <field name="value" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
+  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
 
@@ -469,6 +482,10 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
 <fields>
  <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
  <field name="property" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
+  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
 
@@ -477,6 +494,9 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="address" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
+  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
+ </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
@@ -519,6 +539,9 @@ unfinished[TableName] are tables that are mostly place holders or note taking.  
  <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="applicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="createdBy" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
+  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
+ </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
@@ -822,6 +845,7 @@ FROM Path
 WITH latest (individual,type,created) AS (
  SELECT individual, type, MAX(created) AS created
  FROM IndividualPath
+ WHERE IndividualPath.stop IS NULL
  GROUP BY individual, type
 )
 SELECT latest.individual, latest.type, Path.id AS path, Path.protocol, Path.host,
@@ -850,6 +874,7 @@ JOIN Path ON Path.id = IndividualPath.path
 WITH latest (individual,type,created) AS (
  SELECT individual, type, MAX(created) AS created
  FROM IndividualEmail
+ WHERE IndividualEmail.stop IS NULL
  GROUP BY individual, type
 )
 SELECT latest.individual, latest.type, IndividualEmail.email, EmailAddress.username,

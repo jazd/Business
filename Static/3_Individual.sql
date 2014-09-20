@@ -1,6 +1,6 @@
 INSERT INTO Individual (id, name, goesBy, suffix, birth, death) VALUES (1, 8, 23, 141, '1942-07-24', '1977-03-16');
 INSERT INTO Individual (id, name, goesBy, suffix, birth, death) VALUES (2, 8, 24, 140, '1962-08-18', '1973-09-01');
-INSERT INTO Individual (id, name, goesBy, birth) VALUES (3, 1, 2, '1963-11-22');
+INSERT INTO Individual (id, name, goesBy, birth) VALUES (3, 1, 22, '1963-11-22');
 INSERT INTO Individual (id, name, goesBy, birth) VALUES (4, 9, 25, '1965-02-09');
 INSERT INTO Individual (id, name, birth) VALUES (5, 2, '1986-01-31');
 INSERT INTO Individual (id, name, birth) VALUES (6, 3, '1988-12-29');
