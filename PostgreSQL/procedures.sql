@@ -250,3 +250,106 @@ BEGIN
   );
 END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION GetGiven (
+ inGiven varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ IF inGiven IS NOT NULL THEN
+  INSERT INTO Given (value) (
+   SELECT inGiven
+   FROM DUAL
+   LEFT JOIN Given AS exists ON exists.value = inGiven
+   WHERE exists.id IS NULL
+  );
+ END IF;
+
+ RETURN (
+  SELECT id
+  FROM Given
+  WHERE Given.value = inGiven
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetFamily (
+ inFamily varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ IF inFamily IS NOT NULL THEN
+  INSERT INTO Family (value) (
+   SELECT inFamily
+   FROM DUAL
+   LEFT JOIN Family AS exists ON exists.value = inFamily
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Family
+  WHERE Family.value = inFamily
+ ); 
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetName (
+ inFirst varchar,
+ inMiddle varchar,
+ inLast varchar
+) RETURNS integer AS $$
+DECLARE
+ first_id integer;
+ middle_id integer;
+ last_id integer;
+BEGIN
+ IF inFirst IS NOT NULL OR inMiddle IS NOT NULL OR inLast IS NOT NULL THEN
+  -- get given and family values
+  first_id := (SELECT GetGiven(inFirst));
+  middle_id := (SELECT GetGiven(inMiddle));
+  last_id := (SELECT GetFamily(inLast));
+
+  INSERT INTO Name (given, middle, family) (
+   SELECT first_id, middle_id, last_id
+   FROM DUAL
+   LEFT JOIN Name AS exists ON
+        ((exists.given = first_id) OR (exists.given IS NULL AND first_id IS NULL))
+    AND ((exists.middle = middle_id) OR (exists.middle IS NULL AND middle_id IS NULL))
+    AND ((exists.family = last_id) OR (exists.family IS NULL AND last_id IS NULL))
+  WHERE exists.id IS NULL
+  );
+ END IF;
+
+ RETURN (
+  SELECT id
+  FROM Name
+  WHERE ((Name.given = first_id) OR (Name.given IS NULL AND first_id IS NULL))
+    AND ((Name.middle = middle_id) OR (Name.middle IS NULL AND middle_id IS NULL))
+    AND ((Name.family = last_id) OR (Name.family IS NULL AND last_id IS NULL))
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetName (
+ inFirst varchar,
+ inMiddle varchar,
+ inLast varchar,
+ inBirth date,
+ inGoesBy varchar,
+ inDeath date
+) RETURNS integer AS $$
+DECLARE
+ name_id integer;
+ goesBy_id integer;
+BEGIN
+ name_id := (SELECT GetName(inFist,inMiddle,inLast));
+ goesBy_id := (SELECT GetGiven(inGoesBy));
+
+ IF name_id IS NOT NULL THEN
+  
+ END IF;
+
+END;
+$$ LANGUAGE plpgsql;

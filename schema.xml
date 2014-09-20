@@ -126,7 +126,7 @@
 <table name="Given" order="18">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="value" data_type="varchar" size="20" is_nullable="0" order="3" />
+ <field name="value" data_type="varchar" size="25" is_nullable="0" order="3" />
 </fields>
 <indices>
  <index name="given_value" type="UNIQUE" fields="value" />
@@ -140,7 +140,7 @@
 <table name="Family" order="19">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="value" data_type="varchar" size="20" is_nullable="0" order="3" />
+ <field name="value" data_type="varchar" size="25" is_nullable="0" order="3" />
 </fields>
 <indices>
  <index name="family_value" type="UNIQUE" fields="value" />
