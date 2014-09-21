@@ -332,7 +332,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION GetIndividual (
+CREATE OR REPLACE FUNCTION GetIndividualPerson (
  inFirst varchar,
  inMiddle varchar,
  inLast varchar,
@@ -381,5 +381,56 @@ BEGIN
  END IF;
 
  RETURN return_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetEntityName (
+ inName varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ IF inName IS NOT NULL THEN
+  INSERT INTO Entity (name)
+  SELECT inName
+  FROM DUAL
+  LEFT JOIN Entity AS exists ON UPPER(exists.name) = UPPER(inName)
+  WHERE exists.id IS NULL
+  ;
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Entity
+  WHERE UPPER(Entity.name) = UPPER(inName)
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION GetIndividualEntity (
+ inName varchar,
+ inFormed date,
+ inGoesBy varchar,
+ inDissolved date
+) RETURNS integer AS $$
+DECLARE
+ entity_name_id integer;
+ goesBy_id integer;
+BEGIN
+ entity_name_id := (SELECT GetEntityName(inName));
+ IF entity_name_id IS NOT NULL THEN
+  goesBy_id := (SELECT GetGiven(inGoesBy));
+
+  INSERT INTO Individual (entity, goesBy, birth, death)
+  SELECT entity_name_id, goesBy_id, inFormed, inDissolved
+  FROM DUAL
+  LEFT JOIN Individual AS exists ON exists.entity = entity_name_id
+  WHERE exists.id IS NULL
+  ; 
+ END IF;
+ RETURN (
+  SELECT id FROM Individual
+  WHERE Individual.entity = entity_name_id
+  LIMIT 1
+ );
 END;
 $$ LANGUAGE plpgsql;

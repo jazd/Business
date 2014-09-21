@@ -17,6 +17,9 @@ CREATE UNIQUE INDEX email_username_plus_host ON Email (UPPER(username),UPPER(plu
 -- Do not allow duplicate country codes
 CREATE UNIQUE INDEX country_code ON Country (UPPER(code));
 
+-- Do not allow duplicate entity names
+CREATE UNIQUE INDEX entity_name ON Entity (UPPER(name));
+
 -- Application or user insert on these tables should start at 2000000
 -- This leaves room for global constants that are guaranteed to exist
 ALTER SEQUENCE word_id_seq RESTART WITH 2000000;

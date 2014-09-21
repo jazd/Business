@@ -173,9 +173,6 @@
  <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="varchar" size="50" is_nullable="1" order="2" />
 </fields>
-<indices>
- <index name="entity_name" type="UNIQUE" fields="name" />
-</indices>
 <constraints>
 </constraints>
 </table>
@@ -790,7 +787,7 @@ SELECT Individual.id AS individual, Individual.entity, goesBy.value AS goesBy,
  Individual.created
 FROM Individual
 JOIN Entity ON Entity.id = Individual.entity
-JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
+LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
 WHERE Individual.nameChange IS NULL
   </sql>
  </view>
