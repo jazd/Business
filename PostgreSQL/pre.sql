@@ -22,6 +22,12 @@ ELSE
 END AS birthday
 $$ language sql immutable strict;
 
+CREATE OR REPLACE FUNCTION birthday(birth Date)
+ returns varchar(10)
+AS $$
+SELECT birthday(birth, CAST(NOW() AS Date)) AS birthday;
+$$ language sql immutable strict;
+
 CREATE OR REPLACE FUNCTION days_until_birthday(birth date, asOf date)
  returns integer
 AS $$
