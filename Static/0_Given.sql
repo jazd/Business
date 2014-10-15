@@ -28,5 +28,7 @@ INSERT INTO Given (id,value) VALUES (27,'Trey');
 INSERT INTO Given (id,value) VALUES (28,'Candy');
 INSERT INTO Given (id,value) VALUES (29,'Larry');
 INSERT INTO Given (id,value) VALUES (30,'Frank');
+INSERT INTO Given (id,value) VALUES (31,'Kevin');
+INSERT INTO Given (id,value) VALUES (32,'Dominic');
 ---
 INSERT INTO Given (id,value) VALUES (100000,'IBM');

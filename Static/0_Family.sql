@@ -7,4 +7,4 @@ INSERT INTO Family (id,value) VALUES (6,'Rayburn');
 INSERT INTO Family (id,value) VALUES (7,'Fish');
 INSERT INTO Family (id,value) VALUES (8,'Niven');
 INSERT INTO Family (id,value) VALUES (9,'Herbert');
-
+INSERT INTO Family (id,value) VALUES (10,'Smolkowski');

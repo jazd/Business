@@ -21,3 +21,5 @@ INSERT INTO Individual (id, name, goesBy, birth, death) VALUES (14, 14, 28, '194
 --
 INSERT INTO Individual (id, name, goesBy, birth) VALUES (15, 15, 29, '1938-04-30');
 INSERT INTO Individual (id, name, suffix, goesBy, birth, death) VALUES (16, 16, 140, 30, '1920-10-08', '1986-02-11');
+--
+INSERT INTO Individual (id, name, birth) VALUES (1000, 17, '1963-05-26');
