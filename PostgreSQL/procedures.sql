@@ -477,6 +477,7 @@ BEGIN
   FROM DUAL
   LEFT JOIN IndividualList AS exists ON exists.id = individualList_id
    AND exists.individual = inIndividual
+   AND exists.unlist IS NULL
   WHERE exists.id IS NULL;
  END IF;
 
@@ -490,5 +491,52 @@ CREATE OR REPLACE FUNCTION ListSubscribe (
 ) RETURNS integer AS $$
 BEGIN
  RETURN (SELECT ListSubscribe(inIndividual, inListName, NULL));
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ListUnSubscribe (
+ inIndividual integer,
+ inListName varchar,
+ inSetName varchar
+) RETURNS integer AS $$
+DECLARE
+ listName_id integer;
+ setName_id integer;
+ individualList_id integer;
+BEGIN
+ IF inIndividual IS NOT NULL THEN
+  -- Get names
+  listName_id := (SELECT GetWord(inListName));
+  setName_id := (SELECT GetWord(inSetName));
+
+  -- Get individual list
+  individualList_id = (
+   SELECT individualList
+   FROM IndividualListName
+   WHERE name = listName_id
+    AND ((set = setName_id) OR (set IS NULL AND setName_id IS NULL))
+    AND optinStyle = 1
+  );
+
+  IF individualList_id IS NOT NULL THEN
+   UPDATE IndividualList SET unlist = NOW()
+   WHERE IndividualList.id = individualList_id
+    AND IndividualList.individual = inIndividual
+    AND IndividualList.unlist IS NULL
+   ;
+  END IF;
+
+ END IF;
+
+ RETURN individualList_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ListUnSubscribe (
+ inIndividual integer,
+ inListName varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT ListUnSubscribe(inIndividual, inListName, NULL));
 END;
 $$ LANGUAGE plpgsql;
