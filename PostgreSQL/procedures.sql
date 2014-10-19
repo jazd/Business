@@ -6,14 +6,16 @@ CREATE OR REPLACE FUNCTION GetWord (
 ) RETURNS integer AS $$
 DECLARE
 BEGIN
- INSERT INTO Word (value, culture) (
-  SELECT word_value, Culture.code
-  FROM Culture
-  LEFT JOIN Word AS exists ON UPPER(exists.value) = UPPER(word_value)
-   AND exists.culture = Culture.code
-  WHERE UPPER(Culture.name) = UPPER(culture_name)
-   AND exists.id IS NULL
- );
+ IF word_value IS NOT NULL THEN
+  INSERT INTO Word (value, culture) (
+   SELECT word_value, Culture.code
+   FROM Culture
+   LEFT JOIN Word AS exists ON UPPER(exists.value) = UPPER(word_value)
+    AND exists.culture = Culture.code
+   WHERE UPPER(Culture.name) = UPPER(culture_name)
+    AND exists.id IS NULL
+  );
+ END IF;
  RETURN (
   SELECT id
   FROM Word
@@ -405,7 +407,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE OR REPLACE FUNCTION GetIndividualEntity (
  inName varchar,
  inFormed date,
@@ -432,5 +433,62 @@ BEGIN
   WHERE Individual.entity = entity_name_id
   LIMIT 1
  );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ListSubscribe (
+ inIndividual integer,
+ inListName varchar,
+ inSetName varchar
+) RETURNS integer AS $$
+DECLARE
+ listName_id integer;
+ setName_id integer;
+ individualListName_id integer;
+ individualList_id integer;
+BEGIN
+ IF inIndividual IS NOT NULL THEN
+  -- Get names
+  listName_id := (SELECT GetWord(inListName));
+  setName_id := (SELECT GetWord(inSetName));
+
+  -- Insert list name if it does not exist
+  INSERT INTO IndividualListName (name, set, optinStyle)
+  SELECT listName_id, setName_id, 1
+  FROM DUAL
+  LEFT JOIN IndividualListName AS exists ON exists.name = listName_id
+   AND ((exists.set = setName_id) OR (exists.set IS NULL AND setName_id IS NULL))
+   AND optinStyle = 1
+  WHERE exists.individualList IS NULL
+  ;
+
+  -- Get individual list
+  individualList_id = (
+   SELECT individualList
+   FROM IndividualListName
+   WHERE name = listName_id
+    AND ((set = setName_id) OR (set IS NULL AND setName_id IS NULL))
+    AND optinStyle = 1
+  );
+
+  -- Insert individual into list
+  INSERT INTO IndividualList (id, individual)
+  SELECT individualList_id AS id, inIndividual AS individual
+  FROM DUAL
+  LEFT JOIN IndividualList AS exists ON exists.id = individualList_id
+   AND exists.individual = inIndividual
+  WHERE exists.id IS NULL;
+ END IF;
+
+ RETURN individualList_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ListSubscribe (
+ inIndividual integer,
+ inListName varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT ListSubscribe(inIndividual, inListName, NULL));
 END;
 $$ LANGUAGE plpgsql;
