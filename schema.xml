@@ -810,6 +810,7 @@ LEFT JOIN Word AS Set ON IndividualListName.set = Set.id
  AND Set.culture = 1033
 LEFT JOIN IndividualList AS disable ON disable.individual = IndividualList.individual
  AND disable.id IS NULL
+ AND disable.unlist IS NULL
 WHERE disable.individual IS NULL
  AND IndividualList.unlist IS NULL
   </sql>
