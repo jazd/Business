@@ -436,23 +436,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ListSubscribe (
- inIndividual integer,
+CREATE OR REPLACE FUNCTION GetIndividualListName (
  inListName varchar,
  inSetName varchar
 ) RETURNS integer AS $$
 DECLARE
  listName_id integer;
  setName_id integer;
- individualListName_id integer;
  individualList_id integer;
 BEGIN
- IF inIndividual IS NOT NULL THEN
+ IF inListName IS NOT NULL THEN
   -- Get names
   listName_id := (SELECT GetWord(inListName));
   setName_id := (SELECT GetWord(inSetName));
-
-  -- Insert list name if it does not exist
+ 
+    -- Insert list name if it does not exist
   INSERT INTO IndividualListName (name, set, optinStyle)
   SELECT listName_id, setName_id, 1
   FROM DUAL
@@ -461,15 +459,29 @@ BEGIN
    AND optinStyle = 1
   WHERE exists.individualList IS NULL
   ;
+ END IF;
 
   -- Get individual list
-  individualList_id = (
-   SELECT individualList
-   FROM IndividualListName
-   WHERE name = listName_id
-    AND ((set = setName_id) OR (set IS NULL AND setName_id IS NULL))
-    AND optinStyle = 1
-  );
+ RETURN (
+  SELECT individualList
+  FROM IndividualListName
+  WHERE name = listName_id
+   AND ((set = setName_id) OR (set IS NULL AND setName_id IS NULL))
+   AND optinStyle = 1
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ListSubscribe (
+ inIndividual integer,
+ inListName varchar,
+ inSetName varchar
+) RETURNS integer AS $$
+DECLARE
+ individualList_id integer;
+BEGIN
+ IF inIndividual IS NOT NULL THEN
+  individualList_id := (SELECT GetIndividualListName(inListName, inSetName));
 
   -- Insert individual into list
   INSERT INTO IndividualList (id, individual)
@@ -500,23 +512,10 @@ CREATE OR REPLACE FUNCTION ListUnSubscribe (
  inSetName varchar
 ) RETURNS integer AS $$
 DECLARE
- listName_id integer;
- setName_id integer;
  individualList_id integer;
 BEGIN
  IF inIndividual IS NOT NULL THEN
-  -- Get names
-  listName_id := (SELECT GetWord(inListName));
-  setName_id := (SELECT GetWord(inSetName));
-
-  -- Get individual list
-  individualList_id = (
-   SELECT individualList
-   FROM IndividualListName
-   WHERE name = listName_id
-    AND ((set = setName_id) OR (set IS NULL AND setName_id IS NULL))
-    AND optinStyle = 1
-  );
+  individualList_id := (SELECT GetIndividualListName(inListName, inSetName));
 
   IF individualList_id IS NOT NULL THEN
    UPDATE IndividualList SET unlist = NOW()
