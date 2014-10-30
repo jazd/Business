@@ -539,3 +539,30 @@ BEGIN
  RETURN (SELECT ListUnSubscribe(inIndividual, inListName, NULL));
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetEmail (
+ inUserName varchar,
+ inPlus varchar,
+ inHost varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ IF inUserName IS NOT NULL AND inHost IS NOT NULL THEN
+  INSERT INTO Email (username, plus, host) (
+   SELECT inUserName, inPlus, inHost
+   FROM DUAL
+   LEFT JOIN Email AS exists ON UPPER(exists.username) = UPPER(inUserName)
+    AND UPPER(exists.host) = UPPER(inHost)
+    AND ((UPPER(exists.plus) = UPPER(inPlus)) OR (exists.plus IS NULL AND inPlus IS NULL))
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Email
+  WHERE UPPER(username) = UPPER(inUserName)
+   AND UPPER(host) = UPPER(inHost)
+   AND ((UPPER(plus) = UPPER(inPlus)) OR (plus IS NULL AND inPlus IS NULL))
+ );
+END;
+$$ LANGUAGE plpgsql;
