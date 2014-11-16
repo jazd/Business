@@ -50,7 +50,8 @@
 <comments></comments>
 </table>
 
-<table name="untestedParagraph" order="4">
+<table name="Paragraph" order="4">
+<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
  <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
@@ -82,11 +83,11 @@
 <table name="Area" order="11">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="name" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="name" data_type="integer" size="10" is_nullable="0" order="2" />
  <comments><field name="shape" data_type="GEOMETRY" size="" is_nullable="1" order="3">
   <comments>GIS shape information</comments>
  </field>Add this field if using GIS</comments>
- <field name="timezone" data_type="varchar" size="40" is_nullable="1" order="3" />
+ <field name="timezone" data_type="varchar" size="40" is_nullable="1" order="4" />
 </fields>
 <constraints>
  <constraint name="area_timezone" type="FOREIGN KEY" fields="timezone" reference_table="Timezone" reference_fields="name" deferrable="1" />
@@ -438,21 +439,41 @@
 </indices>
 </table>
 
-
-
-<comments>
-untested[TableName] are tables that should work, but are un-tested.  Use at your own risk
-unfinished[TableName] are tables that are mostly place holders or note taking.  These should not be used and are probably completely wrong.
-</comments>
-
-<table name="untestedSchemaVersion" order="999">
+<table name="Version" order="100">
+<comments>untested</comments>
 <fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="10" is_nullable="1" order="2" />
  <field name="major" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="minor" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="patch" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="minor" data_type="integer" size="10" is_nullable="1" order="4" />
+ <field name="patch" data_type="integer" size="10" is_nullable="1" order="5" />
+</fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="major" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="minor" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid3" type="FOREIGN KEY" fields="patch" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+
+<table name="SchemaVersion" order="9999">
+<comments>untested</comments>
+<fields>
+ <field name="build" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="schema" data_type="integer" size="10" is_nullable="1" order="2" />
+ <field name="version" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="schema" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" /></comments>
+</constraints>
 </table>
+
+<comments>
+unfinished[TableName] are tables that are mostly place holders or note taking.  These should not be used and are probably completely wrong.
+</comments>
 
 <table name="unfinishedAddressAttribute" order="9999">
 <comments>usps address fields for example.  address line source fields.</comments>
