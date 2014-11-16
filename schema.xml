@@ -487,6 +487,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="parent" reference_table="Part" reference_fields="id" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 

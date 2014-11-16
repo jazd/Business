@@ -473,9 +473,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION ListSubscribe (
- inIndividual integer,
  inListName varchar,
- inSetName varchar
+ inSetName varchar,
+ inIndividual integer
 ) RETURNS integer AS $$
 DECLARE
  individualList_id integer;
@@ -498,18 +498,18 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION ListSubscribe (
- inIndividual integer,
- inListName varchar
+ inListName varchar,
+ inIndividual integer
 ) RETURNS integer AS $$
 BEGIN
- RETURN (SELECT ListSubscribe(inIndividual, inListName, NULL));
+ RETURN (SELECT ListSubscribe(inListName, NULL, inIndividual));
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION ListUnSubscribe (
- inIndividual integer,
  inListName varchar,
- inSetName varchar
+ inSetName varchar,
+ inIndividual integer
 ) RETURNS integer AS $$
 DECLARE
  individualList_id integer;
@@ -532,11 +532,11 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION ListUnSubscribe (
- inIndividual integer,
- inListName varchar
+ inListName varchar,
+ inIndividual integer
 ) RETURNS integer AS $$
 BEGIN
- RETURN (SELECT ListUnSubscribe(inIndividual, inListName, NULL));
+ RETURN (SELECT ListUnSubscribe(inListName, NULL, inIndividual));
 END;
 $$ LANGUAGE plpgsql;
 
