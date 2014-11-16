@@ -945,6 +945,21 @@ LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
 LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
   </sql>
  </view>
+ <view name="Versions" fields="version,name,value,major,minor,patch">
+  <sql>
+SELECT Version.id AS version, name.value AS name,
+ major.value ||
+ COALESCE(!apos;.!apos; || minor.value, !apos;!apos;) ||
+ COALESCE(!apos;.!apos; || patch.value, !apos;!apos;)
+ AS value,
+ major.value AS major, minor.value AS minor, patch.value AS patch
+FROM Version
+LEFT JOIN Word AS name ON name.id = Version.name
+LEFT JOIN Word AS major ON major.id = Version.major
+LEFT JOIN Word AS minor ON minor.id = Version.minor
+LEFT JOIN Word AS patch ON patch.id = Version.patch
+  </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>

@@ -583,3 +583,56 @@ BEGIN
  );
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetVersion (
+ inMajor varchar,
+ inMinor varchar,
+ inPatch varchar
+) RETURNS integer AS $$
+DECLARE
+ major_id integer;
+ minor_id integer;
+ patch_id integer;
+BEGIN
+ major_id := (SELECT GetWord(inMajor));
+ IF major_id IS NOT NULL THEN
+  minor_id := (SELECT GetWord(inMinor));
+  patch_id := (SELECT GetWord(inPatch));
+  INSERT INTO Version (major, minor, patch) (
+   SELECT major_id, minor_id, patch_id
+   FROM Dual
+   LEFT JOIN Version AS exists ON exists.major = major_id
+    AND ((exists.minor = minor_id) OR (exists.minor IS NULL AND minor_id IS NULL))
+    AND ((exists.patch = patch_id) OR (exists.patch IS NULL AND patch_id IS NULL))
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Version
+  WHERE major = major_id
+   AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
+   AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetSchemaVersion (
+ inSchemaName varchar,
+ inMajor varchar,
+ inMinor varchar,
+ inPatch varchar
+) RETURNS integer AS $$
+DECLARE
+ schema_id integer;
+ version_id integer;
+BEGIN
+ IF inSchemaName IS NOT NULL THEN
+  schema_id := (SELECT GetWord(inSchemaName));
+  version_id := (SELECT GetVersion(inMajor, inMinor, inPatch));
+ END IF;
+ -- Always insert generating a build number
+ INSERT INTO SchemaVersion (schema, version) VALUES (schema_id, version_id);
+ RETURN (SELECT currval(pg_get_serial_sequence('schemaversion','build')));
+END;
+$$ LANGUAGE plpgsql;
