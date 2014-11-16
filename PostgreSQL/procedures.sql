@@ -566,3 +566,20 @@ BEGIN
  );
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetEmail (
+ inEmail varchar
+) RETURNS integer AS $$
+DECLARE
+ userHostSplit varchar[];  -- Remeber these start at 1 not 0
+ userPlusSplit varchar[];
+BEGIN
+ IF inEmail IS NOT NULL THEN
+  userHostSplit := (SELECT (regexp_split_to_array(inEmail,'@'))[1:2]);
+  userPlusSplit := (SELECT (regexp_split_to_array(userHostSplit[1],'\+'))[1:2]);
+ END IF;
+ RETURN (
+  SELECT GetEmail(userPlusSplit[1], userPlusSplit[2], userHostSplit[2]) AS id
+ );
+END;
+$$ LANGUAGE plpgsql;
