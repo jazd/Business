@@ -436,6 +436,50 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION GetEmail (
+ inUserName varchar,
+ inPlus varchar,
+ inHost varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ IF inUserName IS NOT NULL AND inHost IS NOT NULL THEN
+  INSERT INTO Email (username, plus, host) (
+   SELECT inUserName, inPlus, inHost
+   FROM DUAL
+   LEFT JOIN Email AS exists ON UPPER(exists.username) = UPPER(inUserName)
+    AND UPPER(exists.host) = UPPER(inHost)
+    AND ((UPPER(exists.plus) = UPPER(inPlus)) OR (exists.plus IS NULL AND inPlus IS NULL))
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Email
+  WHERE UPPER(username) = UPPER(inUserName)
+   AND UPPER(host) = UPPER(inHost)
+   AND ((UPPER(plus) = UPPER(inPlus)) OR (plus IS NULL AND inPlus IS NULL))
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetEmail (
+ inEmail varchar
+) RETURNS integer AS $$
+DECLARE
+ userHostSplit varchar[];  -- Remeber these start at 1 not 0
+ userPlusSplit varchar[];
+BEGIN
+ IF inEmail IS NOT NULL THEN
+  userHostSplit := (SELECT (regexp_split_to_array(inEmail,'@'))[1:2]);
+  userPlusSplit := (SELECT (regexp_split_to_array(userHostSplit[1],'\+'))[1:2]);
+ END IF;
+ RETURN (
+  SELECT GetEmail(userPlusSplit[1], userPlusSplit[2], userHostSplit[2]) AS id
+ );
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION GetIndividualListName (
  inListName varchar,
  inSetName varchar
@@ -537,50 +581,6 @@ CREATE OR REPLACE FUNCTION ListUnSubscribe (
 ) RETURNS integer AS $$
 BEGIN
  RETURN (SELECT ListUnSubscribe(inListName, NULL, inIndividual));
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION GetEmail (
- inUserName varchar,
- inPlus varchar,
- inHost varchar
-) RETURNS integer AS $$
-DECLARE
-BEGIN
- IF inUserName IS NOT NULL AND inHost IS NOT NULL THEN
-  INSERT INTO Email (username, plus, host) (
-   SELECT inUserName, inPlus, inHost
-   FROM DUAL
-   LEFT JOIN Email AS exists ON UPPER(exists.username) = UPPER(inUserName)
-    AND UPPER(exists.host) = UPPER(inHost)
-    AND ((UPPER(exists.plus) = UPPER(inPlus)) OR (exists.plus IS NULL AND inPlus IS NULL))
-   WHERE exists.id IS NULL
-  );
- END IF;
- RETURN (
-  SELECT id
-  FROM Email
-  WHERE UPPER(username) = UPPER(inUserName)
-   AND UPPER(host) = UPPER(inHost)
-   AND ((UPPER(plus) = UPPER(inPlus)) OR (plus IS NULL AND inPlus IS NULL))
- );
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION GetEmail (
- inEmail varchar
-) RETURNS integer AS $$
-DECLARE
- userHostSplit varchar[];  -- Remeber these start at 1 not 0
- userPlusSplit varchar[];
-BEGIN
- IF inEmail IS NOT NULL THEN
-  userHostSplit := (SELECT (regexp_split_to_array(inEmail,'@'))[1:2]);
-  userPlusSplit := (SELECT (regexp_split_to_array(userHostSplit[1],'\+'))[1:2]);
- END IF;
- RETURN (
-  SELECT GetEmail(userPlusSplit[1], userPlusSplit[2], userHostSplit[2]) AS id
- );
 END;
 $$ LANGUAGE plpgsql;
 
