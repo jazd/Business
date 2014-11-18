@@ -584,6 +584,94 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION CreateIndividual (
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ INSERT INTO Individual (birth) VALUES(NULL);
+ RETURN (SELECT currval(pg_get_serial_sequence('individual','id')));
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetIndividualEmail (
+ inIndividual_id integer,
+ inEmail_id integer
+) RETURNS void AS $$
+DECLARE
+BEGIN
+ IF inIndividual_id IS NOT NULL
+  AND inEmail_id IS NOT NULL THEN
+  INSERT INTO IndividualEmail (individual, email) (
+   SELECT inIndividual_id, inEmail_id
+   FROM DUAL
+   LEFT JOIN IndividualEmail AS exists ON exists.individual = inIndividual_id
+    AND exists.email = inEmail_id
+    AND exists.stop IS NULL
+   WHERE exists.individual IS NULL
+  );
+ END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Get Individual associated with an email
+CREATE OR REPLACE FUNCTION GetIndividualEmail (
+  inEmail varchar
+) RETURNS integer AS $$
+DECLARE
+ email_id integer;
+ individual_id integer;
+BEGIN
+ -- Get email id
+ email_id := (SELECT GetEmail(inEmail));
+
+ IF email_id IS NOT NULL THEN
+  -- Is email already associated with an individual?
+  individual_id := (
+   SELECT individual
+   FROM IndividualEmail
+   WHERE email = email_id
+    AND stop IS NULL
+   LIMIT 1
+  );
+
+  IF individual_id IS NULL THEN
+   -- Email not associated with any individual, so create new individual
+   individual_id = (SELECT CreateIndividual());
+  END IF;
+
+  -- Associate email with individual
+  PERFORM SetIndividualEmail(individual_id, email_id);
+
+ END IF;
+ RETURN individual_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ListSubscribeEmail (
+ inListName varchar,
+ inSetName varchar,
+ inEmail varchar
+) RETURNS integer AS $$
+DECLARE
+ individual_id integer;
+BEGIN
+ individual_id := (GetIndividualEmail(inEmail));
+
+ -- Subscribe individual to the list
+ RETURN (SELECT ListSubscribe(inListName, inSetName, individual_id));
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ListSubscribeEmail (
+ inListName varchar,
+ inEmail varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN (SELECT ListSubscribeEmail(inListName, NULL, inEmail));
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION GetVersion (
  inMajor varchar,
  inMinor varchar,
