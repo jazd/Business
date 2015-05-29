@@ -5,6 +5,8 @@
 .DEFAULT:
 	@echo "Unknown target $@, try:  make help"
 
+PostgreSQLServer = localhost
+
 TARGETS = schema.pgsql schema.mysql schema.sqlite schema.db2
 
 all: schema.pgsql
@@ -45,7 +47,7 @@ clean:
 pgsqldb: schema.pgsql
 	@echo Creating new PostgreSQL database with $@
 	@echo Ignore: ERROR:  view \"*\" does not exist
-	cat PostgreSQL/pre.sql schema.pgsql PostgreSQL/procedures.sql PostgreSQL/post.sql | psql -h localhost -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true
+	cat PostgreSQL/pre.sql schema.pgsql PostgreSQL/procedures.sql PostgreSQL/post.sql | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true
 	cat Static/[01]_* | psql -h localhost -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
 	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | psql -h localhost -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
 	cat Static/[23456789]_* | psql -h localhost -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
