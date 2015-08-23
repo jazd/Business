@@ -20,6 +20,12 @@ CREATE UNIQUE INDEX country_code ON Country (UPPER(code));
 -- Do not allow duplicate entity names
 CREATE UNIQUE INDEX entity_name ON Entity (UPPER(name));
 
+-- Do not allow duplicate words, sentences or paragraphs when culture is NULL
+-- Untested
+CREATE UNIQUE INDEX word_id_culture_null ON Word (id) WHERE culture IS NULL;
+CREATE UNIQUE INDEX sentence_id_culture_null ON Sentence (id) WHERE culture IS NULL;
+CREATE UNIQUE INDEX paragraph_id_culture_null ON Paragraph (id) WHERE culture IS NULL;
+
 -- Application or user insert on these tables should start at 2000000
 -- This leaves room for global constants that are guaranteed to exist
 ALTER SEQUENCE word_id_seq RESTART WITH 2000000;
@@ -36,3 +42,5 @@ ALTER SEQUENCE area_id_seq RESTART WITH 10000;
 ALTER SEQUENCE location_id_seq RESTART WITH 10000;
 ALTER SEQUENCE country_id_seq RESTART WITH 10000;
 ALTER SEQUENCE phone_id_seq RESTART WITH 10000;
+-- Untested
+ALTER SEQUENCE application_id_seq RESTART WITH 10000;
