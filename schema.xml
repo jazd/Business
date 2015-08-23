@@ -655,7 +655,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="Session" order="9999">
 <fields>
- <field name="id" data_type="varchar" size="24" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="id" data_type="varchar" size="32" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" />
  <field name="siteApplicationRelease" data_type="integer" size="11" is_nullable="1" order="2" />
  <field name="initialized" data_type="smallint" size="1" is_nullable="1" order="3" />
  <field name="timeout" data_type="integer" size="10" is_nullable="1" order="4" />
@@ -674,7 +674,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <comments>Mono System.Web/ASPState.sql style locks</comments>
 <table name="SessionLock" order="9999">
 <fields>
- <field name="session" data_type="varchar" size="24" is_nullable="0" is_foreign_key="0" order="1" /> 
+ <field name="session" data_type="varchar" size="32" is_nullable="0" is_foreign_key="0" order="1" />
  <field name="siteApplicationRelease" data_type="integer" size="10" is_nullable="1" order="2" />
  <field name="lock" data_type="integer" size="10" default_value="0" is_nullable="0" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
@@ -715,7 +715,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <table name="SessionCredential" order="9999">
 <fields>
  <field name="id" data_type="integer" size="12" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="session" data_type="varchar" size="24" is_nullable="0" order="2" />
+ <field name="session" data_type="varchar" size="32" is_nullable="0" order="2" />
  <field name="siteApplicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="agent" data_type="integer" size="11" is_nullable="1" order="4">
   <comments>Browser user agent string raw</comments>
