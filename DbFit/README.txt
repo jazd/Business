@@ -21,8 +21,14 @@ MyCo=# CREATE SCHEMA Business;
 MyCo=# GRANT ALL ON SCHEMA Business TO test;
 MyCo=# ALTER USER test SET search_path TO Business;
 
+You man need to edit <git root>/Business/Makefile PostgreSQLServer host entry.
 
-symbolic link Business/DbFit/BusinessSchema to <dbfit install directory>/dbfit/FitNesseRoot
+cd <git root>/Business
+make pgsqldb
+
+You may need to edit the Connect line in <git root>/Business/DbFit/BusinessSchema/PostgreSqlSuite/SetUp/content.txt
+
+symbolic link <git root>/Business/DbFit/BusinessSchema to <dbfit install directory>/dbfit/FitNesseRoot/BusinessSchema
 cd <dbfit install directory>
 ./startFitnesse.sh
 
