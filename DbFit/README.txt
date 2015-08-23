@@ -21,7 +21,7 @@ MyCo=# CREATE SCHEMA Business;
 MyCo=# GRANT ALL ON SCHEMA Business TO test;
 MyCo=# ALTER USER test SET search_path TO Business;
 
-You man need to edit <git root>/Business/Makefile PostgreSQLServer host entry.
+You may need to edit <git root>/Business/Makefile PostgreSQLServer host entry.
 
 cd <git root>/Business
 make pgsqldb
