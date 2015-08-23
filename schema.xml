@@ -551,13 +551,16 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="Release" order="9999">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1">
+  <comments>AKA build number</comments>
+ </field>
  <field name="name" data_type="integer" size="10" is_nullable="1" order="3">
   <comments>Tag name/Branch</comments>
  </field>
- <field name="path" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="path" data_type="integer" size="10" is_nullable="1" order="3">
+  <comments>Repository path</comments>
+ </field>
  <field name="version" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="build" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
@@ -574,11 +577,14 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="ApplicationRelease" order="9999">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
  <field name="application" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="release" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<indices>
+ <index name="application_release" type="UNIQUE" fields="application,release" />
+</indices>
 </table>
 
 <table name="IndividualApplicationCreated" order="9999">
@@ -595,32 +601,60 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="Site" order="9999">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
+ <field name="name" data_type="integer" size="10" is_nullable="1" order="2" />
  <field name="application" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
 
 
-<table name="SiteApplication" order="9999">
+<comments>Information about when etc. site got particular released application</comments>
+<table name="SiteApplicationRelease" order="9999">
 <fields>
- <field name="site" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="site" data_type="integer" size="10" is_nullable="1" order="2" />
  <field name="applicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="site" reference_table="Site" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="applicationRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
 </table>
 
 <table name="Session" order="9999">
 <fields>
  <field name="id" data_type="varchar" size="24" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="siteApplication" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="siteApplicationRelease" data_type="integer" size="10" is_nullable="1" order="2" />
  <field name="initialized" data_type="smallint" size="1" is_nullable="1" order="3" />
- <field name="timeout" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="items" data_type="bytea" size="10" is_nullable="1" order="3" />
- <field name="touched" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+ <field name="timeout" data_type="integer" size="10" is_nullable="1" order="4" />
+ <field name="items" data_type="bytea" size="10" is_nullable="1" order="5" />
+ <field name="touched" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="98" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<indices>
+ <index name="id_siteApplicationRelease" type="UNIQUE" fields="id,siteApplicationRelease" />
+</indices>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="SiteApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+</table>
+
+<comments>Mono System.Web/ASPState.sql style locks</comments>
+<table name="SessionLock" order="9999">
+<fields>
+ <field name="session" data_type="varchar" size="24" is_nullable="0" is_foreign_key="0" order="1" /> 
+ <field name="siteApplicationRelease" data_type="integer" size="10" is_nullable="1" order="2" />
+ <field name="lock" data_type="integer" size="10" default_value="0" is_nullable="0" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
+</fields>
+<indices>
+ <index name="session_siteApplicationRelease" type="NORMAL" fields="session,siteApplicationRelease" />
+</indices>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="session,siteApplicationRelease" reference_table="session" reference_fields="id,siteApplicationRelease" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
 </table>
 
 <table name="Password" order="9999">
