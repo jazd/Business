@@ -19,25 +19,29 @@ db2: schema.db2
 schema.pgsql: schema.xml
 	@echo Creating PostgreSQL file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
-	sqlt -f XML-SQLFairy -t PostgreSQL --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g"> $@
+	sed 's/^/-- /' LICENSE.txt > $@
+	sqlt -f XML-SQLFairy -t PostgreSQL --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g">> $@
 	chmod -w $@
 
 schema.mysql: schema.xml
 	@echo Creating MySQL file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
-	sqlt -f XML-SQLFairy -t MySQL $< > $@
+	sed 's/^/-- /' LICENSE.txt > $@
+	sqlt -f XML-SQLFairy -t MySQL $< >> $@
 	chmod -w $@
 
 schema.sqlite: schema.xml
 	@echo Creating MySQL file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
-	sqlt -f XML-SQLFairy -t SQLite $< > $@
+	sed 's/^/-- /' LICENSE.txt > $@
+	sqlt -f XML-SQLFairy -t SQLite $< >> $@
 	chmod -w $@
 
 schema.db2: schema.xml
 	@echo Creating MySQL file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
-	sqlt -f XML-SQLFairy -t DB2 $< > $@
+	sed 's/^/-- /' LICENSE.txt > $@
+	sqlt -f XML-SQLFairy -t DB2 $< >> $@
 	chmod -w $@
 
 clean:
