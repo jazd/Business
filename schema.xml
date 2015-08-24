@@ -443,10 +443,10 @@
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="name" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="major" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="minor" data_type="integer" size="10" is_nullable="1" order="4" />
- <field name="patch" data_type="integer" size="10" is_nullable="1" order="5" />
+ <field name="name" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="major" data_type="integer" size="11" is_nullable="1" order="3" />
+ <field name="minor" data_type="integer" size="11" is_nullable="1" order="4" />
+ <field name="patch" data_type="integer" size="11" is_nullable="1" order="5" />
 </fields>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
@@ -551,10 +551,9 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="Release" order="9999">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1">
-  <comments>AKA build number</comments>
- </field>
- <field name="name" data_type="integer" size="10" is_nullable="1" order="3">
+ <field name="id" data_type="integer" size="11" is_nullable="0"	is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="build" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="name" data_type="integer" size="11" is_nullable="1" order="3">
   <comments>Tag name/Branch</comments>
  </field>
  <field name="path" data_type="integer" size="10" is_nullable="1" order="3">
@@ -563,6 +562,11 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="version" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="build" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
+</constraints>
 </table>
 
 <table name="Application" order="9999">
@@ -648,12 +652,12 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <table name="ClientOSApplication" order="9999">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="ClientOS" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="ApplicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="clientOS" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="applicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="ApplicationRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="applicationRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
