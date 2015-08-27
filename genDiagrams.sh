@@ -13,6 +13,7 @@ PHONES="Phone Country Location Area Timezone Word"
 INDIVIDUAL_EMAIL="Individual IndividualEmail Email Word"
 INDIVIDUAL_PATH="Individual IndividualPath Path Word"
 
+SESSION="Session SessionLock SessionCredential Individual Name Entity IndividualSessionCreated Password Credential Site Part ClientOSApplication ClientOS Application Release Path ApplicationRelease SiteApplicationRelease Version Email Location Area Culture Sentence Word"
 
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
@@ -34,6 +35,10 @@ sqlt-diagram --title "Individual URL" $ARGS -c 2 -o diagrams/individual_path.png
 
 scripts/extractTable.pl schema.xml.invalid $ADDRESSES >./zot.xml
 sqlt-diagram --title "Addresses" $ARGS -c 2 -o diagrams/addresses.png ./zot.xml
+
+scripts/extractTable.pl schema.xml.invalid $SESSION >./zot.xml
+sqlt-diagram --title "Session" $ARGS -c 5 -o diagrams/web_session.png ./zot.xml
+
 
 # Remove temporary files
 rm zot.xml
