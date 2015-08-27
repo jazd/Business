@@ -7,13 +7,13 @@ ARGS="--gutter=50 --db=XML"
 
 INDIVIDUAL="Given Family Name Individual Entity Word"
 LISTS="Individual IndividualList IndividualListName Word"
-ADDRESSES="Address Postal Country Location Area Sentence Word"
-PHONES="Phone Country Location Area Timezone Word"
+ADDRESSES="Address Postal Country Location Area Sentence Word Culture"
+PHONES="Phone Country Location Area Timezone Culture Word Sentence"
 
 INDIVIDUAL_EMAIL="Individual IndividualEmail Email Word"
 INDIVIDUAL_PATH="Individual IndividualPath Path Word"
 
-SESSION="Session SessionLock SessionCredential Individual Name Entity IndividualSessionCreated Password Credential Site Part ClientOSApplication ClientOS Application Release Path ApplicationRelease SiteApplicationRelease Version Email Location Area Culture Sentence Word"
+SESSION="Session SessionLock SessionCredential Individual Name Entity IndividualSessionCreated Password Credential Site Part ClientOSApplication ClientOS Application Release Path ApplicationRelease SiteApplicationRelease Version Email Location Area Timezone Culture Sentence Word"
 
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
