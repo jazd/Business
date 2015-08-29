@@ -760,6 +760,35 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION GetVersionName (
+ inName varchar
+) RETURNS integer AS $$
+DECLARE
+ name_id integer;
+BEGIN
+ IF inName IS NOT NULL THEN
+  name_id := (SELECT GetWord(inName));
+  INSERT INTO Version (name) (
+   SELECT name_id
+   FROM Dual
+   LEFT JOIN Version AS exists ON exists.name = name_id
+    AND exists.major IS NULL
+    AND exists.minor IS NULL
+    AND exists.patch IS NULL
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Version
+  WHERE name = name_id
+   AND major IS NULL
+   AND minor IS NULL
+   AND patch IS NULL
+ );
+END;
+$$ LANGUAGE plpgsql;
+
 -- GetRelease(version integer, build char)
 CREATE OR REPLACE FUNCTION GetRelease (
  inVersion integer,
@@ -767,8 +796,8 @@ CREATE OR REPLACE FUNCTION GetRelease (
 ) RETURNS integer AS $$
 DECLARE build_id integer;
 BEGIN
- build_id := (SELECT GetIdentifier(inBuild));
- IF inVersion IS NOT NULL THEN
+ IF inVersion IS NOT NULL AND inBuild IS NOT NULL THEN
+  build_id := (SELECT GetIdentifier(inBuild));
   INSERT INTO Release (build, version) (
    SELECT build_id AS build, inVersion AS version
    FROM Dual
