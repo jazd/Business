@@ -15,6 +15,7 @@
 </table>
 
 <table name="Word" order="2">
+<comments>Word records with null culture values are identifiers.  Identifiers are managed with the GetIdentifier functions instead of GetWord.</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
  <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
@@ -31,6 +32,7 @@
 </table>
 
 <table name="Sentence" order="3">
+<comments>Sentence records with null culture values are identity phrases.  Phrases are managed with the GetIdentityPhrase.</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
  <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />

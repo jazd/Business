@@ -1,5 +1,11 @@
+-- Officially, PostgreSQL only has "functions"
+-- These links may help
+-- http://www.sqlines.com/postgresql/stored_procedures_functions
+-- http://www.sqlines.com/postgresql/how-to/return_result_set_from_stored_procedure
 SET search_path TO Business,"$user",public;
 
+-- Return the Id of a culture based word
+-- It is inserted if it does not already exist
 CREATE OR REPLACE FUNCTION GetWord (
  word_value varchar,
  culture_name varchar
@@ -35,6 +41,55 @@ DECLARE
 BEGIN
  RETURN (
   SELECT GetWord(word_value, 'en-US') AS id
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Identifiers are normally by convention en-US based names used in programming and protocols
+-- Return the Id of an identifier
+-- It is inserted if it does not already exist
+CREATE OR REPLACE FUNCTION GetIdentifier (
+ ident_value varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ IF ident_value IS NOT NULL THEN
+  INSERT INTO Word (value, culture) (
+   SELECT ident_value, NULL
+   FROM Dual
+   LEFT JOIN Word AS exists ON UPPER(exists.value) = UPPER(ident_value)
+    AND exists.culture IS NULL
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Word
+  WHERE UPPER(Word.value) = UPPER(ident_value)
+   AND Word.culture IS NULL
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetIdentityPhrase (
+ phrase_value varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ IF phrase_value IS NOT NULL THEN
+  INSERT INTO Sentence (value, culture) (
+   SELECT phrase_value, NULL
+   FROM Dual
+   LEFT JOIN Sentence AS exists ON UPPER(exists.value) = UPPER(phrase_value)
+    AND exists.culture IS NULL
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Sentence
+  WHERE UPPER(Sentence.value) = UPPER(phrase_value)
+   AND Sentence.culture IS NULL
  );
 END;
 $$ LANGUAGE plpgsql;
