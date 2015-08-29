@@ -815,6 +815,55 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- GetRelease(version integer)
+CREATE OR REPLACE FUNCTION GetRelease (
+ inVersion integer
+) RETURNS integer AS $$
+BEGIN
+ IF inVersion IS NOT NULL THEN
+  INSERT INTO Release (version, build) (
+   SELECT inVersion AS version, NULL AS build
+   FROM Dual
+   LEFT JOIN Release AS exists ON exists.version = inVersion
+    AND exists.build IS NULL
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Release
+  WHERE version = inVersion
+   AND build IS NULL
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- GetApplication(name char)
+CREATE OR REPLACE FUNCTION GetApplication(
+ inName varchar
+) RETURNS integer AS $$
+DECLARE name_ident integer;
+BEGIN
+ IF inName IS NOT NULL THEN
+  name_ident := (SELECT GetIdentifier(inName));
+  INSERT INTO Application (name) (
+   SELECT name_ident AS name
+   FROM Dual
+   LEFT JOIN Application AS exists ON exists.name = name_ident
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Application
+  WHERE name = name_ident
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+
+
 CREATE OR REPLACE FUNCTION SetSchemaVersion (
  inSchemaName varchar,
  inMajor varchar,

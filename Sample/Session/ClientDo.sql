@@ -1,27 +1,10 @@
 -- PostgreSQL
-
--- Pre-insert a valid Application
--- Chrome
-INSERT INTO Application (id,name)
-SELECT 9999 AS id, Word.id  AS name
-FROM Word
-WHERE value = 'Chrome'
- AND culture IS NULL
-;
--- Linux
-INSERT INTO Application (id,name)
-SELECT 9998 AS id, Word.id  AS name
-FROM Word
-WHERE value = 'Linux'
- AND culture IS NULL
-;
-
 -- Could be used as a template to create an anonymous session creation/id retrieval function 
 DO $$
 DECLARE agent_string INTEGER;
-DECLARE application_identifier INTEGER;
+DECLARE application_id INTEGER;
 DECLARE application_version INTEGER;
-DECLARE os_identifier INTEGER;
+DECLARE os_id INTEGER;
 DECLARE os_version INTEGER;
 DECLARE application_release INTEGER;
 DECLARE os_release INTEGER;
@@ -32,9 +15,9 @@ INSERT INTO Sentence (id,value,length,culture) VALUES(1999999,'Mozilla/5.0 (X11;
 
 -- Pre-insert a valid Application
 -- Chrome
-application_identifier := (SELECT ident FROM GetIdentifier('Chrome') AS ident);
+application_id := (SELECT application FROM GetApplication('Chrome') AS application);
 -- Linux
-os_identifier := (SELECT ident FROM GetIdentifier('Linux') AS ident);
+os_id := (SELECT os FROM GetApplication('Linux') AS os);
 
 -- Pre-insert a valid version
 -- 43.0.2357
@@ -45,15 +28,14 @@ os_version := (SELECT version FROM GetVersionName('x86_64') AS version);
 -- Releases of applications
 -- Chrome
 application_release := (SELECT release FROM GetRelease(application_version, '130') AS release);
-
 -- Linux
-os_release := (SELECT release FROM GetRelease(os_version, '130') AS release);
+os_release := (SELECT release FROM GetRelease(os_version) AS release);
 
 -- Pre-insert a valid Agent (ApplicationRelease)
 -- Chrome/43.0.2357.130
-INSERT INTO ApplicationRelease (id,application,release) VALUES (9999, 9999, application_release);
+INSERT INTO ApplicationRelease (id,application,release) VALUES (9999, application_id, application_release);
 -- Linux x86_64
-INSERT INTO ApplicationRelease (id,application,release) VALUES (9998, 9998, os_release);
+INSERT INTO ApplicationRelease (id,application,release) VALUES (9998, os_id, os_release);
 END $$;
 
 --

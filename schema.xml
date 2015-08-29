@@ -464,6 +464,7 @@
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0"	is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="version" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="build" data_type="integer" size="11" is_nullable="1" order="2" />
  <field name="name" data_type="integer" size="11" is_nullable="1" order="3">
   <comments>Tag name/Branch</comments>
@@ -471,21 +472,54 @@
  <field name="path" data_type="integer" size="11" is_nullable="1" order="3">
   <comments>Repository path</comments>
  </field>
- <field name="version" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <indices>
  <index name="release_version_build" type="UNIQUE" fields="version,build" />
 </indices>
 <constraints>
+ <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="build" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <constraint name="" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
 
-<table name="SchemaVersion" order="120">
+<table name="Application" order="120">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
+ <field name="name" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="goesBy" data_type="varchar" size="40" is_nullable="1" order="3" />
+ <field name="path" data_type="integer" size="10" is_nullable="1" order="4" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
+<table name="ApplicationRelease" order="121">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
+ <field name="application" data_type="integer" size="10" is_nullable="1" order="2" />
+ <field name="release" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="application_release" type="UNIQUE" fields="application,release" />
+</indices>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="application" reference_table="Application" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="release" reference_table="Release" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+</table>
+
+
+
+<table name="SchemaVersion" order="999">
 <comments>untested</comments>
 <fields>
  <field name="build" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
@@ -498,6 +532,7 @@
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="schema" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
+
 
 
 <comments>
@@ -576,38 +611,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
-</table>
-
-<table name="Application" order="9999">
-<comments>untested</comments>
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
- <field name="name" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="goesBy" data_type="varchar" size="40" is_nullable="1" order="3" />
- <field name="path" data_type="integer" size="10" is_nullable="1" order="4" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-<constraints>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
-</constraints>
-</table>
-
-<table name="ApplicationRelease" order="9999">
-<comments>untested</comments>
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
- <field name="application" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="release" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-<indices>
- <index name="application_release" type="UNIQUE" fields="application,release" />
-</indices>
-<constraints>
- <constraint name="" type="FOREIGN KEY" fields="application" reference_table="Application" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="release" reference_table="Release" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
-</constraints>
 </table>
 
 <table name="IndividualApplicationCreated" order="9999">
