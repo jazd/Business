@@ -760,6 +760,32 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- GetRelease(version integer, build char)
+CREATE OR REPLACE FUNCTION GetRelease (
+ inVersion integer,
+ inBuild varchar
+) RETURNS integer AS $$
+DECLARE build_id integer;
+BEGIN
+ build_id := (SELECT GetIdentifier(inBuild));
+ IF inVersion IS NOT NULL THEN
+  INSERT INTO Release (build, version) (
+   SELECT build_id AS build, inVersion AS version
+   FROM Dual
+   LEFT JOIN Release AS exists ON exists.build = build_id
+    AND exists.version = inVersion
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Release
+  WHERE build = build_id
+   AND version = inVersion
+ );
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION SetSchemaVersion (
  inSchemaName varchar,
  inMajor varchar,

@@ -460,13 +460,37 @@
 </constraints>
 </table>
 
+<table name="Release" order="110">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0"	is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="build" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="name" data_type="integer" size="11" is_nullable="1" order="3">
+  <comments>Tag name/Branch</comments>
+ </field>
+ <field name="path" data_type="integer" size="11" is_nullable="1" order="3">
+  <comments>Repository path</comments>
+ </field>
+ <field name="version" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="release_version_build" type="UNIQUE" fields="version,build" />
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="build" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
 
-<table name="SchemaVersion" order="9999">
+<table name="SchemaVersion" order="120">
 <comments>untested</comments>
 <fields>
  <field name="build" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="schema" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="version" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="schema" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="version" data_type="integer" size="11" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -552,28 +576,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
-</table>
-
-<table name="Release" order="9999">
-<comments>untested</comments>
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0"	is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="build" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="name" data_type="integer" size="11" is_nullable="1" order="3">
-  <comments>Tag name/Branch</comments>
- </field>
- <field name="path" data_type="integer" size="10" is_nullable="1" order="3">
-  <comments>Repository path</comments>
- </field>
- <field name="version" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-<constraints>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="build" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
-</constraints>
 </table>
 
 <table name="Application" order="9999">
@@ -713,15 +715,15 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <index name="session_siteApplicationRelease" type="NORMAL" fields="session,siteApplicationRelease" />
 </indices>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="session,siteApplicationRelease" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="Session" reference_fields="siteApplicationRelease" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="SiteApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
 <table name="Password" order="9999">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
  <field name="provider" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="generator" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="value" data_type="varchar" size="70" is_nullable="1" order="3" />
@@ -730,9 +732,9 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="provider" reference_table="Individual" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="provider" reference_table="Individual" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" /></comments>
  <constraint name="" type="FOREIGN KEY" fields="generator" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
@@ -775,9 +777,9 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
-<constraint name="" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
-<constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="Session" reference_fields="siteApplicationRelease" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
-<comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="agent" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="SiteApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="agent" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
  <constraint name="" type="FOREIGN KEY" fields="clientOSApplication" reference_table="ClientOSApplication" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="referring" reference_table="Path" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -793,7 +795,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </fields>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="sessionCredential" reference_table="SessionCredential" reference_fields="siteApplicationRelease" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="sessionCredential" reference_table="SessionCredential" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
