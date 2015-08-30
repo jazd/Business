@@ -8,6 +8,9 @@ DECLARE os_id INTEGER;
 DECLARE os_version INTEGER;
 DECLARE application_release INTEGER;
 DECLARE os_release INTEGER;
+DECLARE application_release_id INTEGER;
+DECLARE os_release_id INTEGER;
+DECLARE device INTEGER;
 BEGIN
 -- Pre-insert a valid agent string
 agent_string := (SELECT id FROM GetIdentityPhrase('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36') AS id);
@@ -33,23 +36,26 @@ os_release := (SELECT release FROM GetRelease(os_version) AS release);
 
 -- Pre-insert a valid Agent (ApplicationRelease)
 -- Chrome/43.0.2357.130
-INSERT INTO ApplicationRelease (id,application,release) VALUES (9999, application_id, application_release);
+application_release_id := (SELECT id FROM GetApplicationRelease(application_id, application_release) AS id);
 -- Linux x86_64
-INSERT INTO ApplicationRelease (id,application,release) VALUES (9998, os_id, os_release);
-END $$;
+os_release_id := (SELECT id FROM GetApplicationRelease(os_id, os_release) AS id);
 
 --
 -- Unknown agent device
-INSERT INTO Part (id,name)
-SELECT 9999 AS id, Word.id AS name
-FROM Word
-WHERE Word.value = 'Unknown' AND Word.culture IS NULL
-;
+device := (SELECT id FROM GetPart('Unknown') AS id);
+
 -- Agent's Client and OS
-INSERT INTO ClientOS (id, device, osrelease) VALUES (9999,9999,9998);
+-- A client device and its operating system. Change to AssemblyApplicationRelease</comments>
+INSERT INTO AssemblyApplicationRelease (id, assembly, applicationRelease) VALUES (9999,device,os_release_id);
 --
+-- Information A client device and operating system and the application it is running.
+-- AKA user agent. http://www.useragentstring.com/pages/Browserlist/  Change to AssemblyApplicationRelease
 -- The parsed agent, Unknown device using OS Linux x86_64, Application Chrome/43.0.2357.130
-INSERT INTO ClientOSApplication (id, clientOS, applicationRelease) VALUES (9999, 9999, 9999);
+INSERT INTO AssemblyApplicationRelease (id, assembly, applicationRelease) VALUES (9998, device, application_release_id);
+
+END $$;
+
+
 --
 -- Insert the session record using the site's session id function
 INSERT INTO Session (id) VALUES('63840346be345744139d5d8b70292ff2');

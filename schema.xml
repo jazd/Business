@@ -517,6 +517,23 @@
 </constraints>
 </table>
 
+<table name="Part" order="130">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
+ <field name="parent" data_type="integer" size="10" is_nullable="1" order="2" />
+ <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="version" data_type="integer" size="10" is_nullable="1" order="4" />
+ <field name="serial" data_type="varchar" is_nullable="1" order="5" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="parent" reference_table="Part" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 
 
 <table name="SchemaVersion" order="999">
@@ -538,23 +555,6 @@
 <comments>
 Tables below are unfinished and are mostly place holders or note taking.  These should not be used and are probably completely wrong.
 </comments>
-<table name="Part" order="9999">
-<comments>untested</comments>
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="parent" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="version" data_type="integer" size="10" is_nullable="1" order="4" />
- <field name="serial" data_type="varchar" is_nullable="1" order="5" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-<constraints>
- <constraint name="" type="FOREIGN KEY" fields="parent" reference_table="Part" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
-</constraints>
-</table>
-
 <table name="AssemblyPart" order="9999">
 <fields>
  <field name="assembly" data_type="integer" size="10" is_nullable="1" order="1" />
@@ -629,7 +629,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
- <field name="name" data_type="integer" size="10" is_nullable="1" order="2" />
+ <field name="name" data_type="integer" size="11" is_nullable="1" order="2" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -653,36 +653,20 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
-
-<comments>A client device and its operating system</comments>
-<table name="ClientOS" order="9999">
+<comments>A client device and its operating system. Change to AssemblyApplicationRelease</comments>
+<table name="AssemblyApplicationRelease" order="9999">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="device" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="OSRelease" data_type="integer" size="10" is_nullable="1" order="3">
-  <comments>Operating System Release</comments>
- </field>
+ <field name="assembly" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="applicationRelease" data_type="integer" size="10"	is_nullable="1" order="3" />
+ <field name="name" data_type="integer" size="11" is_nullable="1" order="4" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="OSRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="device" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
-</constraints>
-</table>
-
-<comments>Information A client device and operating system and the application it is running. AKA user agent. http://www.useragentstring.com/pages/Browserlist/</comments>
-<table name="ClientOSApplication" order="9999">
-<comments>untested</comments>
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="clientOS" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="applicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-<constraints>
- <constraint name="" type="FOREIGN KEY" fields="clientOS" reference_table="ClientOS" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="applicationRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
@@ -767,10 +751,10 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="id" data_type="integer" size="12" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
  <field name="session" data_type="varchar" size="32" is_nullable="0" order="2" />
  <field name="siteApplicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="agent" data_type="integer" size="11" is_nullable="1" order="4">
+ <field name="agentString" data_type="integer" size="11" is_nullable="1" order="4">
   <comments>Browser user agent string raw</comments>
  </field>
- <field name="clientOSApplication" data_type="integer" size="11" is_nullable="1" order="5">
+ <field name="agent" data_type="integer" size="11" is_nullable="1" order="5">
   <comments>Browser user agent string parsed</comments>
  </field>
  <field name="credential" data_type="integer" size="11" is_nullable="1" order="6" />
@@ -783,7 +767,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" /></comments>
  <constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="SiteApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="agent" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="clientOSApplication" reference_table="ClientOSApplication" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="agent" reference_table="AssemblyApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="referring" reference_table="Path" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />

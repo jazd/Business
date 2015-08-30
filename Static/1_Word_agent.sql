@@ -32,5 +32,3 @@ INSERT INTO Word (id,culture,value) VALUES (300013,NULL,'OS');
 INSERT INTO Word (id,culture,value) VALUES (300014,NULL,'X');
 INSERT INTO Word (id,culture,value) VALUES (300015,NULL,'Android');
 INSERT INTO Word (id,culture,value) VALUES (300016,NULL,'iPhone');
--- Words Other
-INSERT INTO Word (id,culture,value) VALUES (400000,NULL,'Unknown');

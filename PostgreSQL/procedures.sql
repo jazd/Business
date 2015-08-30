@@ -862,6 +862,80 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- GetApplicationRelease(application integer, release integer)
+CREATE OR REPLACE FUNCTION GetApplicationRelease (
+ inApplication integer,
+ inRelease integer
+) RETURNS integer AS $$
+BEGIN
+ IF inApplication IS NOT NULL AND inRelease IS NOT NULL THEN
+  INSERT INTO ApplicationRelease (application, release) (
+   SELECT inApplication AS application, inRelease AS release
+   FROM Dual
+   LEFT JOIN ApplicationRelease AS exists ON exists.application = inApplication
+    AND exists.release = inRelease
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM ApplicationRelease
+  WHERE application = inApplication
+   AND release = inRelease
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+-- GetPart(name varchar)
+CREATE OR REPLACE FUNCTION GetPart (
+ inName varchar
+) RETURNS integer AS $$
+DECLARE name_id integer;
+BEGIN
+ IF inName IS NOT NULL THEN
+  name_id := (SELECT GetWord(inName));
+  INSERT INTO Part (name) (
+   SELECT name_id
+   FROM Dual
+   LEFT JOIN Part AS exists ON exists.name = name_id
+    AND exists.parent IS NULL
+    AND exists.version IS NULL
+    AND exists.serial IS NULL
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Part
+  WHERE name = name_id
+   AND parent IS NULL
+   AND version IS NULL
+   AND serial IS NULL
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+-- For examples only.  Don't use in a production environment
+CREATE OR REPLACE FUNCTION RandomString(
+ inLength integer
+) RETURNS varchar AS $$
+DECLARE base_chars varchar[] := '{0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}';
+DECLARE base integer := 62;
+DECLARE x integer;
+DECLARE result_string varchar;
+BEGIN
+ IF inLength > 0 THEN
+  result_string := '';
+  FOR x IN 1..inLength LOOP
+   result_string := result_string || base_chars[ceiling(random()*base)];
+  END LOOP;
+ END IF;
+ RETURN result_string;
+END;
+$$ LANGUAGE plpgsql;
+
 
 
 CREATE OR REPLACE FUNCTION SetSchemaVersion (
