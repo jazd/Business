@@ -50,3 +50,4 @@ ALTER SEQUENCE applicationrelease_id_seq RESTART WITH 10000;
 ALTER SEQUENCE part_id_seq RESTART WITH 10000;
 ALTER SEQUENCE clientos_id_seq RESTART WITH 10000;
 ALTER SEQUENCE clientosapplication_id_seq RESTART WITH 10000;
+ALTER SEQUENCE assemblyapplicationrelease_id_seq RESTART WITH 10000;

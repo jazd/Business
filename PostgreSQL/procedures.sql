@@ -915,6 +915,40 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION GetAssemblyApplicationRelease (
+ inAssembly integer,
+ inApplicationRelease integer,
+ inParent integer
+) RETURNS integer AS $$
+BEGIN
+ IF inAssembly IS NOT NULL AND inApplicationRelease IS NOT NULL THEN
+  INSERT INTO AssemblyApplicationRelease (parent, assembly, applicationRelease) (
+   SELECT inParent AS parent, inAssembly AS assembly, inApplicationRelease AS applicationRelease
+   FROM Dual
+   LEFT JOIN AssemblyApplicationRelease AS exists ON exists.assembly = inAssembly
+    AND exists.applicationRelease = inApplicationRelease
+    AND ((exists.parent = inParent) OR (exists.parent IS NULL AND inParent IS NULL))
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM AssemblyApplicationRelease
+  WHERE assembly = inAssembly
+   AND applicationRelease = inApplicationRelease
+   AND ((parent = inParent) OR (parent IS NULL AND inParent IS NULL))
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetAssemblyApplicationRelease (
+ inAssembly integer,
+ inApplicationRelease integer
+) RETURNS integer AS $$
+BEGIN
+RETURN (SELECT id FROM GetAssemblyApplicationRelease(inAssembly, inApplicationRelease, NULL) AS id);
+END;
+$$ LANGUAGE plpgsql;
 
 
 -- For examples only.  Don't use in a production environment

@@ -534,6 +534,25 @@
 </constraints>
 </table>
 
+<comments>A client device and its operating system. Change to AssemblyApplicationRelease</comments>
+<table name="AssemblyApplicationRelease" order="140">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="parent" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="assembly" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="applicationRelease" data_type="integer" size="10"	is_nullable="1" order="3" />
+ <field name="name" data_type="integer" size="11" is_nullable="1" order="4" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="parent" reference_table="AssemblyApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="applicationRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 
 
 <table name="SchemaVersion" order="999">
@@ -650,23 +669,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="site" reference_table="Site" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="applicationRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
-</constraints>
-</table>
-
-<comments>A client device and its operating system. Change to AssemblyApplicationRelease</comments>
-<table name="AssemblyApplicationRelease" order="9999">
-<comments>untested</comments>
-<fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="assembly" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="applicationRelease" data_type="integer" size="10"	is_nullable="1" order="3" />
- <field name="name" data_type="integer" size="11" is_nullable="1" order="4" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-<constraints>
- <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="applicationRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
