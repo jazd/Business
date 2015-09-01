@@ -14,6 +14,7 @@ DECLARE device INTEGER;
 DECLARE device_os INTEGER;
 DECLARE device_agent INTEGER;
 DECLARE new_session VARCHAR;
+DECLARE referring_url INTEGER;
 BEGIN
 -- Pre-insert a valid agent string
 agent_string := (SELECT id FROM GetIdentityPhrase('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36') AS id);
@@ -55,6 +56,8 @@ device_os = (SELECT id FROM GetAssemblyApplicationRelease(device,os_release_id) 
 -- The parsed agent, Unknown device using OS Linux x86_64, Application Chrome/43.0.2357.130
 device_agent = (SELECT id FROM GetAssemblyApplicationRelease(device,application_release_id,device_os) AS id);
 
+referring_url = (SELECT url FROM GetUrl(0,'www.ibm.com',NULL,NULL) AS url);
+
 --
 -- Insert the session record using the site's session id function
 new_session = (SELECT session FROM RandomString(32) AS session);
@@ -62,9 +65,9 @@ INSERT INTO Session (id) VALUES(new_session);
 
 --
 -- Associate a remote client and remote IP address to a session
-INSERT INTO SessionCredential (session,agentString,agent,fromAddress)
+INSERT INTO SessionCredential (session,agentString,agent,fromAddress,referring)
 SELECT new_session AS session, agent_string AS agentString,
- device_agent AS agent, '107.77.97.52' AS fromAddress
+ device_agent AS agent, '107.77.97.52' AS fromAddress, referring_url AS referring
 ;
 
 END $$;

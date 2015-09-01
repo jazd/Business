@@ -951,6 +951,66 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+CREATE OR REPLACE FUNCTION GetPath (
+ inProtocol varchar,
+ inSecure integer,
+ inHost varchar,
+ inValue varchar,
+ inGet varchar
+) RETURNS integer AS $$
+DECLARE is_secure integer := 0;
+BEGIN
+ -- host and path can not both be null
+ IF inValue IS NOT NULL OR inHost IS NOT NULL THEN
+  -- Default to false or 0
+  IF inSecure IS NOT NULL AND inSecure != 0 THEN
+    is_secure :=1;
+  END IF;
+  INSERT INTO Path (protocol, secure, host, value, get) (
+   SELECT inProtocol, is_secure, inHost, inValue, inGet
+   FROM Dual
+   LEFT JOIN Path AS exists ON exists.protocol = inProtocol
+    AND exists.secure = is_secure
+    AND ((UPPER(exists.host) = UPPER(inHost)) OR (exists.host IS NULL AND inHost IS NULL))
+    AND ((exists.value = inValue) OR (exists.value IS NULL OR inValue IS NULL))
+    AND ((exists.get = inGet) OR (exists.get IS NULL AND inGet IS NULL))
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Path
+  WHERE protocol = inProtocol
+   AND secure = is_secure
+   AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
+   AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
+   AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetURL (
+ inSecure integer,
+ inHost varchar,
+ inValue varchar,
+ inGet varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT id FROM GetPath('http', inSecure, inHost, inValue, inGet) AS id);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetFile (
+ inHost varchar,
+ inPathValue varchar,
+ inFileGet varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT id FROM GetPath('file', 0, inHost, inPathValue, inFileGet) AS id);
+END;
+$$ LANGUAGE plpgsql;
+
+
 -- For examples only.  Don't use in a production environment
 CREATE OR REPLACE FUNCTION RandomString(
  inLength integer

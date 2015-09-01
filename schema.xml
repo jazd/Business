@@ -230,13 +230,17 @@
 <table name="Path" order="26">
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="protocol" data_type="varchar" size="4" is_nullable="1" order="2" />
- <field name="secure" data_type="smallint" size="1" is_nullable="1" order="3" />
+ <field name="protocol" data_type="varchar" size="4" is_nullable="0" order="2" />
+ <field name="secure" data_type="smallint" size="1" is_nullable="0" default_value="0" order="3" />
  <field name="host" data_type="varchar" size="30" is_nullable="1" order="4" />
- <field name="value" data_type="varchar" size="30" is_nullable="1" order="5" />
- <field name="get" data_type="varchar" size="30" is_nullable="1" order="6" />
+ <field name="value" data_type="varchar" size="60" is_nullable="1" order="5" />
+ <field name="get" data_type="varchar" size="128" is_nullable="1" order="6" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<indices>
+ <index name="path_host" type="NORMAL" fields="UPPER(host)" />
+ <index name="path_host_value" type="NORMAL" fields="UPPER(host),value" />
+</indices>
 </table>
 
 <table name="IndividualList" order="30">
@@ -1006,6 +1010,30 @@ SELECT id AS path, protocol, host,
  THEN !apos;!apos;
  ELSE !apos;?!apos; || get
  END AS value,
+ created
+FROM Path
+  </sql>
+ </view>
+ <view name="file" fields="path,protocol,host,value,file,created">
+  <sql>
+SELECT id AS path, protocol, host,
+ protocol ||
+ !apos;:///!apos; ||
+ COALESCE(value,!apos;!apos;) ||
+ CASE WHEN value IS NOT NULL
+ THEN !apos;/!apos;
+ ELSE !apos;!apos;
+ END ||
+ COALESCE(get,!apos;!apos;)
+ AS value,
+ !apos;/!apos; ||
+ COALESCE(value,!apos;!apos;) ||
+ CASE WHEN value IS NOT NULL
+ THEN !apos;/!apos;
+ ELSE !apos;!apos;
+ END ||
+ COALESCE(get,!apos;!apos;)
+ AS file,
  created
 FROM Path
   </sql>
