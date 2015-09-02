@@ -7,7 +7,7 @@ ARGS="--gutter=50 --db=XML"
 
 INDIVIDUAL="Given Family Name Individual Entity Word"
 LISTS="Individual IndividualList IndividualListName Word"
-ADDRESSES="Address Postal Country Location Area Sentence Word Culture"
+ADDRESSES="Address Postal Country Location Area Timezone Sentence Word Culture"
 PHONES="Phone Country Location Area Timezone Culture Word Sentence"
 
 INDIVIDUAL_EMAIL="Individual IndividualEmail Email Word"
@@ -34,7 +34,7 @@ scripts/extractTable.pl schema.xml.invalid $INDIVIDUAL_PATH >./zot.xml
 sqlt-diagram --title "Individual URL" $ARGS -c 2 -o diagrams/individual_path.png ./zot.xml
 
 scripts/extractTable.pl schema.xml.invalid $ADDRESSES >./zot.xml
-sqlt-diagram --title "Addresses" $ARGS -c 2 -o diagrams/addresses.png ./zot.xml
+sqlt-diagram --title "Addresses" $ARGS -c 3 -o diagrams/addresses.png ./zot.xml
 
 scripts/extractTable.pl schema.xml.invalid $SESSION >./zot.xml
 sqlt-diagram --title "Session" $ARGS -c 5 -o diagrams/web_session.png ./zot.xml

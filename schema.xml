@@ -117,7 +117,7 @@
  <field name="altitudeAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="8">
   <comments>In meters</comments>
  </field>
- <field name="area" data_type="integer" size="10" is_nullable="1" order="9" >
+ <field name="area" data_type="integer" size="11" is_nullable="1" order="9" >
   <comments>For timezone information for small locations</comments>
  </field>
 </fields>
@@ -718,7 +718,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
  <field name="provider" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="generator" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="value" data_type="varchar" size="70" is_nullable="1" order="3" />
+ <field name="value" data_type="varchar" size="255" is_nullable="1" order="3" />
  <field name="name" data_type="integer" size="11" is_nullable="1" order="3" />
  <field name="revoked" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
