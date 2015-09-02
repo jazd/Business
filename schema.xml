@@ -88,9 +88,8 @@
   <comments>Reserve the DMA codes</comments>
  </field>
  <field name="name" data_type="integer" size="10" is_nullable="0" order="2" />
- <comments><field name="shape" data_type="GEOMETRY" size="" is_nullable="1" order="3">
-  <comments>GIS shape information</comments>
- </field>Add this field if using GIS</comments>
+ <comments>Add this field if using GIS</comments>
+ <comments invalid=""><field name="shape" data_type="GEOMETRY" size="" is_nullable="1" order="3" /></comments>
  <field name="timezone" data_type="varchar" size="40" is_nullable="1" order="4" />
 </fields>
 <constraints>
