@@ -1075,7 +1075,7 @@ BEGIN
    -- application release id
    GetApplicationRelease(
     -- application id
-    GetApplication('Chrome'),
+    GetApplication(inUA),
     -- application release
     GetRelease(
      -- application version
