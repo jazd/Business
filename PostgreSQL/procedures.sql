@@ -1012,7 +1012,7 @@ $$ LANGUAGE plpgsql;
 
 
 -- For examples only.  Don't use in a production environment
-CREATE OR REPLACE FUNCTION RandomString(
+CREATE OR REPLACE FUNCTION RandomString (
  inLength integer
 ) RETURNS varchar AS $$
 DECLARE base_chars varchar[] := '{0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}';
@@ -1030,6 +1030,54 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Consider https://github.com/ua-parser to parse the user agent string
+-- Sessions without or before authentication
+-- Using ClientDo as an example
+-- SELECT * FROM AnonymousSession('Chrome','43','0','2357','130','Linux','x86_64',NULL,NULL,NULL,NULL,NULL,'Unknown',0,'www.ibm.com',NULL,NULL,'107.77.97.52');
+CREATE OR REPLACE FUNCTION AnonymousSession (
+ -- User Agent
+ inUAstring varchar,
+ inUA varchar,
+ inUAmajor varchar,
+ inUAminor varchar,
+ inUApatch varchar,
+ inUAbuild varchar,
+ -- Operating System
+ inOSfamily varchar,
+ inOSprocessor varchar,
+ inOSmajor varchar,
+ inOSminor varchar,
+ inOSpatch varchar,
+ -- Device
+ inDeviceBrand varchar,
+ inDeviceModel varchar,
+ inDeviceFamily varchar,
+ -- Referring
+ inRefSecure integer,
+ inRefHost varchar,
+ inRefPath varchar,
+ inRefGet varchar,
+ -- Connection
+ inIPAddress inet
+) RETURNS varchar AS $$
+DECLARE new_session VARCHAR;
+BEGIN
+ new_session = (SELECT session FROM RandomString(32) AS session);
+ INSERT INTO Session (id) VALUES(new_session);
+
+ INSERT INTO SessionCredential(session,agentString,agent,fromAddress,referring)
+ SELECT new_session AS session,
+ GetIdentityPhrase(inUAstring) AS agentString,
+ GetAssemblyApplicationRelease(
+  GetPart(inDeviceFamily),
+
+  application_release_id,
+  device_os) AS device_agent,
+ device_agent AS agent, '107.77.97.52' AS fromAddress, referring_url AS referring
+ ;
+ RETURN new_session;
+END;
+$$ LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION SetSchemaVersion (
