@@ -1010,7 +1010,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 -- For examples only.  Don't use in a production environment
 CREATE OR REPLACE FUNCTION RandomString (
  inLength integer
@@ -1032,8 +1031,10 @@ $$ LANGUAGE plpgsql;
 
 -- Consider https://github.com/ua-parser to parse the user agent string
 -- Sessions without or before authentication
+-- First check memory cache for a agent id before parsing and sending to this function.
+-- If found then call AnonymousSession(agentString_id, device_agent_id, 0,'www.ibm.com',NULL,NULL, '107.77.97.52');
 -- Using ClientDo as an example
--- SELECT * FROM AnonymousSession('Chrome','43','0','2357','130','Linux','x86_64',NULL,NULL,NULL,NULL,NULL,'Unknown',0,'www.ibm.com',NULL,NULL,'107.77.97.52');
+-- SELECT * FROM AnonymousSession('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36','Chrome','43','0','2357','130','Linux','x86_64',NULL,NULL,NULL,NULL,NULL,'Other',0,'www.ibm.com',NULL,NULL,'107.77.97.52');
 CREATE OR REPLACE FUNCTION AnonymousSession (
  -- User Agent
  inUAstring varchar,
@@ -1060,24 +1061,81 @@ CREATE OR REPLACE FUNCTION AnonymousSession (
  -- Connection
  inIPAddress inet
 ) RETURNS varchar AS $$
-DECLARE new_session VARCHAR;
+DECLARE agentString_id INTEGER;
+DECLARE deviceAgent_id INTEGER;
 BEGIN
- new_session = (SELECT session FROM RandomString(32) AS session);
- INSERT INTO Session (id) VALUES(new_session);
+ agentString_id := (SELECT id FROM GetIdentityPhrase(inUAstring) AS id);
 
- INSERT INTO SessionCredential(session,agentString,agent,fromAddress,referring)
- SELECT new_session AS session,
- GetIdentityPhrase(inUAstring) AS agentString,
- GetAssemblyApplicationRelease(
-  GetPart(inDeviceFamily),
+ -- User Device Agent SessionCredential.agent field, references AssemblyApplicationRelease.id
+ deviceAgent_id = (
+  SELECT id
+  FROM GetAssemblyApplicationRelease(
+   -- device
+   GetPart(inDeviceFamily),
+   -- application release id
+   GetApplicationRelease(
+    -- application id
+    GetApplication('Chrome'),
+    -- application release
+    GetRelease(
+     -- application version
+     GetVersion(inUAmajor,inUAminor,inUApatch),
+     inUAbuild)
+   ),
+   -- device os
+   GetAssemblyApplicationRelease(
+    --device
+    GetPart(inDeviceFamily),
+    --os release id
+    GetApplicationRelease(
+     -- os id
+     GetApplication(inOSfamily),
+     -- os release
+     GetRelease(
+      -- os version
+      GetVersionName(inOSprocessor)
+     )
+    )
+   )
+  ) AS id
+ );
 
-  application_release_id,
-  device_os) AS device_agent,
- device_agent AS agent, '107.77.97.52' AS fromAddress, referring_url AS referring
- ;
- RETURN new_session;
+ RETURN (
+  SELECT id FROM AnonymousSession(agentString_id, deviceAgent_id, inRefSecure, inRefHost, inRefPath, inRefGet, inIPAddress) AS id
+ );
 END;
 $$ LANGUAGE plpgsql;
+
+-- SELECT * FROM AnonymousSession(2000000, 10001, 0,'www.ibm.com',NULL,NULL,'107.77.97.52');
+CREATE OR REPLACE FUNCTION AnonymousSession (
+ inAgentStringId INTEGER,
+ inDeviceAgent INTEGER,
+ -- Referring
+ inRefSecure integer,
+ inRefHost varchar,
+ inRefPath varchar,
+ inRefGet varchar,
+ -- Connection
+ inIPAddress inet
+) RETURNS varchar AS $$
+DECLARE newSession VARCHAR;
+BEGIN
+
+ newSession = (SELECT session FROM RandomString(32) AS session);
+ INSERT INTO Session (id) VALUES(newSession);
+
+ -- Associate a remote client and remote IP address to a session
+ INSERT INTO SessionCredential (session,agentString,agent,fromAddress,referring)
+ SELECT newSession AS session, inAgentStringId AS agentString,
+  inDeviceAgent AS agent, inIPAddress AS fromAddress, 
+  -- referring url
+  GetUrl(inRefSecure,inRefHost,inRefPath,inRefGet)
+ ;
+
+ RETURN newSession;
+END;
+$$ LANGUAGE plpgsql;
+
 
 
 CREATE OR REPLACE FUNCTION SetSchemaVersion (
