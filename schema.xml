@@ -467,12 +467,12 @@
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0"	is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="version" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="build" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="name" data_type="integer" size="11" is_nullable="1" order="3">
+ <field name="version" data_type="integer" size="10" is_nullable="1" order="2" />
+ <field name="build" data_type="integer" size="11" is_nullable="1" order="3" />
+ <field name="name" data_type="integer" size="11" is_nullable="1" order="4">
   <comments>Tag name/Branch</comments>
  </field>
- <field name="path" data_type="integer" size="11" is_nullable="1" order="3">
+ <field name="path" data_type="integer" size="11" is_nullable="1" order="5">
   <comments>Repository path</comments>
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
@@ -543,9 +543,9 @@
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="parent" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="assembly" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="applicationRelease" data_type="integer" size="10"	is_nullable="1" order="3" />
- <field name="name" data_type="integer" size="11" is_nullable="1" order="4" />
+ <field name="assembly" data_type="integer" size="11" is_nullable="1" order="3" />
+ <field name="applicationRelease" data_type="integer" size="10"	is_nullable="1" order="4" />
+ <field name="name" data_type="integer" size="11" is_nullable="1" order="5" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -556,98 +556,7 @@
 </constraints>
 </table>
 
-
-
-<table name="SchemaVersion" order="999">
-<comments>untested</comments>
-<fields>
- <field name="build" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="schema" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="version" data_type="integer" size="11" is_nullable="1" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-<constraints>
- <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="schema" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
-</constraints>
-</table>
-
-
-
-<comments>
-Tables below are unfinished and are mostly place holders or note taking.  These should not be used and are probably completely wrong.
-</comments>
-<table name="AssemblyPart" order="9999">
-<fields>
- <field name="assembly" data_type="integer" size="10" is_nullable="1" order="1" />
- <field name="part" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="designator" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="quantity" data_type="integer" size="11" is_nullable="1" order="4" />
-</fields>
-<constraints>
- <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="part" reference_table="Part" reference_fields="id" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="designator" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
-</constraints>
-</table>
-
-<table name="AddressAttribute" order="9999">
-<comments>usps address fields for example.  address line source fields.</comments>
-<fields>
- <field name="address" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="attribute" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="value" data_type="integer" size="10" is_nullable="0" order="3" />
-</fields>
-</table>
-
-<table name="IndividualAttribute" order="9999">
-<fields>
- <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="attribute" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="value" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
-  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
- </field>
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-</table>
-
-<table name="IndividualProperty" order="9999">
-<fields>
- <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="property" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
-  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
- </field>
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-</table>
-
-<table name="IndividualAddress" order="9999">
-<fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="address" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
-  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
- </field>
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-</table>
-
-<table name="IndividualApplicationCreated" order="9999">
-<fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="applicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="createdBy" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
-  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
- </field>
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-</table>
-
-<table name="Site" order="9999">
+<table name="Site" order="200">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
@@ -661,7 +570,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 
 <comments>Information about when etc. site got particular released application</comments>
-<table name="SiteApplicationRelease" order="9999">
+<table name="SiteApplicationRelease" order="210">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
@@ -675,7 +584,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
-<table name="Session" order="9999">
+<table name="Session" order="220">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="varchar" size="32" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" />
@@ -695,7 +604,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <comments>Mono System.Web/ASPState.sql style locks</comments>
-<table name="SessionLock" order="9999">
+<table name="SessionLock" order="221">
 <comments>untested</comments>
 <fields>
  <field name="session" data_type="varchar" size="32" is_nullable="0" is_foreign_key="0" order="1" />
@@ -712,15 +621,15 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
-<table name="Password" order="9999">
+<table name="Password" order="230">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
- <field name="provider" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="provider" data_type="integer" size="10" is_nullable="1" order="2" />
  <field name="generator" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="value" data_type="varchar" size="255" is_nullable="1" order="3" />
- <field name="name" data_type="integer" size="11" is_nullable="1" order="3" />
- <field name="revoked" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+ <field name="value" data_type="varchar" size="255" is_nullable="1" order="4" />
+ <field name="name" data_type="integer" size="11" is_nullable="1" order="5" />
+ <field name="revoked" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="98" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -730,7 +639,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
-<table name="Credential" order="9999">
+<table name="Credential" order="231">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
@@ -739,7 +648,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="email" data_type="integer" size="10" is_nullable="1" order="4" />
  <field name="password" data_type="integer" size="11" is_nullable="1" order="5" />
  <field name="culture" data_type="integer" size="10" is_nullable="1" order="6" />
- <field name="revoked" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+ <field name="revoked" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="98" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -750,7 +659,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
-<table name="SessionCredential" order="9999">
+<table name="SessionCredential" order="232">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="12" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
@@ -779,7 +688,98 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
-<table name="IndividualSessionCreated" order="9999">
+
+
+<table name="SchemaVersion" order="999">
+<comments>untested</comments>
+<fields>
+ <field name="build" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="schema" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="version" data_type="integer" size="11" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="schema" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+
+
+<comments>
+Tables below are unfinished and are mostly place holders or note taking.  These should not be used and are probably completely wrong.
+</comments>
+<table name="AssemblyPart" order="131">
+<fields>
+ <field name="assembly" data_type="integer" size="10" is_nullable="1" order="1" />
+ <field name="part" data_type="integer" size="10" is_nullable="1" order="2" />
+ <field name="designator" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="quantity" data_type="integer" size="11" is_nullable="1" order="4" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="part" reference_table="Part" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="designator" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="AddressAttribute" order="72">
+<comments>usps address fields for example.  address line source fields.</comments>
+<fields>
+ <field name="address" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="attribute" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="value" data_type="integer" size="10" is_nullable="0" order="3" />
+</fields>
+</table>
+
+<table name="IndividualAttribute" order="23">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="attribute" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="value" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
+  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="IndividualProperty" order="32">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="property" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
+  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="IndividualAddress" order="75">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="address" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
+  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="IndividualApplicationCreated" order="211">
+<fields>
+ <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="applicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="createdBy" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
+  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+</table>
+
+<table name="IndividualSessionCreated" order="235">
 <fields>
  <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
  <field name="sessionCredential" data_type="integer" size="10" is_nullable="1" order="3" />
