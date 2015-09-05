@@ -4,7 +4,7 @@
 <tables>
 <table name="Culture" order="1">
 <fields>
- <field name="code" data_type="integer" size="10" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="2">
+ <field name="code" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="2">
   <comments>Like 1033 http://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx</comments></field>
  <field name="name" data_type="varchar" size="9" is_nullable="0" is_auto_increment="0" is_primary_key="0" order="3">
   <comments>Like en-US</comments></field>
@@ -17,8 +17,8 @@
 <table name="Word" order="2">
 <comments>Word records with null culture values are identifiers.  Identifiers are managed with the GetIdentifier functions instead of GetWord.</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
- <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="culture" data_type="integer" size="" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
  <field name="value" data_type="varchar" size="20" is_nullable="0" order="3" />
 </fields>
 <indices>
@@ -34,8 +34,8 @@
 <table name="Sentence" order="3">
 <comments>Sentence records with null culture values are identity phrases.  Phrases are managed with the GetIdentityPhrase.</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
- <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="culture" data_type="integer" size="" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
  <field name="value" data_type="varchar" size="256" is_nullable="0" order="3" />
  <field name="length" data_type="smallint" size="3" is_nullable="1" order="4" >
   <comments>Used for dynamic drop list item sorting</comments>
@@ -55,8 +55,8 @@
 <table name="Paragraph" order="4">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
- <field name="culture" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="culture" data_type="integer" size="" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
  <field name="value" data_type="text" size="0" is_nullable="0" order="3" />
 </fields>
 <indices>
@@ -84,10 +84,10 @@
 
 <table name="Area" order="11">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1">
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1">
   <comments>Reserve the DMA codes</comments>
  </field>
- <field name="name" data_type="integer" size="10" is_nullable="0" order="2" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
  <comments>Add this field if using GIS</comments>
  <comments invalid=""><field name="shape" data_type="GEOMETRY" size="" is_nullable="1" order="3" /></comments>
  <field name="timezone" data_type="varchar" size="40" is_nullable="1" order="4" />
@@ -103,21 +103,21 @@
 
 <table name="Location" order="12">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="parent" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="marquee" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="parent" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="marquee" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="latitude" data_type="float" size="10,7" is_nullable="1" order="4" />
  <field name="longitude" data_type="float" size="11,7" is_nullable="1" order="5" />
- <field name="accuracy" data_type="integer" size="10" is_nullable="1" order="6">
+ <field name="accuracy" data_type="integer" size="" is_nullable="1" order="6">
   <comments>From GeoNames.org accuracy of lat/lng from 1=estimated to 6=centroid</comments>
  </field>
- <field name="level" data_type="integer" size="10" is_nullable="0" default_value="1" order="7">
+ <field name="level" data_type="integer" size="" is_nullable="0" default_value="1" order="7">
   <comments>Floor. Negative numbers for basements</comments>
  </field>
- <field name="altitudeAboveSeaLevel" data_type="integer" size="10" is_nullable="1" order="8">
+ <field name="altitudeAboveSeaLevel" data_type="integer" size="" is_nullable="1" order="8">
   <comments>In meters</comments>
  </field>
- <field name="area" data_type="integer" size="11" is_nullable="1" order="9" >
+ <field name="area" data_type="integer" size="" is_nullable="1" order="9" >
   <comments>For timezone information for small locations</comments>
  </field>
 </fields>
@@ -129,7 +129,7 @@
 
 <table name="Given" order="18">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="value" data_type="varchar" size="25" is_nullable="0" order="3" />
 </fields>
 <indices>
@@ -143,7 +143,7 @@
 
 <table name="Family" order="19">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="value" data_type="varchar" size="25" is_nullable="0" order="3" />
 </fields>
 <indices>
@@ -157,10 +157,10 @@
 
 <table name="Name" order="20">
 <fields>
- <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="given" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" order="3" />
- <field name="middle" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" order="4" />
- <field name="family" data_type="integer" size="10" is_nullable="1" is_foreign_key="1" order="5" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="given" data_type="integer" size="" is_nullable="1" is_foreign_key="1" order="3" />
+ <field name="middle" data_type="integer" size="" is_nullable="1" is_foreign_key="1" order="4" />
+ <field name="family" data_type="integer" size="" is_nullable="1" is_foreign_key="1" order="5" />
 </fields>
 <indices>
  <index name="name_given_middle_family" type="UNIQUE" fields="given,middle,family" />
@@ -174,7 +174,7 @@
 
 <table name="Entity" order="21">
 <fields>
- <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="varchar" size="50" is_nullable="1" order="2" />
 </fields>
 <constraints>
@@ -183,21 +183,21 @@
 
 <table name="Individual" order="22">
 <fields>
- <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="0" order="1">
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" order="1">
   <comments>One or more entries for specific individuals.  Records WHERE nameChange IS NULL are the current records for any specific individual id.</comments>
  </field>
- <field name="name" data_type="integer" size="10" order="2" />
- <field name="entity" data_type="integer" size="10" order="3" />
- <field name="prefix" data_type="integer" size="10" is_nullable="1" order="4" />
- <field name="suffix" data_type="integer" size="10" is_nullable="1" order="5" />
- <field name="post" data_type="integer" size="10" is_nullable="1" order="6" />
- <field name="goesBy" data_type="integer" size="10" is_nullable="1" order="7" />
+ <field name="name" data_type="integer" size="" order="2" />
+ <field name="entity" data_type="integer" size="" order="3" />
+ <field name="prefix" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="suffix" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="post" data_type="integer" size="" is_nullable="1" order="6" />
+ <field name="goesBy" data_type="integer" size="" is_nullable="1" order="7" />
  <field name="birth" data_type="timestamp" size="0" is_nullable="1" order="8">
   <comments>Consider birth and death being event attributes with location, thus time zone information.</comments>
  </field>
  <field name="nameChange" data_type="timestamp" size="0" is_nullable="1" order="9" />
  <field name="death" data_type="timestamp" size="0" is_nullable="1" order="10" />
- <field name="location" data_type="integer" size="10" is_nullable="1" order="11" />
+ <field name="location" data_type="integer" size="" is_nullable="1" order="11" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="12" />
 </fields>
 <indices>
@@ -216,7 +216,7 @@
 
 <table name="Email" order="25">
 <fields>
- <field name="id" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="username" data_type="varchar" size="30" is_nullable="0" order="2" />
  <field name="plus" data_type="varchar" size="30" is_nullable="1" order="3" />
  <field name="host" data_type="varchar" size="30" is_nullable="0" order="4" />
@@ -228,7 +228,7 @@
 
 <table name="Path" order="26">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="protocol" data_type="varchar" size="4" is_nullable="0" order="2" />
  <field name="secure" data_type="smallint" size="1" is_nullable="0" default_value="0" order="3" />
  <field name="host" data_type="varchar" size="30" is_nullable="1" order="4" />
@@ -244,13 +244,13 @@
 
 <table name="IndividualList" order="30">
 <fields>
- <field name="id" data_type="integer" size="10" is_nullable="1" order="1">
+ <field name="id" data_type="integer" size="" is_nullable="1" order="1">
   <comments>NULL applies to all lists.</comments>
  </field>
  <field name="unlist" data_type="timestamp" size="0" is_nullable="1" order="2">
   <comments>Not NULL to remove from list</comments>
  </field>
- <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="individual" data_type="integer" size="" is_nullable="0" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
 </fields>
 <constraints>
@@ -260,9 +260,9 @@
 
 <table name="IndividualListName" order="31">
 <fields>
- <field name="individualList" data_type="integer" size="10" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="name" data_type="integer" size="10" is_nullable="0" order="2" />
- <field name="set" data_type="integer" size="10" order="3" />
+ <field name="individualList" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="set" data_type="integer" size="" order="3" />
  <field name="sequence" data_type="smallint" size="5" order="4">
   <comments>Order in a displayed list.</comments>
  </field>
@@ -284,9 +284,9 @@
 <table name="IndividualPath" order="50">
 <comments>Web Site, Social page, feed etc.</comments>
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="1" />
- <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="path" data_type="integer" size="10" is_nullable="1" order="4" />
+ <field name="individual" data_type="integer" size="" is_nullable="1" order="1" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="path" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="track" data_type="varchar" size="30" is_nullable="1" order="5">
   <comments>Added to end of path in the Get section for tracking links to same path</comments>
  </field>
@@ -307,9 +307,9 @@
 
 <table name="IndividualEmail" order="51">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="1" />
- <field name="type" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="email" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="individual" data_type="integer" size="" is_nullable="1" order="1" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="email" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="4">
   <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
  </field>
@@ -327,8 +327,8 @@
 
 <table name="Country" order="63">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
- <field name="name" data_type="integer" size="10" is_nullable="0" order="2" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
  <field name="code" data_type="varchar" size="4" is_nullable="1" order="3">
   <comments>Long ISO Country code. See http://countrycode.org/</comments>
  </field>
@@ -338,7 +338,7 @@
  <field name="ndd" data_type="varchar" size="4" is_nullable="1" order="5">
   <comments>Country Code. See http://countrycode.org/</comments>
  </field>
- <field name="location" data_type="integer" size="10" is_nullable="1" order="6">
+ <field name="location" data_type="integer" size="" is_nullable="1" order="6">
   <comments>For center of country only</comments>
  </field>
 </fields>
@@ -353,11 +353,11 @@
 
 <table name="Phone" order="64">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="country" data_type="integer" size="10" is_nullable="0" default_value="1" order="3">
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="country" data_type="integer" size="" is_nullable="0" default_value="1" order="3">
   <comments>Default to USA</comments>
  </field>
- <field name="location" data_type="integer" size="10" is_nullable="1" order="2" />
+ <field name="location" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="area" data_type="varchar" size="4" is_nullable="0" order="3">
   <comments>Strip out all formatting characters.</comments>
  </field>
@@ -376,9 +376,9 @@
 
 <table name="IndividualPhone" order="65">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="1" />
- <field name="type" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="phone" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="individual" data_type="integer" size="" is_nullable="1" order="1" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="phone" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="4">
   <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
  </field>
@@ -396,20 +396,20 @@
 
 <table name="Postal" order="70">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="country" data_type="integer" size="10" is_nullable="0" order="2" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="country" data_type="integer" size="" is_nullable="0" order="2" />
  <field name="code" data_type="varchar" size="10" is_nullable="0" order="3" />
- <field name="state" data_type="integer" size="10" is_nullable="0" order="4">
+ <field name="state" data_type="integer" size="" is_nullable="0" order="4">
   <comments>Province Territory or Zone</comments>
  </field>
- <field name="stateAbbreviation" data_type="integer" size="10" is_nullable="0" order="5" />
- <field name="county" data_type="integer" size="10" is_nullable="0" order="6">
+ <field name="stateAbbreviation" data_type="integer" size="" is_nullable="0" order="5" />
+ <field name="county" data_type="integer" size="" is_nullable="0" order="6">
   <comments>Province</comments>
  </field>
- <field name="city" data_type="integer" size="10" is_nullable="0" order="7">
+ <field name="city" data_type="integer" size="" is_nullable="0" order="7">
   <comments>Township</comments>
  </field>
- <field name="location" data_type="integer" size="10" is_nullable="1" order="8" />
+ <field name="location" data_type="integer" size="" is_nullable="1" order="8" />
 </fields>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="country" reference_table="Country" reference_fields="id" deferrable="1" />
@@ -427,14 +427,14 @@
 <table name="Address" order="71">
 <fields>
  <comments>A lot of work needs to be done to be sure duplicate addresses are not entered.  This work will be centered around validation and the AddressAttribute table.</comments>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
  <field name="line1" data_type="varchar" size="50" is_nullable="1" order="2" />
  <field name="line2" data_type="varchar" size="50" is_nullable="1" order="3" />
  <field name="line3" data_type="varchar" size="50" is_nullable="1" order="4" />
  <field name="line4" data_type="varchar" size="50" is_nullable="1" order="5" />
- <field name="postal" data_type="integer" size="10" is_nullable="1" order="6" />
+ <field name="postal" data_type="integer" size="" is_nullable="1" order="6" />
  <field name="postalPlus" data_type="varchar" size="4" is_nullable="1" order="7" />
- <field name="location" data_type="integer" size="10" is_nullable="1" order="8" />
+ <field name="location" data_type="integer" size="" is_nullable="1" order="8" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="9" />
 </fields>
 <constraints>
@@ -449,11 +449,11 @@
 <table name="Version" order="100">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="name" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="major" data_type="integer" size="11" is_nullable="1" order="3" />
- <field name="minor" data_type="integer" size="11" is_nullable="1" order="4" />
- <field name="patch" data_type="integer" size="11" is_nullable="1" order="5" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="major" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="minor" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="patch" data_type="integer" size="" is_nullable="1" order="5" />
 </fields>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
@@ -466,13 +466,13 @@
 <table name="Release" order="110">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0"	is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="version" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="build" data_type="integer" size="11" is_nullable="1" order="3" />
- <field name="name" data_type="integer" size="11" is_nullable="1" order="4">
+ <field name="id" data_type="integer" size="" is_nullable="0"	is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="version" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="build" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="name" data_type="integer" size="" is_nullable="1" order="4">
   <comments>Tag name/Branch</comments>
  </field>
- <field name="path" data_type="integer" size="11" is_nullable="1" order="5">
+ <field name="path" data_type="integer" size="" is_nullable="1" order="5">
   <comments>Repository path</comments>
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
@@ -491,10 +491,10 @@
 <table name="Application" order="120">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
- <field name="name" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="goesBy" data_type="varchar" size="40" is_nullable="1" order="3" />
- <field name="path" data_type="integer" size="10" is_nullable="1" order="4" />
+ <field name="path" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -506,9 +506,9 @@
 <table name="ApplicationRelease" order="121">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
- <field name="application" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="release" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="application" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="release" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <indices>
@@ -523,10 +523,10 @@
 <table name="Part" order="130">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" /> 
- <field name="parent" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="name" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="version" data_type="integer" size="10" is_nullable="1" order="4" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="parent" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="name" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="version" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="serial" data_type="varchar" is_nullable="1" order="5" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
@@ -541,11 +541,11 @@
 <table name="AssemblyApplicationRelease" order="140">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="parent" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="assembly" data_type="integer" size="11" is_nullable="1" order="3" />
- <field name="applicationRelease" data_type="integer" size="10"	is_nullable="1" order="4" />
- <field name="name" data_type="integer" size="11" is_nullable="1" order="5" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="parent" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="assembly" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="applicationRelease" data_type="integer" size=""	is_nullable="1" order="4" />
+ <field name="name" data_type="integer" size="" is_nullable="1" order="5" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -559,8 +559,8 @@
 <table name="Site" order="200">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
- <field name="name" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -573,9 +573,9 @@
 <table name="SiteApplicationRelease" order="210">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="site" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="applicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="site" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="applicationRelease" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -588,9 +588,9 @@
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="varchar" size="32" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" />
- <field name="siteApplicationRelease" data_type="integer" size="11" is_nullable="1" order="2" />
+ <field name="siteApplicationRelease" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="initialized" data_type="smallint" size="1" is_nullable="1" order="3" />
- <field name="timeout" data_type="integer" size="10" is_nullable="1" order="4" />
+ <field name="timeout" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="items" data_type="bytea" size="10" is_nullable="1" order="5" />
  <field name="touched" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="98" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
@@ -608,8 +608,8 @@
 <comments>untested</comments>
 <fields>
  <field name="session" data_type="varchar" size="32" is_nullable="0" is_foreign_key="0" order="1" />
- <field name="siteApplicationRelease" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="lock" data_type="integer" size="10" default_value="0" is_nullable="0" order="3" />
+ <field name="siteApplicationRelease" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="lock" data_type="integer" size="" default_value="0" is_nullable="0" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
 </fields>
 <indices>
@@ -624,11 +624,11 @@
 <table name="Password" order="230">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
- <field name="provider" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="generator" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="provider" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="generator" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="value" data_type="varchar" size="255" is_nullable="1" order="4" />
- <field name="name" data_type="integer" size="11" is_nullable="1" order="5" />
+ <field name="name" data_type="integer" size="" is_nullable="1" order="5" />
  <field name="revoked" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="98" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
@@ -642,12 +642,12 @@
 <table name="Credential" order="231">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="2" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="individual" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="username" data_type="varchar" size="20" is_nullable="1" order="3" />
- <field name="email" data_type="integer" size="10" is_nullable="1" order="4" />
- <field name="password" data_type="integer" size="11" is_nullable="1" order="5" />
- <field name="culture" data_type="integer" size="10" is_nullable="1" order="6" />
+ <field name="email" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="password" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="culture" data_type="integer" size="" is_nullable="1" order="6" />
  <field name="revoked" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="98" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
@@ -662,19 +662,19 @@
 <table name="SessionCredential" order="232">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="12" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" /> 
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="session" data_type="varchar" size="32" is_nullable="0" order="2" />
- <field name="siteApplicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="agentString" data_type="integer" size="11" is_nullable="1" order="4">
+ <field name="siteApplicationRelease" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="agentString" data_type="integer" size="" is_nullable="1" order="4">
   <comments>Browser user agent string raw</comments>
  </field>
- <field name="agent" data_type="integer" size="11" is_nullable="1" order="5">
+ <field name="agent" data_type="integer" size="" is_nullable="1" order="5">
   <comments>Browser user agent string parsed</comments>
  </field>
- <field name="credential" data_type="integer" size="11" is_nullable="1" order="6" />
- <field name="referring" data_type="integer" size="11" is_nullable="1" order="7" />
+ <field name="credential" data_type="integer" size="" is_nullable="1" order="6" />
+ <field name="referring" data_type="integer" size="" is_nullable="1" order="7" />
  <field name="fromAddress" data_type="inet" size="19" is_nullable="1" order="8" />
- <field name="location" data_type="integer" size="11" is_nullable="1" order="9" />
+ <field name="location" data_type="integer" size="" is_nullable="1" order="9" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -693,9 +693,9 @@
 <table name="SchemaVersion" order="999">
 <comments>untested</comments>
 <fields>
- <field name="build" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
- <field name="schema" data_type="integer" size="11" is_nullable="1" order="2" />
- <field name="version" data_type="integer" size="11" is_nullable="1" order="3" />
+ <field name="build" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="schema" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="version" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -711,10 +711,10 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </comments>
 <table name="AssemblyPart" order="131">
 <fields>
- <field name="assembly" data_type="integer" size="10" is_nullable="1" order="1" />
- <field name="part" data_type="integer" size="10" is_nullable="1" order="2" />
- <field name="designator" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="quantity" data_type="integer" size="11" is_nullable="1" order="4" />
+ <field name="assembly" data_type="integer" size="" is_nullable="1" order="1" />
+ <field name="part" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="designator" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="quantity" data_type="integer" size="" is_nullable="1" order="4" />
 </fields>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" deferrable="1" />
@@ -726,17 +726,17 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <table name="AddressAttribute" order="72">
 <comments>usps address fields for example.  address line source fields.</comments>
 <fields>
- <field name="address" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="attribute" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="value" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="address" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="attribute" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="value" data_type="integer" size="" is_nullable="0" order="3" />
 </fields>
 </table>
 
 <table name="IndividualAttribute" order="23">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="attribute" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="value" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="individual" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="attribute" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="value" data_type="integer" size="" is_nullable="0" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
   <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
  </field>
@@ -746,8 +746,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="IndividualProperty" order="32">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="0" order="3" />
- <field name="property" data_type="integer" size="10" is_nullable="0" order="3" />
+ <field name="individual" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="property" data_type="integer" size="" is_nullable="0" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
   <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
  </field>
@@ -757,9 +757,9 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="IndividualAddress" order="75">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="type" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="address" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="individual" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="address" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
   <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
  </field>
@@ -769,9 +769,9 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="IndividualApplicationCreated" order="211">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="applicationRelease" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="createdBy" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="individual" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="applicationRelease" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="createdBy" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
   <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
  </field>
@@ -781,8 +781,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="IndividualSessionCreated" order="235">
 <fields>
- <field name="individual" data_type="integer" size="10" is_nullable="1" order="3" />
- <field name="sessionCredential" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="individual" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="sessionCredential" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -797,8 +797,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <comments>Template</comments>
 <table name="unfinished" order="9999">
 <fields>
- <field name="id" data_type="integer" size="11" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" /> 
- <field name="field" data_type="integer" size="10" is_nullable="1" order="3" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="field" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
