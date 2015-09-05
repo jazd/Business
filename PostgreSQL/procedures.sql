@@ -761,33 +761,52 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION GetVersionName (
- inName varchar
+ inName varchar,
+ inMajor varchar,
+ inMinor varchar,
+ inPatch varchar
 ) RETURNS integer AS $$
 DECLARE
  name_id integer;
+ major_id integer;
+ minor_id integer;
+ patch_id integer;
 BEGIN
  IF inName IS NOT NULL THEN
   name_id := (SELECT GetWord(inName));
-  INSERT INTO Version (name) (
-   SELECT name_id
+  major_id := (SELECT GetWord(inMajor));
+  minor_id := (SELECT GetWord(inMinor));
+  patch_id := (SELECT GetWord(inPatch));
+  INSERT INTO Version (name, major, minor, patch) (
+   SELECT name_id, major_id, minor_id, patch_id
    FROM Dual
    LEFT JOIN Version AS exists ON exists.name = name_id
-    AND exists.major IS NULL
-    AND exists.minor IS NULL
-    AND exists.patch IS NULL
+    AND ((exists.major = major_id) OR (exists.major IS NULL AND major_id IS NULL))
+    AND ((exists.minor = minor_id) OR (exists.minor IS NULL AND minor_id IS NULL))
+    AND ((exists.patch = patch_id) OR (exists.patch IS NULL AND patch_id IS NULL))
    WHERE exists.id IS NULL
   );
  END IF;
  RETURN (
   SELECT id
   FROM Version
-  WHERE name = name_id
-   AND major IS NULL
-   AND minor IS NULL
-   AND patch IS NULL
+  WHERE name= name_id
+   AND ((major = major_id) OR (major IS NULL AND major_id IS NULL))
+   AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
+   AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
  );
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetVersionName (
+ inName varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN (SELECT GetVersionName(inName, NULL, NULL, NULL));
+END;
+$$ LANGUAGE plpgsql;
+
 
 -- GetRelease(version integer, build char)
 CREATE OR REPLACE FUNCTION GetRelease (
@@ -796,21 +815,21 @@ CREATE OR REPLACE FUNCTION GetRelease (
 ) RETURNS integer AS $$
 DECLARE build_id integer;
 BEGIN
- IF inVersion IS NOT NULL AND inBuild IS NOT NULL THEN
+ IF inVersion IS NOT NULL THEN
   build_id := (SELECT GetIdentifier(inBuild));
   INSERT INTO Release (build, version) (
    SELECT build_id AS build, inVersion AS version
    FROM Dual
-   LEFT JOIN Release AS exists ON exists.build = build_id
-    AND exists.version = inVersion
+   LEFT JOIN Release AS exists ON exists.version = inVersion
+    AND ((exists.build = build_id) OR (exists.build IS NULL AND build_id IS NULL)) 
    WHERE exists.id IS NULL
   );
  END IF;
  RETURN (
   SELECT id
   FROM Release
-  WHERE build = build_id
-   AND version = inVersion
+  WHERE version = inVersion
+   AND ((build = build_id) OR (build IS NULL AND build_id IS NULL))
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -820,24 +839,9 @@ CREATE OR REPLACE FUNCTION GetRelease (
  inVersion integer
 ) RETURNS integer AS $$
 BEGIN
- IF inVersion IS NOT NULL THEN
-  INSERT INTO Release (version, build) (
-   SELECT inVersion AS version, NULL AS build
-   FROM Dual
-   LEFT JOIN Release AS exists ON exists.version = inVersion
-    AND exists.build IS NULL
-   WHERE exists.id IS NULL
-  );
- END IF;
- RETURN (
-  SELECT id
-  FROM Release
-  WHERE version = inVersion
-   AND build IS NULL
- );
+ RETURN (SELECT GetRelease(inVersion, NULL));
 END;
 $$ LANGUAGE plpgsql;
-
 
 -- GetApplication(name char)
 CREATE OR REPLACE FUNCTION GetApplication(
@@ -1034,7 +1038,7 @@ $$ LANGUAGE plpgsql;
 -- First check memory cache for a agent id before parsing and sending to this function.
 -- If found then call AnonymousSession(agentString_id, device_agent_id, 0,'www.ibm.com',NULL,NULL, '107.77.97.52');
 -- Using ClientDo as an example
--- SELECT * FROM AnonymousSession('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36','Chrome','43','0','2357','130','Linux','x86_64',NULL,NULL,NULL,NULL,NULL,'Other',0,'www.ibm.com',NULL,NULL,'107.77.97.52');
+-- SELECT * FROM AnonymousSession('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36','Chrome','43','0','2357','130','Linux',NULL,NULL,NULL,NULL,NULL,'Other',0,'www.ibm.com',NULL,NULL,'107.77.97.52');
 CREATE OR REPLACE FUNCTION AnonymousSession (
  -- User Agent
  inUAstring varchar,
@@ -1045,7 +1049,6 @@ CREATE OR REPLACE FUNCTION AnonymousSession (
  inUAbuild varchar,
  -- Operating System
  inOSfamily varchar,
- inOSprocessor varchar,
  inOSmajor varchar,
  inOSminor varchar,
  inOSpatch varchar,
@@ -1063,15 +1066,17 @@ CREATE OR REPLACE FUNCTION AnonymousSession (
 ) RETURNS varchar AS $$
 DECLARE agentString_id INTEGER;
 DECLARE deviceAgent_id INTEGER;
+DECLARE deviceName VARCHAR;
 BEGIN
  agentString_id := (SELECT id FROM GetIdentityPhrase(inUAstring) AS id);
 
+ deviceName := (SELECT COALESCE(inDeviceFamily, 'Unknown'));
  -- User Device Agent SessionCredential.agent field, references AssemblyApplicationRelease.id
  deviceAgent_id = (
   SELECT id
   FROM GetAssemblyApplicationRelease(
    -- device
-   GetPart(inDeviceFamily),
+   GetPart(deviceName),
    -- application release id
    GetApplicationRelease(
     -- application id
@@ -1085,7 +1090,7 @@ BEGIN
    -- device os
    GetAssemblyApplicationRelease(
     --device
-    GetPart(inDeviceFamily),
+    GetPart(deviceName),
     --os release id
     GetApplicationRelease(
      -- os id
@@ -1093,7 +1098,7 @@ BEGIN
      -- os release
      GetRelease(
       -- os version
-      GetVersionName(inOSprocessor)
+      GetVersionName(inOSfamily, inOSmajor, inOSminor, inOSpatch)
      )
     )
    )
