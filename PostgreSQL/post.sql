@@ -1,12 +1,17 @@
 -- Do not allow duplicate words based on case
 -- upper(value) is not allowed in an in-table constraint
 CREATE UNIQUE INDEX word_value ON Word(culture,UPPER(value));
--- Untested
-CREATE UNIQUE INDEX sentence_value ON Sentence(culture,UPPER(value));
 
 -- Untested
+CREATE UNIQUE INDEX sentence_value ON Sentence(culture,UPPER(value));
+CREATE UNIQUE INDEX sentence_value_null ON Sentence(UPPER(value)) WHERE culture IS NULL;
 CREATE UNIQUE INDEX release_version_null ON Release(name) WHERE build IS NULL;
-CREATE UNIQUE INDEX version_major_minor_patch_null ON Version(major,minor,patch) WHERE name IS NULL;
+CREATE UNIQUE INDEX version_null_major_minor_patch ON Version(major,minor,patch) WHERE name IS NULL;
+CREATE UNIQUE INDEX version_name_major_minor_null ON Version(name,major,minor) WHERE patch IS NULL;
+CREATE UNIQUE INDEX version_null_major_minor_null ON Version(major,minor) WHERE name IS NULL AND patch IS NULL;
+CREATE UNIQUE INDEX AssemblyApplicationRelease_assembly_applicationRelease_null ON AssemblyApplicationRelease(assembly,applicationRelease) WHERE parent IS NULL;
+CREATE UNIQUE INDEX Part_name_null_null_null ON Part(name) WHERE parent IS NULL AND version IS NULL AND serial IS NULL;
+
 
 -- Do not allow duplicate Name table entries with a single NULL
 CREATE UNIQUE INDEX name_given_middle_null ON Name (given,middle) WHERE family IS NULL;
