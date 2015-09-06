@@ -1,6 +1,7 @@
 -- Do not allow duplicate words based on case
 -- upper(value) is not allowed in an in-table constraint
 CREATE UNIQUE INDEX word_value ON Word(culture,UPPER(value));
+CREATE UNIQUE INDEX sentence_value ON Sentence(culture,UPPER(value));
 
 -- Do not allow duplicate Name table entries with a single NULL
 CREATE UNIQUE INDEX name_given_middle_null ON Name (given,middle) WHERE family IS NULL;

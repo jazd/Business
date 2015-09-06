@@ -71,6 +71,45 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION GetSentence (
+ sentence_value varchar,
+ culture_name varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ IF sentence_value IS NOT NULL THEN
+  INSERT INTO Sentence (value, culture) (
+   SELECT sentence_value, Culture.code
+   FROM Culture
+   LEFT JOIN Sentence AS exists ON UPPER(exists.value) = UPPER(sentence_value)
+    AND exists.culture = Culture.code
+   WHERE UPPER(Culture.name) = UPPER(culture_name)
+    AND exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Sentence
+  JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
+  WHERE UPPER(Sentence.value) = UPPER(sentence_value)
+   AND Sentence.culture = Culture.code
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Default to en-US
+CREATE OR REPLACE FUNCTION GetSentence (
+ sentence_value varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN (
+  SELECT GetSentence(sentence_value, 'en-US') AS id
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+
 CREATE OR REPLACE FUNCTION GetIdentityPhrase (
  phrase_value varchar
 ) RETURNS integer AS $$
@@ -756,6 +795,7 @@ BEGIN
   WHERE major = major_id
    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
+   AND name IS NULL
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -897,7 +937,7 @@ CREATE OR REPLACE FUNCTION GetPart (
 DECLARE name_id integer;
 BEGIN
  IF inName IS NOT NULL THEN
-  name_id := (SELECT GetWord(inName));
+  name_id := (SELECT GetSentence(inName));
   INSERT INTO Part (name) (
    SELECT name_id
    FROM Dual
