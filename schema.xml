@@ -455,6 +455,9 @@
  <field name="minor" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="patch" data_type="integer" size="" is_nullable="1" order="5" />
 </fields>
+<indices>
+ <index name="version_name_major_minor_patch" type="UNIQUE" fields="name,major,minor,patch" />
+</indices>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="major" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
@@ -497,6 +500,9 @@
  <field name="path" data_type="bigint" size="" is_nullable="1" order="4" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<indices>
+ <index name="application_name" type="UNIQUE" fields="name" />
+</indices>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <constraint name="" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
@@ -530,6 +536,9 @@
  <field name="serial" data_type="varchar" is_nullable="1" order="5" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<indices>
+ <index name="part_parent_name_version_serial" type="UNIQUE" fields="parent,name,version,serial" />
+</indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="parent" reference_table="Part" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
@@ -548,6 +557,9 @@
  <field name="name" data_type="integer" size="" is_nullable="1" order="5" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<indices>
+ <index name="AssemblyApplicationRelease_assembly_applicationRelease_parent" type="UNIQUE" fields="assembly,applicationRelease,parent" />
+</indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="parent" reference_table="AssemblyApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
