@@ -42,6 +42,8 @@ WHERE Build.value = '130' AND Build.culture IS NULL
 INSERT INTO Release (id,version) VALUES (9998,9998);
 -- Pre-insert a valid Agent (ApplicationRelease)
 -- Chrome/43.0.2357.130
+
+-- NO LONGER VALID beyoned this point.  TODO: Fix-up
 INSERT INTO ApplicationRelease (id,application,release) VALUES (9999, 9999, 9999);
 -- Linux x86_64
 INSERT INTO ApplicationRelease (id,application,release) VALUES (9998, 9998, 9998);
@@ -52,6 +54,7 @@ SELECT 9999 AS id, Word.id AS name
 FROM Word
 WHERE Word.value = 'Unknown' AND Word.culture IS NULL
 ;
+
 -- Agent's Client and OS
 INSERT INTO ClientOS (id, device, osrelease) VALUES (9999,9999,9998);
 --

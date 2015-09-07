@@ -56,6 +56,8 @@ device_os = (SELECT id FROM GetAssemblyApplicationRelease(device,os_release_id) 
 -- The parsed agent, Unknown device using OS Linux x86_64, Application Chrome/43.0.2357.130
 device_agent = (SELECT id FROM GetAssemblyApplicationRelease(device,application_release_id,device_os) AS id);
 
+-- NO LONGER VALID beyoned this point.  TODO: Fix-up
+
 referring_url = (SELECT url FROM GetUrl(0,'www.ibm.com',NULL,NULL) AS url);
 
 --

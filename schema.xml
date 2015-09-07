@@ -671,29 +671,43 @@
 </constraints>
 </table>
 
-<table name="SessionCredential" order="232">
+<table name="AgentString" order="232">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="agent" data_type="integer" size="" is_nullable="1" order="5">
+  <comments>Browser user agent string raw</comments>
+ </field>
+ <field name="string" data_type="integer" size="" is_nullable="1" order="4">
+  <comments>Browser user agent string parsed</comments>
+ </field>
+</fields>
+<indices>
+ <index name="agentString_agent_string" type="UNIQUE" fields="agent,string" />
+</indices>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="agent" reference_table="AssemblyApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="string" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="SessionCredential" order="233">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="bigint" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="session" data_type="varchar" size="32" is_nullable="0" order="2" />
  <field name="siteApplicationRelease" data_type="integer" size="" is_nullable="1" order="3" />
- <field name="agentString" data_type="integer" size="" is_nullable="1" order="4">
-  <comments>Browser user agent string raw</comments>
- </field>
- <field name="agent" data_type="integer" size="" is_nullable="1" order="5">
-  <comments>Browser user agent string parsed</comments>
- </field>
- <field name="credential" data_type="integer" size="" is_nullable="1" order="6" />
- <field name="referring" data_type="bigint" size="" is_nullable="1" order="7" />
- <field name="fromAddress" data_type="inet" size="19" is_nullable="1" order="8" />
- <field name="location" data_type="integer" size="" is_nullable="1" order="9" />
+ <field name="agentString" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="credential" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="referring" data_type="bigint" size="" is_nullable="1" order="6" />
+ <field name="fromAddress" data_type="inet" size="19" is_nullable="1" order="7" />
+ <field name="location" data_type="integer" size="" is_nullable="1" order="8" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" /></comments>
  <constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="SiteApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="agent" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="agent" reference_table="AssemblyApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="agentString" reference_table="AgentString" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="referring" reference_table="Path" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />

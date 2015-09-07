@@ -11,7 +11,7 @@ CREATE UNIQUE INDEX version_name_major_minor_null ON Version(name,major,minor) W
 CREATE UNIQUE INDEX version_null_major_minor_null ON Version(major,minor) WHERE name IS NULL AND patch IS NULL;
 CREATE UNIQUE INDEX AssemblyApplicationRelease_assembly_applicationRelease_null ON AssemblyApplicationRelease(assembly,applicationRelease) WHERE parent IS NULL;
 CREATE UNIQUE INDEX Part_name_null_null_null ON Part(name) WHERE parent IS NULL AND version IS NULL AND serial IS NULL;
-
+CREATE UNIQUE INDEX AgentString_null_string ON AgentString(string) WHERE agent IS NULL;
 
 -- Do not allow duplicate Name table entries with a single NULL
 CREATE UNIQUE INDEX name_given_middle_null ON Name (given,middle) WHERE family IS NULL;
