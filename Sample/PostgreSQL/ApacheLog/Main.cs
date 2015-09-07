@@ -87,16 +87,16 @@ namespace ApacheLog
 			}
 		}
 
-		public static string UrlValues (string url, bool postSep = true)
+		public static string UrlValues(string url, bool postSep = true, bool nullGet = false)
 		{
-			var values = new System.Text.StringBuilder ();
+			var values = new System.Text.StringBuilder();
 
 			// Remove string quotes
 			url = url.Trim('"');
 
 			// Check for apache style field
 			if (url.Length > 4 && url.Substring (0, 4) == "GET ") {
-				url = url.Substring (4, url.Length - 4);
+				url = url.Substring(4, url.Length - 4);
 				int indexof = url.IndexOf(" HTTP/");
 				if(indexof > 0) { // Take of the end of GET field
 					url = url.Substring(0,indexof +1);
@@ -105,28 +105,35 @@ namespace ApacheLog
 					url = "http://localhost" + url; // convert to localhost for now
 			}
 
-			if(!string.IsNullOrEmpty(url) && url != "-") {
+			if (!string.IsNullOrEmpty(url) && url != "-") {
 				// Be sure not to allow file based references
-				url = url.Replace("file:///","http://localhost/");
-				url = url.Replace("file://","http://");
+				url = url.Replace("file:///", "http://localhost/");
+				url = url.Replace("file://", "http://");
 
 				var urlParts = new System.Uri(url);
 
 				values.Append(Field(urlParts.Scheme == "http" ? "0" : "1"));
 				values.Append(Field(urlParts.Host));
-				values.Append(Field(urlParts.AbsolutePath));
+				var path = urlParts.AbsolutePath;
+				path = path.Trim ('/');
+				values.Append(Field(path));
 
-				var getportion = urlParts.Query;
-				if(!String.IsNullOrEmpty(getportion) && getportion[0] == '?')
+				if (!nullGet) {
+					var getportion = urlParts.Query;
+					if (!String.IsNullOrEmpty(getportion) && getportion [0] == '?')
 						getportion = getportion.Substring(1);  // remove the '?' from the beginning
 
-				values.Append(Field(getportion,postSep));
+					values.Append(Field(getportion, postSep));
+				} else {
+					values.Append(Field(null, postSep));
+				}
+
 			} else {
 				// No Referrer
 				values.Append(Field(null)); // ssl
 				values.Append(Field(null)); // host
 				values.Append(Field(null)); // path
-				values.Append(Field(null,postSep)); // get
+				values.Append(Field(null, postSep)); // get
 			}
 
 			return values.ToString();

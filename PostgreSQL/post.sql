@@ -13,7 +13,8 @@ CREATE UNIQUE INDEX AssemblyApplicationRelease_assembly_applicationRelease_null 
 CREATE UNIQUE INDEX Part_name_null_null_null ON Part(name) WHERE parent IS NULL AND version IS NULL AND serial IS NULL;
 CREATE UNIQUE INDEX AgentString_null_string ON AgentString(string) WHERE agent IS NULL;
 CREATE UNIQUE INDEX Session_id_null ON Session(id) WHERE siteApplicationRelease IS NULL;
-
+CREATE INDEX path_host ON Path(UPPER(host));
+CREATE INDEX path_host_value ON Path(UPPER(host),value);
 
 -- Do not allow duplicate Name table entries with a single NULL
 CREATE UNIQUE INDEX name_given_middle_null ON Name (given,middle) WHERE family IS NULL;

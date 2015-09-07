@@ -236,10 +236,6 @@
  <field name="get" data_type="varchar" size="256" is_nullable="1" order="6" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
-<indices>
- <index name="path_host" type="NORMAL" fields="UPPER(host)" />
- <index name="path_host_value" type="NORMAL" fields="UPPER(host),value" />
-</indices>
 </table>
 
 <table name="IndividualList" order="30">

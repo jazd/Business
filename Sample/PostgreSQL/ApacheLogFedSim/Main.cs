@@ -82,7 +82,7 @@ namespace ApacheLogFedSim
 				insertLine.Append(Field(agent.Device.Family)); // Device family
 				//insertLine.Append("\n");
 
-				insertLine.Append(UrlValues(recordField[referrerIndex])); // referrer
+				insertLine.Append(UrlValues(recordField[referrerIndex],true,true)); // referrer, no get portion
 				insertLine.Append(Field(recordField[ipIndex])); // IP address
 				insertLine.Append(Field(null,false)); // Location
 
@@ -92,7 +92,7 @@ namespace ApacheLogFedSim
 			}
 		}
 
-		public static string UrlValues (string url, bool postSep = true)
+		public static string UrlValues (string url, bool postSep = true, bool nullGet = false)
 		{
 			var values = new System.Text.StringBuilder ();
 
@@ -119,13 +119,20 @@ namespace ApacheLogFedSim
 
 				values.Append(Field(urlParts.Scheme == "http" ? "0" : "1"));
 				values.Append(Field(urlParts.Host));
-				values.Append(Field(urlParts.AbsolutePath));
+				var path = urlParts.AbsolutePath;
+				path = path.Trim('/');
+				values.Append(Field(path));
 
-				var getportion = urlParts.Query;
-				if(!String.IsNullOrEmpty(getportion) && getportion[0] == '?')
-						getportion = getportion.Substring(1);  // remove the '?' from the beginning
+				if(!nullGet) {
+					var getportion = urlParts.Query;
+					if(!String.IsNullOrEmpty(getportion) && getportion[0] == '?')
+							getportion = getportion.Substring(1);  // remove the '?' from the beginning
 
-				values.Append(Field(getportion,postSep));
+					values.Append(Field(getportion,postSep));
+				} else {
+					values.Append(Field(null,postSep));
+				}
+
 			} else {
 				// No Referrer
 				values.Append(Field(null)); // ssl
