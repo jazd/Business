@@ -1260,6 +1260,41 @@ CREATE OR REPLACE FUNCTION SetSession (
  inIPAddress inet,
  inLocation integer
 ) RETURNS void AS $$
+BEGIN
+ PERFORM SetSession(inSession,inSiteApplicationRelease,inCredential,inUAstring,inUAfamily,inUAmajor,inUAminor,inUApatch,inUAbuild,inOSfamily,inOSmajor,inOSminor,inOSpatch,inDeviceBrand,inDeviceModel,inDeviceFamily,inRefSecure,inRefHost,inRefPath,inRefGet,inIPAddress,inLocation,NULL);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetSession (
+ inSession varchar,
+ inSiteApplicationRelease integer,
+ inCredential integer,
+ -- User Agent
+ inUAstring varchar,
+ inUAfamily varchar,
+ inUAmajor varchar,
+ inUAminor varchar,
+ inUApatch varchar,
+ inUAbuild varchar,
+ -- Operating System
+ inOSfamily varchar,
+ inOSmajor varchar,
+ inOSminor varchar,
+ inOSpatch varchar,
+ -- Device
+ inDeviceBrand varchar,
+ inDeviceModel varchar,
+ inDeviceFamily varchar,
+ -- Referring
+ inRefSecure integer,
+ inRefHost varchar,
+ inRefPath varchar,
+ inRefGet varchar,
+ -- Connection
+ inIPAddress inet,
+ inLocation integer,
+ inStart timestamp
+) RETURNS void AS $$
 DECLARE string_id INTEGER;
 DECLARE deviceAgent_id INTEGER;
 DECLARE deviceName VARCHAR;
@@ -1276,7 +1311,7 @@ BEGIN
 
  referring_id = (SELECT GetUrl(inRefSecure,inRefHost,inRefPath,inRefGet));
 
- PERFORM SetSession(inSession, inSiteApplicationRelease, agentString_id, inCredential, referring_id, inIPAddress, inLocation);
+ PERFORM SetSession(inSession, inSiteApplicationRelease, agentString_id, inCredential, referring_id, inIPAddress, inLocation, inStart);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1291,9 +1326,24 @@ CREATE OR REPLACE FUNCTION SetSession (
  inLocation integer
 ) RETURNS void AS $$
 BEGIN
+ PERFORM SetSession(inSession, inSiteApplicationRelease, inAgentString, inCredential, inReferring, inIPAddress, inLocation, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetSession (
+ inSession varchar,
+ inSiteApplicationRelease integer,
+ inAgentString integer,
+ inCredential integer,
+ inReferring integer,
+ inIPAddress inet,
+ inLocation integer,
+ inStart timestamp
+) RETURNS void AS $$
+BEGIN
  IF inSession IS NOT NULL THEN
-  INSERT INTO Session (id,siteApplicationRelease) (
-   SELECT inSession, inSiteApplicationRelease
+  INSERT INTO Session (id,siteApplicationRelease,created) (
+   SELECT inSession, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created
    FROM Dual
    LEFT JOIN Session AS exists ON exists.id = inSession
     AND ((exists.siteApplicationRelease = inSiteApplicationRelease) OR (exists.siteApplicationRelease IS NULL AND inSiteApplicationRelease IS NULL))
