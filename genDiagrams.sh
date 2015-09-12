@@ -1,5 +1,5 @@
 #!/bin/sh
-# The MIT License (MIT) Copyright (c) 2014 Stephen A Jazdzewski
+# The MIT License (MIT) Copyright (c) 2014-2015 Stephen A Jazdzewski
 
 mkdir -p diagrams
 

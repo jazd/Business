@@ -1,5 +1,5 @@
 <schema name="Business" database="MyCo" xmlns="http://sqlfairy.sourceforge.net/sqlfairy.xml">
-<comments>The MIT License (MIT) Copyright (c) 2014 Stephen A Jazdzewski</comments>
+<comments>The MIT License (MIT) Copyright (c) 2014-2015 Stephen A Jazdzewski</comments>
 
 <tables>
 <table name="Culture" order="1">
