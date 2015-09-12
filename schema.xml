@@ -700,7 +700,6 @@
 </fields>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="SiteApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="agentString" reference_table="AgentString" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="referring" reference_table="Path" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
