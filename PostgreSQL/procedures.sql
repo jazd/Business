@@ -1348,7 +1348,10 @@ BEGIN
    SELECT session
    FROM SessionToken
    WHERE token = inSessionToken
-    AND siteApplicationRelease = inSiteApplicationRelease
+    AND (
+     (siteApplicationRelease = inSiteApplicationRelease)
+      OR (siteApplicationRelease IS NULL AND inSiteApplicationRelease IS NULL)
+    )
   );
 
   IF existingSession IS NULL THEN
@@ -1358,8 +1361,17 @@ BEGIN
    );
   END IF;
 
-  INSERT INTO SessionCredential (session, agentString, credential, referring, fromAddress, location)
-  VALUES(existingSession, inAgentString, inCredential, inReferring, inIPAddress, inLocation);
+  INSERT INTO SessionCredential (session, agentString, credential, referring, fromAddress, location) (
+   SELECT existingSession, inAgentString, inCredential, inReferring, inIPAddress, inLocation
+   FROM Dual
+   LEFT JOIN SessionCredential AS exists ON exists.session = existingSession
+    AND ((agentString = inAgentString) OR (agentString IS NULL AND inAgentString IS NULL))
+    AND ((credential = inCredential) OR (credential IS NULL AND inCredential IS NULL))
+    AND ((referring = inReferring) OR (referring IS NULL AND inReferring IS NULL))
+    AND ((fromAddress = inIPAddress) OR (fromAddress IS NULL AND inIPAddress IS NULL))
+    AND ((location = inLocation) OR (location IS NULL AND inLocation IS NULL))
+   WHERE exists.id IS NULL
+  );
 
  END IF;
  RETURN existingSession;

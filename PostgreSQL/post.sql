@@ -18,6 +18,8 @@ CREATE INDEX path_host_value ON Path(UPPER(host),value);
 -- bigserial not supported in SQLFairy
 CREATE SEQUENCE session_id_seq;
 ALTER TABLE session ALTER COLUMN id SET DEFAULT nextval('session_id_seq'::regclass);
+CREATE UNIQUE INDEX SessionToken_token_inSiteApplicationRelease ON SessionToken(token,siteApplicationRelease);
+CREATE UNIQUE INDEX SessionToken_token_null ON SessionToken(token) WHERE siteApplicationRelease IS NULL;
 
 -- Do not allow duplicate Name table entries with a single NULL
 CREATE UNIQUE INDEX name_given_middle_null ON Name (given,middle) WHERE family IS NULL;
