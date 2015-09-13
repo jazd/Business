@@ -1,5 +1,5 @@
 <schema name="Business" database="MyCo" xmlns="http://sqlfairy.sourceforge.net/sqlfairy.xml">
-<comments>The MIT License (MIT) Copyright (c) 2014 Stephen A Jazdzewski</comments>
+<comments>The MIT License (MIT) Copyright (c) 2014-2015 Stephen A Jazdzewski</comments>
 
 <tables>
 <table name="Culture" order="1">
@@ -595,36 +595,35 @@
 <table name="Session" order="220">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="varchar" size="32" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" />
- <field name="siteApplicationRelease" data_type="integer" size="" is_nullable="1" order="2" />
- <field name="initialized" data_type="smallint" size="1" is_nullable="1" order="3" />
- <field name="timeout" data_type="integer" size="" is_nullable="1" order="4" />
- <field name="items" data_type="bytea" size="10" is_nullable="1" order="5" />
+ <field name="id" data_type="bigint" size="" is_nullable="0" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="lock" data_type="integer" size="" default_value="0" is_nullable="0" order="3">
+  <comments>Mono System.Web/ASPState.sql style locks</comments>
+ </field>
  <field name="touched" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="98" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <indices>
- <index name="id_siteApplicationRelease" type="UNIQUE" fields="id,siteApplicationRelease" />
 </indices>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="SiteApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
-<comments>Mono System.Web/ASPState.sql style locks</comments>
-<table name="SessionLock" order="221">
+<table name="SessionToken" order="222">
 <comments>untested</comments>
 <fields>
- <field name="session" data_type="varchar" size="32" is_nullable="0" is_foreign_key="0" order="1" />
+ <field name="session" data_type="bigint" size="" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="token" data_type="varchar" size="32" is_nullable="0" is_foreign_key="0" order="1" />
  <field name="siteApplicationRelease" data_type="integer" size="" is_nullable="1" order="2" />
- <field name="lock" data_type="integer" size="" default_value="0" is_nullable="0" order="3" />
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
+ <field name="initialized" data_type="smallint" size="1" is_nullable="1" order="3" />
+ <field name="timeout" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="items" data_type="bytea" size="10" is_nullable="1" order="5" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <indices>
- <index name="session_siteApplicationRelease" type="NORMAL" fields="session,siteApplicationRelease" />
+ <index name="sesstionToken_session_siteApplicationRelease" type="UNIQUE" fields="session,siteApplicationRelease" />
 </indices>
 <constraints>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="SiteApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
@@ -691,8 +690,7 @@
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="bigint" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="session" data_type="varchar" size="32" is_nullable="0" order="2" />
- <field name="siteApplicationRelease" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="session" data_type="bigint" size="" is_nullable="0" order="2" />
  <field name="agentString" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="credential" data_type="integer" size="" is_nullable="1" order="5" />
  <field name="referring" data_type="bigint" size="" is_nullable="1" order="6" />
@@ -701,8 +699,7 @@
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="SiteApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="agentString" reference_table="AgentString" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="referring" reference_table="Path" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />

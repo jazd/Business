@@ -1,5 +1,5 @@
 #!/bin/sh
-# The MIT License (MIT) Copyright (c) 2014 Stephen A Jazdzewski
+# The MIT License (MIT) Copyright (c) 2014-2015 Stephen A Jazdzewski
 
 mkdir -p diagrams
 
@@ -13,7 +13,7 @@ PHONES="Phone Country Location Area Timezone Culture Word Sentence"
 INDIVIDUAL_EMAIL="Individual IndividualEmail Email Word"
 INDIVIDUAL_PATH="Individual IndividualPath Path Word"
 
-SESSION="Session AgentString SessionLock SessionCredential Individual Name Entity IndividualSessionCreated Password Credential Site Part AssemblyApplicationRelease Application Release Path ApplicationRelease SiteApplicationRelease Version Email Location Area Timezone Culture Sentence Word"
+SESSION="Session AgentString SessionToken SessionCredential Individual Name Entity IndividualSessionCreated Password Credential Site Part AssemblyApplicationRelease Application Release Path ApplicationRelease SiteApplicationRelease Version Email Location Area Timezone Culture Sentence Word"
 
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid

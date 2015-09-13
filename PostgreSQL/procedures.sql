@@ -1,4 +1,5 @@
 -- Officially, PostgreSQL only has "functions"
+-- The MIT License (MIT) Copyright (c) 2014-2015 Stephen A Jazdzewski
 -- These links may help
 -- http://www.sqlines.com/postgresql/stored_procedures_functions
 -- http://www.sqlines.com/postgresql/how-to/return_result_set_from_stored_procedure
@@ -990,7 +991,7 @@ CREATE OR REPLACE FUNCTION GetAssemblyApplicationRelease (
  inApplicationRelease integer
 ) RETURNS integer AS $$
 BEGIN
-RETURN (SELECT id FROM GetAssemblyApplicationRelease(inAssembly, inApplicationRelease, NULL) AS id);
+RETURN (SELECT GetAssemblyApplicationRelease(inAssembly, inApplicationRelease, NULL));
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1040,7 +1041,7 @@ CREATE OR REPLACE FUNCTION GetURL (
  inGet varchar
 ) RETURNS integer AS $$
 BEGIN
- RETURN (SELECT id FROM GetPath('http', inSecure, inHost, inValue, inGet) AS id);
+ RETURN (SELECT GetPath('http', inSecure, inHost, inValue, inGet));
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1050,7 +1051,7 @@ CREATE OR REPLACE FUNCTION GetFile (
  inFileGet varchar
 ) RETURNS integer AS $$
 BEGIN
- RETURN (SELECT id FROM GetPath('file', 0, inHost, inPathValue, inFileGet) AS id);
+ RETURN (SELECT GetPath('file', 0, inHost, inPathValue, inFileGet));
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1156,7 +1157,7 @@ $$ LANGUAGE plpgsql;
 -- First check memory cache for a agent id before parsing and sending to this function.
 -- If found then call AnonymousSession(agentString_id, device_agent_id, 0,'www.ibm.com',NULL,NULL, '107.77.97.52');
 -- Using ClientDo as an example
--- SELECT * FROM AnonymousSession('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36','Chrome','43','0','2357','130','Linux',NULL,NULL,NULL,NULL,NULL,'Other',0,'www.ibm.com',NULL,NULL,'107.77.97.52');
+-- SELECT AnonymousSession('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36','Chrome','43','0','2357','130','Linux',NULL,NULL,NULL,NULL,NULL,'Other',0,'www.ibm.com',NULL,NULL,'107.77.97.52');
 CREATE OR REPLACE FUNCTION AnonymousSession (
  -- User Agent
  inUAstring varchar,
@@ -1181,13 +1182,13 @@ CREATE OR REPLACE FUNCTION AnonymousSession (
  inRefGet varchar,
  -- Connection
  inIPAddress inet
-) RETURNS varchar AS $$
+) RETURNS bigint AS $$
 DECLARE string_id INTEGER;
 DECLARE deviceAgent_id INTEGER;
 DECLARE deviceName VARCHAR;
 DECLARE agentString_id INTEGER;
 BEGIN
- string_id := (SELECT id FROM GetIdentityPhrase(inUAstring) AS id);
+ string_id := (SELECT GetIdentityPhrase(inUAstring));
 
  deviceAgent_id = (SELECT GetDeviceOSApplicationRelease(inUAfamily, inUAmajor, inUAminor, inUApatch, inUAbuild,
   inOSfamily, inOSmajor, inOSminor, inOSpatch,
@@ -1196,12 +1197,12 @@ BEGIN
  agentString_id = (SELECT GetAgentString(deviceAgent_id, string_id));
 
  RETURN (
-  SELECT id FROM AnonymousSession(agentString_id, inRefSecure, inRefHost, inRefPath, inRefGet, inIPAddress) AS id
+  SELECT AnonymousSession(agentString_id, inRefSecure, inRefHost, inRefPath, inRefGet, inIPAddress)
  );
 END;
 $$ LANGUAGE plpgsql;
 
--- SELECT * FROM AnonymousSession(1, 0,'www.ibm.com',NULL,NULL,'107.77.97.52');
+-- SELECT AnonymousSession(1, 0,'www.ibm.com',NULL,NULL,'107.77.97.52');
 CREATE OR REPLACE FUNCTION AnonymousSession (
  inAgentString INTEGER,
  -- Referring
@@ -1211,12 +1212,11 @@ CREATE OR REPLACE FUNCTION AnonymousSession (
  inRefGet varchar,
  -- Connection
  inIPAddress inet
-) RETURNS varchar AS $$
-DECLARE newSession VARCHAR;
+) RETURNS bigint AS $$
+DECLARE newSession bigint;
 BEGIN
 
- newSession = (SELECT session FROM RandomString(32) AS session);
- INSERT INTO Session (id) VALUES(newSession);
+ INSERT INTO Session (lock) VALUES (0) RETURNING id INTO newSession;
 
  -- Associate a remote client and remote IP address to a session
  INSERT INTO SessionCredential (session,agentString,fromAddress,referring)
@@ -1259,14 +1259,14 @@ CREATE OR REPLACE FUNCTION SetSession (
  -- Connection
  inIPAddress inet,
  inLocation integer
-) RETURNS void AS $$
+) RETURNS bigint AS $$
 BEGIN
- PERFORM SetSession(inSession,inSiteApplicationRelease,inCredential,inUAstring,inUAfamily,inUAmajor,inUAminor,inUApatch,inUAbuild,inOSfamily,inOSmajor,inOSminor,inOSpatch,inDeviceBrand,inDeviceModel,inDeviceFamily,inRefSecure,inRefHost,inRefPath,inRefGet,inIPAddress,inLocation,NULL);
+ RETURN (SELECT SetSession(inSession,inSiteApplicationRelease,inCredential,inUAstring,inUAfamily,inUAmajor,inUAminor,inUApatch,inUAbuild,inOSfamily,inOSmajor,inOSminor,inOSpatch,inDeviceBrand,inDeviceModel,inDeviceFamily,inRefSecure,inRefHost,inRefPath,inRefGet,inIPAddress,inLocation,NULL));
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION SetSession (
- inSession varchar,
+ inSessionToken varchar,
  inSiteApplicationRelease integer,
  inCredential integer,
  -- User Agent
@@ -1294,14 +1294,14 @@ CREATE OR REPLACE FUNCTION SetSession (
  inIPAddress inet,
  inLocation integer,
  inStart timestamp
-) RETURNS void AS $$
+) RETURNS bigint AS $$
 DECLARE string_id INTEGER;
 DECLARE deviceAgent_id INTEGER;
 DECLARE deviceName VARCHAR;
 DECLARE agentString_id INTEGER;
 DECLARE referring_id INTEGER;
 BEGIN
- string_id := (SELECT id FROM GetIdentityPhrase(inUAstring) AS id);
+ string_id := (SELECT GetIdentityPhrase(inUAstring));
 
  deviceAgent_id = (SELECT GetDeviceOSApplicationRelease(inUAfamily, inUAmajor, inUAminor, inUApatch, inUAbuild,
   inOSfamily, inOSmajor, inOSminor, inOSpatch,
@@ -1311,27 +1311,26 @@ BEGIN
 
  referring_id = (SELECT GetUrl(inRefSecure,inRefHost,inRefPath,inRefGet));
 
- PERFORM SetSession(inSession, inSiteApplicationRelease, agentString_id, inCredential, referring_id, inIPAddress, inLocation, inStart);
+ RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, agentString_id, inCredential, referring_id, inIPAddress, inLocation, inStart));
 END;
 $$ LANGUAGE plpgsql;
 
--- SetSession(session, siteApplicationRelease, agentString, credential, referring, fromIPaddress, location)
 CREATE OR REPLACE FUNCTION SetSession (
- inSession varchar,
+ inSessionToken varchar,
  inSiteApplicationRelease integer,
  inAgentString integer,
  inCredential integer,
  inReferring integer,
  inIPAddress inet,
  inLocation integer
-) RETURNS void AS $$
+) RETURNS bigint AS $$
 BEGIN
- PERFORM SetSession(inSession, inSiteApplicationRelease, inAgentString, inCredential, inReferring, inIPAddress, inLocation, NULL);
+ RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, inAgentString, inCredential, inReferring, inIPAddress, inLocation, NULL));
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION SetSession (
- inSession varchar,
+ inSessionToken varchar,
  inSiteApplicationRelease integer,
  inAgentString integer,
  inCredential integer,
@@ -1339,24 +1338,45 @@ CREATE OR REPLACE FUNCTION SetSession (
  inIPAddress inet,
  inLocation integer,
  inStart timestamp
-) RETURNS void AS $$
+) RETURNS bigint AS $$
+DECLARE newSession bigint;
+DECLARE existingSession bigint;
 BEGIN
- IF inSession IS NOT NULL THEN
-  INSERT INTO Session (id,siteApplicationRelease,created) (
-   SELECT inSession, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created
+ IF inSessionToken IS NOT NULL THEN
+  -- Does a session already exist for this token and site application release
+  existingSession := (
+   SELECT session
+   FROM SessionToken
+   WHERE token = inSessionToken
+    AND (
+     (siteApplicationRelease = inSiteApplicationRelease)
+      OR (siteApplicationRelease IS NULL AND inSiteApplicationRelease IS NULL)
+    )
+  );
+
+  IF existingSession IS NULL THEN
+   INSERT INTO Session (lock) VALUES (0) RETURNING id INTO existingSession;
+   INSERT INTO SessionToken (session,token,siteApplicationRelease,created) (
+    SELECT existingSession, inSessionToken, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created
+   );
+  END IF;
+
+  INSERT INTO SessionCredential (session, agentString, credential, referring, fromAddress, location) (
+   SELECT existingSession, inAgentString, inCredential, inReferring, inIPAddress, inLocation
    FROM Dual
-   LEFT JOIN Session AS exists ON exists.id = inSession
-    AND ((exists.siteApplicationRelease = inSiteApplicationRelease) OR (exists.siteApplicationRelease IS NULL AND inSiteApplicationRelease IS NULL))
+   LEFT JOIN SessionCredential AS exists ON exists.session = existingSession
+    AND ((agentString = inAgentString) OR (agentString IS NULL AND inAgentString IS NULL))
+    AND ((credential = inCredential) OR (credential IS NULL AND inCredential IS NULL))
+    AND ((referring = inReferring) OR (referring IS NULL AND inReferring IS NULL))
+    AND ((fromAddress = inIPAddress) OR (fromAddress IS NULL AND inIPAddress IS NULL))
+    AND ((location = inLocation) OR (location IS NULL AND inLocation IS NULL))
    WHERE exists.id IS NULL
   );
 
-  INSERT INTO SessionCredential (session, siteApplicationRelease, agentString, credential, referring, fromAddress, location)
-  VALUES(inSession, inSiteApplicationRelease, inAgentString, inCredential, inReferring, inIPAddress, inLocation);
  END IF;
+ RETURN existingSession;
 END;
 $$ LANGUAGE plpgsql;
-
-
 
 
 CREATE OR REPLACE FUNCTION SetSchemaVersion (

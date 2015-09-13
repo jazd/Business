@@ -1,3 +1,4 @@
+-- The MIT License (MIT) Copyright (c) 2014-2015 Stephen A Jazdzewski
 -- Do not allow duplicate words based on case
 -- upper(value) is not allowed in an in-table constraint
 CREATE UNIQUE INDEX word_value ON Word(culture,UPPER(value));
@@ -12,9 +13,15 @@ CREATE UNIQUE INDEX version_null_major_minor_null ON Version(major,minor) WHERE 
 CREATE UNIQUE INDEX AssemblyApplicationRelease_assembly_applicationRelease_null ON AssemblyApplicationRelease(assembly,applicationRelease) WHERE parent IS NULL;
 CREATE UNIQUE INDEX Part_name_null_null_null ON Part(name) WHERE parent IS NULL AND version IS NULL AND serial IS NULL;
 CREATE UNIQUE INDEX AgentString_null_string ON AgentString(string) WHERE agent IS NULL;
-CREATE UNIQUE INDEX Session_id_null ON Session(id) WHERE siteApplicationRelease IS NULL;
 CREATE INDEX path_host ON Path(UPPER(host));
 CREATE INDEX path_host_value ON Path(UPPER(host),value);
+-- bigserial not supported in SQLFairy
+CREATE SEQUENCE session_id_seq START WITH 1000;
+ALTER TABLE session ALTER COLUMN id SET DEFAULT nextval('session_id_seq'::regclass);
+CREATE UNIQUE INDEX SessionToken_token_inSiteApplicationRelease ON SessionToken(token,siteApplicationRelease);
+CREATE UNIQUE INDEX SessionToken_token_null ON SessionToken(token) WHERE siteApplicationRelease IS NULL;
+
+
 
 -- Do not allow duplicate Name table entries with a single NULL
 CREATE UNIQUE INDEX name_given_middle_null ON Name (given,middle) WHERE family IS NULL;
@@ -65,3 +72,4 @@ ALTER SEQUENCE applicationrelease_id_seq RESTART WITH 10000;
 ALTER SEQUENCE part_id_seq RESTART WITH 10000;
 ALTER SEQUENCE assemblyapplicationrelease_id_seq RESTART WITH 10000;
 ALTER SEQUENCE site_id_seq RESTART WITH 1000;
+ALTER SEQUENCE agentstring_id_seq RESTART WITH 1000;
