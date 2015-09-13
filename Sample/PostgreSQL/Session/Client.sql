@@ -50,25 +50,23 @@ INSERT INTO ApplicationRelease (id,application,release) VALUES (9998, 9998, 9998
 --
 -- Unknown agent device
 INSERT INTO Part (id,name)
-SELECT 9999 AS id, Word.id AS name
-FROM Word
-WHERE Word.value = 'Unknown' AND Word.culture IS NULL
+SELECT 9999 AS id, Sentence.id AS name
+FROM Sentence
+WHERE Sentence.value = 'Unknown' AND Sentence.culture = 1033
 ;
 
 -- Agent's Client and OS
-INSERT INTO ClientOS (id, device, osrelease) VALUES (9999,9999,9998);
+INSERT INTO AssemblyApplicationRelease (id, assembly, applicationRelease) VALUES (9999,9999,9998);
 --
 -- The parsed agent, Unknown device using OS Linux x86_64, Application Chrome/43.0.2357.130
-INSERT INTO ClientOSApplication (id, clientOS, applicationRelease) VALUES (9999, 9999, 9999);
+INSERT INTO AssemblyApplicationRelease (id, parent, assembly, applicationRelease) VALUES (9998, 9999, 9999, 9999);
+-- Create AgentString
+-- Links an agent string to a parsed AssemblyApplicationRelease tree
+INSERT INTO AgentString (id,agent,string) VALUES (1,9998,1999999);
 --
--- Insert the session record using the site's session id function
-INSERT INTO Session (id) VALUES('63840346be345744139d5d8b70292ff2');
+-- Insert the session record using the site's session token function
+INSERT INTO Session (id) VALUES(1);
+INSERT INTO SessionToken (session,token) VALUES(1,'63840346be345744139d5d8b70292ff2');
 --
 -- Associate a remote client and remote IP address to a session
-INSERT INTO SessionCredential (session,agent,clientOSApplication,fromAddress)
-SELECT '63840346be345744139d5d8b70292ff2' AS session, Sentence.id AS agent,
- 9999 AS clientOSApplication, '107.77.97.52' AS fromAddress
-FROM Sentence
-WHERE value = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36'
- AND culture IS NULL
-;
+INSERT INTO SessionCredential (session,agentString,fromAddress) VALUES (1,1,'107.77.97.52');
