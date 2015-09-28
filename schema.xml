@@ -10,7 +10,6 @@
   <comments>Like en-US</comments></field>
 </fields>
 <indices>
- <index name="culture_code" type="UNIQUE" fields="code" />
 </indices>
 </table>
 
