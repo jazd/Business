@@ -10,7 +10,6 @@
   <comments>Like en-US</comments></field>
 </fields>
 <indices>
- <index name="culture_code" type="UNIQUE" fields="code" />
 </indices>
 </table>
 
@@ -25,7 +24,6 @@
  <index name="word_id_culture" type="NORMAL" fields="id,culture" />
 </indices>
 <constraints>
- <constraint name="" type="NOT NULL" fields="value" reference_table="" reference_fields="" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 <comments></comments>
@@ -46,7 +44,6 @@
  <index name="sentence_culture_value" type="UNIQUE" fields="culture,value" />
 </indices>
 <constraints>
- <constraint name="" type="NOT NULL" fields="value" reference_table="" reference_fields="" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 <comments></comments>
@@ -64,7 +61,6 @@
  <index name="paragraph_culture_value" type="UNIQUE" fields="culture,value" />
 </indices>
 <constraints>
- <constraint name="" type="NOT NULL" fields="value" reference_table="" reference_fields="" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 <comments></comments>
@@ -106,8 +102,8 @@
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="parent" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="marquee" data_type="integer" size="" is_nullable="1" order="3" />
- <field name="latitude" data_type="float" size="10,7" is_nullable="1" order="4" />
- <field name="longitude" data_type="float" size="11,7" is_nullable="1" order="5" />
+ <field name="latitude" data_type="float" size="24" is_nullable="1" order="4" />
+ <field name="longitude" data_type="float" size="24" is_nullable="1" order="5" />
  <field name="accuracy" data_type="integer" size="" is_nullable="1" order="6">
   <comments>From GeoNames.org accuracy of lat/lng from 1=estimated to 6=centroid</comments>
  </field>
@@ -136,7 +132,6 @@
  <index name="given_value" type="UNIQUE" fields="value" />
 </indices>
 <constraints>
- <constraint name="" type="NOT NULL" fields="value" reference_table="" reference_fields="" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 <comments></comments>
 </table>
@@ -150,7 +145,6 @@
  <index name="family_value" type="UNIQUE" fields="value" />
 </indices>
 <constraints>
- <constraint name="" type="NOT NULL" fields="value" reference_table="" reference_fields="" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 <comments></comments>
 </table>
