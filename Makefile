@@ -23,6 +23,13 @@ schema.pgsql: schema.xml
 	sqlt -f XML-SQLFairy -t PostgreSQL --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g">> $@
 	chmod -w $@
 
+schema.nuodb: schema.xml
+	@echo Creating NuoDB file $@
+	if [[ -e $@ ]]; then chmod +w $@; fi
+	sed 's/^/-- /' LICENSE.txt > $@
+	sqlt -f XML-SQLFairy -t NuoDB --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g">> $@
+	chmod -w $@
+
 schema.mysql: schema.xml
 	@echo Creating MySQL file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
