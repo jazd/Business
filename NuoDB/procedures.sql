@@ -331,12 +331,12 @@ CREATE FUNCTION GetApplicationRelease (
  inApplication INTEGER,
  inRelease INTEGER
 ) RETURNS INTEGER AS
- IF (inApplication IS NOT NULL AND inRelease IS NOT NULL)
+ IF (inApplication IS NOT NULL)
   INSERT INTO ApplicationRelease (application, release) (
    SELECT inApplication AS application, inRelease AS release
    FROM Dual
    LEFT JOIN ApplicationRelease AS does_exist ON does_exist.application = inApplication
-    AND does_exist.release = inRelease
+    AND ((does_exist.release = inRelease) OR (does_exist.release IS NULL AND inRelease IS NULL))
    WHERE does_exist.id IS NULL
   );
  END_IF;
@@ -344,7 +344,7 @@ CREATE FUNCTION GetApplicationRelease (
   SELECT id
   FROM ApplicationRelease
   WHERE application = inApplication
-   AND release = inRelease
+   AND ((release = inRelease) OR (release IS NULL AND inRelease IS NULL))
  );
 END_FUNCTION;
 @
