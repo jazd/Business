@@ -9,7 +9,7 @@ Currently in **pre-Alpha**, and may change significantly before Alpha release.  
 [Documentation](https://github.com/jazd/Business/wiki)
 
 *Features*
-* I8N from the start
+* i18N from the start
 * Extensive Test coverage
 * Highly [normalized](http://en.wikipedia.org/wiki/Database_normalization)
 * Common Views are included
@@ -18,7 +18,7 @@ Currently in **pre-Alpha**, and may change significantly before Alpha release.  
 * Foreign Key fields tend to be the same name as the table they reference
 * Field and table names are full words
 * Procedures that always check for duplicates before insert
-* Linking tables names that are almost always composed of the [CamelCase](http://en.wikipedia.org/wiki/CamelCase) linked table names
+* Linking tables names are almost always composed of the [CamelCase](http://en.wikipedia.org/wiki/CamelCase) linked table names
 * Queries read well
 * Almost no business rules are carried out outside of the database server
 
