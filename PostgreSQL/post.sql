@@ -15,13 +15,14 @@ CREATE UNIQUE INDEX Part_name_null_null_null ON Part(name) WHERE parent IS NULL 
 CREATE UNIQUE INDEX AgentString_null_string ON AgentString(string) WHERE agent IS NULL;
 CREATE INDEX path_host ON Path(UPPER(host));
 CREATE INDEX path_host_value ON Path(UPPER(host),value);
+
 -- bigserial not supported in SQLFairy
-CREATE SEQUENCE session_id_seq START WITH 1000;
-ALTER TABLE session ALTER COLUMN id SET DEFAULT nextval('session_id_seq'::regclass);
+ALTER TABLE session ALTER COLUMN id TYPE bigint;
+
+-- Session function indexes, untested
+CREATE INDEX sessionCredentialFull ON SessionCredential (session,agentstring,credential,referring,fromaddress,location);
 CREATE UNIQUE INDEX SessionToken_token_inSiteApplicationRelease ON SessionToken(token,siteApplicationRelease);
 CREATE UNIQUE INDEX SessionToken_token_null ON SessionToken(token) WHERE siteApplicationRelease IS NULL;
-
-
 
 -- Do not allow duplicate Name table entries with a single NULL
 CREATE UNIQUE INDEX name_given_middle_null ON Name (given,middle) WHERE family IS NULL;
@@ -73,3 +74,4 @@ ALTER SEQUENCE part_id_seq RESTART WITH 10000;
 ALTER SEQUENCE assemblyapplicationrelease_id_seq RESTART WITH 10000;
 ALTER SEQUENCE site_id_seq RESTART WITH 1000;
 ALTER SEQUENCE agentstring_id_seq RESTART WITH 1000;
+ALTER SEQUENCE session_id_seq START WITH 1000;

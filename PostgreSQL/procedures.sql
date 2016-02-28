@@ -913,12 +913,12 @@ CREATE OR REPLACE FUNCTION GetApplicationRelease (
  inRelease integer
 ) RETURNS integer AS $$
 BEGIN
- IF inApplication IS NOT NULL AND inRelease IS NOT NULL THEN
+ IF inApplication IS NOT NULL THEN
   INSERT INTO ApplicationRelease (application, release) (
    SELECT inApplication AS application, inRelease AS release
    FROM Dual
    LEFT JOIN ApplicationRelease AS exists ON exists.application = inApplication
-    AND exists.release = inRelease
+    AND ((exists.release = inRelease) OR (exists.release IS NULL AND inRelease IS NULL))
    WHERE exists.id IS NULL
   );
  END IF;
@@ -926,7 +926,7 @@ BEGIN
   SELECT id
   FROM ApplicationRelease
   WHERE application = inApplication
-   AND release = inRelease
+   AND ((release = inRelease) OR (release IS NULL AND inRelease IS NULL))
  );
 END;
 $$ LANGUAGE plpgsql;
