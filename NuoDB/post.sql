@@ -22,6 +22,7 @@ ALTER TABLE Path ALTER COLUMN host COLLATE case_insensitive;
 CREATE INDEX sessionCredentialFull ON SessionCredential (session,agentstring,credential,referring,fromaddress,location);
 CREATE INDEX sessionToken_token_siteApplicationRelease ON SessionToken (token, siteApplicationRelease);
 CREATE INDEX Path_protocol_secure_host_null_null ON Path(protocol,secure,host);
+
 -- Need to investigate null handling in indexes
 CREATE INDEX version_major_minor_patch_null ON Version(major,minor,patch);
 CREATE INDEX version_name_major_minor_null ON Version(name,major,minor);
