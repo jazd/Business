@@ -22,4 +22,4 @@ Currently in **pre-Alpha**, and may change significantly before Alpha release.  
 * Queries read well
 * Almost no business rules are carried out outside of the database server
 
-The original idea for this schema comes from my earlier Origins/peopleSchema.sql work, a schema I created back in 2002.  Orignally source controlled with RCS.
+The original idea for this schema comes from my earlier Origins/peopleSchema.sql work, a schema I created back in 2002.  Originally source controlled with RCS.
