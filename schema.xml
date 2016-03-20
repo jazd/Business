@@ -536,6 +536,21 @@
 </constraints>
 </table>
 
+<table name="AssemblyPart" order="131">
+<comments>untested</comments>
+<fields>
+ <field name="assembly" data_type="integer" size="" is_nullable="1" order="1" />
+ <field name="part" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="designator" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="quantity" data_type="integer" size="" is_nullable="1" order="4" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="part" reference_table="Part" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="designator" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 <comments>A client device and its operating system. Change to AssemblyApplicationRelease</comments>
 <table name="AssemblyApplicationRelease" order="140">
 <comments>untested</comments>
@@ -649,7 +664,7 @@
  <field name="email" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="password" data_type="integer" size="" is_nullable="1" order="5" />
  <field name="culture" data_type="integer" size="" is_nullable="1" order="6" />
- <field name="revoked" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="98" />
+ <field name="revoked" data_type="timestamp" size="0" is_nullable="1" order="98" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -701,6 +716,45 @@
 </constraints>
 </table>
 
+<table name="Property" order="800">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="word" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="integer" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="float" data_type="float" size="24" is_nullable="1" order="5" />
+ <field name="dateTime" data_type="timestamp" size="0" is_nullable="1" order="6" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="10" />
+</fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="word" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="RecordAttribute" order="801">
+<comments>untested</comments>
+<fields>
+ <field name="tableName" data_type="varchar" size="64" is_nullable="0" order="1" />
+ <field name="tableId" data_type="bigint" size="" is_nullable="1" order="2">
+  <comment>tableId is null for list of possible attributes/properties for table</comment>
+ </field>
+ <field name="attribute" data_type="integer" size="" is_nullable="1" order="3">
+  <comment>attribute is null if RecordProperty</comment>
+ </field>
+ <field name="property" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="5" >
+  <comments>No longer associate with this record.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="10" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="property" reference_table="Property" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="attribute" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 
 
 <table name="SchemaVersion" order="999">
@@ -722,49 +776,12 @@
 <comments>
 Tables below are unfinished and are mostly place holders or note taking.  These should not be used and are probably completely wrong.
 </comments>
-<table name="AssemblyPart" order="131">
-<fields>
- <field name="assembly" data_type="integer" size="" is_nullable="1" order="1" />
- <field name="part" data_type="integer" size="" is_nullable="1" order="2" />
- <field name="designator" data_type="integer" size="" is_nullable="1" order="3" />
- <field name="quantity" data_type="integer" size="" is_nullable="1" order="4" />
-</fields>
-<constraints>
- <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="part" reference_table="Part" reference_fields="id" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="designator" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
-</constraints>
-</table>
-
 <table name="AddressAttribute" order="72">
 <comments>usps address fields for example.  address line source fields.</comments>
 <fields>
  <field name="address" data_type="integer" size="" is_nullable="0" order="3" />
  <field name="attribute" data_type="integer" size="" is_nullable="0" order="3" />
  <field name="value" data_type="integer" size="" is_nullable="0" order="3" />
-</fields>
-</table>
-
-<table name="IndividualAttribute" order="23">
-<fields>
- <field name="individual" data_type="bigint" size="" is_nullable="0" order="3" />
- <field name="attribute" data_type="integer" size="" is_nullable="0" order="3" />
- <field name="value" data_type="integer" size="" is_nullable="0" order="3" />
- <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
-  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
- </field>
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
-</fields>
-</table>
-
-<table name="IndividualProperty" order="32">
-<fields>
- <field name="individual" data_type="bigint" size="" is_nullable="0" order="3" />
- <field name="property" data_type="integer" size="" is_nullable="0" order="3" />
- <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
-  <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
- </field>
- <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 </table>
 
@@ -817,6 +834,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 </tables>
+
+
 <views>
  <comments>SQLFairy does not handle XML escape codes.  So need to convert post process.</comments>
  <view name="People" fields="individual,name,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,post,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,postvalue,birth,death,aged,created" order="1">
