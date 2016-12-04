@@ -961,6 +961,38 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- GetPartWithParent(name varchar, parentId integer) Specify an exact parent for Part without version
+CREATE OR REPLACE FUNCTION GetPartWithParent (
+ inName varchar,
+ inParentId integer
+) RETURNS integer AS $$
+DECLARE name_id integer;
+BEGIN
+ IF inName IS NOT NULL AND inParentId IS NOT NULL THEN
+  name_id := (SELECT GetSentence(inName));
+  -- Insert if it does not alread exists
+  INSERT INTO Part (name, parent) (
+   SELECT name_id, inParentId
+   FROM Dual
+   LEFT JOIN Part AS exists ON exists.name = name_id
+    AND exists.parent = inParentId
+    AND exists.version IS NULL
+    AND exists.serial IS NULL
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Part
+  WHERE name = name_id
+   AND parent = inParentId
+   AND version IS NULL
+   AND serial IS NULL
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+
 -- GetPart(name varchar, versionId integer)
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar,
@@ -981,13 +1013,16 @@ BEGIN
   END IF;
   IF sibling_id IS NULL THEN
    -- No siblings, try same part without a version but has a parent
-   parent_id := (SELECT NULL);
+   parent_id := (SELECT Part.id
+    FROM Part
+    WHERE Part.name = name_id
+     AND Part.parent IS NOT NULL
+     AND Part.version IS NULL
+     AND Part.serial IS NULL
+   );
    IF parent_id IS NULL THEN
     -- Try same part without version or parent (root part)
-    parent_id := (SELECT NULL);
-   END IF;
-   IF parent_id IS NULL THEN
-    -- Still no parent, so create it
+    -- If not found it will create it
     parent_id := (SELECT GetPart(inName));
    END IF;
   ELSE
