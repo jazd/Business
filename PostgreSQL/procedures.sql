@@ -932,6 +932,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- GetPart(name varchar)
+-- Getting a Part without a version returns a root part with a null parent, version and serial
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar
 ) RETURNS integer AS $$
@@ -959,6 +960,12 @@ BEGIN
  );
 END;
 $$ LANGUAGE plpgsql;
+
+-- GetPart(name varchar, versionId integer)
+-- GetPart(name varchar, versionName)
+-- GetPart(name varchar, versionName varchar, major integer)
+-- GetPart(name varchar, versionName varchar, major integer, minor integer)
+-- GetPart(name varchar, versionName varchar, major integer, minor integer, patch integer)
 
 CREATE OR REPLACE FUNCTION GetAssemblyApplicationRelease (
  inAssembly integer,
