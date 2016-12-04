@@ -831,7 +831,7 @@ BEGIN
  RETURN (
   SELECT id
   FROM Version
-  WHERE name= name_id
+  WHERE name = name_id
    AND ((major = major_id) OR (major IS NULL AND major_id IS NULL))
    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
@@ -962,6 +962,61 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- GetPart(name varchar, versionId integer)
+CREATE OR REPLACE FUNCTION GetPart (
+ inName varchar,
+ inVersionId integer
+) RETURNS integer AS $$
+DECLARE name_id integer;
+DECLARE sibling_id integer;
+DECLARE parent_id integer;
+BEGIN
+ IF inName IS NOT NULL AND inVersionId IS NOT NULL THEN
+  name_id := (SELECT GetSentence(inName));
+  -- Every non-root part must have a parent
+  -- Does it have a direct sibling with a parent?
+  sibling_id := (SELECT NULL);
+  IF sibling_id IS NULL THEN
+   -- Try a nefew with a revision
+   sibling_id := (SELECT NULL);
+  END IF;
+  IF sibling_id IS NULL THEN
+   -- No siblings, try same part without a version but has a parent
+   parent_id := (SELECT NULL);
+   IF parent_id IS NULL THEN
+    -- Try same part without version or parent (root part)
+    parent_id := (SELECT NULL);
+   END IF;
+   IF parent_id IS NULL THEN
+    -- Still no parent, so create it
+    parent_id := (SELECT GetPart(inName));
+   END IF;
+  ELSE
+   -- Use sibling parent
+   parent_id := sibling_id;
+  END IF;
+  -- Insert this part if it is not a duplicate
+  INSERT INTO Part (parent, name, version) (
+   SELECT parent_id, name_id, inVersionId
+   FROM Dual
+   LEFT JOIN Part AS exists ON exists.parent = parent_id
+    AND exists.name = name_id
+    AND exists.version = inVersionId
+    AND exists.serial IS NULL
+   WHERE exists.id IS NULL
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Part
+  WHERE name = name_id
+   AND parent = parent_id
+   AND version = inVersionId
+   AND serial IS NULL
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+
 -- GetPart(name varchar, versionName)
 -- GetPart(name varchar, versionName varchar, major integer)
 -- GetPart(name varchar, versionName varchar, major integer, minor integer)
