@@ -1176,9 +1176,24 @@ SELECT Version.id AS version, name.value AS name,
  major.value AS major, minor.value AS minor, patch.value AS patch
 FROM Version
 LEFT JOIN Word AS name ON name.id = Version.name
+ AND name.culture = 1033
 LEFT JOIN Word AS major ON major.id = Version.major
+ AND major.culture = 1033
 LEFT JOIN Word AS minor ON minor.id = Version.minor
+ AND minor.culture = 1033
 LEFT JOIN Word AS patch ON patch.id = Version.patch
+ AND patch.culture = 1033
+  </sql>
+ </view>
+ <view name="Parts" fields="part,parent,name,version,serial,created">
+  <sql>
+SELECT Part.id AS part, Part.parent,
+ Sentence.value AS name,
+ Versions.value AS version, Part.serial, Part.created
+FROM Part
+JOIN Sentence ON Sentence.id = Part.name
+ AND Sentence.culture = 1033
+LEFT JOIN Versions ON Versions.version = Part.version
   </sql>
  </view>
 </views>
