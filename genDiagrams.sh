@@ -15,6 +15,8 @@ INDIVIDUAL_PATH="Individual IndividualPath Path Word"
 
 SESSION="Session AgentString SessionToken SessionCredential Individual Name Entity IndividualSessionCreated Password Credential Site Part AssemblyApplicationRelease Application Release Path ApplicationRelease SiteApplicationRelease Version Email Location Area Timezone Culture Sentence Word"
 
+ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease ApplicationRelease Version Word Sentence Paragraph"
+
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
 
@@ -39,6 +41,8 @@ sqlt-diagram --title "Addresses" $ARGS -c 3 -o diagrams/addresses.png ./zot.xml
 scripts/extractTable.pl schema.xml.invalid $SESSION >./zot.xml
 sqlt-diagram --title "Session" $ARGS -c 5 -o diagrams/web_session.png ./zot.xml
 
+scripts/extractTable.pl schema.xml.invalid $ASSEMBLIES >./zot.xml
+sqlt-diagram --title "Assemblies" $ARGS -c 3 -o diagrams/assemblies.png ./zot.xml
 
 # Remove temporary files
 rm zot.xml

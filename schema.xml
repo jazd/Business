@@ -551,6 +551,18 @@
 </constraints>
 </table>
 
+<table name="PartDescription" order="132">
+<fields>
+ <field name="part" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="description" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+  <constraint name="" type="FOREIGN KEY" fields="part" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="description" reference_table="Paragraph" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 <comments>A client device and its operating system. Change to AssemblyApplicationRelease</comments>
 <table name="AssemblyApplicationRelease" order="140">
 <comments>untested</comments>
