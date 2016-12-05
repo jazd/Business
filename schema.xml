@@ -1185,11 +1185,12 @@ LEFT JOIN Word AS patch ON patch.id = Version.patch
  AND patch.culture = 1033
   </sql>
  </view>
- <view name="Parts" fields="part,parent,name,version,serial,created">
+ <view name="Parts" fields="part,parent,name,nameId,version,versionId,serial,created">
   <sql>
 SELECT Part.id AS part, Part.parent,
- Sentence.value AS name,
- Versions.value AS version, Part.serial, Part.created
+ Sentence.value AS name, Part.name AS nameId,
+ Versions.value AS version, Part.version AS versionId,
+ Part.serial, Part.created
 FROM Part
 JOIN Sentence ON Sentence.id = Part.name
  AND Sentence.culture = 1033

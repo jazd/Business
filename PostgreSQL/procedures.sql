@@ -1006,11 +1006,13 @@ BEGIN
   name_id := (SELECT GetSentence(inName));
   -- Every non-root part must have a parent
   -- Does it have a direct sibling with a parent?
-  sibling_id := (SELECT NULL);
-  IF sibling_id IS NULL THEN
-   -- Try a nefew with a revision
-   sibling_id := (SELECT NULL);
-  END IF;
+  sibling_id := (SELECT Part.parent
+   FROM Part
+   WHERE Part.name = name_id
+    AND Part.version IS NOT NULL
+    AND Part.serial IS NULL
+   LIMIT 1
+  );
   IF sibling_id IS NULL THEN
    -- No siblings, try same part without a version but has a parent
    parent_id := (SELECT Part.id
