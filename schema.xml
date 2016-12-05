@@ -1189,7 +1189,10 @@ LEFT JOIN Word AS patch ON patch.id = Version.patch
   <sql>
 SELECT Part.id AS part, Part.parent,
  Sentence.value AS name, Part.name AS nameId,
- Versions.value AS version, Part.version AS versionId,
+ CASE WHEN (Versions.name IS NOT NULL) THEN Versions.name ELSE !apos;!apos; END ||
+ CASE WHEN (Versions.name IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
+ CASE WHEN (Versions.value IS NOT NULL) THEN Versions.value ELSE !apos;!apos; END AS version,
+ Part.version AS versionId,
  Part.serial, Part.created
 FROM Part
 JOIN Sentence ON Sentence.id = Part.name

@@ -1053,8 +1053,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 -- GetPart(name varchar, versionName)
+CREATE OR REPLACE FUNCTION GetPart (
+ inName varchar,
+ inVersion varchar
+) RETURNS integer AS $$
+DECLARE version_id integer;
+BEGIN
+ version_id := (SELECT GetVersionName(inVersion));
+ RETURN (
+  SELECT GetPart(inName, version_id)
+ );
+END;
+$$ LANGUAGE plpgsql;
+
 -- GetPart(name varchar, versionName varchar, major integer)
 -- GetPart(name varchar, versionName varchar, major integer, minor integer)
 -- GetPart(name varchar, versionName varchar, major integer, minor integer, patch integer)
