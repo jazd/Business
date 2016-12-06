@@ -963,18 +963,17 @@ $$ LANGUAGE plpgsql;
 
 -- GetPartWithParent(name varchar, parentId integer) Specify an exact parent for Part without version
 CREATE OR REPLACE FUNCTION GetPartWithParent (
- inName varchar,
+ inNameId integer,
  inParentId integer
 ) RETURNS integer AS $$
 DECLARE name_id integer;
 BEGIN
- IF inName IS NOT NULL AND inParentId IS NOT NULL THEN
-  name_id := (SELECT GetSentence(inName));
+ IF inNameId IS NOT NULL AND inParentId IS NOT NULL THEN
   -- Insert if it does not alread exists
   INSERT INTO Part (name, parent) (
-   SELECT name_id, inParentId
+   SELECT inNameId, inParentId
    FROM Dual
-   LEFT JOIN Part AS exists ON exists.name = name_id
+   LEFT JOIN Part AS exists ON exists.name = InNameId
     AND exists.parent = inParentId
     AND exists.version IS NULL
     AND exists.serial IS NULL
@@ -984,13 +983,96 @@ BEGIN
  RETURN (
   SELECT id
   FROM Part
-  WHERE name = name_id
+  WHERE name = inNameId
    AND parent = inParentId
    AND version IS NULL
    AND serial IS NULL
  );
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetPartWithParent (
+ inName varchar,
+ inParentId integer
+) RETURNS integer AS $$
+DECLARE name_id integer;
+BEGIN
+ name_id := (SELECT GetSentence(inName));
+ RETURN (
+  SELECT GetPartWithParent(name_id, inParentId)
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Child and Parent by name when building a non-versioned part hierarchy
+CREATE OR REPLACE FUNCTION GetPartWithParent (
+ inPartName varchar,
+ inParentName varchar
+) RETURNS integer AS $$
+DECLARE part_name_id integer;
+DECLARE parent_name_id integer;
+DECLARE parent_id integer;
+BEGIN
+ IF inPartName IS NOT NULL AND inParentName IS NOT NULL THEN
+  part_name_id := (SELECT GetSentence(inPartName));
+  parent_name_id := (SELECT GetSentence(inParentName));
+
+  -- Find the lowest non-versioned part of parent name
+  parent_id = (
+   SELECT id
+   FROM Part
+   WHERE name = parent_name_id
+    AND version IS NULL
+    AND serial IS NULL
+   ORDER BY parent ASC -- Non NULLs first
+   LIMIT 1
+  );
+  IF parent_id IS NULL THEN
+   -- Create a root part
+   parent_id := (SELECT GetPart(inParentName));
+  END IF;
+  RETURN (
+   SELECT GetPartWithParent(part_name_id, parent_id)
+  );
+ END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetPartWithParent (
+ inPartName varchar,
+ inParentName varchar,
+ inParentVersionName varchar
+) RETURNS integer AS $$
+DECLARE part_name_id integer;
+DECLARE parent_name_id integer;
+DECLARE parent_version_name_id integer;
+DECLARE parent_id integer;
+BEGIN
+ IF inPartName IS NOT NULL AND inParentName IS NOT NULL AND inParentVersionName IS NOT NULL THEN
+  part_name_id := (SELECT GetSentence(inPartName));
+  parent_name_id := (SELECT GetSentence(inParentName));
+  parent_version_name_id := GetVersionName(inParentVersionName);
+  -- Find the lowest version name part of parent name
+  parent_id = (
+   SELECT id
+   FROM Part
+   WHERE name = parent_name_id
+    AND version = parent_version_name_id
+    AND serial IS NULL
+   ORDER BY parent ASC -- Non NULLs first
+   LIMIT 1
+  );
+  IF parent_id IS NULL THEN
+   -- Create parent
+   parent_id := (SELECT GetPart(inParentName,inParentVersionName));
+  END IF;
+  RETURN (
+   SELECT GetPartWithParent(part_name_id, parent_id)
+  );
+ END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar,
