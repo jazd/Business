@@ -992,8 +992,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
--- GetPart(name varchar, versionId integer)
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar,
  inVersionId integer
@@ -1053,7 +1051,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- GetPart(name varchar, versionName)
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar,
  inVersion varchar
@@ -1067,9 +1064,62 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- GetPart(name varchar, versionName varchar, major integer)
--- GetPart(name varchar, versionName varchar, major integer, minor integer)
--- GetPart(name varchar, versionName varchar, major integer, minor integer, patch integer)
+CREATE OR REPLACE FUNCTION GetPart (
+ inName varchar,
+ inVersion varchar,
+ inMajor  varchar
+) RETURNS integer AS $$
+DECLARE version_id integer;
+BEGIN
+ IF inVersion IS NOT NULL THEN
+  version_id := (SELECT GetVersionName(inVersion, inMajor, NULL, NULL));
+ ELSE
+  version_id := (SELECT GetVersion(inMajor, NULL, NULL));
+ END IF;
+ RETURN (
+  SELECT GetPart(inName, version_id)
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetPart (
+ inName varchar,
+ inVersion varchar,
+ inMajor  varchar,
+ inMinor varchar
+) RETURNS integer AS $$
+DECLARE version_id integer;
+BEGIN
+ IF inVersion IS NOT NULL THEN
+  version_id := (SELECT GetVersionName(inVersion, inMajor, inMinor, NULL));
+ ELSE
+  version_id := (SELECT GetVersion(inMajor, inMinor, NULL));
+ END IF;
+ RETURN (
+  SELECT GetPart(inName, version_id)
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetPart (
+ inName varchar,
+ inVersion varchar,
+ inMajor  varchar,
+ inMinor varchar,
+ inPatch varchar
+) RETURNS integer AS $$
+DECLARE version_id integer;
+BEGIN
+ IF inVersion IS NOT NULL THEN
+  version_id := (SELECT GetVersionName(inVersion, inMajor, inMinor, inPatch));
+ ELSE
+  version_id := (SELECT GetVersion(inMajor, inMinor, inPatch));
+ END IF;
+ RETURN (
+  SELECT GetPart(inName, version_id)
+ );
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION GetAssemblyApplicationRelease (
  inAssembly integer,
