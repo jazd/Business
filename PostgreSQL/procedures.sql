@@ -1121,6 +1121,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Used in other GetAssembly functions
+CREATE OR REPLACE FUNCTION PutAssemblyPart (
+ inAssembly integer,
+ inPart integer,
+ inDesignator varchar,
+ inQuantity integer
+) RETURNS void AS $$
+DECLARE designator_id integer;
+BEGIN
+ designator_id := GetWord(inDesignator);
+ INSERT INTO AssemblyPart (assembly, part, designator, quantity) (
+  SELECT inAssembly, inPart, designator_id, inQuantity
+  FROM Dual
+  LEFT JOIN AssemblyPart AS exists ON exists.assembly = inAssembly
+   AND exists.part = inPart
+   AND ((exists.designator = designator_id) OR (exists.designator IS NULL AND designator_id IS NULL))
+   AND ((exists.quantity = inQuantity) OR (exists.quantity IS NULL AND inQuantity IS NULL))
+  WHERE exists.assembly IS NULL
+ );
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION GetAssemblyApplicationRelease (
  inAssembly integer,
  inApplicationRelease integer,
