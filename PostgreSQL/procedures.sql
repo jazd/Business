@@ -1203,6 +1203,29 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Pass in the parent part that will be copied to new part with serial number
+CREATE OR REPLACE FUNCTION GetPartbySerial (
+ inParent integer,
+ inSerial varchar
+) RETURNS integer AS $$
+BEGIN
+ INSERT INTO Part (parent, name, version, serial) (
+ SELECT inParent, parent.name, parent.version, inSerial
+ FROM Part AS parent
+ LEFT JOIN Part AS exists ON exists.parent = inParent
+  AND exists.serial = inSerial
+ WHERE parent.id = inParent
+  AND exists.id IS NULL
+ );
+ RETURN (
+  SELECT part.id
+  FROM Part
+  WHERE Part.parent = inParent
+   AND Part.serial = inSerial
+ );
+END;
+$$ LANGUAGE plpgsql;
+
 -- Used in other GetAssembly functions
 CREATE OR REPLACE FUNCTION PutAssemblyPart (
  inAssembly integer,
