@@ -1225,6 +1225,29 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION PutAssemblyPart (
+ inAssemblyName varchar,
+ inAssemblyVersion varchar,
+ inAssemblyMajor  varchar,
+ inAssemblyMinor varchar,
+ inAssemblyPatch varchar,
+ inPartName varchar,
+ inPartVersion varchar,
+ inPartMajor  varchar,
+ inPartMinor varchar,
+ inPartPatch varchar,
+ inDesignator varchar,
+ inQuantity integer
+) RETURNS void AS $$
+DECLARE assembly_id integer;
+DECLARE part_id integer;
+BEGIN
+ assembly_id := GetPart(inAssemblyName, inAssemblyVersion, inAssemblyMajor, inAssemblyMinor, inAssemblyPatch);
+ part_id := GetPart(inPartName, inPartVersion, inPartMajor, inPartMinor, inPartPatch);
+ PERFORM PutAssemblyPart(assembly_id, part_id, inDesignator, inQuantity);
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION GetAssemblyApplicationRelease (
  inAssembly integer,
  inApplicationRelease integer,

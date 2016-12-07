@@ -1200,6 +1200,30 @@ JOIN Sentence ON Sentence.id = Part.name
 LEFT JOIN Versions ON Versions.version = Part.version
   </sql>
  </view>
+ <view name="Assemblies" fields="assembly, parentName, name, version, serial">
+  <sql>
+SELECT DISTINCT AssemblyPart.assembly, parent.name AS parentName,
+ assemblies.name, assemblies.version, assemblies.serial
+FROM AssemblyPart
+JOIN Parts AS assemblies ON assemblies.part = AssemblyPart.assembly
+JOIN Parts AS parent ON parent.part = assemblies.parent
+  </sql>
+ </view>
+ <view name="AssemblyParts" fields="assembly, parentName, assemblyName, assemblyVersion, designator, partName, partVersion, serial">
+  <sql>
+SELECT AssemblyPart.assembly, parent.name AS parentName,
+ assemblies.name AS assemblyName, assemblies.version AS assemblyVersion,
+ designator.value AS designator,
+ parts.name AS partName, parts.version AS partVersion,
+ parts.serial
+FROM AssemblyPart
+JOIN Parts AS assemblies ON assemblies.part = AssemblyPart.assembly
+JOIN Parts AS parent ON parent.part = assemblies.parent
+JOIN Parts AS parts ON parts.part = AssemblyPart.part
+LEFT JOIN Word AS designator ON designator.id = AssemblyPart.designator
+ AND designator.culture = 1033
+  </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>
