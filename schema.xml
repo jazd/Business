@@ -728,11 +728,11 @@
 </constraints>
 </table>
 
-<table name="Property" order="800">
+<table name="Attribute" order="800">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="unit" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="word" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="integer" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="float" data_type="float" size="24" is_nullable="1" order="5" />
@@ -740,30 +740,30 @@
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="10" />
 </fields>
 <constraints>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="unit" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="word" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
-<table name="RecordAttribute" order="801">
+<table name="RecordProperty" order="801">
 <comments>untested</comments>
 <fields>
  <field name="tableName" data_type="varchar" size="64" is_nullable="0" order="1" />
  <field name="tableId" data_type="bigint" size="" is_nullable="1" order="2">
-  <comment>tableId is null for list of possible attributes/properties for table</comment>
+  <comment>tableId is null for list of possible properties/attributes for table</comment>
  </field>
- <field name="attribute" data_type="integer" size="" is_nullable="1" order="3">
-  <comment>attribute is null if RecordProperty</comment>
+ <field name="property" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="attribute" data_type="integer" size="" is_nullable="1" order="4">
+  <comment>attribute is null if just a property</comment>
  </field>
- <field name="property" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="5" >
   <comments>No longer associate with this record.  Used instead of DELETE.</comments>
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="10" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="property" reference_table="Property" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="attribute" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="attribute" reference_table="Attribute" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="property" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
