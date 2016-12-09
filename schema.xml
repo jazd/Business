@@ -807,6 +807,9 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="id" reference_table="Period" reference_fields="span" deferrable="1" /></comments>
+</constraints>
 </table>
 <table name="TimeOfDay" order="311">
 <comments>untested</comments>
@@ -816,6 +819,9 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="stop" data_type="time" size="0" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="id" reference_table="Period" reference_fields="span" deferrable="1" /></comments>
+</constraints>
 </table>
 <table name="DayOfWeek" order="312">
 <comments>untested</comments>
@@ -825,6 +831,9 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="stop" data_type="smallint" size="" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="id" reference_table="Period" reference_fields="span" deferrable="1" /></comments>
+</constraints>
 </table>
 <table name="DayOfMonth" order="313">
 <comments>untested</comments>
@@ -837,6 +846,9 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="id" reference_table="Period" reference_fields="span" deferrable="1" /></comments>
+</constraints>
 </table>
 <table name="PeriodName" order="390">
 <comments>untested</comments>
@@ -845,6 +857,10 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="name" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="period" reference_table="Period" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
 </table>
 
 <table name="AddressAttribute" order="72">

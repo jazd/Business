@@ -17,6 +17,8 @@ SESSION="Session AgentString SessionToken SessionCredential Individual Name Enti
 
 ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease ApplicationRelease Version Word Sentence Paragraph"
 
+EVENTS="Period DateRange TimeOfDay DayOfWeek DayOfMonth PeriodName Word"
+
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
 
@@ -43,6 +45,9 @@ sqlt-diagram --title "Session" $ARGS -c 5 -o diagrams/web_session.png ./zot.xml
 
 scripts/extractTable.pl schema.xml.invalid $ASSEMBLIES >./zot.xml
 sqlt-diagram --title "Assemblies" $ARGS -c 3 -o diagrams/assemblies.png ./zot.xml
+
+scripts/extractTable.pl schema.xml.invalid $EVENTS >./zot.xml
+sqlt-diagram --title "Events" $ARGS -c 2 -o diagrams/events.png ./zot.xml
 
 # Remove temporary files
 rm zot.xml
