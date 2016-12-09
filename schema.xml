@@ -790,6 +790,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <comments>Tables to define periods of time</comments>
 <table name="Period" order="300">
+<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="1" is_auto_increment="0" is_primary_key="0" is_foreign_key="1" order="1" />
  <field name="span" data_type="integer" size="" is_nullable="0" is_foreign_key="1" order="2" />
@@ -799,6 +800,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 <comments>Span tables share the same unique sequence id</comments>
 <table name="DateRange" order="310">
+<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="start" data_type="timestamp" size="0" is_nullable="0" order="2" />
@@ -807,6 +809,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </fields>
 </table>
 <table name="TimeOfDay" order="311">
+<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="start" data_type="time" size="0" is_nullable="0" order="2" />
@@ -815,6 +818,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </fields>
 </table>
 <table name="DayOfWeek" order="312">
+<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="start" data_type="smallint" size="" is_nullable="1" order="2" />
@@ -823,6 +827,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </fields>
 </table>
 <table name="DayOfMonth" order="313">
+<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="month" data_type="smallint" size="0" is_nullable="1" order="2" />
@@ -834,6 +839,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </fields>
 </table>
 <table name="PeriodName" order="390">
+<comments>untested</comments>
 <fields>
  <field name="period" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="0" is_foreign_key="0" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="1" order="2" />
