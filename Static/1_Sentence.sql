@@ -1,2 +1,13 @@
 INSERT INTO Sentence (id,culture,value,length) VALUES(1,1033,'IBM Information Management System',33);
 INSERT INTO Sentence (id,culture,value,length) VALUES(2,1033,'Unknown',7);
+INSERT INTO Sentence (id,culture,value,length) VALUES(3,1033,'Christmas Day',13);
+INSERT INTO Sentence (id,culture,value,length) VALUES(4,1033,'Thanksgiving Day',16);
+INSERT INTO Sentence (id,culture,value,length) VALUES(5,1033,'Veterans Day',12);
+INSERT INTO Sentence (id,culture,value,length) VALUES(6,1033,'Memorial Day',12);
+INSERT INTO Sentence (id,culture,value,length) VALUES(7,1033,'New Years Day',13);
+INSERT INTO Sentence (id,culture,value,length) VALUES(8,1033,'Martin Luther King, Jr. Day',27);
+INSERT INTO Sentence (id,culture,value,length) VALUES(9,1033,'George Washington''s Birthday',29);
+INSERT INTO Sentence (id,culture,value,length) VALUES(10,1033,'Independence Day',17);
+INSERT INTO Sentence (id,culture,value,length) VALUES(11,1033,'Labor Day',9);
+INSERT INTO Sentence (id,culture,value,length) VALUES(12,1033,'Columbus Day',12);
+INSERT INTO Sentence (id,culture,value,length) VALUES(13,1033,'Valentine''s Day',16);

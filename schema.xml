@@ -829,13 +829,16 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="start" data_type="smallint" size="" is_nullable="1" order="2" />
  <field name="stop" data_type="smallint" size="" is_nullable="1" order="3" />
+ <field name="dayOfMonth" data_type="integer" is_nullable="1" order="4" >
+  <comments>Positive or negative day in the month. 1st Thursday, last Friday,  etc</comments>
+ </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="id" reference_table="Period" reference_fields="span" deferrable="1" /></comments>
 </constraints>
 </table>
-<table name="DayOfMonth" order="313">
+<table name="MonthDay" order="313">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
@@ -844,6 +847,20 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="weekOfMonth" data_type="integer" is_nullable="1" order="4" >
   <comments>Positive or negative week in the month. 1st week, last week,  etc</comments>
  </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="id" reference_table="Period" reference_fields="span" deferrable="1" /></comments>
+</constraints>
+</table>
+<table name="Month" order="314">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="month" data_type="smallint" size="0" is_nullable="1" order="2" >
+  <comments>January is 0, December is 11</comments>
+ </field>
+ <field name="year" data_type="integer" size="0" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -859,7 +876,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </fields>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="period" reference_table="Period" reference_fields="id" deferrable="1" /></comments>
- <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 

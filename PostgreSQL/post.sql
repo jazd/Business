@@ -48,6 +48,10 @@ CREATE UNIQUE INDEX word_id_culture_null ON Word (id) WHERE culture IS NULL;
 CREATE UNIQUE INDEX sentence_id_culture_null ON Sentence (id) WHERE culture IS NULL;
 CREATE UNIQUE INDEX paragraph_id_culture_null ON Paragraph (id) WHERE culture IS NULL;
 
+-- Sequences
+CREATE SEQUENCE period_shared_id_seq START WITH 10000;
+CREATE SEQUENCE span_shared_id_seq START WITH 10000;
+
 -- Application or user insert on these tables should start at 2000000
 -- This leaves room for global constants that are guaranteed to exist
 ALTER SEQUENCE word_id_seq RESTART WITH 2000000;
