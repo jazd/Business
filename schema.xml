@@ -803,8 +803,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="start" data_type="timestamp" size="0" is_nullable="0" order="2" />
- <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3" />
+ <field name="start" data_type="timestamp WITHOUT TIME ZONE" size="0" is_nullable="0" order="2" />
+ <field name="stop" data_type="timestamp WITHOUT TIME ZONE" size="0" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -815,8 +815,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="start" data_type="time" size="0" is_nullable="0" order="2" />
- <field name="stop" data_type="time" size="0" is_nullable="1" order="3" />
+ <field name="start" data_type="time WITHOUT TIME ZONE" size="0" is_nullable="0" order="2" />
+ <field name="stop" data_type="time WITHOUT TIME ZONE" size="0" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -1316,6 +1316,8 @@ LEFT JOIN Word AS designator ON designator.id = AssemblyPart.designator
  AND designator.culture = 1033
   </sql>
  </view>
+
+
 </views>
 <triggers></triggers>
 <procedures></procedures>
