@@ -35,9 +35,46 @@ AS $$
  CAST(extract(days FROM CAST(birthday(birth) AS date) - CAST(asOf AS timestamp)) AS integer) AS days
 $$ language sql immutable strict;
 
+CREATE OR REPLACE FUNCTION XOR(boolean, boolean)
+ RETURNS boolean
+AS $$
+SELECT ($1 AND NOT $2) OR (NOT $1 AND $2)
+$$ language sql immutable strict;
+
+
 -- Simulate the DUAL fake table used on other servers
 DROP TABLE DUAL CASCADE;
 CREATE TABLE DUAL (
  value INTEGER
 );
 INSERT INTO DUAL (value) VALUES (NULL); -- Only a single value
+
+-- Allow testing of date and culture based procedures and views
+-- by allowing culture and now() to be overridden for testing and client connections
+CREATE OR REPLACE FUNCTION ClientNow()
+ RETURNS timestamp WITH TIME ZONE
+AS $$
+DECLARE
+ injected_now timestamp WITH TIME ZONE;
+BEGIN
+CREATE TEMP TABLE IF NOT EXISTS inject_now (
+ value timestamp WITH TIME ZONE
+);
+injected_now := (SELECT value FROM inject_now LIMIT 1);
+RETURN (SELECT COALESCE(injected_now,NOW()));
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ClientCulture()
+ RETURNS integer
+AS $$
+DECLARE
+ injected_culture integer;
+BEGIN
+CREATE TEMP TABLE IF NOT EXISTS inject_culture (
+ value integer
+);
+injected_culture := (SELECT value FROM inject_culture LIMIT 1);
+RETURN (SELECT COALESCE(injected_culture,1033));
+END;
+$$ LANGUAGE plpgsql;
