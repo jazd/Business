@@ -49,7 +49,9 @@ CREATE UNIQUE INDEX sentence_id_culture_null ON Sentence (id) WHERE culture IS N
 CREATE UNIQUE INDEX paragraph_id_culture_null ON Paragraph (id) WHERE culture IS NULL;
 
 -- Sequences
+DROP SEQUENCE period_shared_id_seq;
 CREATE SEQUENCE period_shared_id_seq START WITH 10000;
+DROP SEQUENCE span_shared_id_seq;
 CREATE SEQUENCE span_shared_id_seq START WITH 10000;
 
 -- Application or user insert on these tables should start at 2000000

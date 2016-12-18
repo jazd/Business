@@ -57,9 +57,11 @@ AS $$
 DECLARE
  injected_now timestamp WITH TIME ZONE;
 BEGIN
+SET LOCAL client_min_messages=warning;
 CREATE TEMP TABLE IF NOT EXISTS inject_now (
  value timestamp WITH TIME ZONE
 );
+RESET client_min_messages;
 injected_now := (SELECT value FROM inject_now LIMIT 1);
 RETURN (SELECT COALESCE(injected_now,NOW()));
 END;
@@ -71,9 +73,11 @@ AS $$
 DECLARE
  injected_culture integer;
 BEGIN
+SET LOCAL client_min_messages=warning;
 CREATE TEMP TABLE IF NOT EXISTS inject_culture (
  value integer
 );
+RESET client_min_messages;
 injected_culture := (SELECT value FROM inject_culture LIMIT 1);
 RETURN (SELECT COALESCE(injected_culture,1033));
 END;

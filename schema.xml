@@ -973,11 +973,11 @@ LEFT JOIN Given AS middle ON middle.id = Name.middle
 LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
 LEFT JOIN Family ON Family.id = Name.family
 LEFT JOIN Word AS honorific ON honorific.id = Individual.prefix
- AND honorific.culture = 1033
+ AND honorific.culture = ClientCulture()
 LEFT JOIN Word AS suffix ON suffix.id = Individual.suffix
- AND suffix.culture = 1033
+ AND suffix.culture = ClientCulture()
 LEFT JOIN Word AS post ON post.id = Individual.post
- AND post.culture = 1033
+ AND post.culture = ClientCulture()
 WHERE Individual.nameChange IS NULL
  OR Individual.nameChange > NOW()
  </sql>
@@ -1078,14 +1078,14 @@ FROM IndividualPersonEvent
  LEFT JOIN Given AS goesBy ON goesBy.id = IndividualPersonEvent.goesBy
  LEFT JOIN Family ON Family.id = Name.family
  LEFT JOIN Word AS honorific ON honorific.id = IndividualPersonEvent.honorific
-  AND honorific.culture = 1033
+  AND honorific.culture = ClientCulture()
  LEFT JOIN Word AS suffix ON suffix.id = IndividualPersonEvent.suffix
-  AND suffix.culture = 1033
+  AND suffix.culture = ClientCulture()
  LEFT JOIN Word AS post ON post.id = IndividualPersonEvent.post
-  AND post.culture = 1033
- LEFT JOIN Word AS born ON born.value = !apos;Born!apos; AND born.culture = 1033 AND birth = event
- LEFT JOIN Word AS death ON death.value = !apos;Died!apos; AND death.culture  = 1033 AND death = event
- LEFT JOIN Word AS change ON change.value = !apos;Changed name!apos; AND change.culture  = 1033
+  AND post.culture = ClientCulture()
+ LEFT JOIN Word AS born ON born.value = !apos;Born!apos; AND born.culture = ClientCulture() AND birth = event
+ LEFT JOIN Word AS death ON death.value = !apos;Died!apos; AND death.culture  = ClientCulture() AND death = event
+ LEFT JOIN Word AS change ON change.value = !apos;Changed name!apos; AND change.culture  = ClientCulture()
  </sql>
  </view>
 
@@ -1115,9 +1115,9 @@ FROM IndividualList
 JOIN IndividualListName ON IndividualListName.IndividualList = IndividualList.id
  AND IndividualListName.optinStyle = 1
 JOIN Word AS Name ON IndividualListName.name = Name.id
- AND Name.culture = 1033
+ AND Name.culture = ClientCulture()
 LEFT JOIN Word AS Set ON IndividualListName.set = Set.id
- AND Set.culture = 1033
+ AND Set.culture = ClientCulture()
 LEFT JOIN IndividualList AS disable ON disable.individual = IndividualList.individual
  AND disable.id IS NULL
  AND disable.unlist IS NULL
@@ -1268,13 +1268,13 @@ SELECT Version.id AS version, name.value AS name,
  major.value AS major, minor.value AS minor, patch.value AS patch
 FROM Version
 LEFT JOIN Word AS name ON name.id = Version.name
- AND name.culture = 1033
+ AND name.culture = ClientCulture()
 LEFT JOIN Word AS major ON major.id = Version.major
- AND major.culture = 1033
+ AND major.culture = ClientCulture()
 LEFT JOIN Word AS minor ON minor.id = Version.minor
- AND minor.culture = 1033
+ AND minor.culture = ClientCulture()
 LEFT JOIN Word AS patch ON patch.id = Version.patch
- AND patch.culture = 1033
+ AND patch.culture = ClientCulture()
   </sql>
  </view>
  <view name="Parts" fields="part,parent,name,nameId,version,versionId,serial,created">
@@ -1288,7 +1288,7 @@ SELECT Part.id AS part, Part.parent,
  Part.serial, Part.created
 FROM Part
 JOIN Sentence ON Sentence.id = Part.name
- AND Sentence.culture = 1033
+ AND Sentence.culture = ClientCulture()
 LEFT JOIN Versions ON Versions.version = Part.version
   </sql>
  </view>
@@ -1313,7 +1313,7 @@ JOIN Parts AS assemblies ON assemblies.part = AssemblyPart.assembly
 JOIN Parts AS parent ON parent.part = assemblies.parent
 JOIN Parts AS parts ON parts.part = AssemblyPart.part
 LEFT JOIN Word AS designator ON designator.id = AssemblyPart.designator
- AND designator.culture = 1033
+ AND designator.culture = ClientCulture()
   </sql>
  </view>
 
