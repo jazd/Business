@@ -1366,6 +1366,36 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION GetPhone (
+ inCountryCode varchar,
+ inAreaCode varchar,
+ inNumber varchar
+) RETURNS integer AS $$
+DECLARE
+ countrycode_id integer;
+BEGIN
+ countrycode_id := (SELECT id FROM Country WHERE UPPER(Country.code) = UPPER(inCountryCode));
+ IF countrycode_id IS NOT NULL THEN
+  INSERT INTO Phone (country, area, number) (
+   SELECT countrycode_id, inAreaCode, inNumber
+   FROM Dual
+   LEFT JOIN Phone AS exists ON exists.country = countrycode_id
+    AND exists.area = inAreaCode
+    AND exists.number = inNumber
+   WHERE exists.id IS NULL
+ );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Phone
+  WHERE country = countrycode_id
+   AND area = inAreaCode
+   AND number = inNumber
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+
 -- For examples only.  Don't use in a production environment
 CREATE OR REPLACE FUNCTION RandomString (
  inLength integer
