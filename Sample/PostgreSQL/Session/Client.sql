@@ -1,72 +1,40 @@
 -- PostgreSQL
--- Pre-insert a valid agent string
-INSERT INTO Sentence (id,value,length,culture) VALUES(1999999,'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36',105,NULL);
--- Pre-insert a valid Application
--- Chrome
-INSERT INTO Application (id,name)
-SELECT 9999 AS id, Word.id  AS name
-FROM Word
-WHERE value = 'Chrome'
- AND culture IS NULL
-;
--- Linux
-INSERT INTO Application (id,name)
-SELECT 9998 AS id, Word.id  AS name
-FROM Word
-WHERE value = 'Linux'
- AND culture IS NULL
-;
--- Pre-insert a valid version
--- 43.0.2357
-INSERT INTO Version (id,major,minor,patch)
-SELECT 9999 AS id, Major.id AS major, Minor.id AS minor, Patch.id AS patch
-FROM Word AS Major
-JOIN Word AS Minor ON Minor.value = '0' AND Minor.culture IS NULL
-JOIN Word AS Patch ON Patch.value = '2357' AND Patch.culture IS NULL
-WHERE Major.value = '43' AND Major.culture IS NULL
-;
--- x86_64
-INSERT INTO Version (id,name)
-SELECT 9998 AS id, Word.id AS name
-FROM Word
-WHERE Word.value = 'x86_64' AND Word.culture IS NULL
-;
--- Releases of applications
--- Chrome
-INSERT INTO Release (id,build,version)
-SELECT 9999 AS id, Build.id AS build, 9999 AS version
-FROM Word AS Build
-WHERE Build.value = '130' AND Build.culture IS NULL
-;
--- Linux
-INSERT INTO Release (id,version) VALUES (9998,9998);
--- Pre-insert a valid Agent (ApplicationRelease)
--- Chrome/43.0.2357.130
+-- Client session example in two steps.
+-- 1)   A client hits the server without a session token, so generate an anonymous session to track it going forward.
+-- 1.a) Parse Client(Browser) Agent string.
+-- 1.b) Insert the parsed Client Agent string, reffering URL and source IP address into an Anonymous Session.
+--      The AgentString table will associate this string to its AssemblyApplicationRelease(agent) id.  As the name implies, the agent is an assembly(device) associated with and ApplicationRelease(os and client)
+-- 2)   Client requests to create a user
+-- 2.a) Assign a session token to the anonymous session
+--      Session data, status and timeout is also stored in this record
+-- 2.b) Client generates a valid password
+-- 2.c) Create a user credential (account) associated with the new password
+-- 2.d) Associate current session with new user credential
 
--- NO LONGER VALID beyoned this point.  TODO: Fix-up
-INSERT INTO ApplicationRelease (id,application,release) VALUES (9999, 9999, 9999);
--- Linux x86_64
-INSERT INTO ApplicationRelease (id,application,release) VALUES (9998, 9998, 9998);
 --
--- Unknown agent device
-INSERT INTO Part (id,name)
-SELECT 9999 AS id, Sentence.id AS name
-FROM Sentence
-WHERE Sentence.value = 'Unknown' AND Sentence.culture = 1033
-;
+-- Step 1 for initial unknown server client access
+-- 1.a) Parse Client(Browser) Agent string 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36'
+-- 1.b) Insert the parsed Client Agent string, reffering URL and source IP address into an Anonymous Session.
+SELECT AnonymousSession('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36',
+'Chrome','43','0','2357','130','Linux',NULL,NULL,NULL,NULL,NULL,'Other',
+0,'www.ibm.com',NULL,NULL,
+'107.77.97.52');
+--  anonymoussession 
+-- ------------------
+--                1  -- session id
 
--- Agent's Client and OS
-INSERT INTO AssemblyApplicationRelease (id, assembly, applicationRelease) VALUES (9999,9999,9998);
---
--- The parsed agent, Unknown device using OS Linux x86_64, Application Chrome/43.0.2357.130
-INSERT INTO AssemblyApplicationRelease (id, parent, assembly, applicationRelease) VALUES (9998, 9999, 9999, 9999);
--- Create AgentString
--- Links an agent string to a parsed AssemblyApplicationRelease tree
-INSERT INTO AgentString (id,agent,string) VALUES (1,9998,1999999);
---
--- Insert the session record using the site's session token function
-INSERT INTO Session (id) VALUES(1);
-INSERT INTO SessionToken (session,token) VALUES(1,'63840346be345744139d5d8b70292ff2');
---
--- Associate a remote client and remote IP address to a session
-INSERT INTO SessionCredential (session,agentString,fromAddress) VALUES (1,1,'107.77.97.52');
+-- Step 2 for when session needs to be associated with a user. In this case, a new user(credential).
+-- 2.a) Assign a session token to the anonymous session
+INSERT INTO SessionToken (session, token, initialized, timeout, items) SELECT 1, 'BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn', 1, NULL, NULL;
+-- 2.b) Client generates a valid password
+--      No Provider or Generator, so password is in the clear
+INSERT INTO password (provider, generator, value) VALUES (NULL, NULL, '1234');
+-- In this example, password.id is 1
+-- 2.c) Create a user credential (account) associated with the new password
+INSERT INTO credential (username, password, culture) VALUES ('helmet', 1, 1033);
+-- 2.d) Associate current session with new user credential
+SELECT SetSession('BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn', NULL, 1000, 1, 10, '107.77.97.52', NULL);
+-- SetSession should be called on every page load to keep session alive and track the client
+
+
+

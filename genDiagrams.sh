@@ -17,7 +17,7 @@ SESSION="Session AgentString SessionToken SessionCredential Individual Name Enti
 
 ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease ApplicationRelease Version Word Sentence Paragraph"
 
-EVENTS="Period DateRange TimeOfDay DayOfWeek DayOfMonth Month PeriodName Sentence"
+EVENTS="Period DateRange TimeOfDay DayOfWeek MonthDay Month PeriodName Sentence"
 
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid

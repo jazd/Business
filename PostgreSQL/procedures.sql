@@ -1700,6 +1700,8 @@ BEGIN
    INSERT INTO SessionToken (session,token,siteApplicationRelease,created) (
     SELECT existingSession, inSessionToken, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created
    );
+  ELSE
+   UPDATE Session SET touched = NOW() WHERE id = existingSession;
   END IF;
 
   INSERT INTO SessionCredential (session, agentString, credential, referring, fromAddress, location) (

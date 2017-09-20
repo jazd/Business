@@ -641,7 +641,8 @@
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <indices>
- <index name="sesstionToken_session_siteApplicationRelease" type="UNIQUE" fields="session,siteApplicationRelease" />
+ <index name="sessionToken_session_siteApplicationRelease" type="UNIQUE" fields="session,siteApplicationRelease" />
+ <index name="sessionToken_session_token" type="UNIQUE" fields="session,token" />
 </indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -657,7 +658,7 @@
  <field name="generator" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="value" data_type="varchar" size="255" is_nullable="1" order="4" />
  <field name="name" data_type="integer" size="" is_nullable="1" order="5" />
- <field name="revoked" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="98" />
+ <field name="revoked" data_type="timestamp" size="0" is_nullable="1" order="98" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -1275,6 +1276,85 @@ LEFT JOIN Word AS minor ON minor.id = Version.minor
  AND minor.culture = ClientCulture()
 LEFT JOIN Word AS patch ON patch.id = Version.patch
  AND patch.culture = ClientCulture()
+  </sql>
+ </view>
+ <view name="VersionNames" fields="version,name,value,major,minor,patch">
+  <sql>
+SELECT Version.id AS version, name.value AS name,
+ COALESCE(name.value || !apos; !apos;, !apos;!apos;) ||
+ COALESCE(major.value, !apos;!apos;) ||
+ COALESCE(!apos;.!apos; || minor.value, !apos;!apos;) ||
+ COALESCE(!apos;.!apos; || patch.value, !apos;!apos;)
+ AS value,
+ major.value AS major, minor.value AS minor, patch.value AS patch
+FROM Version
+LEFT JOIN Word AS name ON name.id = Version.name
+ AND name.culture = ClientCulture()
+LEFT JOIN Word AS major ON major.id = Version.major
+ AND major.culture = ClientCulture()
+LEFT JOIN Word AS minor ON minor.id = Version.minor
+ AND minor.culture = ClientCulture()
+LEFT JOIN Word AS patch ON patch.id = Version.patch
+ AND patch.culture = ClientCulture()
+  </sql>
+ </view>
+ <view name="ParsedAgentStringShort" fields="agentstring,deviceid,device,osid,os,agentid,agent,deviceversion,osapplicationrelease,agentapplicationrelease">
+  <sql>
+SELECT AgentString.id AS agentString,
+ device.id AS deviceid, deviceName.value AS device,
+ OS.id AS osid, OSName.value AS OS,
+ Agent.id AS agentid, AgentName.value AS agent,
+ device.version AS deviceversion,
+ deviceOS.applicationrelease AS osApplicationRelease,
+ agentApplicationRelease.id AS agentApplicationRelease
+FROM AgentString
+JOIN AssemblyApplicationRelease AS deviceAgent ON deviceAgent.id = agentString.agent
+JOIN Part AS device ON device.id = deviceAgent.assembly
+JOIN Sentence AS deviceName ON deviceName.id = device.name AND deviceName.culture = ClientCulture()
+JOIN AssemblyApplicationRelease AS deviceOS ON deviceOS.id = deviceAgent.parent
+JOIN ApplicationRelease AS OSapplicationRelease ON OSapplicationRelease.id = deviceOS.applicationRelease
+JOIN Application AS OS ON OS.id = OSapplicationRelease.application
+JOIN Word AS OSName ON OSName.id = OS.name AND OSName.culture = ClientCulture()
+JOIN ApplicationRelease AS agentApplicationRelease ON agentApplicationRelease.id = deviceAgent.applicationRelease
+JOIN Application AS Agent On Agent.id = agentApplicationRelease.application
+JOIN Word AS AgentName ON AgentName.id = Agent.name AND AgentName.culture = ClientCulture()
+  </sql>
+ </view>
+ <view name="ParsedAgentString" fields="agentstring,deviceid,deviceversion,device,deviceersionname,osid,osversion,os,osversionname,agentid,agentversion,agent,agentversionname">
+  <sql>
+SELECT agentstring,
+ deviceid, deviceversion, device, deviceversionname.value as deviceersionname,
+ osid, OSRelease.version AS osversion, os, OSVersion.value AS osversionname,
+ agentid, AgentVersion.version AS agentversion, agent, AgentVersion.value agentversionname
+FROM ParsedAgentStringShort
+JOIN ApplicationRelease AS OSApplicatonRelease ON OSApplicatonRelease.id = osapplicationrelease
+JOIN ApplicationRelease AS AgentApplicationRelease ON AgentApplicationRelease.id = agentApplicationRelease
+LEFT JOIN VersionNames AS deviceversionname ON deviceversionname.version = deviceversion
+LEFT JOIN Release AS OSRelease ON OSRelease.id = OSApplicatonRelease.release
+LEFT JOIN Versions AS OSVersion ON OSVersion.version = OSRelease.version
+LEFT JOIN Release AS AgentRelease ON AgentRelease.id = AgentApplicationRelease.release
+LEFT JOIN Versions AS AgentVersion ON AgentVersion.version = AgentRelease.version
+  </sql>
+ </view>
+ <view name="Sessions" fields="session,token,siteapplicationrelease,agentstring,deviceid,device,osid,os,agentid,agent,referring,referrringurl,fromaddress,credential,individual,username,email,created,touched">
+  <sql>
+SELECT session.id AS session,
+ sessionToken.token, sessionToken.siteapplicationrelease,
+ sessionCredential.agentstring,
+ deviceid, ParsedAgentStringShort.device, osid, ParsedAgentStringShort.os, agentid, ParsedAgentStringShort.agent,
+ sessionCredential.referring, URL.value AS referrringURL,
+ sessionCredential.fromaddress,
+ sessionCredential.credential, credential.individual,  credential.username,
+ EmailAddress.value AS email,
+ COALESCE(sessionToken.created, session.created) AS created, session.touched
+FROM session
+CROSS JOIN sessionCredential
+LEFT JOIN sessionToken ON sessionToken.session = session.id
+LEFT JOIN ParsedAgentStringShort ON ParsedAgentStringShort.agentstring = sessionCredential.agentstring
+LEFT JOIN credential ON credential.id = sessionCredential.credential
+LEFT JOIN EmailAddress ON EmailAddress.email = credential.email
+LEFT JOIN URL ON URL.path = sessionCredential.referring
+WHERE session.id = sessionCredential.session
   </sql>
  </view>
  <view name="Parts" fields="part,parent,name,nameId,version,versionId,serial,created">

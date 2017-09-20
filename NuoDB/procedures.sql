@@ -654,6 +654,8 @@ CREATE FUNCTION SetSession (
    INSERT INTO SessionToken (session,token,siteApplicationRelease,created) (
     SELECT existingSession, inSessionToken, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created FROM Dual
    );
+  ELSE
+   UPDATE Session SET touched = NOW() WHERE id = existingSession;
   END_IF;
 
   INSERT INTO SessionCredential (session, agentString, credential, referring, fromAddress, location) (
