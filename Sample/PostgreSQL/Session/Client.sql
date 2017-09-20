@@ -22,6 +22,7 @@ SELECT AnonymousSession('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHT
 --  anonymoussession 
 -- ------------------
 --                1  -- session id
+-- AnonymousSession should be called on every anonymous page load to keep session alive and track the client
 
 -- Step 2 for when session needs to be associated with a user. In this case, a new user(credential).
 -- 2.a) Assign a session token to the anonymous session

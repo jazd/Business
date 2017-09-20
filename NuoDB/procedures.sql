@@ -566,19 +566,32 @@ CREATE FUNCTION AnonymousSession (
  inRefGet STRING,
  inIPAddress STRING
 ) RETURNS BIGINT AS
- VAR newSession BIGINT;
+ VAR existingSession BIGINT;
+ VAR referringURL INTEGER;
 
- INSERT INTO Session (lock) VALUES (0);
- newSession = (SELECT MAX(id) FROM Session);
+ referringURL = (GetUrl(inRefSecure,inRefHost,inRefPath,inRefGet));
 
- INSERT INTO SessionCredential (session,agentString,fromAddress,referring)
- SELECT newSession AS session, inAgentString AS agentString,
-  inIPAddress AS fromAddress, 
-  GetUrl(inRefSecure,inRefHost,inRefPath,inRefGet)
- FROM Dual
- ;
+ existingSession = (
+  SELECT session
+  FROM SessionCredential
+  WHERE credential IS NULL
+  AND agentString = inAgentString
+  AND fromAddress = inIPAddress
+  AND ((referring = referringURL) OR (referring IS NULL AND referringURL IS NULL))
+ );
 
- RETURN newSession;
+ IF (existingSession IS NULL)
+  INSERT INTO Session (lock) VALUES (0);
+  existingSession = (SELECT MAX(id) FROM Session);
+  INSERT INTO SessionCredential (session,agentString,fromAddress,referring)
+  SELECT existingSession AS session, inAgentString AS agentString,
+   inIPAddress AS fromAddress, referringURL
+  FROM Dual;
+ ELSE
+  UPDATE Session SET touched = NOW() WHERE id = existingSession;
+ END_IF;
+
+ RETURN existingSession;
 END_FUNCTION;
 @
 SET DELIMITER ;

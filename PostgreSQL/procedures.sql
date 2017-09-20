@@ -1554,20 +1554,34 @@ CREATE OR REPLACE FUNCTION AnonymousSession (
  -- Connection
  inIPAddress inet
 ) RETURNS bigint AS $$
-DECLARE newSession bigint;
+DECLARE existingSession bigint;
+DECLARE referringURL integer;
 BEGIN
 
- INSERT INTO Session (lock) VALUES (0) RETURNING id INTO newSession;
+ referringURL := GetUrl(inRefSecure,inRefHost,inRefPath,inRefGet);
 
- -- Associate a remote client and remote IP address to a session
- INSERT INTO SessionCredential (session,agentString,fromAddress,referring)
- SELECT newSession AS session, inAgentString AS agentString,
-  inIPAddress AS fromAddress, 
-  -- referring url
-  GetUrl(inRefSecure,inRefHost,inRefPath,inRefGet)
- ;
+ existingSession := (
+  SELECT session
+  FROM SessionCredential
+  WHERE credential IS NULL
+  AND agentString = inAgentString
+  AND fromAddress = inIPAddress
+  AND ((referring = referringURL) OR (referring IS NULL AND referringURL IS NULL))
+ );
 
- RETURN newSession;
+ IF existingSession IS NULL THEN
+  INSERT INTO Session (lock) VALUES (0) RETURNING id INTO existingSession;
+
+  -- Associate a remote client and remote IP address to a session
+  INSERT INTO SessionCredential (session,agentString,fromAddress,referring)
+  SELECT existingSession AS session, inAgentString AS agentString,
+   inIPAddress AS fromAddress, referringURL
+  ;
+ ELSE
+  UPDATE Session SET touched = NOW() WHERE id = existingSession;
+ END IF;
+
+ RETURN existingSession;
 END;
 $$ LANGUAGE plpgsql;
 
