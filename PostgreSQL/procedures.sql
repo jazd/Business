@@ -857,7 +857,7 @@ CREATE OR REPLACE FUNCTION GetRelease (
 DECLARE build_id integer;
 BEGIN
  IF inVersion IS NOT NULL THEN
-  build_id := (SELECT GetIdentifier(inBuild));
+  build_id := (SELECT GetWord(inBuild));
   INSERT INTO Release (build, version) (
    SELECT build_id AS build, inVersion AS version
    FROM Dual
@@ -891,7 +891,7 @@ CREATE OR REPLACE FUNCTION GetApplication(
 DECLARE name_ident integer;
 BEGIN
  IF inName IS NOT NULL THEN
-  name_ident := (SELECT GetIdentifier(inName));
+  name_ident := (SELECT GetWord(inName));
   INSERT INTO Application (name) (
    SELECT name_ident AS name
    FROM Dual

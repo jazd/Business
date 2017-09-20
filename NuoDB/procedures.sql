@@ -271,7 +271,7 @@ CREATE FUNCTION GetRelease (
 ) RETURNS INTEGER AS
  VAR build_id INTEGER;
  IF (inVersion IS NOT NULL)
-  build_id = GetIdentifier(inBuild);
+  build_id = GetWord(inBuild);
   INSERT INTO Release (build, version) (
    SELECT build_id AS build, inVersion AS version
    FROM Dual
@@ -307,7 +307,7 @@ CREATE FUNCTION GetApplication(
 ) RETURNS INTEGER AS
  VAR name_ident INTEGER;
  IF (inName IS NOT NULL)
-  name_ident = GetIdentifier(inName);
+  name_ident = GetWord(inName);
   INSERT INTO Application (name) (
    SELECT name_ident AS name
    FROM Dual
