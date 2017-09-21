@@ -34,6 +34,7 @@ INSERT INTO password (provider, generator, value) VALUES (NULL, NULL, '1234');
 -- 2.c) Create a user credential (account) associated with the new password
 INSERT INTO credential (username, password, culture) VALUES ('helmet', 1, 1033);
 -- 2.d) Associate current session with new user credential
+--      (Token, siteId, agentStringId, credentialId, referringURLId, remoteAddr, locationId)
 SELECT SetSession('BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn', NULL, 1000, 1, 10, '107.77.97.52', NULL);
 -- SetSession should be called on every page load to keep session alive and track the client
 
