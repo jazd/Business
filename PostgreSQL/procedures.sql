@@ -1430,15 +1430,26 @@ CREATE OR REPLACE FUNCTION GetDeviceOSApplicationRelease (
  -- Device
  inDeviceBrand varchar,
  inDeviceModel varchar,
- inDeviceFamily varchar
+ inDeviceFamily varchar,
+ inDeviceFamilyVersion varchar
 ) RETURNS integer AS $$
 DECLARE deviceName VARCHAR;
+DECLARE deviceId integer;
+DECLARE deviceVersionId integer;
 BEGIN
  deviceName := (SELECT COALESCE(inDeviceFamily, 'Unknown'));
  -- User Device Agent SessionCredential.agent field, references AssemblyApplicationRelease.id
+ -- Detect device family version
+ IF inDeviceFamilyVersion IS NOT NULL THEN
+  deviceVersionId := (SELECT GetVersionName(inDeviceFamilyVersion, NULL, NULL, NULL));
+  deviceId := (SELECT GetPart(deviceName, deviceVersionId));
+ ELSE
+  deviceId := (SELECT GetPart(deviceName));
+ END IF;
+
  RETURN (SELECT GetAssemblyApplicationRelease(
    -- device
-   GetPart(deviceName),
+   deviceId,
    -- application release id
    GetApplicationRelease(
     -- application id
@@ -1452,7 +1463,7 @@ BEGIN
    -- device os
    GetAssemblyApplicationRelease(
     --device
-    GetPart(deviceName),
+    deviceId,
     --os release id
     GetApplicationRelease(
      -- os id
@@ -1466,6 +1477,29 @@ BEGIN
    )
   )
  );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetDeviceOSApplicationRelease (
+ inUAfamily varchar,
+ inUAmajor varchar,
+ inUAminor varchar,
+ inUApatch varchar,
+ inUAbuild varchar,
+ -- Operating System
+ inOSfamily varchar,
+ inOSmajor varchar,
+ inOSminor varchar,
+ inOSpatch varchar,
+ -- Device
+ inDeviceBrand varchar,
+ inDeviceModel varchar,
+ inDeviceFamily varchar
+) RETURNS integer AS $$
+BEGIN
+RETURN (
+ SELECT GetDeviceOSApplicationRelease(inUAfamily, inUAmajor, inUAminor, inUApatch, inUAbuild, inOSfamily, inOSmajor, inOSminor, inOSpatch, inDeviceBrand, inDeviceModel, inDeviceFamily, NULL)
+);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1516,6 +1550,7 @@ CREATE OR REPLACE FUNCTION AnonymousSession (
  inDeviceBrand varchar,
  inDeviceModel varchar,
  inDeviceFamily varchar,
+ inDeviceFamilyVersion varchar,
  -- Referring
  inRefSecure integer,
  inRefHost varchar,
@@ -1533,12 +1568,44 @@ BEGIN
 
  deviceAgent_id = (SELECT GetDeviceOSApplicationRelease(inUAfamily, inUAmajor, inUAminor, inUApatch, inUAbuild,
   inOSfamily, inOSmajor, inOSminor, inOSpatch,
-  inDeviceBrand, inDeviceModel, inDeviceFamily));
+  inDeviceBrand, inDeviceModel, inDeviceFamily, inDeviceFamilyVersion));
 
  agentString_id = (SELECT GetAgentString(deviceAgent_id, string_id));
 
  RETURN (
   SELECT AnonymousSession(agentString_id, inRefSecure, inRefHost, inRefPath, inRefGet, inIPAddress)
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION AnonymousSession (
+ -- User Agent
+ inUAstring varchar,
+ inUAfamily varchar,
+ inUAmajor varchar,
+ inUAminor varchar,
+ inUApatch varchar,
+ inUAbuild varchar,
+ -- Operating System
+ inOSfamily varchar,
+ inOSmajor varchar,
+ inOSminor varchar,
+ inOSpatch varchar,
+ -- Device
+ inDeviceBrand varchar,
+ inDeviceModel varchar,
+ inDeviceFamily varchar,
+ -- Referring
+ inRefSecure integer,
+ inRefHost varchar,
+ inRefPath varchar,
+ inRefGet varchar,
+ -- Connection
+ inIPAddress inet
+) RETURNS bigint AS $$
+BEGIN
+ RETURN (
+  SELECT AnonymousSession(inUAstring, inUAfamily, inUAmajor, inUAminor, inUApatch, inUAbuild, inOSfamily, inOSmajor, inOSminor, inOSpatch, inDeviceBrand, inDeviceModel, inDeviceFamily, NULL, inRefSecure, inRefHost, inRefPath, inRefGet, inIPAddress)
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1606,6 +1673,7 @@ CREATE OR REPLACE FUNCTION SetSession (
  inDeviceBrand varchar,
  inDeviceModel varchar,
  inDeviceFamily varchar,
+ inDeviceFamilyVersioin varchar,
  -- Referring
  inRefSecure integer,
  inRefHost varchar,
@@ -1616,7 +1684,7 @@ CREATE OR REPLACE FUNCTION SetSession (
  inLocation integer
 ) RETURNS bigint AS $$
 BEGIN
- RETURN (SELECT SetSession(inSession,inSiteApplicationRelease,inCredential,inUAstring,inUAfamily,inUAmajor,inUAminor,inUApatch,inUAbuild,inOSfamily,inOSmajor,inOSminor,inOSpatch,inDeviceBrand,inDeviceModel,inDeviceFamily,inRefSecure,inRefHost,inRefPath,inRefGet,inIPAddress,inLocation,NULL));
+ RETURN (SELECT SetSession(inSession,inSiteApplicationRelease,inCredential,inUAstring,inUAfamily,inUAmajor,inUAminor,inUApatch,inUAbuild,inOSfamily,inOSmajor,inOSminor,inOSpatch,inDeviceBrand,inDeviceModel,inDeviceFamily,inDeviceFamilyVersion,inRefSecure,inRefHost,inRefPath,inRefGet,inIPAddress,inLocation,NULL));
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1640,6 +1708,7 @@ CREATE OR REPLACE FUNCTION SetSession (
  inDeviceBrand varchar,
  inDeviceModel varchar,
  inDeviceFamily varchar,
+ inDeviceFamilyVersion varchar,
  -- Referring
  inRefSecure integer,
  inRefHost varchar,
@@ -1660,7 +1729,7 @@ BEGIN
 
  deviceAgent_id = (SELECT GetDeviceOSApplicationRelease(inUAfamily, inUAmajor, inUAminor, inUApatch, inUAbuild,
   inOSfamily, inOSmajor, inOSminor, inOSpatch,
-  inDeviceBrand, inDeviceModel, inDeviceFamily));
+  inDeviceBrand, inDeviceModel, inDeviceFamily, inDeviceFamilyVersion));
 
  agentString_id = (SELECT GetAgentString(deviceAgent_id, string_id));
 
