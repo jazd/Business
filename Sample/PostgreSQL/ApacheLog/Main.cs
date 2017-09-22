@@ -33,7 +33,6 @@ namespace ApacheLog
 
 			Int16 limitIndex = Math.Max(Math.Max(Math.Max(ipIndex,requestIndex),referrerIndex),uaIndex);
 
-
 			var uaParser = Parser.GetDefault();
 			string recordString;
 			while (!string.IsNullOrEmpty(recordString = Console.ReadLine())) {
@@ -42,13 +41,13 @@ namespace ApacheLog
 				// Very simplifed parsing of log line
 				var recordField = System.Text.RegularExpressions.Regex.Split(recordString, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 
-				if(recordField.Length <= limitIndex)
+				if (recordField.Length <= limitIndex)
 					continue;
 
 				string userAgent;
 				userAgent = recordField[uaIndex];
 				userAgent = userAgent.Trim('"'); // remove enclosing quotes if they exist
-				if(userAgent.Length == 0)
+				if (userAgent.Length == 0)
 					continue;
 
 				var insertLine = new System.Text.StringBuilder("SELECT AnonymousSession(");
@@ -74,13 +73,8 @@ namespace ApacheLog
 				insertLine.Append(Field(agent.Device.Family)); // Device family
 				//insertLine.Append("\n");
 
-
 				insertLine.Append(UrlValues(recordField[referrerIndex])); // referrer
-				//insertLine.Append("\n");
-
 				insertLine.Append(Field(recordField[ipIndex],false)); // IP address
-
-				//insertLine.Append(UrlValues(recordField[requestIndex],false)); // request URL
 
 				insertLine.Append(");");
 				Console.WriteLine(insertLine.ToString());
@@ -98,7 +92,7 @@ namespace ApacheLog
 			if (url.Length > 4 && url.Substring (0, 4) == "GET ") {
 				url = url.Substring(4, url.Length - 4);
 				int indexof = url.IndexOf(" HTTP/");
-				if(indexof > 0) { // Take of the end of GET field
+				if (indexof > 0) { // Take of the end of GET field
 					url = url.Substring(0,indexof +1);
 				}
 				if (url [0] == '/')
@@ -115,12 +109,12 @@ namespace ApacheLog
 				values.Append(Field(urlParts.Scheme == "http" ? "0" : "1"));
 				values.Append(Field(urlParts.Host));
 				var path = urlParts.AbsolutePath;
-				path = path.Trim ('/');
+				path = path.Trim('/');
 				values.Append(Field(path));
 
 				if (!nullGet) {
 					var getportion = urlParts.Query;
-					if (!String.IsNullOrEmpty(getportion) && getportion [0] == '?')
+					if (!String.IsNullOrEmpty(getportion) && getportion[0] == '?')
 						getportion = getportion.Substring(1);  // remove the '?' from the beginning
 
 					values.Append(Field(getportion, postSep));

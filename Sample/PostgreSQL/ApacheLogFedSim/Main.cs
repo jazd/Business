@@ -34,10 +34,8 @@ namespace ApacheLogFedSim
 
 			Int16 limitIndex = Math.Max(Math.Max(Math.Max(ipIndex,requestIndex),referrerIndex),uaIndex);
 
-
 			var uaParser = Parser.GetDefault();
 			string recordString;
-
 			var random = new Random();
 			while (!string.IsNullOrEmpty(recordString = Console.ReadLine())) {
 				recordString = recordString.Trim();
@@ -45,20 +43,18 @@ namespace ApacheLogFedSim
 				// Very simplifed parsing of log line
 				var recordField = System.Text.RegularExpressions.Regex.Split(recordString, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 
-				if(recordField.Length <= limitIndex)
+				if (recordField.Length <= limitIndex)
 					continue;
 
 				string userAgent;
 				userAgent = recordField[uaIndex];
 				userAgent = userAgent.Trim('"'); // remove enclosing quotes if they exist
-				if(userAgent.Length == 0)
+				if (userAgent.Length == 0)
 					continue;
 
 				var insertLine = new System.Text.StringBuilder("SELECT SetSession(");
 
 				insertLine.Append(Field(RandomString(random, 32)));
-
-				//insertLine.Append(UrlValues(recordField[requestIndex],false)); // siteapplication
 				insertLine.Append(Field(null)); // siteApplicationRelease
 				insertLine.Append(Field(null)); // credential
 				insertLine.Append(Field(userAgent));
@@ -92,28 +88,28 @@ namespace ApacheLogFedSim
 			}
 		}
 
-		public static string UrlValues (string url, bool postSep = true, bool nullGet = false)
+		public static string UrlValues(string url, bool postSep = true, bool nullGet = false)
 		{
-			var values = new System.Text.StringBuilder ();
+			var values = new System.Text.StringBuilder();
 
 			// Remove string quotes
 			url = url.Trim('"');
 
 			// Check for apache style field
 			if (url.Length > 4 && url.Substring (0, 4) == "GET ") {
-				url = url.Substring (4, url.Length - 4);
+				url = url.Substring(4, url.Length - 4);
 				int indexof = url.IndexOf(" HTTP/");
-				if(indexof > 0) { // Take of the end of GET field
+				if (indexof > 0) { // Take of the end of GET field
 					url = url.Substring(0,indexof +1);
 				}
 				if (url [0] == '/')
 					url = "http://localhost" + url; // convert to localhost for now
 			}
 
-			if(!string.IsNullOrEmpty(url) && url != "-") {
+			if (!string.IsNullOrEmpty(url) && url != "-") {
 				// Be sure not to allow file based references
-				url = url.Replace("file:///","http://localhost/");
-				url = url.Replace("file://","http://");
+				url = url.Replace("file:///", "http://localhost/");
+				url = url.Replace("file://", "http://");
 
 				var urlParts = new System.Uri(url);
 
@@ -123,14 +119,14 @@ namespace ApacheLogFedSim
 				path = path.Trim('/');
 				values.Append(Field(path));
 
-				if(!nullGet) {
+				if (!nullGet) {
 					var getportion = urlParts.Query;
-					if(!String.IsNullOrEmpty(getportion) && getportion[0] == '?')
-							getportion = getportion.Substring(1);  // remove the '?' from the beginning
+					if (!String.IsNullOrEmpty(getportion) && getportion[0] == '?')
+						getportion = getportion.Substring(1);  // remove the '?' from the beginning
 
-					values.Append(Field(getportion,postSep));
+					values.Append(Field(getportion, postSep));
 				} else {
-					values.Append(Field(null,postSep));
+					values.Append(Field(null, postSep));
 				}
 
 			} else {
@@ -138,7 +134,7 @@ namespace ApacheLogFedSim
 				values.Append(Field(null)); // ssl
 				values.Append(Field(null)); // host
 				values.Append(Field(null)); // path
-				values.Append(Field(null,postSep)); // get
+				values.Append(Field(null, postSep)); // get
 			}
 
 			return values.ToString();
