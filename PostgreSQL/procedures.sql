@@ -1504,6 +1504,36 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Sentence and AgentString can be checked in memory cache before parsing and attempting to insert new parsed UA
+-- Get AgentString and possible agent id (assemblyapplicationrelease) if exists
+-- assemblyapplicationrelease, sentence are used as inAgent, inString
+-- If all but sentence are null, then the parsed inUAstring needs to be inserted using GetDeviceOSApplicationRelease and GetAgentString(inAgent, inString)
+-- agentstring can be used in SetSession calls
+-- agentstring can be stored in a cache and looked up with inUAstring
+-- The function GetAgentString(inUAstring) can be used instead of cache if DB is fast enough
+CREATE OR REPLACE FUNCTION GetAgentString (
+ inUAstring varchar
+) RETURNS TABLE (agentstring integer,
+ assemblyapplicationrelease integer, sentence integer,
+ device varchar, os varchar, agent varchar) AS $$
+DECLARE string_id integer;
+BEGIN
+ string_id := (SELECT GetIdentityPhrase(inUAstring));
+ -- Does not actually insert an AgentString record.  Will return a NULL agentstring if a parsed agents string does not yet exist
+ RETURN QUERY (
+  SELECT AgentString.id AS agentstring,
+   AgentString.agent, Sentence.id AS sentence,
+   ParsedAgentStringShort.device,
+   ParsedAgentStringShort.os,
+   ParsedAgentStringShort.agent
+  FROM Sentence
+  LEFT JOIN AgentString ON AgentString.string = Sentence.id
+  LEFT JOIN ParsedAgentStringShort ON ParsedAgentStringShort.agentstring = AgentString.id
+  WHERE Sentence.culture IS NULL
+  AND Sentence.id = string_id
+ );
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION GetAgentString (
  inAgent integer,
  inString integer
