@@ -97,10 +97,24 @@ func (session *Session) AnonymousParsed(userAgent string, parsedAgentString *Par
 
 		// Be sure we can get an unique id for session
 		row := session.db.QueryRow("SELECT AnonymousSession($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)",
-			userAgent, NullableString(parsedAgentString.UserAgent.Family), NullableString(parsedAgentString.UserAgent.Major), NullableString(parsedAgentString.UserAgent.Minor), NullableString(parsedAgentString.UserAgent.Patch), sql.NullString{},
-			NullableString(parsedAgentString.Os.Family), NullableString(parsedAgentString.Os.Major), NullableString(parsedAgentString.Os.Minor), NullableString(parsedAgentString.Os.Patch),
-			NullableString(parsedAgentString.Device.Brand), NullableString(parsedAgentString.Device.Model), NullableString(deviceFamily), NullableString(deviceFamilyVersion),
-			secureInt, NullableString(host), NullableString(path), NullableString(query),
+			userAgent,
+			NullableString(parsedAgentString.UserAgent.Family),
+			NullableString(parsedAgentString.UserAgent.Major),
+			NullableString(parsedAgentString.UserAgent.Minor),
+			NullableString(parsedAgentString.UserAgent.Patch),
+			sql.NullString{},
+			NullableString(parsedAgentString.Os.Family),
+			NullableString(parsedAgentString.Os.Major),
+			NullableString(parsedAgentString.Os.Minor),
+			NullableString(parsedAgentString.Os.Patch),
+			NullableString(parsedAgentString.Device.Brand),
+			NullableString(parsedAgentString.Device.Model),
+			NullableString(deviceFamily),
+			NullableString(deviceFamilyVersion),
+			secureInt,
+			NullableString(host),
+			NullableString(path),
+			NullableString(query),
 			remoteAddr)
 		if err := row.Scan(&Id); err != nil {
 			session.message = SessionErrors[session.language][1] + " " + err.Error()

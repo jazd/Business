@@ -1509,7 +1509,7 @@ $$ LANGUAGE plpgsql;
 -- If all but sentence are null, then the parsed inUAstring needs to be inserted using GetDeviceOSApplicationRelease and GetAgentString(inAgent, inString)
 -- agentstring can be used in SetSession calls
 -- agentstring can be stored in a cache and looked up with inUAstring
--- The function GetAgentString(inUAstring) can be used instead of cache if DB is fast enough
+-- The function GetAgentString(inUAstring) can be used instead of a cache if DB is fast enough
 CREATE OR REPLACE FUNCTION GetAgentString (
  inUAstring varchar
 ) RETURNS TABLE (agentstring integer,

@@ -51,6 +51,14 @@ schema.db2: schema.xml
 	sqlt -f XML-SQLFairy -t DB2 $< >> $@
 	chmod -w $@
 
+schema.sqlserver: schema.xml
+	@echo Creating SQLServer file $@
+	if [[ -e $@ ]]; then chmod +w $@; fi
+	sed 's/^/-- /' LICENSE.txt > $@
+	sqlt -f XML-SQLFairy -t SQLServer --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g">> $@
+	chmod -w $@
+
+
 clean:
 	@echo Removing target files $(TARGETS)
 	rm -f $(TARGETS)
