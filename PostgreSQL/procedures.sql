@@ -1503,13 +1503,10 @@ RETURN (
 END;
 $$ LANGUAGE plpgsql;
 
--- Sentence and AgentString can be checked in memory cache before parsing and attempting to insert new parsed UA
--- Get AgentString and possible agent id (assemblyapplicationrelease) if exists
--- assemblyapplicationrelease, sentence are used as inAgent, inString
+-- The function GetAgentString(inUAstring) can be used instead of a cache if the DB is fast enough
 -- If all but sentence are null, then the parsed inUAstring needs to be inserted using GetDeviceOSApplicationRelease and GetAgentString(inAgent, inString)
 -- agentstring can be used in SetSession calls
 -- agentstring can be stored in a cache and looked up with inUAstring
--- The function GetAgentString(inUAstring) can be used instead of a cache if DB is fast enough
 CREATE OR REPLACE FUNCTION GetAgentString (
  inUAstring varchar
 ) RETURNS TABLE (agentstring integer,
