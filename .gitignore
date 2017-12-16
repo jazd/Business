@@ -5,5 +5,8 @@ notes.txt
 *.mysql
 *.sqlite
 *.db2
+*.oracle
+*.sqlserver
+*.nuodb
 # Temporary files
 *~
