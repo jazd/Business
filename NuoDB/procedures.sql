@@ -1,8 +1,8 @@
--- The MIT License (MIT) Copyright (c) 2014-2015 Stephen A Jazdzewski
+-- The MIT License (MIT) Copyright (c) 2014-2017 Stephen A Jazdzewski
 -- NuoDB has functions and procedures
 -- These links may help
--- http://doc.nuodb.com/display/doc/CREATE+FUNCTION
--- http://doc.nuodb.com/display/doc/CREATE+PROCEDURE
+-- http://doc.nuodb.com/Latest/Content/CREATE-FUNCTION.htm
+-- http://doc.nuodb.com/Latest/Content/CREATE-PROCEDURE.htm
 -- 
 -- UDF_CACHE_SIZE defaults to 50, you may want to consider increasing this
 USE Business;
