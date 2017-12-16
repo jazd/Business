@@ -536,10 +536,10 @@ CREATE FUNCTION GetAgentString (
  inString INTEGER
 ) RETURNS INTEGER AS
  IF (inString IS NOT NULL)
-  INSERT INTO AgentString (agent,"string") (
+  INSERT INTO AgentString (agent,userAgentString) (
    SELECT inAgent, inString
    FROM Dual
-   LEFT JOIN AgentString AS does_exist ON does_exist."string" = inString
+   LEFT JOIN AgentString AS does_exist ON does_exist.userAgentString = inString
     AND ((does_exist.agent = inAgent) OR (does_exist.agent IS NULL AND inAgent IS NULL))
    WHERE does_exist.id IS NULL
   );
@@ -547,7 +547,7 @@ CREATE FUNCTION GetAgentString (
  RETURN (
   SELECT id
   FROM AgentString
-  WHERE "string" = inString
+  WHERE userAgentString = inString
    AND ((agent = inAgent) OR (agent IS NULL AND inAgent IS NULL))
  );
 END_FUNCTION;

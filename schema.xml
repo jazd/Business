@@ -177,7 +177,7 @@
 
 <table name="Individual" order="22">
 <fields>
- <field name="id" data_type="bigint" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" order="1">
+ <field name="id" data_type="bigint" size="20" is_nullable="0" is_auto_increment="1" is_primary_key="0" order="1">
   <comments>One or more entries for specific individuals.  Records WHERE nameChange IS NULL are the current records for any specific individual id.</comments>
  </field>
  <field name="name" data_type="integer" size="" order="2" />
@@ -222,7 +222,7 @@
 
 <table name="Path" order="26">
 <fields>
- <field name="id" data_type="bigint" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="id" data_type="bigint" size="20" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="protocol" data_type="varchar" size="4" is_nullable="0" order="2" />
  <field name="secure" data_type="smallint" size="1" is_nullable="0" default_value="0" order="3" />
  <field name="host" data_type="varchar" size="64" is_nullable="1" order="4" />
@@ -240,7 +240,7 @@
  <field name="unlist" data_type="timestamp" size="0" is_nullable="1" order="2">
   <comments>Not NULL to remove from list</comments>
  </field>
- <field name="individual" data_type="bigint" size="" is_nullable="0" order="3" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="0" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
 </fields>
 <constraints>
@@ -252,7 +252,7 @@
 <fields>
  <field name="individualList" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
- <field name="set" data_type="integer" size="" order="3" />
+ <field name="listSet" data_type="integer" size="" order="3" />
  <field name="sequence" data_type="smallint" size="5" order="4">
   <comments>Order in a displayed list.</comments>
  </field>
@@ -262,21 +262,21 @@
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <indices>
- <index name="individuallistname_name_set" type="UNIQUE" fields="name,set" />
+ <index name="individuallistname_name_listset" type="UNIQUE" fields="name,listSet" />
 </indices>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individualList" reference_table="IndividualList" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="set" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="listSet" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
 <table name="IndividualPath" order="50">
 <comments>Web Site, Social page, feed etc.</comments>
 <fields>
- <field name="individual" data_type="bigint" size="" is_nullable="1" order="1" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="1" order="1" />
  <field name="type" data_type="integer" size="" is_nullable="1" order="3" />
- <field name="path" data_type="bigint" size="" is_nullable="1" order="4" />
+ <field name="path" data_type="bigint" size="20" is_nullable="1" order="4" />
  <field name="track" data_type="varchar" size="30" is_nullable="1" order="5">
   <comments>Added to end of path in the Get section for tracking links to same path</comments>
  </field>
@@ -297,7 +297,7 @@
 
 <table name="IndividualEmail" order="51">
 <fields>
- <field name="individual" data_type="bigint" size="" is_nullable="1" order="1" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="1" order="1" />
  <field name="type" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="email" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="4">
@@ -366,7 +366,7 @@
 
 <table name="IndividualPhone" order="65">
 <fields>
- <field name="individual" data_type="bigint" size="" is_nullable="1" order="1" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="1" order="1" />
  <field name="type" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="phone" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="4">
@@ -465,7 +465,7 @@
  <field name="name" data_type="integer" size="" is_nullable="1" order="4">
   <comments>Tag name/Branch</comments>
  </field>
- <field name="path" data_type="bigint" size="" is_nullable="1" order="5">
+ <field name="path" data_type="bigint" size="20" is_nullable="1" order="5">
   <comments>Repository path</comments>
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
@@ -487,7 +487,7 @@
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="goesBy" data_type="varchar" size="40" is_nullable="1" order="3" />
- <field name="path" data_type="bigint" size="" is_nullable="1" order="4" />
+ <field name="path" data_type="bigint" size="20" is_nullable="1" order="4" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <indices>
@@ -616,7 +616,7 @@
 <table name="Session" order="220">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="bigint" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="id" data_type="bigint" size="20" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="lock" data_type="integer" size="" default_value="0" is_nullable="0" order="3">
   <comments>Mono System.Web/ASPState.sql style locks</comments>
  </field>
@@ -632,7 +632,7 @@
 <table name="SessionToken" order="222">
 <comments>untested</comments>
 <fields>
- <field name="session" data_type="bigint" size="" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="session" data_type="bigint" size="20" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" />
  <field name="token" data_type="varchar" size="32" is_nullable="0" is_foreign_key="0" order="1" />
  <field name="siteApplicationRelease" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="initialized" data_type="smallint" size="1" is_nullable="1" order="3" />
@@ -654,7 +654,7 @@
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="provider" data_type="bigint" size="" is_nullable="1" order="2" />
+ <field name="provider" data_type="bigint" size="20" is_nullable="1" order="2" />
  <field name="generator" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="value" data_type="varchar" size="255" is_nullable="1" order="4" />
  <field name="name" data_type="integer" size="" is_nullable="1" order="5" />
@@ -672,7 +672,7 @@
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="individual" data_type="bigint" size="" is_nullable="1" order="2" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="1" order="2" />
  <field name="username" data_type="varchar" size="20" is_nullable="1" order="3" />
  <field name="email" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="password" data_type="integer" size="" is_nullable="1" order="5" />
@@ -695,27 +695,27 @@
  <field name="agent" data_type="integer" size="" is_nullable="1" order="5">
   <comments>Browser user agent string raw</comments>
  </field>
- <field name="string" data_type="integer" size="" is_nullable="1" order="4">
-  <comments>Browser user agent string parsed</comments>
+ <field name="userAgentString" data_type="integer" size="" is_nullable="1" order="4">
+  <comments>Browser user agent string parsed into agent</comments>
  </field>
 </fields>
 <indices>
- <index name="agentString_agent_string" type="UNIQUE" fields="agent,string" />
+ <index name="agentString_agent_useragentstring" type="UNIQUE" fields="agent,userAgentString" />
 </indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="agent" reference_table="AssemblyApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="string" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="userAgentString" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
 <table name="SessionCredential" order="233">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="bigint" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="session" data_type="bigint" size="" is_nullable="0" order="2" />
+ <field name="id" data_type="bigint" size="20" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="session" data_type="bigint" size="20" is_nullable="0" order="2" />
  <field name="agentString" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="credential" data_type="integer" size="" is_nullable="1" order="5" />
- <field name="referring" data_type="bigint" size="" is_nullable="1" order="6" />
+ <field name="referring" data_type="bigint" size="20" is_nullable="1" order="6" />
  <field name="fromAddress" data_type="inet" size="19" is_nullable="1" order="7" />
  <field name="location" data_type="integer" size="" is_nullable="1" order="8" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
@@ -750,7 +750,7 @@
 <comments>untested</comments>
 <fields>
  <field name="tableName" data_type="varchar" size="64" is_nullable="0" order="1" />
- <field name="tableId" data_type="bigint" size="" is_nullable="1" order="2">
+ <field name="tableId" data_type="bigint" size="20" is_nullable="1" order="2">
   <comment>tableId is null for list of possible properties/attributes for table</comment>
  </field>
  <field name="property" data_type="integer" size="" is_nullable="0" order="3" />
@@ -892,7 +892,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="IndividualAddress" order="75">
 <fields>
- <field name="individual" data_type="bigint" size="" is_nullable="1" order="3" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="1" order="3" />
  <field name="type" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="address" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
@@ -904,7 +904,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="IndividualApplicationCreated" order="211">
 <fields>
- <field name="individual" data_type="bigint" size="" is_nullable="1" order="3" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="1" order="3" />
  <field name="applicationRelease" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="createdBy" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
@@ -916,8 +916,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <table name="IndividualSessionCreated" order="235">
 <fields>
- <field name="individual" data_type="bigint" size="" is_nullable="1" order="3" />
- <field name="sessionCredential" data_type="bigint" size="" is_nullable="1" order="3" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="1" order="3" />
+ <field name="sessionCredential" data_type="bigint" size="20" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -1104,14 +1104,14 @@ LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
 WHERE Individual.nameChange IS NULL
   </sql>
  </view>
- <view name="List" fields="id,individual,name,namevalue,set,setvalue,sequence" order="30">
+ <view name="List" fields="id,individual,name,namevalue,listSet,listSetValue,sequence" order="30">
   <sql>
 SELECT IndividualList.id,
  IndividualList.individual,
  IndividualListName.name AS listName,
  Name.value AS listNameValue,
- IndividualListName.set,
- Set.value AS setValue,
+ IndividualListName.listSet,
+ ListSet.value AS listSetValue,
  IndividualListName.sequence,
  IndividualList.created
 FROM IndividualList
@@ -1119,8 +1119,8 @@ JOIN IndividualListName ON IndividualListName.IndividualList = IndividualList.id
  AND IndividualListName.optinStyle = 1
 JOIN Word AS Name ON IndividualListName.name = Name.id
  AND Name.culture = ClientCulture()
-LEFT JOIN Word AS Set ON IndividualListName.set = Set.id
- AND Set.culture = ClientCulture()
+LEFT JOIN Word AS ListSet ON IndividualListName.listSet = ListSet.id
+ AND ListSet.culture = ClientCulture()
 LEFT JOIN IndividualList AS disable ON disable.individual = IndividualList.individual
  AND disable.id IS NULL
  AND disable.unlist IS NULL

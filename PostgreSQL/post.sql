@@ -12,12 +12,9 @@ CREATE UNIQUE INDEX version_name_major_minor_null ON Version(name,major,minor) W
 CREATE UNIQUE INDEX version_null_major_minor_null ON Version(major,minor) WHERE name IS NULL AND patch IS NULL;
 CREATE UNIQUE INDEX AssemblyApplicationRelease_assembly_applicationRelease_null ON AssemblyApplicationRelease(assembly,applicationRelease) WHERE parent IS NULL;
 CREATE UNIQUE INDEX Part_name_null_null_null ON Part(name) WHERE parent IS NULL AND version IS NULL AND serial IS NULL;
-CREATE UNIQUE INDEX AgentString_null_string ON AgentString(string) WHERE agent IS NULL;
+CREATE UNIQUE INDEX AgentString_null_string ON AgentString(userAgentString) WHERE agent IS NULL;
 CREATE INDEX path_host ON Path(UPPER(host));
 CREATE INDEX path_host_value ON Path(UPPER(host),value);
-
--- bigserial not supported in SQLFairy
-ALTER TABLE session ALTER COLUMN id TYPE bigint;
 
 -- Session function indexes, untested
 CREATE INDEX sessionCredentialFull ON SessionCredential (session,agentstring,credential,referring,fromaddress,location);

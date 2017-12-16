@@ -11,7 +11,7 @@ To /var/lib/pgsql/data/pg_hba.comf
 Restart
 /etc/init.d/postgresql restart
 
-As postres user
+As postgres user
 createdb -E UNICODE MyCo
 
 psql MyCo

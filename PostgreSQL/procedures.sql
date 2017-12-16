@@ -1523,7 +1523,7 @@ BEGIN
    ParsedAgentStringShort.os,
    ParsedAgentStringShort.agent
   FROM Sentence
-  LEFT JOIN AgentString ON AgentString.string = Sentence.id
+  LEFT JOIN AgentString ON AgentString.userAgentString = Sentence.id
   LEFT JOIN ParsedAgentStringShort ON ParsedAgentStringShort.agentstring = AgentString.id
   WHERE Sentence.culture IS NULL
   AND Sentence.id = string_id
@@ -1537,10 +1537,10 @@ CREATE OR REPLACE FUNCTION GetAgentString (
 ) RETURNS integer AS $$
 BEGIN
  IF inString IS NOT NULL THEN
-  INSERT INTO AgentString (agent,string) (
+  INSERT INTO AgentString (agent,userAgentString) (
    SELECT inAgent, inString
    FROM Dual
-   LEFT JOIN AgentString AS exists ON exists.string = inString
+   LEFT JOIN AgentString AS exists ON exists.userAgentString = inString
     AND ((exists.agent = inAgent) OR (exists.agent IS NULL AND inAgent IS NULL))
    WHERE exists.id IS NULL
   );
@@ -1548,7 +1548,7 @@ BEGIN
  RETURN (
   SELECT id
   FROM AgentString
-  WHERE string = inString
+  WHERE userAgentString = inString
    AND ((agent = inAgent) OR (agent IS NULL AND inAgent IS NULL))
  );
 END;
