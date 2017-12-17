@@ -18,3 +18,17 @@ CREATE FUNCTION ClientCulture (
 END_FUNCTION;
 @
 SET DELIMITER ;
+
+-- NuoDB does not have an interval type.
+-- Will use an Integer in seconds instead.
+-- Asume negative values for now
+SET DELIMITER @
+CREATE FUNCTION GetInterval(
+ interval_value STRING
+) RETURNS INTEGER AS
+ RETURN (
+  SELECT datediff(SECOND, '1970-01-01 ' || interval_value, '1970-01-01') FROM DUAL
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;

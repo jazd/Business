@@ -49,6 +49,13 @@ CREATE TABLE DUAL (
 );
 INSERT INTO DUAL (value) VALUES (NULL); -- Only a single value
 
+-- Normalize for databases without Interval data types
+CREATE OR REPLACE FUNCTION GetInterval(varchar)
+ RETURNS interval
+AS $$
+SELECT ($1::interval)
+$$ language sql immutable strict;
+
 -- Allow testing of date and culture based procedures and views
 -- by allowing culture and now() to be overridden for testing and client connections
 CREATE OR REPLACE FUNCTION ClientNow()
