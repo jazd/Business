@@ -184,10 +184,9 @@ CREATE FUNCTION GetVersion (
  inMinor STRING,
  inPatch STRING
 ) RETURNS INTEGER AS
- VAR major_id INTEGER;
+ VAR major_id INTEGER = GetWord(inMajor);
  VAR minor_id INTEGER;
  VAR patch_id INTEGER;
- VAR major_id INTEGER = GetWord(inMajor);
 
  IF (major_id IS NOT NULL)
   minor_id = GetWord(inMinor);
