@@ -148,7 +148,7 @@ BEGIN
 
  IF lat IS NOT NULL AND long IS NOT NULL THEN
   INSERT INTO Location (latitude, longitude, accuracy) (
-   SELECT inLatitude, inLongitude, accuracy
+   SELECT inLatitude, inLongitude, accuracy_code
    FROM Dual
    LEFT JOIN Location AS exists ON exists.latitude = inLatitude
     AND exists.longitude = inLongitude
@@ -318,7 +318,7 @@ CREATE OR REPLACE FUNCTION GetAddress (
 DECLARE
  zipcode_id integer;
 BEGIN
-  -- Do not call GetPostal with nulls so that this will return addresses with locaiton information
+  -- Do not call GetPostal with nulls so that this will return addresses with location information
   zipcode_id := (SELECT GetPostal(zipcode));
 
   IF zipcode_id IS NOT NULL THEN

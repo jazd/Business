@@ -146,13 +146,16 @@ DROP FUNCTION IF EXISTS GetLocation;
 
 SET DELIMITER @
 CREATE FUNCTION GetLocation (
- inLatitude FLOAT,
- inLongitude FLOAT,
+ lat FLOAT,
+ long FLOAT,
  accuracy_code INTEGER
 ) RETURNS INTEGER AS
+ VAR inLatitude NUMERIC(10,7) = lat;
+ VAR inLongitude NUMERIC(11,7) = long;
+
  IF (inLatitude IS NOT NULL AND inLongitude IS NOT NULL)
   INSERT INTO Location (latitude, longitude, accuracy) (
-   SELECT inLatitude, inLongitude, accuracy
+   SELECT inLatitude, inLongitude, accuracy_code
    FROM Dual
    LEFT JOIN Location AS does_exist ON does_exist.latitude = inLatitude
     AND does_exist.longitude = inLongitude
@@ -774,6 +777,167 @@ END_FUNCTION;
 @
 SET DELIMITER ;
 
+DROP FUNCTION IF EXISTS GetPostal;
+
+SET DELIMITER @
+CREATE FUNCTION GetPostal (
+ countrycode STRING,
+ zipcode STRING,
+ city STRING,
+ statecode STRING,
+ state STRING,
+ county STRING,
+ lat FLOAT,
+ long FLOAT,
+ accuracy INTEGER
+) RETURNS INTEGER AS
+ VAR countrycode_id = (SELECT id FROM Country WHERE UPPER(Country.code) = UPPER(countrycode));
+ VAR city_id = GetWord(city);
+ VAR statecode_id = GetWord(statecode);
+ VAR state_id = GetWord(state);
+ VAR county_id = GetWord(county);
+ VAR location_id = GetLocation(lat,long,accuracy);
+
+ INSERT INTO Postal (country, code, state, stateabbreviation, county, city, location) (
+  SELECT countrycode_id, zipcode, state_id, statecode_id, county_id, city_id, location_id
+  FROM Dual
+  LEFT JOIN Postal AS does_exist ON does_exist.country = countrycode_id
+   AND UPPER(does_exist.code) = UPPER(zipcode)
+  WHERE does_exist.id IS NULL
+ );
+
+ RETURN (
+  SELECT id
+  FROM Postal
+  WHERE country = countrycode_id
+   AND UPPER(Postal.code) = UPPER(zipcode)
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+SET DELIMITER @
+CREATE FUNCTION GetPostal (
+ countrycode STRING,
+ zipcode STRING
+) RETURNS INTEGER AS
+ RETURN (
+  SELECT Postal.id
+  FROM Postal
+  JOIN Country ON UPPER(Country.code) = UPPER(countrycode)
+  WHERE Postal.country = Country.id
+   AND UPPER(Postal.code) = UPPER(zipcode)
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+SET DELIMITER @
+CREATE FUNCTION GetPostal (
+ zipcode STRING
+) RETURNS INTEGER AS
+ RETURN (
+  SELECT Postal.id
+  FROM Postal
+  JOIN Country ON UPPER(Country.code) = 'USA'
+  WHERE Postal.country = Country.id
+   AND UPPER(Postal.code) = UPPER(zipcode)
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+SET DELIMITER @
+CREATE FUNCTION GetAddress (
+ street STRING,
+ zipcode STRING,
+ inPostalplus VARCHAR(4),
+ lat FLOAT,
+ long FLOAT,
+ inAccuracy INTEGER
+) RETURNS INTEGER AS
+ VAR location_id = GetLocation(lat,long,inAccuracy);
+ VAR zipcode_id = GetPostal(zipcode);
+
+ IF (zipcode_id IS NOT NULL)
+  IF (location_id IS NOT NULL)
+   UPDATE Address
+   SET location = location_id
+   WHERE location IS NULL
+    AND postal = zipcode_id
+    AND ((postalplus = inPostalplus) OR (postalplus IS NULL AND inPostalplus IS NULL))
+    AND UPPER(line1) = UPPER(street)
+    AND line2 IS NULL
+    AND line3 IS NULL
+    AND line4 IS NULL
+   ;
+  END_IF;
+
+  INSERT INTO Address (line1, postal, postalplus, location) (
+   SELECT street, zipcode_id, inPostalplus, location_id
+   FROM Dual
+   LEFT JOIN Address AS does_exist ON does_exist.postal = zipcode_id
+    AND ((does_exist.postalplus = inPostalplus) OR (does_exist.postalplus IS NULL AND inPostalplus IS NULL))
+    AND ((does_exist.location = location_id) OR (does_exist.location IS NULL AND location_id IS NULL))
+    AND UPPER(does_exist.line1) = UPPER(street)
+    AND does_exist.line2 IS NULL
+    AND does_exist.line3 IS NULL
+    AND does_exist.line4 IS NULL
+   WHERE does_exist.id IS NULL
+  );
+ END_IF;
+ RETURN (
+  SELECT id
+  FROM Address
+  WHERE postal = zipcode_id
+   AND ((postalplus = inPostalplus) OR (postalplus IS NULL AND inPostalplus IS NULL))
+   AND ((location = location_id) OR (location IS NULL AND location_id IS NULL))
+   AND UPPER(line1) = UPPER(street)
+   AND line2 IS NULL
+   AND line3 IS NULL
+   AND line4 IS NULL
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+SET DELIMITER @
+CREATE FUNCTION GetAddress (
+ street STRING,
+ zipcode STRING,
+ inPostalplus VARCHAR(4)
+) RETURNS INTEGER AS
+ VAR zipcode_id = GetPostal(zipcode);
+
+ IF (zipcode_id IS NOT NULL)
+  INSERT INTO Address (line1, postal, postalplus) (
+   SELECT street, zipcode_id, inPostalplus
+   FROM Dual
+   LEFT JOIN Address AS does_exist ON does_exist.postal = zipcode_id
+    AND ((does_exist.postalplus = inPostalplus) OR (does_exist.postalplus IS NULL AND inPostalplus IS NULL))
+    AND UPPER(does_exist.line1) = UPPER(street)
+    AND does_exist.line2 IS NULL
+    AND does_exist.line3 IS NULL
+    AND does_exist.line4 IS NULL
+   WHERE does_exist.id IS NULL
+  );
+ END_IF;
+ RETURN (
+  SELECT id
+  FROM Address
+  WHERE postal = zipcode_id
+   AND ((postalplus = inPostalplus) OR (postalplus IS NULL AND inPostalplus IS NULL))
+   AND UPPER(line1) = UPPER(street)
+   AND line2 IS NULL
+   AND line3 IS NULL
+   AND line4 IS NULL
+   ORDER BY location LIMIT 1
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
 
 DROP FUNCTION IF EXISTS SetSchemaVersion;
 
@@ -796,6 +960,5 @@ CREATE FUNCTION SetSchemaVersion (
 END_FUNCTION;
 @
 SET DELIMITER ;
-
 
 -- Procedures
