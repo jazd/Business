@@ -966,14 +966,13 @@ CREATE OR REPLACE FUNCTION GetPartWithParent (
  inNameId integer,
  inParentId integer
 ) RETURNS integer AS $$
-DECLARE name_id integer;
 BEGIN
  IF inNameId IS NOT NULL AND inParentId IS NOT NULL THEN
   -- Insert if it does not alread exists
   INSERT INTO Part (name, parent) (
    SELECT inNameId, inParentId
    FROM Dual
-   LEFT JOIN Part AS exists ON exists.name = InNameId
+   LEFT JOIN Part AS exists ON exists.name = inNameId
     AND exists.parent = inParentId
     AND exists.version IS NULL
     AND exists.serial IS NULL

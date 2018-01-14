@@ -383,6 +383,36 @@ END_FUNCTION;
 @
 SET DELIMITER ;
 
+DROP FUNCTION IF EXISTS GetPartWithParent;
+
+SET DELIMITER @
+CREATE FUNCTION GetPartWithParent (
+ inNameId INTEGER,
+ inParentId INTEGER
+) RETURNS INTEGER AS
+ IF (inNameId IS NOT NULL AND inParentId IS NOT NULL)
+  INSERT INTO Part (name, parent) (
+   SELECT inNameId, inParentId
+   FROM Dual
+   LEFT JOIN Part AS does_exist ON does_exist.name = inNameId
+    AND does_exist.parent = inParentId
+    AND does_exist.version IS NULL
+    AND does_exist.serial IS NULL
+   WHERE does_exist.id IS NULL
+  );
+ END_IF;
+ RETURN (
+  SELECT id
+  FROM Part
+  WHERE name = inNameId
+   AND parent = inParentId
+   AND version IS NULL
+   AND serial IS NULL
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
 DROP FUNCTION IF EXISTS GetAssemblyApplicationRelease;
 
 SET DELIMITER @
