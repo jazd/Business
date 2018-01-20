@@ -480,7 +480,30 @@ END_FUNCTION;
 SET DELIMITER ;
 
 
+DROP FUNCTION IF EXISTS GetPartbySerial;
 
+SET DELIMITER @
+CREATE FUNCTION GetPartbySerial (
+ inParent INTEGER,
+ inSerial STRING
+) RETURNS INTEGER AS
+ INSERT INTO Part (parent, name, version, serial) (
+  SELECT inParent, parent.name, parent.version, inSerial
+  FROM Part AS parent
+  LEFT JOIN Part AS does_exist ON does_exist.parent = inParent
+   AND does_exist.serial = inSerial
+  WHERE parent.id = inParent
+   AND does_exist.id IS NULL
+ );
+ RETURN (
+  SELECT part.id
+  FROM Part
+  WHERE Part.parent = inParent
+   AND Part.serial = inSerial
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
 
 
 DROP FUNCTION IF EXISTS GetAssemblyApplicationRelease;
