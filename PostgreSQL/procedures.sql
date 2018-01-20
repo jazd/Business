@@ -1075,13 +1075,13 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar,
- inVersionId integer
+ inVersion integer
 ) RETURNS integer AS $$
 DECLARE name_id integer;
 DECLARE sibling_id integer;
 DECLARE parent_id integer;
 BEGIN
- IF inName IS NOT NULL AND inVersionId IS NOT NULL THEN
+ IF inName IS NOT NULL AND inVersion IS NOT NULL THEN
   name_id := (SELECT GetSentence(inName));
   -- Every non-root part must have a parent
   -- Does it have a direct sibling with a parent?
@@ -1112,11 +1112,11 @@ BEGIN
   END IF;
   -- Insert this part if it is not a duplicate
   INSERT INTO Part (parent, name, version) (
-   SELECT parent_id, name_id, inVersionId
+   SELECT parent_id, name_id, inVersion
    FROM Dual
    LEFT JOIN Part AS exists ON exists.parent = parent_id
     AND exists.name = name_id
-    AND exists.version = inVersionId
+    AND exists.version = inVersion
     AND exists.serial IS NULL
    WHERE exists.id IS NULL
   );
@@ -1126,7 +1126,7 @@ BEGIN
   FROM Part
   WHERE name = name_id
    AND parent = parent_id
-   AND version = inVersionId
+   AND version = inVersion
    AND serial IS NULL
   );
 END;
@@ -1134,11 +1134,11 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar,
- inVersion varchar
+ inVersionName varchar
 ) RETURNS integer AS $$
 DECLARE version_id integer;
 BEGIN
- version_id := (SELECT GetVersionName(inVersion));
+ version_id := (SELECT GetVersionName(inVersionName));
  RETURN (
   SELECT GetPart(inName, version_id)
  );
@@ -1147,13 +1147,13 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar,
- inVersion varchar,
+ inVersionName varchar,
  inMajor  varchar
 ) RETURNS integer AS $$
 DECLARE version_id integer;
 BEGIN
- IF inVersion IS NOT NULL THEN
-  version_id := (SELECT GetVersionName(inVersion, inMajor, NULL, NULL));
+ IF inVersionName IS NOT NULL THEN
+  version_id := (SELECT GetVersionName(inVersionName, inMajor, NULL, NULL));
  ELSE
   version_id := (SELECT GetVersion(inMajor, NULL, NULL));
  END IF;
@@ -1165,14 +1165,14 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar,
- inVersion varchar,
+ inVersionName varchar,
  inMajor  varchar,
  inMinor varchar
 ) RETURNS integer AS $$
 DECLARE version_id integer;
 BEGIN
- IF inVersion IS NOT NULL THEN
-  version_id := (SELECT GetVersionName(inVersion, inMajor, inMinor, NULL));
+ IF inVersionName IS NOT NULL THEN
+  version_id := (SELECT GetVersionName(inVersionName, inMajor, inMinor, NULL));
  ELSE
   version_id := (SELECT GetVersion(inMajor, inMinor, NULL));
  END IF;
@@ -1184,15 +1184,15 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar,
- inVersion varchar,
+ inVersionName varchar,
  inMajor  varchar,
  inMinor varchar,
  inPatch varchar
 ) RETURNS integer AS $$
 DECLARE version_id integer;
 BEGIN
- IF inVersion IS NOT NULL THEN
-  version_id := (SELECT GetVersionName(inVersion, inMajor, inMinor, inPatch));
+ IF inVersionName IS NOT NULL THEN
+  version_id := (SELECT GetVersionName(inVersionName, inMajor, inMinor, inPatch));
  ELSE
   version_id := (SELECT GetVersion(inMajor, inMinor, inPatch));
  END IF;

@@ -352,7 +352,7 @@ END_FUNCTION;
 @
 SET DELIMITER ;
 
-DROP FUNCTION IF EXISTS GetPart;
+DROP FUNCTION IF EXISTS GetPart/1;
 
 SET DELIMITER @
 CREATE FUNCTION GetPart (
@@ -412,6 +412,76 @@ CREATE FUNCTION GetPartWithParent (
 END_FUNCTION;
 @
 SET DELIMITER ;
+
+
+DROP FUNCTION IF EXISTS GetPart/2;
+
+SET DELIMITER @
+CREATE FUNCTION GetPart (
+ inName STRING,
+ inVersion INTEGER
+) RETURNS INTEGER AS
+ VAR name_id INTEGER;
+ VAR sibling_parent INTEGER;
+ VAR no_version_parent INTEGER;
+ VAR parent_id INTEGER;
+
+ IF (inName IS NOT NULL AND inVersion IS NOT NULL)
+  name_id = GetSentence(inName);
+  sibling_parent = (
+   SELECT Part.parent
+   FROM Part
+   WHERE Part.name = name_id
+    AND Part.version IS NOT NULL
+    AND Part.serial IS NULL
+   LIMIT 1
+  );
+  IF (sibling_parent IS NULL)
+   no_version_parent = (
+     SELECT Part.id
+     FROM Part
+     WHERE Part.name = name_id
+      AND Part.parent IS NOT NULL
+      AND Part.version IS NULL
+      AND Part.serial IS NULL
+     LIMIT 1
+   );
+   IF (no_version_parent IS NULL)
+    parent_id = GetPart(inName);
+   ELSE
+    parent_id = no_version_parent;
+   END_IF;
+
+  ELSE
+   parent_id = sibling_parent;
+  END_IF;
+
+  INSERT INTO Part (parent, name, version) (
+   SELECT parent_id, name_id, inVersion
+   FROM Dual
+   LEFT JOIN Part AS does_exist ON does_exist.parent = parent_id
+    AND does_exist.name = name_id
+    AND does_exist.version = inVersion
+    AND does_exist.serial IS NULL
+   WHERE does_exist.id IS NULL
+  );
+ END_IF;
+
+ RETURN (
+  SELECT id
+  FROM Part
+  WHERE name = name_id
+   AND parent = parent_id
+   AND version = inVersion
+   AND serial IS NULL
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+
+
 
 DROP FUNCTION IF EXISTS GetAssemblyApplicationRelease;
 
