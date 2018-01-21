@@ -1,6 +1,7 @@
-SET search_path TO Business,"$user",public;
-
+-- The MIT License (MIT) Copyright (c) 2017-2018 Stephen A Jazdzewski
 -- Functions used in views
+
+SET search_path TO Business,"$user",public;
 
 -- Brute force birthday calculation
 CREATE OR REPLACE FUNCTION birthday(birth date, asOf date)

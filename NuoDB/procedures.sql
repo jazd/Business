@@ -1,4 +1,4 @@
--- The MIT License (MIT) Copyright (c) 2014-2017 Stephen A Jazdzewski
+-- The MIT License (MIT) Copyright (c) 2014-2018 Stephen A Jazdzewski
 -- NuoDB has functions and procedures
 -- These links may help
 -- http://doc.nuodb.com/Latest/Content/CREATE-FUNCTION.htm

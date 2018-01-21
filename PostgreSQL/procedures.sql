@@ -1,5 +1,5 @@
+-- The MIT License (MIT) Copyright (c) 2014-2018 Stephen A Jazdzewski
 -- Officially, PostgreSQL only has "functions"
--- The MIT License (MIT) Copyright (c) 2014-2015 Stephen A Jazdzewski
 -- These links may help
 -- http://www.sqlines.com/postgresql/stored_procedures_functions
 -- http://www.sqlines.com/postgresql/how-to/return_result_set_from_stored_procedure

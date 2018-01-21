@@ -1,8 +1,9 @@
--- The MIT License (MIT) Copyright (c) 2017 Stephen A Jazdzewski
+-- The MIT License (MIT) Copyright (c) 2017-2018 Stephen A Jazdzewski
 -- NuoDB has functions and procedures
 -- These links may help
 -- http://doc.nuodb.com/Latest/Content/CREATE-FUNCTION.htm
 -- http://doc.nuodb.com/Latest/Content/CREATE-PROCEDURE.htm
+-- Functions used in views
 
 DROP FUNCTION IF EXISTS age;
 
