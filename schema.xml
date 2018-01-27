@@ -1374,21 +1374,25 @@ JOIN Sentence ON Sentence.id = Part.name
 LEFT JOIN Versions ON Versions.version = Part.version
   </sql>
  </view>
- <view name="Assemblies" fields="assembly, parentName, name, version, serial">
+ <view name="Assemblies" fields="assembly, parentName, name, version, versionName, serial">
   <sql>
 SELECT DISTINCT AssemblyPart.assembly, parent.name AS parentName,
- assemblies.name, assemblies.version, assemblies.serial
+ assemblies.name,
+ assemblies.versionId AS version, assemblies.version as versionName, assemblies.serial
 FROM AssemblyPart
 JOIN Parts AS assemblies ON assemblies.part = AssemblyPart.assembly
 JOIN Parts AS parent ON parent.part = assemblies.parent
   </sql>
  </view>
- <view name="AssemblyParts" fields="assembly, parentName, assemblyName, assemblyVersion, designator, partName, partVersion, serial">
+ <view name="AssemblyParts" fields="assembly, parentName, assemblyName, assemblyVersion, assemblyVersionName, assemblySerial, designator, part, partName, version, versionName, serial">
   <sql>
 SELECT AssemblyPart.assembly, parent.name AS parentName,
- assemblies.name AS assemblyName, assemblies.version AS assemblyVersion,
+ assemblies.name AS assemblyName,
+ assemblies.versionid AS assemblyVersion, assemblies.version AS assemblyVersionName,
+ assemblies.serial AS assemblySerial,
  designator.value AS designator,
- parts.name AS partName, parts.version AS partVersion,
+ parts.part, parts.name AS partName,
+ parts.versionid AS version, parts.version AS versionName,
  parts.serial
 FROM AssemblyPart
 JOIN Parts AS assemblies ON assemblies.part = AssemblyPart.assembly
