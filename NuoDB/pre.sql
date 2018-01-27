@@ -5,7 +5,32 @@
 -- http://doc.nuodb.com/Latest/Content/CREATE-PROCEDURE.htm
 -- Functions used in views
 
-DROP FUNCTION IF EXISTS age;
+-- First drop views
+DROP VIEW PeopleEvent;
+DROP VIEW IndividualPersonEvent;
+DROP VIEW ParedAgentStrings;
+DROP VIEW Entities;
+DROP VIEW PeopleEvent;
+DROP VIEW People;
+DROP VIEW List;
+DROP VIEW Sessions;
+DROP VIEW EmailAddress;
+DROP VIEW URL;
+DROP VIEW Addresses;
+DROP VIEW IndividualURL;
+DROP VIEW IndividualEmailAddress;
+DROP VIEW ParsedAgentString;
+DROP VIEW ParsedAgentStringShort;
+DROP VIEW Assemblies;
+DROP VIEW AssemblyParts;
+DROP VIEW Parts CASCADE;
+DROP VIEW VersionNames;
+DROP VIEW Versions;
+DROP VIEW Phones;
+DROP VIEW File;
+
+
+DROP FUNCTION IF EXISTS age/2;
 
 SET DELIMITER @
 CREATE FUNCTION age (
@@ -19,6 +44,8 @@ END_FUNCTION;
 @
 SET DELIMITER ;
 
+DROP FUNCTION IF EXISTS age/1;
+
 SET DELIMITER @
 CREATE FUNCTION age (
  start DATE
@@ -31,7 +58,9 @@ END_FUNCTION;
 SET DELIMITER ;
 
 
-DROP FUNCTION IF EXISTS birthday;
+DROP FUNCTION IF EXISTS days_until_birthday;
+DROP FUNCTION IF EXISTS birthday/1;
+DROP FUNCTION IF EXISTS birthday/2;
 
 SET DELIMITER @
 CREATE FUNCTION birthday (
@@ -67,7 +96,6 @@ END_FUNCTION;
 @
 SET DELIMITER ;
 
-DROP FUNCTION IF EXISTS days_until_birthday;
 
 SET DELIMITER @
 CREATE FUNCTION days_until_birthday (
@@ -99,6 +127,9 @@ SET DELIMITER ;
 -- NuoDB does not have an interval type.
 -- Will use an Integer in seconds instead.
 -- Asume negative values for now
+
+DROP FUNCTION IF EXISTS GetInterval;
+
 SET DELIMITER @
 CREATE FUNCTION GetInterval(
  interval_value STRING
@@ -109,3 +140,55 @@ CREATE FUNCTION GetInterval(
 END_FUNCTION;
 @
 SET DELIMITER ;
+
+
+-- Drop functions from procedures.sql
+DROP FUNCTION IF EXISTS GetAddress;
+DROP FUNCTION IF EXISTS GetAddress/6;
+DROP FUNCTION IF EXISTS AnonymousSession;
+DROP FUNCTION IF EXISTS AnonymousSession/6;
+DROP FUNCTION IF EXISTS AnonymousSession/18;
+DROP FUNCTION IF EXISTS SetSession;
+DROP FUNCTION IF EXISTS SetSession/7;
+DROP FUNCTION IF EXISTS SetSession/8;
+DROP FUNCTION IF EXISTS SetSession/22;
+DROP FUNCTION IF EXISTS SetSession/23;
+DROP FUNCTION IF EXISTS GetAssemblyApplicationRelease;
+DROP FUNCTION IF EXISTS GetDeviceOSApplicationRelease;
+DROP FUNCTION IF EXISTS GetDeviceOSApplicationRelease/12;
+DROP FUNCTION IF EXISTS GetIdentifier;
+DROP FUNCTION IF EXISTS GetPostal;
+DROP FUNCTION IF EXISTS GetPostal/1;
+DROP FUNCTION IF EXISTS GetPostal/9;
+DROP FUNCTION IF EXISTS GetLocation;
+DROP FUNCTION IF EXISTS GetVersionName;
+DROP FUNCTION IF EXISTS GetVersionName/1;
+DROP FUNCTION IF EXISTS GetVersionName/4;
+DROP FUNCTION IF EXISTS GetRelease;
+DROP FUNCTION IF EXISTS GetRelease/1;
+DROP FUNCTION IF EXISTS GetRelease/2;
+DROP FUNCTION IF EXISTS GetApplicationRelease;
+DROP FUNCTION IF EXISTS GetApplication;
+DROP FUNCTION IF EXISTS GetPartWithParent;
+DROP FUNCTION IF EXISTS GetPartbySerial;
+DROP FUNCTION IF EXISTS GetPart/1;
+DROP FUNCTION IF EXISTS GetPart/2;
+DROP FUNCTION IF EXISTS GetVersion;
+DROP FUNCTION IF EXISTS GetFile;
+DROP FUNCTION IF EXISTS GetURL;
+DROP FUNCTION IF EXISTS GetPath;
+DROP FUNCTION IF EXISTS GetAgentString;
+DROP FUNCTION IF EXISTS GetIdentityPhrase;
+DROP FUNCTION IF EXISTS GetWord;
+DROP FUNCTION IF EXISTS GetWord/1;
+DROP FUNCTION IF EXISTS GetWord/2;
+DROP FUNCTION IF EXISTS GetSentence;
+DROP FUNCTION IF EXISTS GetSentence/1;
+DROP FUNCTION IF EXISTS GetSentence/2;
+DROP FUNCTION IF EXISTS SetSchemaVersion;
+
+-- Drop tables that refer to themselves
+DROP TABLE Part CASCADE;
+DROP TABLE AssemblyApplicationRelease CASCADE;
+DROP TABLE Location CASCADE;
+
