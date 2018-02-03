@@ -55,6 +55,7 @@ CREATE SEQUENCE span_shared_id_seq START WITH 10000;
 -- This leaves room for global constants that are guaranteed to exist
 ALTER SEQUENCE word_id_seq RESTART WITH 2000000;
 ALTER SEQUENCE sentence_id_seq RESTART WITH 2000000;
+ALTER SEQUENCE paragraph_id_seq RESTART WITH 2000000;
 ALTER SEQUENCE name_id_seq RESTART WITH 2000000;
 ALTER SEQUENCE entity_id_seq RESTART WITH 2000000;
 ALTER SEQUENCE individual_id_seq RESTART WITH 4000000;

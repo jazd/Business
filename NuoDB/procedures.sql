@@ -1061,6 +1061,205 @@ END_FUNCTION;
 SET DELIMITER ;
 
 
+DROP FUNCTION IF EXISTS GetGiven;
+
+SET DELIMITER @
+CREATE FUNCTION GetGiven (
+ inGiven STRING
+) RETURNS INTEGER AS
+ IF (inGiven IS NOT NULL)
+  INSERT INTO Given (value) (
+   SELECT inGiven
+   FROM DUAL
+   LEFT JOIN Given AS does_exist ON does_exist.value = inGiven
+   WHERE does_exist.id IS NULL
+  );
+ END_IF;
+
+ RETURN (
+  SELECT id
+  FROM Given
+  WHERE Given.value = inGiven
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+DROP FUNCTION IF EXISTS GetFamily;
+
+SET DELIMITER @
+CREATE FUNCTION GetFamily (
+ inFamily STRING
+) RETURNS INTEGER AS
+ IF (inFamily IS NOT NULL)
+  INSERT INTO Family (value) (
+   SELECT inFamily
+   FROM DUAL
+   LEFT JOIN Family AS does_exist ON does_exist.value = inFamily
+   WHERE does_exist.id IS NULL
+  );
+ END_IF;
+
+ RETURN (
+  SELECT id
+  FROM Family
+  WHERE Family.value = inFamily
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+DROP FUNCTION IF EXISTS GetName;
+
+SET DELIMITER @
+CREATE FUNCTION GetName (
+ inFirst STRING,
+ inMiddle STRING,
+ inLast STRING
+) RETURNS INTEGER AS
+ VAR first_id INTEGER;
+ VAR middle_id INTEGER;
+ VAR last_id INTEGER;
+
+ IF (inFirst IS NOT NULL OR inMiddle IS NOT NULL OR inLast IS NOT NULL)
+  first_id = GetGiven(inFirst);
+  middle_id = GetGiven(inMiddle);
+  last_id = GetFamily(inLast);
+
+  INSERT INTO Name (given, middle, family) (
+   SELECT first_id, middle_id, last_id
+   FROM DUAL
+   LEFT JOIN Name AS does_exist ON
+        ((does_exist.given = first_id) OR (does_exist.given IS NULL AND first_id IS NULL))
+    AND ((does_exist.middle = middle_id) OR (does_exist.middle IS NULL AND middle_id IS NULL))
+    AND ((does_exist.family = last_id) OR (does_exist.family IS NULL AND last_id IS NULL))
+  WHERE does_exist.id IS NULL
+  );
+ END_IF;
+
+ RETURN (
+  SELECT id
+  FROM Name
+  WHERE ((Name.given = first_id) OR (Name.given IS NULL AND first_id IS NULL))
+    AND ((Name.middle = middle_id) OR (Name.middle IS NULL AND middle_id IS NULL))
+    AND ((Name.family = last_id) OR (Name.family IS NULL AND last_id IS NULL))
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+DROP FUNCTION IF EXISTS GetIndividualPerson;
+
+SET DELIMITER @
+CREATE FUNCTION GetIndividualPerson (
+ inFirst STRING,
+ inMiddle STRING,
+ inLast STRING,
+ inBirth date,
+ inGoesBy STRING,
+ inDeath date
+) RETURNS INTEGER AS
+ VAR name_id INTEGER;
+ VAR goesBy_id INTEGER;
+ VAR does_exist_id INTEGER;
+ VAR return_id INTEGER;
+
+ does_exist_id = (
+   SELECT does_exist.id
+   FROM DUAL
+   LEFT JOIN Given ON Given.value = inFirst
+   LEFT JOIN Family ON Family.value = inLast
+   LEFT JOIN Name ON ((Name.given = Given.id) OR (Name.given IS NULL AND Given.id IS NULL))
+    AND ((Name.family = Family.id) OR (Name.family IS NULL AND Family.id IS NULL))
+   LEFT JOIN Individual AS does_exist ON does_exist.name IN (name_id, Name.id)
+    AND ((CAST(does_exist.birth AS DATE) = inBirth) OR (inBirth IS NULL))
+   LIMIT 1
+ );
+
+ IF (does_exist_id IS NULL)
+  name_id = GetName(inFirst,inMiddle,inLast);
+  goesBy_id = GetGiven(inGoesBy);
+
+  IF (name_id IS NOT NULL)
+   INSERT INTO Individual(name, goesBy, birth, death) VALUES (name_id, goesBy_id, inBirth, inDeath);
+  END_IF;
+
+  return_id = (
+   SELECT id
+   FROM Individual
+   WHERE Individual.name = name_id
+   AND (CAST(Individual.birth AS DATE) = inBirth)
+   AND ((Individual.goesBy = goesBy_id) OR (goesBy_id IS NULL))
+   AND ((CAST(Individual.death AS DATE) = inDeath) OR (Individual.death IS NULL AND inDeath IS NULL))
+   LIMIT 1
+  );
+ ELSE
+  return_id = does_exist_id;
+ END_IF;
+
+ RETURN return_id;
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+DROP FUNCTION IF EXISTS GetEntityName;
+
+SET DELIMITER @
+CREATE FUNCTION GetEntityName (
+ inName STRING
+) RETURNS INTEGER AS
+ IF (inName IS NOT NULL)
+  INSERT INTO Entity (name)
+  SELECT inName
+  FROM DUAL
+  LEFT JOIN Entity AS does_exist ON UPPER(does_exist.name) = UPPER(inName)
+  WHERE does_exist.id IS NULL
+  ;
+ END_IF;
+
+ RETURN (
+  SELECT id
+  FROM Entity
+  WHERE UPPER(Entity.name) = UPPER(inName)
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+DROP FUNCTION IF EXISTS GetIndividualEntity;
+
+SET DELIMITER @
+CREATE FUNCTION GetIndividualEntity (
+ inName STRING,
+ inFormed date,
+ inGoesBy STRING,
+ inDissolved date
+) RETURNS INTEGER AS
+ VAR entity_name_id INTEGER;
+ VAR goesBy_id INTEGER;
+
+ entity_name_id = GetEntityName(inName);
+ IF (entity_name_id IS NOT NULL)
+  goesBy_id = GetGiven(inGoesBy);
+
+  INSERT INTO Individual (entity, goesBy, birth, death)
+  SELECT entity_name_id, goesBy_id, inFormed, inDissolved
+  FROM DUAL
+  LEFT JOIN Individual AS does_exist ON does_exist.entity = entity_name_id
+  WHERE does_exist.id IS NULL
+  ;
+ END_IF;
+
+ RETURN (
+  SELECT id FROM Individual
+  WHERE Individual.entity = entity_name_id
+  LIMIT 1
+ );
+END_FUNCTION;
+@
+SET DELIMITER ;
+
 
 DROP FUNCTION IF EXISTS SetSchemaVersion;
 

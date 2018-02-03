@@ -76,14 +76,14 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION ClientCulture()
- RETURNS integer
+ RETURNS smallint
 AS $$
 DECLARE
- injected_culture integer;
+ injected_culture smallint;
 BEGIN
 SET LOCAL client_min_messages=warning;
 CREATE TEMP TABLE IF NOT EXISTS inject_culture (
- value integer
+ value smallint
 );
 RESET client_min_messages;
 injected_culture := (SELECT value FROM inject_culture LIMIT 1);
