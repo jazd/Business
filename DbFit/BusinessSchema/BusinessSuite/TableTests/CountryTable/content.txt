@@ -1,11 +1,11 @@
 Country
 
 !|Insert|Country|
-|name|
-|10000|
+|name|id?|
+|10000|>>countryid|
 
 First inserted location should be >= 10000
-!|Ordered Query| SELECT id FROM Country WHERE id >= 10000 LIMIT 1|
+!|Query| SELECT id FROM Country WHERE id >= 10000 AND name = 10000|
 |id|
-|fail[NULL}|
+|<<countryid|
 

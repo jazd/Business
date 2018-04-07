@@ -1,4 +1,3 @@
-
 Using static data for tests
 
 !|Insert|IndividualEmail|
@@ -8,5 +7,5 @@ Using static data for tests
 Be sure it was inserted
 !|Ordered Query| SELECT individual FROM IndividualEmail WHERE individual = 1 AND type = 11 AND email = 1|
 |individual|
-|fail[NULL}|
+|fail[NULL]|
 

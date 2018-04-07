@@ -1,6 +1,4 @@
-
 Single words for names of stuff
-
 
 Verify en-US is the default culture.
 
@@ -8,16 +6,12 @@ Verify en-US is the default culture.
 |value|
 |Zippy|
 
-!|Ordered Query| SELECT id, culture FROM Word WHERE value = 'Zippy'|
+First inserted word id should be >= 2000000
+!|Ordered Query| SELECT id, culture FROM Word WHERE id >= 2000000 AND value = 'Zippy'|
 |id|culture|
 |fail[NULL]|1033|
 
-First inserted word id should be >= 2000000
-!|Ordered Query| SELECT id FROM Word WHERE id >= 2000000 LIMIT 1|
-|id|
-|fail[NULL}|
-
-The word table should be case insensitive, but will use the DB2 way and use and UPPER(value) index.
+The word table should be case insensitive but will use the DB2 way and use and UPPER(value) index.
 !|Query| SELECT value FROM Word WHERE UPPER(value) = UPPER('zippY')|
 |value|
 |Zippy|
@@ -53,8 +47,8 @@ http://www.spanishdict.com/translate/Title
 |0|2058|Título|
 
 Be sure we have all the different versions of the word Title
-NULLs should display first when order is descending.
-!|Ordered Query| SELECT id,culture FROM Word WHERE id = 0 ORDER BY culture DESC|
+NULLs should display first when the order is descending.
+!|Ordered Query| SELECT id, culture FROM Word WHERE id = 0 ORDER BY culture DESC|
 |id|culture|
 |0|NULL|
 |0|2058|

@@ -8,5 +8,5 @@ Using static data for tests
 Be sure it was inserted
 !|Ordered Query| SELECT individual FROM IndividualPath WHERE individual = 1 AND type = 10 AND path = 10|
 |individual|
-|fail[NULL}|
+|fail[NULL]|
 

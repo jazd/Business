@@ -2,24 +2,30 @@ Family portion of a Person's name.
 
 First inserted should be >= 2000000
 !|Insert|Family|
-|value|
-|Zippy|
+|value|id?|
+|Zippy|>>familyid|
 
 First inserted family id should be >= 2000000
-!|Ordered Query| SELECT id FROM Family WHERE id >= 2000000 LIMIT 1|
+!|Query| SELECT id FROM Family WHERE id >= 2000000 AND value = 'Zippy'|
 |id|
-|fail[NULL}|
+|<<familyid|
 
 Entries are case sensitive.
 !|Insert|Family|
-|value|
-|McVille|
-|Mcville|
+|value|id?|
+|McVille|>>upper|
+|Mcville|>>lower|
+
+Be sure the resulting ids are not equal
+May only work in PostgreSQL
+!|Query| SELECT CASE WHEN (_:upper = _:lower) THEN 1 ELSE 0 END AS result FROM DUAL|
+|result|
+|0     |
 
 Longest Family
 !|Insert|Family|
-|value|
-|12345678901234567890|
-!|Ordered Query| SELECT id FROM Family WHERE value = '12345678901234567890'|
+|value|id?|
+|12345678901234567890|>>familyid|
+!|Query| SELECT id FROM Family WHERE value = '12345678901234567890'|
 |id|
-|fail[NULL]|
+|<<familyid|

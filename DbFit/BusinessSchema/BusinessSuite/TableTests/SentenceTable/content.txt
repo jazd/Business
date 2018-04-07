@@ -6,14 +6,10 @@ Verify en-US is the default culture.
 |value|
 |Zippy the Pinhead.|
 
-!|Ordered Query| SELECT id, culture FROM Sentence WHERE value = 'Zippy the Pinhead.'|
+First inserted sentance id should be >= 2000000
+!|Ordered Query| SELECT id, culture FROM Sentence WHERE id >= 2000000 AND value = 'Zippy the Pinhead.'|
 |id|culture|
 |fail[NULL]|1033|
-
-First inserted sentance id should be >= 2000000
-!|Ordered Query| SELECT id FROM Sentence WHERE id >= 2000000 LIMIT 1|
-|id|
-|fail[NULL}|
 
 The word table should be case sensitive.
 !|Query| SELECT value FROM Sentence WHERE value = 'zippy the Pinhead.'|

@@ -1,15 +1,18 @@
 Full email address
 !|Insert|Email|
-|username|plus|host|
-|spiffy|monkeywards|ibm.com|
+|username|plus|host|id?|
+|spiffy|monkeywards|ibm.com|>>emailid|
 
 First inserted email id should be >= 2000000
-!|Ordered Query| SELECT id FROM Email WHERE id >= 2000000 LIMIT 1|
+!|Query| SELECT id FROM Email WHERE id >= 2000000 AND username = 'spiffy' AND plus = 'monkeywards' AND host = 'ibm.com'|
 |id|
-|fail[NULL]|
+|<<emailid|
 
 Insert maximum parts
 !|Insert|Email|
-|username|plus|host|
-|123456789012345678901234567890|123456789012345678901234567890|123456789012345678901234567890|
+|username|plus|host|id?|
+|123456789012345678901234567890|123456789012345678901234567890|123456789012345678901234567890|>>emailid|
 
+!|Query| SELECT id FROM Email WHERE username = '123456789012345678901234567890' AND plus = '123456789012345678901234567890' AND host = '123456789012345678901234567890'|
+|id|
+|<<emailid|

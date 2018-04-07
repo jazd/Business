@@ -1,21 +1,25 @@
 A Company or Entities full name
 
 !|Insert|Entity|
-|name|
-|Zippy's house of flapjacks|
+|name|id?|
+|Zippy's house of flapjacks|>>entityid|
 
 First inserted Entity id should be >= 2000000
-!|Ordered Query| SELECT id FROM Entity WHERE id >= 2000000 LIMIT 1|
+!|Query| SELECT id FROM Entity WHERE id >= 2000000 AND name = 'Zippy''s house of flapjacks'|
 |id|
-|fail[NULL}|
+|<<entityid|
 
 
 Insert maximum length name
 !|Insert|Entity|
-|name|
-|12345678901234567890123456789012345678901234567890|
+|name|id?|
+|12345678901234567890123456789012345678901234567890|>>entityid|
+!|Query| SELECT id FROM Entity WHERE name = '12345678901234567890123456789012345678901234567890'|
+|id|
+|<<entityid|
 
 Get the correct number of Companies, case sensitive
-!|Ordered Query|SELECT name FROM Entity WHERE name = 'zippy''s house of flapjacks'|
+Should get no records back
+!|Query|SELECT name FROM Entity WHERE name = 'zippy''s house of flapjacks'|
 |name|
 

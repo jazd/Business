@@ -5,7 +5,7 @@ HTTP URL path
 |http|NoCRUD.com|testPath1|
 
 First inserted path id should be >= 2000000
-!|Ordered Query| SELECT id FROM Path WHERE id >= 2000000 LIMIT 1|
+!|Ordered Query| SELECT id FROM Path WHERE id >= 2000000 AND host = 'NoCRUD.com' AND value = 'testPath1'|
 |id|
 |fail[NULL]|
 
@@ -14,3 +14,6 @@ Insert maximum parts
 |protocol|host|value|get|
 |1234|123456789012345678901234567890|123456789012345678901234567890|123456789012345678901234567890|
 
+!|Ordered Query| SELECT id FROM Path WHERE protocol = '1234' AND host = '123456789012345678901234567890' AND value = '123456789012345678901234567890' AND get = '123456789012345678901234567890'|
+|id|
+|fail[NULL]|

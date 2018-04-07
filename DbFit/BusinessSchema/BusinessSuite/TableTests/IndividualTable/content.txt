@@ -1,17 +1,16 @@
-
-Duplicates are Okay as long as they are indeed different legal entities
+Duplicates individual names are Okay as long as they are indeed different legal entities
 !|Insert|Individual|
 |name|
 |1|
 |1|
 
 First inserted Individual id should be >= 4000000
-!|Ordered Query| SELECT id FROM Individual WHERE id >= 4000000 LIMIT 1|
+!|Ordered Query| SELECT id FROM Individual WHERE id >= 4000000 AND name = 1|
 |id|
-|fail[NULL}|
+|fail[NULL]|
+|fail[NULL]|
 
-
-TODO: see if we can get cross-server parameters.  For now we know we have at
+TODO: see if we can get cross-server parameters.  For now, we know we have at
 Insert a unique Title
 !|Insert|Sentence|
 |value|
@@ -33,6 +32,14 @@ Duplicate individual entities are Okay as long as they are indeed different lega
 |1|
 |1|
 
+
+First inserted Individual id should be >= 4000000
+!|Ordered Query| SELECT id FROM Individual WHERE id >= 4000000 AND entity = 1|
+|id|
+|fail[NULL]|
+|fail[NULL]|
+
+Test normal transactions
 !|Insert|Individual|
 |name|prefix|suffix|birth|death|nameChange|
 |1|1|1|1963-11-22|2103-11-23|1981-11-22|
