@@ -11,12 +11,14 @@ Verify words can't be inserted twice, even with only case differences.
 |Zippy|
 |zIPPY|
 
+|Rollback|
 Word to long
 !style_error(value too long for type character varying(20))
 !|Insert|Word|
 |value|
 |123456789012345678901|
 
+|Rollback|
 Do not insert if no references culture exists
 !style_error(insert or update on table "word" violates foreign key constraint "word_culture_fkey")
 !|Insert|Word|
@@ -25,6 +27,7 @@ Do not insert if no references culture exists
 
 !4 Sentence Table
 
+|Rollback|
 Verify sentence can't be inserted twice.
 !style_error(duplicate key value violates unique constraint "sentence_culture_value")
 !|Insert|Sentence|
@@ -32,73 +35,84 @@ Verify sentence can't be inserted twice.
 |Zippy|
 |Zippy|
 
+|Rollback|
 Sentence to long
 !style_error(value too long for type character varying(256))
 !|Insert|Sentence|
 |value|
 |1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456X|
 
+|Rollback|
 Do not insert if no references culture exists
 !style_error(insert or update on table "sentence" violates foreign key constraint "sentence_culture_fkey")
 !|Insert|Sentence|
 |id|culture|value|
 |0|2058|título|
 
-!4 Person Table
+!4 Name Table
 
+|Rollback|
 Don't allow duplicates
-!style_error(duplicate key value violates unique constraint "person_given_middle_family)
-!|Insert|Person|
+!style_error(duplicate key value violates unique constraint "name_given_middle_family)
+!|Insert|Name|
 |given|middle|family|
 |1|14|1|
 |1|14|1|
 
+|Rollback|
 Don't allow duplicates 1 NULL
-!style_error(duplicate key value violates unique constraint "person_given_middle_null")
-!|Insert|Person|
+!style_error(duplicate key value violates unique constraint "name_given_middle_null")
+!|Insert|Name|
 |given|middle|
 |1|1|
 |1|1|
 
-!style_error(duplicate key value violates unique constraint "person_given_null_family")
-!|Insert|Person|
+|Rollback|
+!style_error(duplicate key value violates unique constraint "name_given_null_family")
+!|Insert|Name|
 |given|family|
 |1|1|
 |1|1|
 
-!style_error(duplicate key value violates unique constraint "person_null_middle_family")
-!|Insert|Person|
+|Rollback|
+!style_error(duplicate key value violates unique constraint "name_null_middle_family")
+!|Insert|Name|
 |middle|family|
 |1|1|
 |1|1|
 
+|Rollback|
 Don't allow duplicates 2 NULLs
-!style_error(duplicate key value violates unique constraint "person_null_null_family")
-!|Insert|Person|
+!style_error(duplicate key value violates unique constraint "name_null_null_family")
+!|Insert|Name|
 |family|
 |1|
 |1|
 
-!style_error(duplicate key value violates unique constraint "person_null_middle_null")
-!|Insert|Person|
+|Rollback|
+!style_error(duplicate key value violates unique constraint "name_null_middle_null")
+!|Insert|Name|
 |middle|
 |1|
 |1|
 
-!style_error(duplicate key value violates unique constraint "person_given_null_null")
-!|Insert|Person|
+|Rollback|
+!style_error(duplicate key value violates unique constraint "name_given_null_null")
+!|Insert|Name|
 |given|
 |1|
 |1|
 
 !4 Entity Table
 
+|Rollback|
 Insert to long length name
 !style_error(value too long for type character varying(50))
 !|Insert|Entity|
 |name|
 |12345678901234567890123456789012345678901234567890x|
 
+|Rollback|
 No duplicates
 !style_error(duplicate key value violates unique constraint "entity_name")
 !|Insert|Entity|
@@ -111,6 +125,7 @@ No duplicates
 
 !4 Given Table
 
+|Rollback|
 Insert Duplicates
 !style_error(duplicate key value violates unique constraint "given_value")
 !|Insert|Given|
@@ -118,78 +133,92 @@ Insert Duplicates
 |Zippy|
 |Zippy|
 
+|Rollback|
 Insert long
-!style_error(value too long for type character varying(20))
+!style_error(value too long for type character varying(25))
 !|Insert|Given|
 |value|
-|12345678901234567890x|
+|1234567890123456789012345x|
 
 !4 Family Table
 
+|Rollback|
 Insert Duplicates
-!style_error(duplicate key value violates unique constraint "given_value")
+!style_error(duplicate key value violates unique constraint "family_value")
 !|Insert|Family|
 |value|
 |Zippy|
 |Zippy|
 
+|Rollback|
 Insert long
-!style_error(value too long for type character varying(20))
+!style_error(value too long for type character varying(25))
 !|Insert|Family|
 |value|
-|12345678901234567890x|
+|1234567890123456789012345x|
 
 !4 Email Table
 
 No duplicates
+Email Table tests are failing (not throwing exceptions)
 
+|Rollback|
 Full email address should be case insensitive
 !|Insert|Email|
 |username|plus|host|
 |Zippy|Zippy|Zippy.com|
 
+|Rollback|
 !style_error(duplicate key value violates unique constraint "email_username_plus_host")
 !|Insert|Email|
 |username|plus|host|
 |zippy|Zippy|Zippy.com|
+
+|Rollback|
 !style_error(duplicate key value violates unique constraint "email_username_plus_host")
 !|Insert|Email|
 |username|plus|host|
 |Zippy|zippy|Zippy.com|
+
+|Rollback|
 !style_error(duplicate key value violates unique constraint "email_username_plus_host")
 !|Insert|Email|
 |username|plus|host|
 |Zippy|Zippy|zippy.com|
 
+|Rollback|
 Insert parts to long
 !style_error(value too long for type character varying(30))
 !|Insert|Email|
 |username|host|
 |123456789012345678901234567890x|zippy.com|
 
+|Rollback|
 !style_error(value too long for type character varying(30))
 !|Insert|Email|
 |plus|username|host|
 |123456789012345678901234567890x|zippy|zippy.com|
 
-
+|Rollback|
 !style_error(value too long for type character varying(30))
 !|Insert|Email|
 |host|username|
 |123456789012345678901234567890x|zippy|
 
-
+|Rollback|
 Valid email addresses only
 !style_error(null value in column "username" violates not-null constraint)
 !|Insert|Email|
 |host|
 |zippy.com|
 
+|Rollback|
 !style_error(null value in column "host" violates not-null constraint)
 !|Insert|Email|
 |username|
 |zippy|
 
+|Rollback|
 !style_error(null value in column "username" violates not-null constraint)
 !|Insert|Email|
 |plus|
@@ -199,6 +228,7 @@ Valid email addresses only
 
 Do not allow duplicate area names
 
+|Rollback|
 !style_error(duplicate key value violates unique constraint "area_name")
 !|Insert|Area|
 |name|
@@ -210,12 +240,14 @@ Do not allow duplicate area names
 
 Do not allow duplicate country names
 
+|Rollback|
 !style_error(duplicate key value violates unique constraint "country_name")
 !|Insert|Country|
 |name|
 |1|
 |1|
 
+|Rollback|
 Do not allow duplicate country codes
 !style_error(duplicate key value violates unique constraint "country_code")
 !|Insert|Country|
@@ -223,11 +255,11 @@ Do not allow duplicate country codes
 |200|Zip|
 |201|zip|
 
-
 !4 Phone
 
 Do not allow duplicate phone numbers for same country
 
+|Rollback|
 !style_error(duplicate key value violates unique constraint "phone_country_area_number")
 !|Insert|Phone|
 |area|number|
