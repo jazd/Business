@@ -36,6 +36,7 @@ AS $$
  CAST(extract(days FROM CAST(birthday(birth) AS date) - CAST(asOf AS timestamp)) AS integer) AS days
 $$ language sql immutable strict;
 
+-- TODO As of PostgreSQL 9.3 has the # as bitwise XOR
 CREATE OR REPLACE FUNCTION XOR(boolean, boolean)
  RETURNS boolean
 AS $$

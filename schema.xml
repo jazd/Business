@@ -1393,6 +1393,35 @@ LEFT JOIN Word AS designator ON designator.id = AssemblyPart.designator
   </sql>
  </view>
 
+ <view name="Periods" fields="period,name,periodname">
+   <sql>
+SELECT PeriodName.period, PeriodName.name, Sentence.value AS periodName
+FROM PeriodName
+LEFT JOIN Sentence ON Sentence.id = PeriodName.name
+ AND Sentence.culture = ClientCulture()
+   </sql>
+ </view>
+
+ <view name="PeriodSpans" fields="period,name,periodname,span,exclude,monthdaymonth,day,weekofmonth,dayofweekstart,dayofweekstop,dayofmonth,month,monthyear,daterangestart,daterangestop,timeofdaystart,timeofdaystop">
+   <sql>
+SELECT PeriodName.period, PeriodName.name, Sentence.value AS periodName,
+ Period.span, Period.exclude,
+ MonthDay.month AS MonthDaymonth, MonthDay.day, MonthDay.weekOfMonth,
+ DayOfWeek.start AS dayOfWeekStart, DayOfWeek.stop AS dayOfWeekStop, DayOfWeek.dayOfMonth,
+ Month.month, Month.year AS monthYear,
+ DateRange.start AS dateRangeStart, DateRange.stop AS dateRangeStop,
+ TimeOfDay.start AS timeOfDayStart, TimeOfDay.stop AS timeOfDayStop
+FROM Period
+JOIN PeriodName ON PeriodName.period = Period.id
+JOIN Sentence ON Sentence.id = PeriodName.name
+ AND Sentence.culture = ClientCulture()
+LEFT JOIN MonthDay  ON MonthDay.id  = Period.span
+LEFT JOIN DayOfWeek ON DayOfWeek.id = Period.span
+LEFT JOIN Month     ON Month.id     = Period.span
+LEFT JOIN DateRange ON DateRange.id = Period.span
+LEFT JOIN TimeOfDay ON TimeOfDay.id = Period.span
+   </sql>
+ </view>
 
 </views>
 <triggers></triggers>
