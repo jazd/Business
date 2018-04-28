@@ -6,7 +6,7 @@ Add
 local   MyCo            all                                     trust
 host    MyCo            all             127.0.0.1/32            trust
 host    MyCo            all             ::1/128                 trust
-To /var/lib/pgsql/data/pg_hba.comf
+To /var/lib/pgsql/data/pg_hba.conf
 
 Restart
 /etc/init.d/postgresql restart
