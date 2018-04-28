@@ -15,7 +15,7 @@ As postgres user
 createdb -E UNICODE MyCo
 
 psql MyCo
-MyCo=# CREATE USER test WITH PASSWORD 'dbfit';
+MyCo=# CREATE USER test;
 MyCo=# ALTER ROLE test WITH LOGIN;
 MyCo=# CREATE SCHEMA Business;
 MyCo=# GRANT ALL ON SCHEMA Business TO test;
