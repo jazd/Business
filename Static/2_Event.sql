@@ -1,16 +1,16 @@
 -- Load up month span table
-INSERT INTO Month (id, month) VALUES (1, 0);
-INSERT INTO Month (id, month) VALUES (2, 1);
-INSERT INTO Month (id, month) VALUES (3, 2);
-INSERT INTO Month (id, month) VALUES (4, 3);
-INSERT INTO Month (id, month) VALUES (5, 4);
-INSERT INTO Month (id, month) VALUES (6, 5);
-INSERT INTO Month (id, month) VALUES (7, 6);
-INSERT INTO Month (id, month) VALUES (8, 7);
-INSERT INTO Month (id, month) VALUES (9, 8);
-INSERT INTO Month (id, month) VALUES (10, 9);
-INSERT INTO Month (id, month) VALUES (11, 10);
-INSERT INTO Month (id, month) VALUES (12, 11);
+INSERT INTO Month (id, month) VALUES (1, 1);
+INSERT INTO Month (id, month) VALUES (2, 2);
+INSERT INTO Month (id, month) VALUES (3, 3);
+INSERT INTO Month (id, month) VALUES (4, 4);
+INSERT INTO Month (id, month) VALUES (5, 5);
+INSERT INTO Month (id, month) VALUES (6, 6);
+INSERT INTO Month (id, month) VALUES (7, 7);
+INSERT INTO Month (id, month) VALUES (8, 8);
+INSERT INTO Month (id, month) VALUES (9, 9);
+INSERT INTO Month (id, month) VALUES (10, 10);
+INSERT INTO Month (id, month) VALUES (11, 11);
+INSERT INTO Month (id, month) VALUES (12, 12);
 
 -- Initial holiday periods
 INSERT INTO PeriodName (period, name) VALUES (1,3);
@@ -62,4 +62,6 @@ INSERT INTO DayOfWeek (id, start, dayOfMonth) VALUES (21, 1, 2);
 INSERT INTO Period (id, span) VALUES (10, 21);
 -- Valentine''s Day
 INSERT INTO MonthDay (id, month, day) VALUES (22, 2, 14);
-INSERT INTO Period VALUES (11, 22);
+INSERT INTO Period (id, span) VALUES (11, 22);
+-- Black History Month, the whole month of February
+INSERT INTO Period (id, span) VALUES (12, 2);

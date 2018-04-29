@@ -2,16 +2,30 @@
 !|dbfit.PostgresTest|
 !|Connect|localhost|test|dbfit|MyCo|
 
+Holidays that have the same day of the month, every year.
+
 Christmas Day
 !|Execute|SELECT ClientNow('12/25/2018')|
-
 !|Ordered Query|SELECT open FROM TimePeriod WHERE period = 1|
 |open|
 |true|
 
 Christmas Eve is not Christmas
 !|Execute|SELECT ClientNow('12/24/2018 23:59:59')|
-
 !|Ordered Query|SELECT open FROM TimePeriod WHERE period = 1|
 |open|
 |false|
+
+Independence Day
+!|Execute|SELECT ClientNow('07/04/2018')|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 8|
+|open|
+|true|
+
+Holidays that span whole months, every year.
+
+Black History Month
+!|Execute|SELECT ClientNow('02/01/2018')|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 12|
+|open|
+|true|

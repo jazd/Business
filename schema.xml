@@ -1425,12 +1425,22 @@ LEFT JOIN TimeOfDay ON TimeOfDay.id = Period.span
 
  <view name="TimePeriod" fields="period, open">
   <sql>
+SELECT period, bool_AND(open) AS open
+FROM (
 SELECT Period.id AS period,
  ClientNow()::date &gt; make_date(date_part(!apos;year!apos;,ClientNow())::integer,MonthDay.month, MonthDay.day) -1 AND
  ClientNow()::date &lt;= make_date(date_part(!apos;year!apos;,ClientNow())::integer,MonthDay.month, MonthDay.day) AS open
 FROM Period
 JOIN MonthDay ON MonthDay.id = Period.span
  AND MonthDay.weekOfMonth IS NULL
+UNION
+SELECT Period.id AS period,
+ Month.month = date_part(!apos;month!apos;, ClientNow())
+FROM Period
+JOIN Month ON Month.id = Period.span
+ AND Month.year IS NULL
+) AS timeperiod
+GROUP BY period
   </sql>
  </view>
 
