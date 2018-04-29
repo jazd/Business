@@ -29,3 +29,23 @@ Black History Month
 !|Ordered Query|SELECT open FROM TimePeriod WHERE period = 12|
 |open|
 |true|
+
+Holidays that are a specific weekday occurrence
+
+Thanksgiving
+!|Execute|SELECT ClientNow('11/22/2018')|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 2|
+|open|
+|true|
+
+Not the Thursday before
+!|Execute|SELECT ClientNow('11/15/2018')|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 2|
+|open|
+|false|
+
+Not the Thursday after
+!|Execute|SELECT ClientNow('11/29/2018')|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 2|
+|open|
+|false|

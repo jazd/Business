@@ -859,7 +859,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="month" data_type="smallint" size="0" is_nullable="1" order="2" >
-  <comments>January is 0, December is 11</comments>
+  <comments>January is 1, December is 12</comments>
  </field>
  <field name="year" data_type="integer" size="0" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
@@ -1439,6 +1439,14 @@ SELECT Period.id AS period,
 FROM Period
 JOIN Month ON Month.id = Period.span
  AND Month.year IS NULL
+UNION
+SELECT Period.id AS period,
+ (ROUND((date_part(!apos;day!apos;,ClientNow())::float / 7) +.9) = DayOfWeek.start) AND
+ (EXTRACT(DOW FROM ClientNow()) = DayOfWeek.dayOfMonth) AS open
+FROM Period
+JOIN DayOfWeek ON DayOfWeek.id = Period.span
+ AND DayOfWeek.stop IS NULL
+ AND DayOfWeek.dayOfMonth > 0
 ) AS timeperiod
 GROUP BY period
   </sql>
