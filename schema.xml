@@ -1423,6 +1423,17 @@ LEFT JOIN TimeOfDay ON TimeOfDay.id = Period.span
    </sql>
  </view>
 
+ <view name="TimePeriod" fields="period, open">
+  <sql>
+SELECT Period.id AS period,
+ ClientNow()::date &gt; make_date(date_part(!apos;year!apos;,ClientNow())::integer,MonthDay.month, MonthDay.day) -1 AND
+ ClientNow()::date &lt;= make_date(date_part(!apos;year!apos;,ClientNow())::integer,MonthDay.month, MonthDay.day) AS open
+FROM Period
+JOIN MonthDay ON MonthDay.id = Period.span
+ AND MonthDay.weekOfMonth IS NULL
+  </sql>
+ </view>
+
 </views>
 <triggers></triggers>
 <procedures></procedures>

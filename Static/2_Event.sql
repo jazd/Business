@@ -26,7 +26,7 @@ INSERT INTO PeriodName (period, name) VALUES (10,12);
 INSERT INTO PeriodName (period, name) VALUES (11,13);
 
 -- Christmas Day
-INSERT INTO MonthDay (id, month, day) VALUES (13,12,24);
+INSERT INTO MonthDay (id, month, day) VALUES (13,12,25);
 INSERT INTO Period (id, span) VALUES (1, 13);
 -- Thanksgiving Day, fourth Thursday in November
 INSERT INTO Period (id, span) VALUES (2, 11);
