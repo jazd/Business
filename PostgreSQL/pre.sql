@@ -76,6 +76,23 @@ RETURN (SELECT COALESCE(injected_now,NOW()));
 END;
 $$ LANGUAGE plpgsql;
 
+-- Set ClientNow
+-- Stays the passed date for whole session
+CREATE OR REPLACE FUNCTION ClientNow(clientNow timestamp with time zone)
+ RETURNS timestamp WITH TIME ZONE
+AS $$
+BEGIN
+SET LOCAL client_min_messages=warning;
+CREATE TEMP TABLE IF NOT EXISTS inject_now (
+ value timestamp WITH TIME ZONE
+);
+RESET client_min_messages;
+DELETE FROM inject_now;
+INSERT INTO inject_now(value) VALUES (clientNow);
+RETURN ClientNow();
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION ClientCulture()
  RETURNS smallint
 AS $$

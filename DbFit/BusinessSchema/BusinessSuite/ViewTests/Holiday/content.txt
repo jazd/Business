@@ -1,0 +1,17 @@
+!path lib/*.jar
+!|dbfit.PostgresTest|
+!|Connect|localhost|test|dbfit|MyCo|
+
+Christmas Day
+!|Execute|SELECT ClientNow('12/25/2018')|
+
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 1|
+|open|
+|true|
+
+Christmas Eve is not Christmas
+!|Execute|SELECT ClientNow('12/24/2018 23:59:59')|
+
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 1|
+|open|
+|false|
