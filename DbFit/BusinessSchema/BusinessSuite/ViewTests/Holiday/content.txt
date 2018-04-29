@@ -33,6 +33,8 @@ Black History Month
 Holidays that are a specific weekday occurrence
 
 Thanksgiving
+
+First day of November is a Thursday
 !|Execute|SELECT ClientNow('11/22/2018')|
 !|Ordered Query|SELECT open FROM TimePeriod WHERE period = 2|
 |open|
@@ -49,3 +51,15 @@ Not the Thursday after
 !|Ordered Query|SELECT open FROM TimePeriod WHERE period = 2|
 |open|
 |false|
+
+First day of November is a Wednesday
+!|Execute|SELECT ClientNow('11/23/2017')|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 2|
+|open|
+|true|
+
+First day of November is a Friday
+!|Execute|SELECT ClientNow('11/28/2013')|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 2|
+|open|
+|true|
