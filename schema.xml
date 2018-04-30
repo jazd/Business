@@ -1441,8 +1441,13 @@ JOIN Month ON Month.id = Period.span
  AND Month.year IS NULL
 UNION
 SELECT Period.id AS period,
- (ROUND((date_part(!apos;day!apos;,ClientNow())::float / 7) +.9) = DayOfWeek.start) AND
- (EXTRACT(DOW FROM ClientNow()) = DayOfWeek.dayOfMonth) AS open
+ ClientNow()::date = (
+  make_date(date_part(!apos;year!apos;,ClientNow())::integer,date_part(!apos;month!apos;,ClientNow())::integer, 1) + 7 * (DayOfWeek.start - 1) +
+  (7 + DayOfWeek.dayOfMonth - EXTRACT(DOW FROM
+    make_date(date_part(!apos;year!apos;,ClientNow())::integer,date_part(!apos;month!apos;,ClientNow())::integer, 1) + 7 * (DayOfWeek.start - 1)
+   )
+  )::integer %7
+ )
 FROM Period
 JOIN DayOfWeek ON DayOfWeek.id = Period.span
  AND DayOfWeek.stop IS NULL
