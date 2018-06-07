@@ -38,14 +38,14 @@ schema.mysql: schema.xml
 	chmod -w $@
 
 schema.sqlite: schema.xml
-	@echo Creating MySQL file $@
+	@echo Creating SQLite file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
 	sqlt -f XML-SQLFairy -t SQLite --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "s/NOW()/CURRENT_TIMESTAMP/g" | sed -e "s/LEFT(number,3)/SUBSTR(number,1,3)/g" | sed -e "s/RIGHT(number,4)/SUBSTR(number,-4)/g" >> $@
 	chmod -w $@
 
 schema.db2: schema.xml
-	@echo Creating MySQL file $@
+	@echo Creating DB2 file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
 	sqlt -f XML-SQLFairy -t DB2 --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
