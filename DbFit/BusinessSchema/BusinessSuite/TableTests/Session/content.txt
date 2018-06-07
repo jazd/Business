@@ -1,0 +1,5 @@
+!4 Verify table exists
+
+!|Ordered Query| SELECT id FROM Session LIMIT 1|
+|id|
+
