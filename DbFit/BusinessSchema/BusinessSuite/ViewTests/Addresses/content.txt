@@ -1,0 +1,4 @@
+!4 Verify Addresses view exists
+!|Query Stats                                              |
+|query                                |row count?|is empty?|
+|SELECT address FROM Addresses LIMIT 1|1         |false    |

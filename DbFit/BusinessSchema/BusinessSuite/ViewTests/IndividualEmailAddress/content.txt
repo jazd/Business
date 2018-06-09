@@ -1,0 +1,4 @@
+!4 Verify IndividualEmailAddress view exists
+!|Query Stats                                                              |
+|query                                                |row count?|is empty?|
+|SELECT individual FROM IndividualEmailAddress LIMIT 1|1         |false    |

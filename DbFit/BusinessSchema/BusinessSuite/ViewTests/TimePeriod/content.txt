@@ -1,0 +1,4 @@
+!4 Verify TimePeriod view exists
+!|Query Stats                                              |
+|query                                |row count?|is empty?|
+|SELECT period FROM TimePeriod LIMIT 1|1         |false    |

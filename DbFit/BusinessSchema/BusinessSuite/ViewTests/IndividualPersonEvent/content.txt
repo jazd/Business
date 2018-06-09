@@ -1,0 +1,4 @@
+!4 Verify IndividualPersonEvent view exists
+!|Query Stats                                                             |
+|query                                               |row count?|is empty?|
+|SELECT individual FROM IndividualPersonEvent LIMIT 1|1         |false    |

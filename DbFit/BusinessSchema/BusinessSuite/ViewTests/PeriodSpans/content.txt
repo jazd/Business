@@ -1,0 +1,4 @@
+!4 Verify PeriodSpans view exists
+!|Query Stats                                               |
+|query                                 |row count?|is empty?|
+|SELECT period FROM PeriodSpans LIMIT 1|1         |false    |

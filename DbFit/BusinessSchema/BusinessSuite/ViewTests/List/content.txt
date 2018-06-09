@@ -1,0 +1,4 @@
+!4 Verify List view exists
+!|Query Stats                                    |
+|query                      |row count?|is empty?|
+|SELECT id FROM List LIMIT 1|1         |false    |

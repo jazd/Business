@@ -1,0 +1,5 @@
+!4 Verify ParsedAgentStringShort view exists
+Underlying table has no static records
+!|Query Stats                                                               |
+|query                                                 |row count?|is empty?|
+|SELECT agentstring FROM ParsedAgentStringShort LIMIT 1|0         |true     |

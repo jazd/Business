@@ -1,0 +1,4 @@
+!4 Verify Periods view exists
+!|Query Stats                                           |
+|query                             |row count?|is empty?|
+|SELECT period FROM Periods LIMIT 1|1         |false    |

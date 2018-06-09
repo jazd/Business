@@ -1,0 +1,4 @@
+!4 Verify File view exists
+!|Query Stats                                                |
+|query                                  |row count?|is empty?|
+|SELECT path FROM File LIMIT 1          |1         |false    |

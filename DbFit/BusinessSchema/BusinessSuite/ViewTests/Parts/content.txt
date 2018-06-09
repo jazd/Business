@@ -1,0 +1,5 @@
+!4 Verify Parts view exists
+Underlying table has no static records
+!|Query Stats                                       |
+|query                         |row count?|is empty?|
+|SELECT part FROM Parts LIMIT 1|0         |true     |
