@@ -1,5 +1,4 @@
-!4 Verify Session table exists
-Has no static records
+!4 Verify Month table exists
 !|Query Stats                                       |
 |query                         |row count?|is empty?|
-|SELECT id FROM Session LIMIT 1|0         |true     |
+|SELECT id FROM Month LIMIT 1  |1         |false    |

@@ -1,0 +1,5 @@
+!4 Verify AddressAttribute table exists
+Has no static records
+!|Query Stats                                                     |
+|query                                       |row count?|is empty?|
+|SELECT address FROM AddressAttribute LIMIT 1|0         |true     |

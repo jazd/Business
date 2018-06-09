@@ -1,5 +1,5 @@
-!4 Verify Session table exists
+!4 Verify Version table exists
 Has no static records
 !|Query Stats                                       |
 |query                         |row count?|is empty?|
-|SELECT id FROM Session LIMIT 1|0         |true     |
+|SELECT id FROM Version LIMIT 1|0         |true     |

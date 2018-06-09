@@ -1,0 +1,4 @@
+!4 Verify Timezone table exists
+!|Query Stats                                          |
+|query                            |row count?|is empty?|
+|SELECT name FROM Timezone LIMIT 1|1         |false    |

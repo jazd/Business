@@ -1,0 +1,5 @@
+!4 Verify Part table exists
+Has no static records
+!|Query Stats                                    |
+|query                      |row count?|is empty?|
+|SELECT id FROM Part LIMIT 1|0         |true     |

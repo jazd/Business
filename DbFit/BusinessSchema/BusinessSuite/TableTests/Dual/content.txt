@@ -1,5 +1,5 @@
-!4 Verify Session table exists
-Has no static records
+!4 Verify Dual table exists
+Has single record
 !|Query Stats                                       |
 |query                         |row count?|is empty?|
-|SELECT id FROM Session LIMIT 1|0         |true     |
+|SELECT * FROM Dual            |1         |false    |

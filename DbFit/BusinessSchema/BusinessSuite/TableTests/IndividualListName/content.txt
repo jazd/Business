@@ -1,0 +1,4 @@
+!4 Verify IndividualListName table exists
+!|Query Stats                                                              |
+|query                                                |row count?|is empty?|
+|SELECT individuallist FROM IndividualListName LIMIT 1|1         |false    |

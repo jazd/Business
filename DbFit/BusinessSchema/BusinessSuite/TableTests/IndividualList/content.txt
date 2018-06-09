@@ -1,0 +1,4 @@
+!4 Verify IndividualList table exists
+!|Query Stats                                               |
+|query                                 |row count?|is empty?|
+|SELECT id FROM IndividualList LIMIT 1|1         |false     |

@@ -1,0 +1,5 @@
+!4 Verify IndividualSessionCreated table exists
+Has no static records
+!|Query Stats                                                                |
+|query                                                  |row count?|is empty?|
+|SELECT individual FROM IndividualSessionCreated LIMIT 1|0         |true     |

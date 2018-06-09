@@ -1,0 +1,4 @@
+!4 Verify DayOfWeek table exists
+!|Query Stats                                         |
+|query                           |row count?|is empty?|
+|SELECT id FROM DayOfWeek LIMIT 1|1         |false    |
