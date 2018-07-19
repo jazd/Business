@@ -706,7 +706,7 @@ CREATE FUNCTION AnonymousSession (
  );
 
  IF (existingSession IS NULL)
-  INSERT INTO Session (lock) VALUES (0);
+  INSERT INTO Session ("lock") VALUES (0);
   existingSession = (SELECT MAX(id) FROM Session);
   INSERT INTO SessionCredential (session,agentString,fromAddress,referring)
   SELECT existingSession AS session, inAgentString AS agentString,
@@ -787,7 +787,7 @@ CREATE FUNCTION SetSession (
   );
 
   IF (existingSession IS NULL)
-   INSERT INTO Session (lock) VALUES (0);
+   INSERT INTO Session ("lock") VALUES (0);
    existingSession = (SELECT MAX(id) FROM Session);
    INSERT INTO SessionToken (session,token,siteApplicationRelease,created) (
     SELECT existingSession, inSessionToken, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created FROM Dual
