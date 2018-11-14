@@ -190,6 +190,7 @@ CREATE FUNCTION GetVersion (
  VAR major_id INTEGER = GetWord(inMajor);
  VAR minor_id INTEGER;
  VAR patch_id INTEGER;
+ VAR no_match INTEGER = -1;
 
  IF (major_id IS NOT NULL)
   minor_id = GetWord(inMinor);
@@ -198,8 +199,8 @@ CREATE FUNCTION GetVersion (
    SELECT major_id, minor_id, patch_id
    FROM Dual
    LEFT JOIN Version AS does_exist ON does_exist.major = major_id
-    AND ((does_exist.minor = minor_id) OR (does_exist.minor IS NULL AND minor_id IS NULL))
-    AND ((does_exist.patch = patch_id) OR (does_exist.patch IS NULL AND patch_id IS NULL))
+    AND ((does_exist.minor = COALESCE(minor_id, no_match)) OR (does_exist.minor IS NULL AND minor_id IS NULL))
+    AND ((does_exist.patch = COALESCE(patch_id, no_match)) OR (does_exist.patch IS NULL AND patch_id IS NULL))
    WHERE does_exist.id IS NULL
   );
  END_IF;
@@ -207,8 +208,8 @@ CREATE FUNCTION GetVersion (
   SELECT id
   FROM Version
   WHERE major = major_id
-   AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
-   AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
+   AND ((minor = COALESCE(minor_id, no_match)) OR (minor IS NULL AND minor_id IS NULL))
+   AND ((patch = COALESCE(patch_id, no_match)) OR (patch IS NULL AND patch_id IS NULL))
    AND name IS NULL
  );
 END_FUNCTION;
@@ -228,18 +229,20 @@ CREATE FUNCTION GetVersionName (
  VAR major_id INTEGER;
  VAR minor_id INTEGER;
  VAR patch_id INTEGER;
+ VAR no_match INTEGER = -1;
  IF (inName IS NOT NULL)
   name_id = GetWord(inName);
   major_id = GetWord(inMajor);
   minor_id = GetWord(inMinor);
   patch_id = GetWord(inPatch);
+
   INSERT INTO Version (name, major, minor, patch) (
    SELECT name_id, major_id, minor_id, patch_id
    FROM Dual
    LEFT JOIN Version AS does_exist ON does_exist.name = name_id
-    AND ((does_exist.major = major_id) OR (does_exist.major IS NULL AND major_id IS NULL))
-    AND ((does_exist.minor = minor_id) OR (does_exist.minor IS NULL AND minor_id IS NULL))
-    AND ((does_exist.patch = patch_id) OR (does_exist.patch IS NULL AND patch_id IS NULL))
+    AND ((does_exist.major = COALESCE(major_id, no_match)) OR (does_exist.major IS NULL AND major_id IS NULL))
+    AND ((does_exist.minor = COALESCE(minor_id, no_match)) OR (does_exist.minor IS NULL AND minor_id IS NULL))
+    AND ((does_exist.patch = COALESCE(patch_id, no_match)) OR (does_exist.patch IS NULL AND patch_id IS NULL))
    WHERE does_exist.id IS NULL
   );
  END_IF;
@@ -247,9 +250,9 @@ CREATE FUNCTION GetVersionName (
   SELECT id
   FROM Version
   WHERE name= name_id
-   AND ((major = major_id) OR (major IS NULL AND major_id IS NULL))
-   AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
-   AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
+   AND ((major = COALESCE(major_id, no_match)) OR (major IS NULL AND major_id IS NULL))
+   AND ((minor = COALESCE(minor_id, no_match)) OR (minor IS NULL AND minor_id IS NULL))
+   AND ((patch = COALESCE(patch_id, no_match)) OR (patch IS NULL AND patch_id IS NULL))
  );
 END_FUNCTION;
 @
