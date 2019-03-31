@@ -2,3 +2,12 @@
 !|Query Stats                                      |
 |query                        |row count?|is empty?|
 |SELECT id FROM Period LIMIT 1|1         |false    |
+
+!|Insert|Period|
+|span|id?|
+|1|>>periodid|
+
+First inserted period should be >= 1000
+!|Query| SELECT id FROM Period WHERE id >= 1000 AND span = 1|
+|id|
+|<<periodid|
