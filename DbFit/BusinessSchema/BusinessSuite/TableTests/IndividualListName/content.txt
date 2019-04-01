@@ -2,3 +2,12 @@
 !|Query Stats                                                              |
 |query                                                |row count?|is empty?|
 |SELECT individuallist FROM IndividualListName LIMIT 1|1         |false    |
+
+!|Insert|IndividualListName|
+|name|optinStyle|individualList?|
+|1000|1|>>individuallistid|
+
+First inserted IndividualListName.individualList should be >= 2000000
+!|Query| SELECT individualList FROM IndividualListNAME WHERE individualList >= 2000000 AND name = 1000|
+|individualList|
+|<<individuallistid|
