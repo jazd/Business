@@ -4,7 +4,7 @@ PostgreSQL specific tests due to extensive use of TIME ZONE
 
 !|Execute Ddl|CREATE TABLE IF NOT EXISTS inject_now (value timestamp WITH TIME ZONE)|
 
-Day of Month
+Numeric Day of Month, 25 of December
 
 Make it Christmas 2012
 |Insert|inject_now|
@@ -21,5 +21,26 @@ Is it Christmas?
 |periodName|
 |Christmas Day|
 
-!|Execute Ddl|DROP TABLE inject_now|
+Nth Week Day in Month, fourth Thursday in November
 
+Make it Thanksgiving 2018
+|Execute|UPDATE inject_now SET value = '2018-11-22'|
+
+!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open|
+|periodName|
+|Thanksgiving Day|
+
+Last Week Day in Month
+
+Make it Memorial Day, last Monday of May
+|Execute|UPDATE inject_now SET value = '1966-05-30'|
+
+!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open|
+|periodName|
+|Memorial Day|
+
+TODO: Whole Month Periods
+TODO: Time Periods
+TODO: Arbitrary date time Periods
+
+!|Execute Ddl|DROP TABLE inject_now|

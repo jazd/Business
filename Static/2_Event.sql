@@ -63,5 +63,6 @@ INSERT INTO Period (id, span) VALUES (10, 21);
 -- Valentine''s Day
 INSERT INTO MonthDay (id, month, day) VALUES (22, 2, 14);
 INSERT INTO Period (id, span) VALUES (11, 22);
+-- Does not work yet
 -- Black History Month, the whole month of February
 INSERT INTO Period (id, span) VALUES (12, 2);
