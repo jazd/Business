@@ -808,9 +808,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="stop" data_type="timestamp WITHOUT TIME ZONE" size="0" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
-<constraints>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="id" reference_table="Period" reference_fields="span" deferrable="1" /></comments>
-</constraints>
 </table>
 <table name="TimeOfDay" order="311">
 <comments>untested</comments>
