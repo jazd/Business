@@ -67,7 +67,7 @@ DECLARE
  injected_now timestamp WITH TIME ZONE;
 BEGIN
 SET LOCAL client_min_messages=warning;
-CREATE TEMP TABLE IF NOT EXISTS inject_now (
+CREATE TABLE IF NOT EXISTS inject_now (
  value timestamp WITH TIME ZONE
 );
 RESET client_min_messages;

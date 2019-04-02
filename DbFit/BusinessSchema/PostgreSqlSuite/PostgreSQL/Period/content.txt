@@ -1,0 +1,25 @@
+Periods
+
+PostgreSQL specific tests due to extensive use of TIME ZONE
+
+!|Execute Ddl|CREATE TABLE IF NOT EXISTS inject_now (value timestamp WITH TIME ZONE)|
+
+Day of Month
+
+Make it Christmas 2012
+|Insert|inject_now|
+|value|
+|2012-12-25|
+
+Verify ClientNow() functions correctly
+!|Query|SELECT CAST(ClientNow() AS DATE) AS clientnow FROM DUAL|
+|clientnow|
+|2012-12-25|
+
+Is it Christmas?
+!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open|
+|periodName|
+|Christmas Day|
+
+!|Execute Ddl|DROP TABLE inject_now|
+
