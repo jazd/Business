@@ -1429,24 +1429,24 @@ LEFT JOIN TimeOfDay ON TimeOfDay.id = Period.span
 SELECT period, bool_AND(open) AS open
 FROM (
 SELECT Period.id AS period,
- CAST(ClientNow() AS date) &gt; make_date(CAST(date_part(!apos;year!apos;,ClientNow()) AS integer),MonthDay.month, MonthDay.day) -1 AND
- CAST(ClientNow() AS date) &lt;= make_date(CAST(date_part(!apos;year!apos;,ClientNow()) AS integer),MonthDay.month, MonthDay.day) AS open
+ CAST(ClientNow() AS date) &gt; make_date(CAST(extract(year FROM ClientNow()) AS integer),MonthDay.month, MonthDay.day) -1 AND
+ CAST(ClientNow() AS date) &lt;= make_date(CAST(extract(year FROM ClientNow()) AS integer),MonthDay.month, MonthDay.day) AS open
 FROM Period
 JOIN MonthDay ON MonthDay.id = Period.span
  AND MonthDay.weekOfMonth IS NULL
 UNION
 SELECT Period.id AS period,
- Month.month = date_part(!apos;month!apos;, ClientNow())
+ Month.month = extract(month FROM ClientNow())
 FROM Period
 JOIN Month ON Month.id = Period.span
  AND Month.year IS NULL
 UNION
 SELECT Period.id AS period,
  CAST(ClientNow() AS date) = (
-  make_date(CAST(date_part(!apos;year!apos;,ClientNow()) AS integer),CAST(date_part(!apos;month!apos;,ClientNow()) AS integer), 1) + 7 * (DayOfWeek.start - 1) +
-  CAST((7 + DayOfWeek.dayOfMonth - EXTRACT(DOW FROM
-    make_date(CAST(date_part(!apos;year!apos;,ClientNow()) AS integer),CAST(date_part(!apos;month!apos;,ClientNow()) AS integer), 1) + 7 * (DayOfWeek.start - 1)
-   )
+  make_date(CAST(extract(year FROM ClientNow()) AS integer),CAST(extract(month FROM ClientNow()) AS integer), 1) + 7 * (DayOfWeek.start - 1) +
+  CAST((7 + DayOfWeek.dayOfMonth - (dayofweek(
+    make_date(CAST(extract(year FROM ClientNow()) AS integer),CAST(extract(month FROM ClientNow()) AS integer), 1) + 7 * (DayOfWeek.start - 1)
+   ) -1)
   ) AS integer) %7
  )
 FROM Period

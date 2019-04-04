@@ -141,6 +141,8 @@ END_FUNCTION;
 @
 SET DELIMITER ;
 
+DROP FUNCTION IF EXISTS ClientNow;
+
 SET DELIMITER @
 CREATE FUNCTION ClientNow (
 ) RETURNS TIMESTAMP AS
@@ -149,6 +151,19 @@ END_FUNCTION;
 @
 SET DELIMITER ;
 
+DROP FUNCTION IF EXISTS Make_Date;
+
+-- Emulate PostgreSQL function
+SET DELIMITER @
+CREATE FUNCTION Make_Date (
+ inYear INTEGER,
+ inMonth INTEGER,
+ inDay INTEGER
+) RETURNS DATE AS
+ RETURN DATE(inYear || '-' || inMonth || '-' || inDay);
+END_FUNCTION;
+@
+SET DELIMITER ;
 
 -- Drop functions from procedures.sql
 DROP FUNCTION IF EXISTS GetAddress;
@@ -198,7 +213,6 @@ DROP FUNCTION IF EXISTS GetVersion;
 DROP FUNCTION IF EXISTS GetWord;
 DROP FUNCTION IF EXISTS GetWord/1;
 DROP FUNCTION IF EXISTS GetWord/2;
-DROP FUNCTION IF EXISTS ClientNow;
 
 -- Drop tables that refer to themselves
 DROP TABLE Part CASCADE;

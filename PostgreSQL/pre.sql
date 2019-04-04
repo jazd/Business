@@ -108,3 +108,12 @@ injected_culture := (SELECT value FROM inject_culture LIMIT 1);
 RETURN (SELECT COALESCE(injected_culture,1033));
 END;
 $$ LANGUAGE plpgsql;
+
+-- Return 1 based week day.  Sunday is 1, not 0
+CREATE OR REPLACE FUNCTION DayOfWeek(inDate timestamp with time zone)
+ RETURNS integer
+AS $$
+BEGIN
+RETURN (extract(DOW FROM inDate) + 1);
+END;
+$$ LANGUAGE plpgsql;
