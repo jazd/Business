@@ -59,3 +59,15 @@ First day of November is a Friday
 !|Ordered Query|SELECT open FROM TimePeriod WHERE period = 2|
 |open|
 |true|
+
+Holidays that are the last week day in the last week of the month
+
+Memorial Day, last Monday of May
+!|Execute|SELECT ClientNow('05/30/1966')|
+!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open|
+|periodName|
+|Memorial Day|
+
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 4|
+|open|
+|true|
