@@ -74,7 +74,7 @@ RESET client_min_messages;
 injected_now := (SELECT value FROM inject_now LIMIT 1);
 RETURN (SELECT COALESCE(injected_now,NOW()));
 END;
-$$ LANGUAGE plpgsql stable;
+$$ LANGUAGE plpgsql;
 
 -- Set ClientNow
 -- Stays the passed date for whole session
@@ -91,7 +91,7 @@ DELETE FROM inject_now;
 INSERT INTO inject_now(value) VALUES (clientNow);
 RETURN ClientNow();
 END;
-$$ LANGUAGE plpgsql stable;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION ClientCulture()
  RETURNS smallint
@@ -107,7 +107,7 @@ RESET client_min_messages;
 injected_culture := (SELECT value FROM inject_culture LIMIT 1);
 RETURN (SELECT COALESCE(injected_culture,1033));
 END;
-$$ LANGUAGE plpgsql stable;
+$$ LANGUAGE plpgsql;
 
 -- Return 1 based week day.  Sunday is 1, not 0
 CREATE OR REPLACE FUNCTION DayOfWeek(inDate timestamp with time zone)
