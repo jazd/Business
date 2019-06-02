@@ -11,3 +11,14 @@ INSERT INTO Sentence (id,culture,value,length) VALUES(10,1033,'Independence Day'
 INSERT INTO Sentence (id,culture,value,length) VALUES(11,1033,'Labor Day',9);
 INSERT INTO Sentence (id,culture,value,length) VALUES(12,1033,'Columbus Day',12);
 INSERT INTO Sentence (id,culture,value,length) VALUES(13,1033,'Valentine''s Day',16);
+INSERT INTO Sentence (id,culture,value,length) VALUES(14,1033,'Breakfast',9);
+INSERT INTO Sentence (id,culture,value,length) VALUES(15,1033,'Second breakfast',16);
+INSERT INTO Sentence (id,culture,value,length) VALUES(16,1033,'Brunch',6);
+INSERT INTO Sentence (id,culture,value,length) VALUES(17,1033,'Elevenses',9);
+INSERT INTO Sentence (id,culture,value,length) VALUES(18,1033,'Morning tea',11);
+INSERT INTO Sentence (id,culture,value,length) VALUES(19,1033,'Lunch',5);
+INSERT INTO Sentence (id,culture,value,length) VALUES(20,1033,'Tea',3);
+INSERT INTO Sentence (id,culture,value,length) VALUES(21,1033,'Linner',6);
+INSERT INTO Sentence (id,culture,value,length) VALUES(22,1033,'Supper',6);
+INSERT INTO Sentence (id,culture,value,length) VALUES(23,1033,'Dinner',6);
+INSERT INTO Sentence (id,culture,value,length) VALUES(24,1033,'Holiday Dinner',14);

@@ -1452,12 +1452,34 @@ SELECT Period.id AS period,
 FROM Period
 JOIN DayOfWeek ON DayOfWeek.id = Period.span
  AND DayOfWeek.stop IS NULL
- AND DayOfWeek.dayOfMonth > 0
+ AND DayOfWeek.dayOfMonth &gt; 0
+UNION
+SELECT Period.id AS period,
+ CAST(ClientNow() AS time) &gt;= start
+  AND CAST(ClientNow() AS time) &lt;= stop
+FROM Period
+JOIN TimeOfDay ON TimeOfDay.id = Period.span
 ) AS timeperiod
 GROUP BY period
   </sql>
  </view>
 
+ <view name="MaxSpan" fields="id">
+  <comments>These tables share a unique sequence for their respective id fields.  A unique id value must not exist in more than a single Span table.</comments>
+  <sql>
+SELECT MAX(id) AS id FROM (
+ SELECT coalesce(MAX(id), 0) AS id FROM DateRange
+ UNION
+ SELECT COALESCE(MAX(id), 0) AS id FROM TimeOfDay
+ UNION
+ SELECT COALESCE(MAX(id), 0) AS id FROM DayOfWeek
+ UNION
+ SELECT COALESCE(MAX(id), 0) AS id FROM MonthDay
+ UNION
+ SELECT COALESCE(MAX(id), 0) AS id FROM Month
+) AS MaxSpan
+  </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>
