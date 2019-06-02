@@ -27,7 +27,7 @@ CREATE OR REPLACE FUNCTION birthday(birth Date)
  returns varchar(10)
 AS $$
 SELECT birthday(birth, CAST(NOW() AS Date)) AS birthday;
-$$ language sql immutable strict;
+$$ language sql stable strict;
 
 CREATE OR REPLACE FUNCTION days_until_birthday(birth date, asOf date)
  returns integer
@@ -74,7 +74,7 @@ RESET client_min_messages;
 injected_now := (SELECT value FROM inject_now LIMIT 1);
 RETURN (SELECT COALESCE(injected_now,NOW()));
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql stable;
 
 -- Set ClientNow
 -- Stays the passed date for whole session
@@ -91,7 +91,7 @@ DELETE FROM inject_now;
 INSERT INTO inject_now(value) VALUES (clientNow);
 RETURN ClientNow();
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql stable;
 
 CREATE OR REPLACE FUNCTION ClientCulture()
  RETURNS smallint
@@ -107,7 +107,7 @@ RESET client_min_messages;
 injected_culture := (SELECT value FROM inject_culture LIMIT 1);
 RETURN (SELECT COALESCE(injected_culture,1033));
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql stable;
 
 -- Return 1 based week day.  Sunday is 1, not 0
 CREATE OR REPLACE FUNCTION DayOfWeek(inDate timestamp with time zone)
@@ -116,4 +116,4 @@ AS $$
 BEGIN
 RETURN (extract(DOW FROM inDate) + 1);
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql immutable;
