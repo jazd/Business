@@ -17,7 +17,7 @@ Verify ClientNow() functions correctly
 |2012-12-25|
 
 Is it Christmas?
-!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open|
+!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open AND Periods.period != 24|
 |periodName|
 |Christmas Day|
 
@@ -26,7 +26,7 @@ Nth Week Day in Month, fourth Thursday in November
 Make it Thanksgiving 2018
 |Execute|UPDATE inject_now SET value = '2018-11-22'|
 
-!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open|
+!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open AND Periods.period != 24|
 |periodName|
 |Thanksgiving Day|
 
@@ -35,12 +35,8 @@ Last Week Day in Month
 Make it Memorial Day, last Monday of May
 |Execute|UPDATE inject_now SET value = '1966-05-30'|
 
-!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open|
+!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open AND Periods.period != 24|
 |periodName|
 |Memorial Day|
-
-TODO: Whole Month Periods
-TODO: Time Periods
-TODO: Arbitrary date time Periods
 
 !|Execute Ddl|DROP TABLE inject_now|

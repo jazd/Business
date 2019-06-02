@@ -22,3 +22,4 @@ INSERT INTO Sentence (id,culture,value,length) VALUES(21,1033,'Linner',6);
 INSERT INTO Sentence (id,culture,value,length) VALUES(22,1033,'Supper',6);
 INSERT INTO Sentence (id,culture,value,length) VALUES(23,1033,'Dinner',6);
 INSERT INTO Sentence (id,culture,value,length) VALUES(24,1033,'Holiday Dinner',14);
+INSERT INTO Sentence (id,culture,value,length) VALUES(25,1033,'Midnight Snack',14);

@@ -103,3 +103,6 @@ INSERT INTO Period (id, span) VALUES (22, 32);
 INSERT INTO PeriodName (period, name) VALUES (23,GetSentence('Holiday Dinner'));
 INSERT INTO TimeOfDay (id, start, stop) VALUES (33, '16:00', '21:00');
 INSERT INTO Period (id, span) VALUES (23, 33);
+INSERT INTO PeriodName (period, name) VALUES (24,GetSentence('Midnight Snack'));
+INSERT INTO TimeOfDay (id, start, stop) VALUES (34, '23:00', '01:00');
+INSERT INTO Period (id, span) VALUES (24, 34);

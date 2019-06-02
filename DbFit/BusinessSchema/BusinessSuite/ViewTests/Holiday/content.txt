@@ -64,7 +64,7 @@ Holidays that are the last week day in the last week of the month
 
 Memorial Day, last Monday of May
 !|Execute|SELECT ClientNow('05/30/1966')|
-!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open|
+!|Query|SELECT periodName FROM TimePeriod JOIN Periods ON Periods.period = TimePeriod.period WHERE TimePeriod.open AND Periods.period != 24|
 |periodName|
 |Memorial Day|
 

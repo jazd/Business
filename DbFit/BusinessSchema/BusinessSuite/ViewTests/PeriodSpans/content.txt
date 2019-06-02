@@ -30,3 +30,15 @@ Second Breakfast is not breakfast
 !|Ordered Query|SELECT open FROM TimePeriod WHERE period = 13|
 |open|
 |false|
+
+Midnight snack
+
+!|Execute|SELECT ClientNow('12/25/2018 23:30:00')|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 24|
+|open|
+|true|
+
+!|Execute|SELECT ClientNow('12/26/2018 00:30:00')|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 24|
+|open|
+|true|
