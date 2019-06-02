@@ -15,3 +15,18 @@ Breakfast
 !|Ordered Query|SELECT open FROM TimePeriod WHERE period = 13|
 |open|
 |true|
+
+Second Breakfast
+
+!|Execute|SELECT ClientNow('12/25/2018 10:00:00')|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 14|
+|open|
+|true|
+
+
+Second Breakfast is not breakfast
+
+!|Execute|SELECT ClientNow('12/25/2018 10:00:00')|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 13|
+|open|
+|false|

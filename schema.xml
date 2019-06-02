@@ -1456,7 +1456,7 @@ JOIN DayOfWeek ON DayOfWeek.id = Period.span
 UNION
 SELECT Period.id AS period,
  CAST(ClientNow() AS time) &gt;= start
-  AND CAST(ClientNow() AS time) &lt;= stop
+  AND CAST(ClientNow() AS time) &lt; stop
 FROM Period
 JOIN TimeOfDay ON TimeOfDay.id = Period.span
 ) AS timeperiod
