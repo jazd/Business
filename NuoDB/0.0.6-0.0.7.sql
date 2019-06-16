@@ -58,3 +58,34 @@ JOIN TimeOfDay ON TimeOfDay.id = Period.span
 ) AS timeperiod
 GROUP BY period
 ;
+
+CREATE OR REPLACE VIEW AssemblyParts AS
+SELECT AssemblyPart.assembly, parent.name AS parentName,
+ assemblies.name AS assemblyName,
+ assemblies.versionid AS assemblyVersion, assemblies.version AS assemblyVersionName,
+ assemblies.serial AS assemblySerial,
+ AssemblyPart.quantity,
+ designator.value AS designator,
+ parts.part, parts.name AS partName,
+ parts.versionid AS version, parts.version AS versionName,
+ parts.serial
+FROM AssemblyPart
+JOIN Parts AS assemblies ON assemblies.part = AssemblyPart.assembly
+JOIN Parts AS parent ON parent.part = assemblies.parent
+JOIN Parts AS parts ON parts.part = AssemblyPart.part
+LEFT JOIN Word AS designator ON designator.id = AssemblyPart.designator
+ AND designator.culture = ClientCulture()
+;
+
+CREATE OR REPLACE VIEW Entities AS
+SELECT Individual.id AS individual, Individual.entity, goesBy.value AS goesBy,
+ Entity.name, Individual.birth AS formed,
+ Individual.location,
+ Individual.death AS dissolved,
+ COALESCE(age(death,birth),age(birth)) AS aged,
+ Individual.created
+FROM Individual
+JOIN Entity ON Entity.id = Individual.entity
+LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
+WHERE Individual.nameChange IS NULL
+;

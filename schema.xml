@@ -1093,10 +1093,12 @@ FROM IndividualPersonEvent
  </sql>
  </view>
 
- <view name="Entities" fields="individual,entity,goesBy,name,formed,dissolved,aged,created" order="20">
+ <view name="Entities" fields="individual,entity,goesBy,name,formed,location,dissolved,aged,created" order="20">
   <sql>
 SELECT Individual.id AS individual, Individual.entity, goesBy.value AS goesBy,
- Entity.name, Individual.birth AS formed, Individual.death AS dissolved,
+ Entity.name, Individual.birth AS formed,
+ Individual.location,
+ Individual.death AS dissolved,
  COALESCE(age(death,birth),age(birth)) AS aged,
  Individual.created
 FROM Individual
@@ -1375,12 +1377,13 @@ JOIN Parts AS assemblies ON assemblies.part = AssemblyPart.assembly
 JOIN Parts AS parent ON parent.part = assemblies.parent
   </sql>
  </view>
- <view name="AssemblyParts" fields="assembly, parentName, assemblyName, assemblyVersion, assemblyVersionName, assemblySerial, designator, part, partName, version, versionName, serial">
+ <view name="AssemblyParts" fields="assembly, parentName, assemblyName, assemblyVersion, assemblyVersionName, assemblySerial, quantity, designator, part, partName, version, versionName, serial">
   <sql>
 SELECT AssemblyPart.assembly, parent.name AS parentName,
  assemblies.name AS assemblyName,
  assemblies.versionid AS assemblyVersion, assemblies.version AS assemblyVersionName,
  assemblies.serial AS assemblySerial,
+ AssemblyPart.quantity,
  designator.value AS designator,
  parts.part, parts.name AS partName,
  parts.versionid AS version, parts.version AS versionName,
