@@ -1,5 +1,7 @@
 -- NuoDB database schema version 0.0.6 to 0.0.7
 --
+CREATE INDEX periodname_name ON PeriodName (name);
+
 -- Static/1_Sentence.sql
 INSERT INTO Sentence (id,culture,value,length) VALUES(25,1033,'Midnight Snack',14);
 -- Static/2_Event.sql
