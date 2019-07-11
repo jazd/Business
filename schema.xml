@@ -576,6 +576,7 @@
 </fields>
 <indices>
  <index name="AssemblyApplicationRelease_assembly_applicationRelease_parent" type="UNIQUE" fields="assembly,applicationRelease,parent" />
+ <index name="AssemblyApplicationRelease_applicationRelease" type="NORMAL" fields="applicationRelease" />
 </indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="parent" reference_table="AssemblyApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -854,6 +855,7 @@
 </fields>
 <indices>
  <index name="periodname_name" type="NORMAL" fields="name" />
+ <index name="periodname_period" type="NORMAL" fields="period" />
 </indices>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="period" reference_table="Period" reference_fields="id" deferrable="1" /></comments>
