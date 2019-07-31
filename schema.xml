@@ -22,6 +22,7 @@
 </fields>
 <indices>
  <index name="word_id_culture" type="NORMAL" fields="id,culture" />
+ <index name="word_id_culture_value" type="UNIQUE" fields="id,culture,value" />
 </indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -41,7 +42,7 @@
 </fields>
 <indices>
  <index name="sentence_id_culture" type="NORMAL" fields="id,culture" />
- <index name="sentence_culture_value" type="UNIQUE" fields="culture,value" />
+ <index name="sentence_id_culture_value" type="UNIQUE" fields="id,culture,value" />
 </indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -58,7 +59,7 @@
 </fields>
 <indices>
  <index name="paragraph_id_culture" type="NORMAL" fields="id,culture" />
- <index name="paragraph_culture_value" type="UNIQUE" fields="culture,value" />
+ <index name="paragraph_id_culture_value" type="UNIQUE" fields="id,culture,value" />
 </indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
