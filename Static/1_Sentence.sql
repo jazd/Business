@@ -26,3 +26,6 @@ INSERT INTO Sentence (id,culture,value,length) VALUES(25,1033,'Midnight Snack',1
 INSERT INTO Sentence (id,culture,value,length) VALUES(26,1033,'Black History Month',19);
 INSERT INTO Sentence (id,culture,value,length) VALUES(27,1033,'5th of May',10);
 INSERT INTO Sentence (id,culture,value,length) VALUES(27,2058,'Cinco de Mayo',13);
+INSERT INTO Sentence (id,culture,value,length) VALUES(28,1033,'Day of the Taco',15);
+INSERT INTO Sentence (id,culture,value,length) VALUES(28,2058,'Día del Taco',12);
+INSERT INTO Sentence (id,culture,value,length) VALUES(29,1033,'National Taco Day',17);
