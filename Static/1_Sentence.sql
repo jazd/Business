@@ -23,3 +23,6 @@ INSERT INTO Sentence (id,culture,value,length) VALUES(22,1033,'Supper',6);
 INSERT INTO Sentence (id,culture,value,length) VALUES(23,1033,'Dinner',6);
 INSERT INTO Sentence (id,culture,value,length) VALUES(24,1033,'Holiday Dinner',14);
 INSERT INTO Sentence (id,culture,value,length) VALUES(25,1033,'Midnight Snack',14);
+INSERT INTO Sentence (id,culture,value,length) VALUES(26,1033,'Black History Month',19);
+INSERT INTO Sentence (id,culture,value,length) VALUES(27,1033,'5th of May',10);
+INSERT INTO Sentence (id,culture,value,length) VALUES(27,2058,'Cinco de Mayo',13);
