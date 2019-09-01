@@ -37,10 +37,6 @@ Should still be able to insert an en-US version of the word
 |id|culture|value|
 |0|1033|Title|
 
-!|Insert|Culture|
-|code|name|
-|2058|es-MX|
-
 http://www.spanishdict.com/translate/Title
 !|Insert|Word|
 |id|culture|value|
