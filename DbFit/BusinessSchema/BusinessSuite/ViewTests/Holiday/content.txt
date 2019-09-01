@@ -20,7 +20,7 @@ Independence Day
 
 Cinco de Mayo
 !|Execute|SELECT ClientNow('05/05/2019')|
-!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 13|
+!|Ordered Query|SELECT open FROM TimePeriod WHERE period = 25|
 |open|
 |true|
 

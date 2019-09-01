@@ -41,3 +41,5 @@ Top of a test page
 For PostgreSQL tests
 http://localhost:8085/BusinessSchema.PostgreSqlSuite?suite
 
+Access the database directly
+psql MyCo test

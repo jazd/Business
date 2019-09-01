@@ -67,18 +67,6 @@ INSERT INTO Period (id, span) VALUES (11, 22);
 -- Black History Month, the whole month of February
 INSERT INTO PeriodName (period, name) VALUES (12, 26);
 INSERT INTO Period (id, span) VALUES (12, 2);
--- Cinco de Mayo
-INSERT INTO PeriodName (period, name) VALUES (13, 27);
-INSERT INTO MonthDay (id, month, day) VALUES (23, 5, 5);
-INSERT INTO Period (id, span) VALUES (13, 23);
--- International Taco Day
-INSERT INTO PeriodName (period, name) VALUES (14, 28);
-INSERT INTO MonthDay (id, month, day) VALUES (24, 3, 31);
-INSERT INTO Period (id, span) VALUES (14, 24);
--- National Taco Day
-INSERT INTO PeriodName (period, name) VALUES (15, 29);
-INSERT INTO MonthDay (id, month, day) VALUES (25, 10, 4);
-INSERT INTO Period (id, span) VALUES (15, 25);
 
 ---------------
 -- Times of day
@@ -120,3 +108,17 @@ INSERT INTO Period (id, span) VALUES (23, 33);
 INSERT INTO PeriodName (period, name) VALUES (24,GetSentence('Midnight Snack'));
 INSERT INTO TimeOfDay (id, start, stop) VALUES (34, '23:00', '01:00');
 INSERT INTO Period (id, span) VALUES (24, 34);
+
+-- Other days
+-- Cinco de Mayo
+INSERT INTO PeriodName (period, name) VALUES (25, 27);
+INSERT INTO MonthDay (id, month, day) VALUES (35, 5, 5);
+INSERT INTO Period (id, span) VALUES (25, 35);
+-- International Taco Day
+INSERT INTO PeriodName (period, name) VALUES (26, 28);
+INSERT INTO MonthDay (id, month, day) VALUES (36, 3, 31);
+INSERT INTO Period (id, span) VALUES (26, 36);
+-- National Taco Day
+INSERT INTO PeriodName (period, name) VALUES (27, 29);
+INSERT INTO MonthDay (id, month, day) VALUES (37, 10, 4);
+INSERT INTO Period (id, span) VALUES (27, 37);

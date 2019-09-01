@@ -7,11 +7,12 @@ At least en-US
 |code | name|
 |fail[NULL]|fail[NULL]|
 
-Only en-US
+Only en-US and es-MX
 
-!|Query| select code, name FROM Culture|
+!|Query| select code, name FROM Culture ORDER BY code|
 |code | name|
 |1033|en-US|
+|2058|es-MX|
 
 Longest Code Insert
 
