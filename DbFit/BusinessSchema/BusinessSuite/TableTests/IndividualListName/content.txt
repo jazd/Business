@@ -1,13 +1,13 @@
-!4 Verify IndividualListName table exists
+!4 Verify ListIndividualName table exists
 !|Query Stats                                                              |
 |query                                                |row count?|is empty?|
-|SELECT individuallist FROM IndividualListName LIMIT 1|1         |false    |
+|SELECT listindividual FROM ListIndividualName LIMIT 1|1         |false    |
 
-!|Insert|IndividualListName|
-|name|optinStyle|individualList?|
-|1000|1|>>individuallistid|
+!|Insert|ListIndividualName|
+|name|optinStyle|listindividual?|
+|1000|1|>>listindividualid|
 
-First inserted IndividualListName.individualList should be >= 2000000
-!|Query| SELECT individualList FROM IndividualListNAME WHERE individualList >= 2000000 AND name = 1000|
-|individualList|
-|<<individuallistid|
+First inserted ListIndividualName.listindividual should be >= 2000000
+!|Query| SELECT listindividual FROM ListIndividualNAME WHERE listindividual >= 2000000 AND name = 1000|
+|listindividual|
+|<<listindividualid|
