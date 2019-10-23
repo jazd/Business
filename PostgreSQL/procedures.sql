@@ -575,14 +575,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION GetIndividualListName (
+CREATE OR REPLACE FUNCTION GetListIndividualName (
  inListName varchar,
  inSetName varchar
 ) RETURNS integer AS $$
 DECLARE
  listName_id integer;
  setName_id integer;
- individualList_id integer;
+ listIndividual_id integer;
 BEGIN
  IF inListName IS NOT NULL THEN
   -- Get names
@@ -590,22 +590,22 @@ BEGIN
   setName_id := (SELECT GetWord(inSetName));
  
     -- Insert list name if it does not exist
-  INSERT INTO IndividualListName (name, set, optinStyle)
+  INSERT INTO ListIndividualName (name, listSet, optinStyle)
   SELECT listName_id, setName_id, 1
   FROM DUAL
-  LEFT JOIN IndividualListName AS exists ON exists.name = listName_id
-   AND ((exists.set = setName_id) OR (exists.set IS NULL AND setName_id IS NULL))
+  LEFT JOIN ListIndividualName AS exists ON exists.name = listName_id
+   AND ((exists.listSet = setName_id) OR (exists.listSet IS NULL AND setName_id IS NULL))
    AND optinStyle = 1
-  WHERE exists.individualList IS NULL
+  WHERE exists.listIndividual IS NULL
   ;
  END IF;
 
   -- Get individual list
  RETURN (
-  SELECT individualList
-  FROM IndividualListName
+  SELECT listIndividual
+  FROM ListIndividualName
   WHERE name = listName_id
-   AND ((set = setName_id) OR (set IS NULL AND setName_id IS NULL))
+   AND ((listSet = setName_id) OR (listSet IS NULL AND setName_id IS NULL))
    AND optinStyle = 1
  );
 END;
@@ -617,22 +617,22 @@ CREATE OR REPLACE FUNCTION ListSubscribe (
  inIndividual integer
 ) RETURNS integer AS $$
 DECLARE
- individualList_id integer;
+ listIndividual_id integer;
 BEGIN
  IF inIndividual IS NOT NULL THEN
-  individualList_id := (SELECT GetIndividualListName(inListName, inSetName));
+  listIndividual_id := (SELECT GetListIndividualName(inListName, inSetName));
 
   -- Insert individual into list
-  INSERT INTO IndividualList (id, individual)
-  SELECT individualList_id AS id, inIndividual AS individual
+  INSERT INTO ListIndividual (id, individual)
+  SELECT listIndividual_id AS id, inIndividual AS individual
   FROM DUAL
-  LEFT JOIN IndividualList AS exists ON exists.id = individualList_id
+  LEFT JOIN ListIndividual AS exists ON exists.id = listIndividual_id
    AND exists.individual = inIndividual
    AND exists.unlist IS NULL
   WHERE exists.id IS NULL;
  END IF;
 
- RETURN individualList_id;
+ RETURN listIndividual_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -651,22 +651,22 @@ CREATE OR REPLACE FUNCTION ListUnSubscribe (
  inIndividual integer
 ) RETURNS integer AS $$
 DECLARE
- individualList_id integer;
+ listIndividual_id integer;
 BEGIN
  IF inIndividual IS NOT NULL THEN
-  individualList_id := (SELECT GetIndividualListName(inListName, inSetName));
+  listIndividual_id := (SELECT GetListIndividualName(inListName, inSetName));
 
-  IF individualList_id IS NOT NULL THEN
-   UPDATE IndividualList SET unlist = NOW()
-   WHERE IndividualList.id = individualList_id
-    AND IndividualList.individual = inIndividual
-    AND IndividualList.unlist IS NULL
+  IF listIndividual_id IS NOT NULL THEN
+   UPDATE ListIndividual SET unlist = NOW()
+   WHERE ListIndividual.id = listIndividual_id
+    AND ListIndividual.individual = inIndividual
+    AND ListIndividual.unlist IS NULL
    ;
   END IF;
 
  END IF;
 
- RETURN individualList_id;
+ RETURN listIndividual_id;
 END;
 $$ LANGUAGE plpgsql;
 
