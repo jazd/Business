@@ -12,7 +12,10 @@ import (
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
-var mockDatabase bool
+
+var mockDatabase bool = true
+var server string = "localhost"
+
 var db *sql.DB
 var err error
 var mock sqlmock.Sqlmock
@@ -20,11 +23,9 @@ var mock sqlmock.Sqlmock
 var logged bool // one-time benchmark logging
 
 func init() {
-	mockDatabase = true
-
 	if !mockDatabase {
 		// Must have a jazd/Business test schema on a PostgreSQL database server
-		db, err = sql.Open("postgres", "sslmode=disable host=localhost user=test dbname=MyCo")
+		db, err = sql.Open("postgres", "sslmode=disable host=" + server + " user=test dbname=MyCo")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -213,7 +214,7 @@ func BenchmarkPhoneDbUniqueNumber(b *testing.B) {
 	}
 	firstId := phone.Id()
 
-	var result string
+	result := ""
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		var r string
@@ -224,6 +225,7 @@ func BenchmarkPhoneDbUniqueNumber(b *testing.B) {
 		}
 		result = r // Be sure compiler will not to eliminate the benchmark itself
 	})
+	b.Logf(result)
 
 	if !logged && !mockDatabase { // only log this once
 		b.Logf("May need to execute\nDELETE FROM phone WHERE area = '%s' AND id >= %d;\nTo remove generated records.", phone.areaCode, firstId)
