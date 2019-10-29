@@ -614,17 +614,20 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION ListSubscribe (
  inListName varchar,
  inSetName varchar,
- inIndividual integer
+ inIndividual integer,
+ inSend varchar
 ) RETURNS integer AS $$
 DECLARE
  listIndividual_id integer;
+ sendField_id integer;
 BEGIN
  IF inIndividual IS NOT NULL THEN
+  sendField_id := (SELECT GetIdentifier(LOWER(inSend)));
   listIndividual_id := (SELECT GetListIndividualName(inListName, inSetName));
 
   -- Insert individual into list
-  INSERT INTO ListIndividual (id, individual)
-  SELECT listIndividual_id AS id, inIndividual AS individual
+  INSERT INTO ListIndividual (id, individual, type)
+  SELECT listIndividual_id AS id, inIndividual AS individual, sendField_id AS type
   FROM DUAL
   LEFT JOIN ListIndividual AS exists ON exists.id = listIndividual_id
    AND exists.individual = inIndividual
@@ -633,6 +636,17 @@ BEGIN
  END IF;
 
  RETURN listIndividual_id;
+END;
+$$ LANGUAGE plpgsql;
+
+Create OR REPLACE FUNCTION ListSubscribe (
+ inListName varchar,
+ inSetName varchar,
+ inIndividual integer
+) RETURNS integer AS $$
+BEGIN
+ -- Use default send to
+ RETURN (SELECT ListSubscribe(inListName, inSetName, inIndividual, NULL));
 END;
 $$ LANGUAGE plpgsql;
 
