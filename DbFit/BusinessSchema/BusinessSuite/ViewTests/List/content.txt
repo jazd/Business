@@ -2,3 +2,8 @@
 !|Query Stats                                    |
 |query                      |row count?|is empty?|
 |SELECT id FROM List LIMIT 1|1         |false    |
+
+!4 Verify To as default send field type
+!|Ordered Query| SELECT List.send FROM ListIndividual JOIN List ON List.id = ListIndividual.id WHERE type IS NULL LIMIT 1 |
+|send|
+|to|

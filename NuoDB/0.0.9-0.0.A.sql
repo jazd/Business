@@ -4,6 +4,7 @@ CREATE TABLE ListIndividual (
   id INTEGER,
   unlist TIMESTAMP,
   individual BIGINT NOT NULL,
+  type INTEGER,
   created TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -29,6 +30,7 @@ SELECT ListIndividual.id,
  ListIndividualName.listSet,
  ListSet.value AS listSetValue,
  ListIndividualName.sequence,
+ CASE WHEN SendField.value IS NULL THEN 'to' ELSE SendField.value END AS send,
  ListIndividual.created
 FROM ListIndividual
 JOIN ListIndividualName ON ListIndividualName.ListIndividual = ListIndividual.id
@@ -37,6 +39,8 @@ JOIN Word AS Name ON ListIndividualName.name = Name.id
  AND Name.culture = ClientCulture()
 LEFT JOIN Word AS ListSet ON ListIndividualName.listSet = ListSet.id
  AND ListSet.culture = ClientCulture()
+LEFT JOIN Word AS SendField ON SendField.id = ListIndividual.type
+ AND SendField.culture IS NULL
 LEFT JOIN ListIndividual AS disable ON disable.individual = ListIndividual.individual
  AND disable.id IS NULL
  AND disable.unlist IS NULL

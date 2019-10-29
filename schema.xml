@@ -242,10 +242,14 @@
   <comments>Not NULL to remove from list</comments>
  </field>
  <field name="individual" data_type="bigint" size="20" is_nullable="0" order="3" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="4">
+   <comments>NULL defaults to To, can also be To, CC and BCC</comments>
+ </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
 </fields>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
@@ -1125,6 +1129,7 @@ SELECT ListIndividual.id,
  ListIndividualName.listSet,
  ListSet.value AS listSetValue,
  ListIndividualName.sequence,
+ CASE WHEN SendField.value IS NULL THEN !apos;to!apos; ELSE SendField.value END AS send,
  ListIndividual.created
 FROM ListIndividual
 JOIN ListIndividualName ON ListIndividualName.ListIndividual = ListIndividual.id
@@ -1133,6 +1138,8 @@ JOIN Word AS Name ON ListIndividualName.name = Name.id
  AND Name.culture = ClientCulture()
 LEFT JOIN Word AS ListSet ON ListIndividualName.listSet = ListSet.id
  AND ListSet.culture = ClientCulture()
+LEFT JOIN Word AS SendField ON SendField.id = ListIndividual.type
+ AND SendField.culture IS NULL
 LEFT JOIN ListIndividual AS disable ON disable.individual = ListIndividual.individual
  AND disable.id IS NULL
  AND disable.unlist IS NULL
