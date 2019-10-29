@@ -233,7 +233,7 @@
 </fields>
 </table>
 
-<table name="IndividualList" order="30">
+<table name="ListIndividual" order="30">
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="1" order="1">
   <comments>NULL applies to all lists.</comments>
@@ -249,9 +249,9 @@
 </constraints>
 </table>
 
-<table name="IndividualListName" order="31">
+<table name="ListIndividualName" order="31">
 <fields>
- <field name="individualList" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="listIndividual" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
  <field name="listSet" data_type="integer" size="" order="3" />
  <field name="sequence" data_type="smallint" size="5" order="4">
@@ -263,10 +263,10 @@
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <indices>
- <index name="individuallistname_name_listset" type="UNIQUE" fields="name,listSet" />
+ <index name="listindividualname_name_listset" type="UNIQUE" fields="name,listSet" />
 </indices>
 <constraints>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individualList" reference_table="IndividualList" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="listIndividual" reference_table="ListIndividual" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="listSet" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
@@ -1118,26 +1118,26 @@ WHERE Individual.nameChange IS NULL
  </view>
  <view name="List" fields="id,individual,name,namevalue,listSet,listSetValue,sequence" order="30">
   <sql>
-SELECT IndividualList.id,
- IndividualList.individual,
- IndividualListName.name AS listName,
+SELECT ListIndividual.id,
+ ListIndividual.individual,
+ ListIndividualName.name AS listName,
  Name.value AS listNameValue,
- IndividualListName.listSet,
+ ListIndividualName.listSet,
  ListSet.value AS listSetValue,
- IndividualListName.sequence,
- IndividualList.created
-FROM IndividualList
-JOIN IndividualListName ON IndividualListName.IndividualList = IndividualList.id
- AND IndividualListName.optinStyle = 1
-JOIN Word AS Name ON IndividualListName.name = Name.id
+ ListIndividualName.sequence,
+ ListIndividual.created
+FROM ListIndividual
+JOIN ListIndividualName ON ListIndividualName.ListIndividual = ListIndividual.id
+ AND ListIndividualName.optinStyle = 1
+JOIN Word AS Name ON ListIndividualName.name = Name.id
  AND Name.culture = ClientCulture()
-LEFT JOIN Word AS ListSet ON IndividualListName.listSet = ListSet.id
+LEFT JOIN Word AS ListSet ON ListIndividualName.listSet = ListSet.id
  AND ListSet.culture = ClientCulture()
-LEFT JOIN IndividualList AS disable ON disable.individual = IndividualList.individual
+LEFT JOIN ListIndividual AS disable ON disable.individual = ListIndividual.individual
  AND disable.id IS NULL
  AND disable.unlist IS NULL
 WHERE disable.individual IS NULL
- AND IndividualList.unlist IS NULL
+ AND ListIndividual.unlist IS NULL
   </sql>
  </view>
  <view name="EmailAddress" fields="email,username,plus,host,value">

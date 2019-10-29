@@ -62,7 +62,7 @@ ALTER SEQUENCE individual_id_seq RESTART WITH 4000000;
 ALTER SEQUENCE given_id_seq RESTART WITH 2000000;
 ALTER SEQUENCE family_id_seq RESTART WITH 2000000;
 ALTER SEQUENCE email_id_seq RESTART WITH 2000000;
-ALTER SEQUENCE individuallistname_individuallist_seq RESTART WITH 2000000;
+ALTER SEQUENCE listindividualname_listindividual_seq RESTART WITH 2000000;
 ALTER SEQUENCE path_id_seq RESTART WITH 2000000;
 -- IDs for DMA 0 - 999, for MSA 1000-99999.  Current schema will only support one type of marketing area number
 ALTER SEQUENCE area_id_seq RESTART WITH 100000;

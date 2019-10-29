@@ -6,7 +6,7 @@ mkdir -p diagrams
 ARGS="--gutter=50 --db=XML"
 
 INDIVIDUAL="Given Family Name Individual Entity Word"
-LISTS="Individual IndividualList IndividualListName Word"
+LISTS="Individual ListIndividual ListIndividualName Word"
 ADDRESSES="Address Postal Country Location Area Timezone Sentence Word Culture"
 PHONES="Phone Country Location Area Timezone Culture Word Sentence"
 
