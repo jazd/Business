@@ -56,3 +56,29 @@ SELECT individualList, name, listSet, sequence, optinStyle, created FROM Individ
 
 DROP TABLE IndividualListName;
 DROP TABLE IndividualList;
+
+-- Email and List functions
+DROP FUNCTION IF EXISTS GetEmail/1;
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION GetEmail (
+ inEmail STRING
+) RETURNS INTEGER AS
+
+VAR plus_part STRING;
+VAR user_part STRING = (SELECT SUBSTRING_INDEX(inEmail, '@', 1) FROM DUAL);
+VAR host_part STRING = (SELECT SUBSTRING_INDEX(inEmail, '@', -1) FROM DUAL);
+VAR plus_idx INTEGER = (SELECT LOCATE('+', user_part) FROM DUAL);
+
+IF (plus_idx > 0)
+ plus_part = (SELECT SUBSTR(user_part, plus_idx + 1) FROM DUAL);
+ IF (plus_part = '')
+  plus_part = NULL;
+ END_IF;
+ user_part = (SELECT SUBSTR(user_part, 1, plus_idx - 1) FROM DUAL);
+END_IF;
+
+RETURN GetEmail(user_part, plus_part, host_part);
+
+END_FUNCTION;
+@
+SET DELIMITER ;

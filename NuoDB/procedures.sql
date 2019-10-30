@@ -1263,6 +1263,60 @@ END_FUNCTION;
 @
 SET DELIMITER ;
 
+DROP FUNCTION IF EXISTS GetEmail/3;
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION GetEmail (
+ inUserName STRING,
+ inPlus STRING,
+ inHost STRING
+) RETURNS INTEGER AS
+IF (inUserName IS NOT NULL AND inHost IS NOT NULL)
+ INSERT INTO Email (username, plus, host) (
+  SELECT inUserName, inPlus, inHost
+  FROM DUAL
+  LEFT JOIN Email AS does_exist ON UPPER(does_exist.username) = UPPER(inUserName)
+   AND UPPER(does_exist.host) = UPPER(inHost)
+   AND ((UPPER(does_exist.plus) = UPPER(inPlus)) OR (does_exist.plus IS NULL AND inPlus IS NULL))
+  WHERE does_exist.id IS NULL
+ );
+END_IF;
+RETURN (
+ SELECT id
+ FROM Email
+ WHERE UPPER(username) = UPPER(inUserName)
+  AND UPPER(host) = UPPER(inHost)
+  AND ((UPPER(plus) = UPPER(inPlus)) OR (plus IS NULL AND inPlus IS NULL))
+);
+
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+DROP FUNCTION IF EXISTS GetEmail/1;
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION GetEmail (
+ inEmail STRING
+) RETURNS INTEGER AS
+
+VAR plus_part STRING;
+VAR user_part STRING = (SELECT SUBSTRING_INDEX(inEmail, '@', 1) FROM DUAL);
+VAR host_part STRING = (SELECT SUBSTRING_INDEX(inEmail, '@', -1) FROM DUAL);
+VAR plus_idx INTEGER = (SELECT LOCATE('+', user_part) FROM DUAL);
+
+IF (plus_idx > 0)
+ plus_part = (SELECT SUBSTR(user_part, plus_idx + 1) FROM DUAL);
+ IF (plus_part = '')
+  plus_part = NULL;
+ END_IF;
+ user_part = (SELECT SUBSTR(user_part, 1, plus_idx - 1) FROM DUAL);
+END_IF;
+
+RETURN GetEmail(user_part, plus_part, host_part);
+
+END_FUNCTION;
+@
+SET DELIMITER ;
 
 DROP FUNCTION IF EXISTS SetSchemaVersion;
 
