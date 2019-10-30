@@ -135,6 +135,7 @@ IF (inListName IS NOT NULL)
   AND ((does_exist.listSet = setName_id) OR (does_exist.listSet IS NULL AND setName_id IS NULL))
   AND optinStyle = 1
  WHERE does_exist.listIndividual IS NULL
+ LIMIT 1
  ;
 END_IF;
 
@@ -145,6 +146,7 @@ RETURN (
  WHERE name = listName_id
   AND ((listSet = setName_id) OR (listSet IS NULL AND setName_id IS NULL))
   AND optinStyle = 1
+ LIMIT 1
 );
 END_FUNCTION;
 @
@@ -172,7 +174,9 @@ IF (inIndividual IS NOT NULL)
  LEFT JOIN ListIndividual AS does_exist ON does_exist.id = listIndividual_id
   AND does_exist.individual = inIndividual
   AND does_exist.unlist IS NULL
- WHERE does_exist.id IS NULL;
+ WHERE does_exist.id IS NULL
+ LIMIT 1
+ ;
 END_IF;
 
 RETURN listIndividual_id;

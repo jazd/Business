@@ -597,6 +597,7 @@ BEGIN
    AND ((exists.listSet = setName_id) OR (exists.listSet IS NULL AND setName_id IS NULL))
    AND optinStyle = 1
   WHERE exists.listIndividual IS NULL
+  LIMIT 1
   ;
  END IF;
 
@@ -607,6 +608,7 @@ BEGIN
   WHERE name = listName_id
    AND ((listSet = setName_id) OR (listSet IS NULL AND setName_id IS NULL))
    AND optinStyle = 1
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -632,7 +634,9 @@ BEGIN
   LEFT JOIN ListIndividual AS exists ON exists.id = listIndividual_id
    AND exists.individual = inIndividual
    AND exists.unlist IS NULL
-  WHERE exists.id IS NULL;
+  WHERE exists.id IS NULL
+  LIMIT 1
+  ;
  END IF;
 
  RETURN listIndividual_id;
