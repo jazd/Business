@@ -704,21 +704,35 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION SetIndividualEmail (
  inIndividual_id integer,
- inEmail_id integer
+ inEmail_id integer,
+ inType varchar
 ) RETURNS void AS $$
 DECLARE
+ type_id integer;
 BEGIN
  IF inIndividual_id IS NOT NULL
   AND inEmail_id IS NOT NULL THEN
-  INSERT INTO IndividualEmail (individual, email) (
-   SELECT inIndividual_id, inEmail_id
+  type_id := (SELECT GetWord(inType));
+  INSERT INTO IndividualEmail (individual, email, type) (
+   SELECT inIndividual_id, inEmail_id, type_id
    FROM DUAL
    LEFT JOIN IndividualEmail AS exists ON exists.individual = inIndividual_id
     AND exists.email = inEmail_id
+    AND ((exists.type = type_id) OR (exists.type IS NULL AND type_id IS NULL))
     AND exists.stop IS NULL
    WHERE exists.individual IS NULL
   );
  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetIndividualEmail (
+ inIndividual_id integer,
+ inEmail_id integer
+) RETURNS void AS $$
+DECLARE
+BEGIN
+ PERFORM SetIndividualEmail(inIndividual_id, inEmail_id, NULL);
 END;
 $$ LANGUAGE plpgsql;
 
