@@ -270,3 +270,58 @@ RETURN SetIndividualEmail(inIndividual_id, inEmail_id, NULL);
 END_FUNCTION;
 @
 SET DELIMITER ;
+
+-- Bug fixes
+DROP FUNCTION IF EXISTS GetIndividualPerson;
+
+SET DELIMITER @
+CREATE FUNCTION GetIndividualPerson (
+ inFirst STRING,
+ inMiddle STRING,
+ inLast STRING,
+ inBirth date, -- Can't be null
+ inGoesBy STRING,
+ inDeath date
+) RETURNS BIGINT AS
+ VAR name_id INTEGER;
+ VAR goesBy_id INTEGER;
+ VAR does_exist_id BIGINT;
+ VAR return_id BIGINT;
+
+ does_exist_id = (
+   SELECT does_exist.id
+   FROM DUAL
+   LEFT JOIN Given ON Given.value = inFirst
+   LEFT JOIN Family ON Family.value = inLast
+   LEFT JOIN Name ON ((Name.given = Given.id) OR (Name.given IS NULL AND Given.id IS NULL))
+    AND ((Name.family = Family.id) OR (Name.family IS NULL AND Family.id IS NULL))
+   LEFT JOIN Individual AS does_exist ON does_exist.name IN (name_id, Name.id)
+    AND ((CAST(does_exist.birth AS DATE) = inBirth) OR (inBirth IS NULL))
+   LIMIT 1
+ );
+
+ IF (does_exist_id IS NULL)
+  name_id = GetName(inFirst,inMiddle,inLast);
+  goesBy_id = GetGiven(inGoesBy);
+
+  IF (name_id IS NOT NULL)
+   INSERT INTO Individual(name, goesBy, birth, death) VALUES (name_id, goesBy_id, inBirth, inDeath);
+  END_IF;
+
+  return_id = (
+   SELECT id
+   FROM Individual
+   WHERE Individual.name = name_id
+   AND (CAST(Individual.birth AS DATE) = inBirth)
+   AND ((Individual.goesBy = goesBy_id) OR (goesBy_id IS NULL))
+   AND ((CAST(Individual.death AS DATE) = inDeath) OR (Individual.death IS NULL AND inDeath IS NULL))
+   LIMIT 1
+  );
+ ELSE
+  return_id = does_exist_id;
+ END_IF;
+
+ RETURN return_id;
+END_FUNCTION;
+@
+SET DELIMITER ;

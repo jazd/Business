@@ -1159,14 +1159,14 @@ CREATE FUNCTION GetIndividualPerson (
  inFirst STRING,
  inMiddle STRING,
  inLast STRING,
- inBirth date,
+ inBirth date, -- Can't be null
  inGoesBy STRING,
  inDeath date
-) RETURNS INTEGER AS
+) RETURNS BIGINT AS
  VAR name_id INTEGER;
  VAR goesBy_id INTEGER;
- VAR does_exist_id INTEGER;
- VAR return_id INTEGER;
+ VAR does_exist_id BIGINT;
+ VAR return_id BIGINT;
 
  does_exist_id = (
    SELECT does_exist.id

@@ -433,15 +433,15 @@ CREATE OR REPLACE FUNCTION GetIndividualPerson (
  inFirst varchar,
  inMiddle varchar,
  inLast varchar,
- inBirth date,
+ inBirth date, -- Can't be null
  inGoesBy varchar,
  inDeath date
-) RETURNS integer AS $$
+) RETURNS bigint AS $$
 DECLARE
  name_id integer;
  goesBy_id integer;
- exists_id integer;
- return_id integer;
+ exists_id bigint;
+ return_id bigint;
 BEGIN
  -- Check for possible duplicate before inserting Name
  exists_id := (
