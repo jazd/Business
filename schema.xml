@@ -303,7 +303,9 @@
 <table name="IndividualEmail" order="51">
 <fields>
  <field name="individual" data_type="bigint" size="20" is_nullable="1" order="1" />
- <field name="type" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="2">
+   <comments>type of NULL is the primary or default email address for individual</comments>
+ </field>
  <field name="email" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="4">
   <comments>No longer associate this record with individual.  Used instead of DELETE.</comments>
