@@ -623,7 +623,7 @@ DECLARE
  listIndividual_id integer;
  sendField_id integer;
 BEGIN
- IF inIndividual IS NOT NULL THEN
+ IF inIndividual IS NOT NULL AND inListName IS NOT NULL THEN
   sendField_id := (SELECT GetIdentifier(LOWER(inSend)));
   listIndividual_id := (SELECT GetListIndividualName(inListName, inSetName));
 
@@ -671,7 +671,7 @@ CREATE OR REPLACE FUNCTION ListUnSubscribe (
 DECLARE
  listIndividual_id integer;
 BEGIN
- IF inIndividual IS NOT NULL THEN
+ IF inIndividual IS NOT NULL AND inListName IS NOT NULL THEN
   listIndividual_id := (SELECT GetListIndividualName(inListName, inSetName));
 
   IF listIndividual_id IS NOT NULL THEN

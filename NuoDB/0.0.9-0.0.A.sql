@@ -157,13 +157,13 @@ SET DELIMITER @
 CREATE OR REPLACE FUNCTION ListSubscribe (
  inListName STRING,
  inSetName STRING,
- inIndividual INTEGER,
+ inIndividual BIGINT,
  inSend STRING
 ) RETURNS INTEGER AS
 VAR listIndividual_id INTEGER;
 VAR sendField_id INTEGER;
 
-IF (inIndividual IS NOT NULL)
+IF (inIndividual IS NOT NULL AND inListName IS NOT NULL)
  sendField_id = GetIdentifier(LOWER(inSend));
  listIndividual_id = GetListIndividualName(inListName, inSetName);
 
@@ -189,7 +189,7 @@ SET DELIMITER @
 CREATE OR REPLACE FUNCTION ListSubscribe (
  inListName STRING,
  inSetName STRING,
- inIndividual INTEGER
+ inIndividual BIGINT
 ) RETURNS INTEGER AS
 -- Use default send to
 RETURN ListSubscribe(inListName, inSetName, inIndividual, NULL);
@@ -202,11 +202,11 @@ SET DELIMITER @
 CREATE OR REPLACE FUNCTION ListUnSubscribe (
  inListName STRING,
  inSetName STRING,
- inIndividual INTEGER
+ inIndividual BIGINT
 ) RETURNS INTEGER AS
 VAR listIndividual_id INTEGER;
 
-IF (inIndividual IS NOT NULL)
+IF (inIndividual IS NOT NULL AND inListName IS NOT NULL)
  listIndividual_id = GetListIndividualName(inListName, inSetName);
 
  IF (listIndividual_id IS NOT NULL)
@@ -227,8 +227,8 @@ DROP FUNCTION IF EXISTS ListUnSubscribe/2;
 SET DELIMITER @
 CREATE OR REPLACE FUNCTION ListUnSubscribe (
  inListName STRING,
- inIndividual INTEGER
-) RETURNS INTEGER AS
+ inIndividual BIGINT
+) RETURNS BIGINT AS
 RETURN ListUnSubscribe(inListName, NULL, inIndividual);
 END_FUNCTION;
 @
@@ -237,10 +237,10 @@ SET DELIMITER ;
 DROP FUNCTION IF EXISTS SetIndividualEmail/3;
 SET DELIMITER @
 CREATE OR REPLACE FUNCTION SetIndividualEmail (
- inIndividual_id INTEGER,
+ inIndividual_id BIGINT,
  inEmail_id INTEGER,
  inType STRING
-) RETURNS INTEGER AS
+) RETURNS BIGINT AS
 VAR type_id INTEGER;
 
 IF (inIndividual_id IS NOT NULL AND inEmail_id IS NOT NULL)
