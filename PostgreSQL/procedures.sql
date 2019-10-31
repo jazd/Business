@@ -595,7 +595,7 @@ BEGIN
   FROM DUAL
   LEFT JOIN ListIndividualName AS exists ON exists.name = listName_id
    AND ((exists.listSet = setName_id) OR (exists.listSet IS NULL AND setName_id IS NULL))
-   AND optinStyle = 1
+   AND exists.optinStyle = 1
   WHERE exists.listIndividual IS NULL
   LIMIT 1
   ;

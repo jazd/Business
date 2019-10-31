@@ -138,7 +138,7 @@ IF (inListName IS NOT NULL)
  FROM DUAL
  LEFT JOIN ListIndividualName AS does_exist ON does_exist.name = listName_id
   AND ((does_exist.listSet = setName_id) OR (does_exist.listSet IS NULL AND setName_id IS NULL))
-  AND optinStyle = 1
+  AND does_exist.optinStyle = 1
  WHERE does_exist.listIndividual IS NULL
  LIMIT 1
  ;
