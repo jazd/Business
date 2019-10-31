@@ -248,8 +248,9 @@
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="4" />
 </fields>
 <constraints>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
- <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="id" reference_table="ListIndividualName" reference_fields="listIndividual" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
@@ -266,11 +267,7 @@
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
-<indices>
- <index name="listindividualname_name_listset" type="UNIQUE" fields="name,listSet" />
-</indices>
 <constraints>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="listIndividual" reference_table="ListIndividual" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="listSet" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>

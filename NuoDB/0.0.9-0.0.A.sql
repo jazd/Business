@@ -20,8 +20,6 @@ CREATE TABLE ListIndividualName (
 
 ALTER SEQUENCE LISTINDIVIDUALNAME$IDENTITY_SEQUENCE START WITH 2000000;
 
-CREATE UNIQUE INDEX listindividualname_name_listset ON ListIndividualName (name, listSet);
-
 CREATE OR REPLACE VIEW List AS
 SELECT ListIndividual.id,
  ListIndividual.individual,
