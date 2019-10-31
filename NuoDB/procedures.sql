@@ -1154,12 +1154,13 @@ SET DELIMITER ;
 
 DROP FUNCTION IF EXISTS GetIndividualPerson;
 
+-- inBirth can't be NULL
 SET DELIMITER @
 CREATE FUNCTION GetIndividualPerson (
  inFirst STRING,
  inMiddle STRING,
  inLast STRING,
- inBirth date, -- Can't be null
+ inBirth date,
  inGoesBy STRING,
  inDeath date
 ) RETURNS BIGINT AS

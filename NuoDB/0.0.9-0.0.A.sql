@@ -277,7 +277,7 @@ CREATE FUNCTION GetIndividualPerson (
  inFirst STRING,
  inMiddle STRING,
  inLast STRING,
- inBirth date, -- Can't be null
+ inBirth date,
  inGoesBy STRING,
  inDeath date
 ) RETURNS BIGINT AS
