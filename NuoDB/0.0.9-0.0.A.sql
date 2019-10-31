@@ -1,4 +1,11 @@
 -- NuoDB database schema version 0.0.9 to 0.0.A
+-- New Contributor
+INSERT INTO Family (id,value) VALUES (11,'Penland');
+INSERT INTO Given (id,value) VALUES (33,'Jacob');
+INSERT INTO Given (id,value) VALUES (34,'Everett');
+INSERT INTO Name (id,given,middle,family) VALUES (18,33,34,11);
+INSERT INTO Individual (id, name, birth) VALUES (1001, 18, '1997-05-30');
+
 -- Changing IndividualList to ListIndividual
 CREATE TABLE ListIndividual (
   id INTEGER,
