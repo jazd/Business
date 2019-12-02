@@ -421,7 +421,7 @@
 <table name="Address" order="71">
 <fields>
  <comments>A lot of work needs to be done to be sure duplicate addresses are not entered.  This work will be centered around validation and the AddressAttribute table.</comments>
- <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="line1" data_type="varchar" size="50" is_nullable="1" order="2" />
  <field name="line2" data_type="varchar" size="50" is_nullable="1" order="3" />
  <field name="line3" data_type="varchar" size="50" is_nullable="1" order="4" />
@@ -911,6 +911,14 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<indices>
+ <index name="individualAddress_individual_stop" type="NORMAL" fields="individual,stop" />
+</indices>
+<constraints>
+ <constraint name="individualAddress_address" type="FOREIGN KEY" fields="address" reference_table="Address" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
 </table>
 
 <table name="IndividualApplicationCreated" order="211">

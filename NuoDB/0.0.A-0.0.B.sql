@@ -3,8 +3,12 @@
 ALTER TABLE Postal CHANGE COLUMN stateAbbreviation stateAbbreviation INTEGER NULL;
 ALTER TABLE Postal CHANGE COLUMN county county INTEGER NULL;
 
-CREATE OR REPLACE VIEW Addresses AS
+-- IndividualAddress constraints and index
+ALTER TABLE Address ALTER COLUMN id PRIMARY KEY;
+ALTER TABLE IndividualAddress ADD CONSTRAINT individualAddress_address FOREIGN KEY (address) REFERENCES Address(id);
+CREATE INDEX individualAddress_individual_stop ON IndividualAddress (individual, stop);
 
+CREATE OR REPLACE VIEW Addresses AS
 SELECT Address.id AS address,
  line1, line2, line3,
  City.value AS city,
