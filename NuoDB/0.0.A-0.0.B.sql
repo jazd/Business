@@ -36,3 +36,7 @@ LEFT JOIN Location AS AddressLocation On AddressLocation.id = Address.location
 LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
 LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
 ;
+
+-- Allow for duplicate area names
+DROP INDEX area_name;
+CREATE UNIQUE INDEX area_name_timezone ON Area (name, timezone);

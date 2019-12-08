@@ -94,7 +94,7 @@
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 <indices>
- <index name="area_name" type="UNIQUE" fields="name" />
+ <index name="area_name_timezone" type="UNIQUE" fields="name,timezone" />
 </indices>
 </table>
 
