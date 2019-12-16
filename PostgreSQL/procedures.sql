@@ -507,7 +507,7 @@ CREATE OR REPLACE FUNCTION GetIndividualEntity (
  inFormed date,
  inGoesBy varchar,
  inDissolved date
-) RETURNS integer AS $$
+) RETURNS bigint AS $$
 DECLARE
  entity_name_id integer;
  goesBy_id integer;
@@ -616,7 +616,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION ListSubscribe (
  inListName varchar,
  inSetName varchar,
- inIndividual integer,
+ inIndividual bigint,
  inSend varchar
 ) RETURNS integer AS $$
 DECLARE
@@ -646,7 +646,7 @@ $$ LANGUAGE plpgsql;
 Create OR REPLACE FUNCTION ListSubscribe (
  inListName varchar,
  inSetName varchar,
- inIndividual integer
+ inIndividual bigint
 ) RETURNS integer AS $$
 BEGIN
  -- Use default send to
@@ -656,7 +656,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION ListSubscribe (
  inListName varchar,
- inIndividual integer
+ inIndividual bigint
 ) RETURNS integer AS $$
 BEGIN
  RETURN (SELECT ListSubscribe(inListName, NULL, inIndividual));
@@ -666,7 +666,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION ListUnSubscribe (
  inListName varchar,
  inSetName varchar,
- inIndividual integer
+ inIndividual bigint
 ) RETURNS integer AS $$
 DECLARE
  listIndividual_id integer;
@@ -690,7 +690,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION ListUnSubscribe (
  inListName varchar,
- inIndividual integer
+ inIndividual bigint
 ) RETURNS integer AS $$
 BEGIN
  RETURN (SELECT ListUnSubscribe(inListName, NULL, inIndividual));
@@ -698,7 +698,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION CreateIndividual (
-) RETURNS integer AS $$
+) RETURNS bigint AS $$
 DECLARE
 BEGIN
  INSERT INTO Individual (birth) VALUES(NULL);
@@ -707,7 +707,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION SetIndividualEmail (
- inIndividual_id integer,
+ inIndividual_id bigint,
  inEmail_id integer,
  inType varchar
 ) RETURNS void AS $$
@@ -731,7 +731,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION SetIndividualEmail (
- inIndividual_id integer,
+ inIndividual_id bigint,
  inEmail_id integer
 ) RETURNS void AS $$
 DECLARE
@@ -743,10 +743,10 @@ $$ LANGUAGE plpgsql;
 -- Get Individual associated with an email
 CREATE OR REPLACE FUNCTION GetIndividualEmail (
   inEmail varchar
-) RETURNS integer AS $$
+) RETURNS bigint AS $$
 DECLARE
  email_id integer;
- individual_id integer;
+ individual_id bigint;
 BEGIN
  -- Get email id
  email_id := (SELECT GetEmail(inEmail));
@@ -780,7 +780,7 @@ CREATE OR REPLACE FUNCTION ListSubscribeEmail (
  inEmail varchar
 ) RETURNS integer AS $$
 DECLARE
- individual_id integer;
+ individual_id bigint;
 BEGIN
  individual_id := (GetIndividualEmail(inEmail));
 
