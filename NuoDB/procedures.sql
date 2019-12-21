@@ -1231,15 +1231,14 @@ END_FUNCTION;
 @
 SET DELIMITER ;
 
-DROP FUNCTION IF EXISTS GetIndividualEntity;
-
+DROP FUNCTION IF EXISTS GetIndividualEntity/4;
 SET DELIMITER @
 CREATE FUNCTION GetIndividualEntity (
  inName STRING,
  inFormed date,
  inGoesBy STRING,
  inDissolved date
-) RETURNS INTEGER AS
+) RETURNS BIGINT AS
  VAR entity_name_id INTEGER;
  VAR goesBy_id INTEGER;
 
@@ -1469,9 +1468,9 @@ SET DELIMITER ;
 DROP FUNCTION IF EXISTS SetIndividualEmail/2;
 SET DELIMITER @
 CREATE OR REPLACE FUNCTION SetIndividualEmail (
- inIndividual_id INTEGER,
+ inIndividual_id BIGINT,
  inEmail_id INTEGER
-) RETURNS INTEGER AS
+) RETURNS BIGINT AS
 RETURN SetIndividualEmail(inIndividual_id, inEmail_id, NULL);
 END_FUNCTION;
 @
