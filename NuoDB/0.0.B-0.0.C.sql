@@ -1,4 +1,6 @@
 -- NuoDB database schema version 0.0.B to 0.0.C
+-- Allow for addresses without states
+ALTER TABLE Postal CHANGE COLUMN state state INTEGER NULL;
 
 DROP FUNCTION IF EXISTS GetIndividualEntity/4;
 SET DELIMITER @
