@@ -787,6 +787,7 @@ CREATE FUNCTION SetSession (
      (siteApplicationRelease = inSiteApplicationRelease)
       OR (siteApplicationRelease IS NULL AND inSiteApplicationRelease IS NULL)
     )
+   LIMIT 1
   );
 
   IF (existingSession IS NULL)
