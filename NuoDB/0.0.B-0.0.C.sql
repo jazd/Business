@@ -70,3 +70,116 @@ RETURN SetIndividualEmail(inIndividual_id, inEmail_id, NULL);
 END_FUNCTION;
 @
 SET DELIMITER ;
+
+
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION AnonymousSession (
+ inAgentString INTEGER,
+ inRefSecure INTEGER,
+ inRefHost STRING,
+ inRefPath STRING,
+ inRefGet STRING,
+ inIPAddress STRING
+) RETURNS BIGINT AS
+ VAR existingSession BIGINT;
+ VAR referringURL INTEGER;
+
+ referringURL = (GetUrl(inRefSecure,inRefHost,inRefPath,inRefGet));
+
+ existingSession = (
+  SELECT session
+  FROM SessionCredential
+  WHERE credential IS NULL
+  AND agentString = inAgentString
+  AND fromAddress = inIPAddress
+  AND ((referring = referringURL) OR (referring IS NULL AND referringURL IS NULL))
+ );
+
+ IF (existingSession IS NULL)
+  INSERT INTO Session ("lock") VALUES (0);
+  existingSession = LAST_INSERT_ID();
+  INSERT INTO SessionCredential (session,agentString,fromAddress,referring)
+  SELECT existingSession AS session, inAgentString AS agentString,
+   inIPAddress AS fromAddress, referringURL
+  FROM Dual;
+ ELSE
+  UPDATE Session SET touched = NOW() WHERE id = existingSession;
+ END_IF;
+
+ RETURN existingSession;
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION SetSession (
+ inSessionToken STRING,
+ inSiteApplicationRelease INTEGER,
+ inAgentString INTEGER,
+ inCredential INTEGER,
+ inReferring INTEGER,
+ inIPAddress STRING,
+ inLocation INTEGER,
+ inStart timestamp
+) RETURNS BIGINT AS
+ VAR existingSession BIGINT;
+ IF (inSessionToken IS NOT NULL)
+  existingSession = (
+   SELECT session
+   FROM SessionToken
+   WHERE token = inSessionToken
+    AND (
+     (siteApplicationRelease = inSiteApplicationRelease)
+      OR (siteApplicationRelease IS NULL AND inSiteApplicationRelease IS NULL)
+    )
+  );
+
+  IF (existingSession IS NULL)
+   INSERT INTO Session ("lock") VALUES (0);
+   existingSession = LAST_INSERT_ID();
+   INSERT INTO SessionToken (session,token,siteApplicationRelease,created) (
+    SELECT existingSession, inSessionToken, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created FROM Dual
+   );
+  ELSE
+   UPDATE Session SET touched = NOW() WHERE id = existingSession;
+  END_IF;
+
+  INSERT INTO SessionCredential (session, agentString, credential, referring, fromAddress, location) (
+   SELECT existingSession, inAgentString, inCredential, inReferring, inIPAddress, inLocation
+   FROM Dual
+   LEFT JOIN SessionCredential AS does_exist ON does_exist.session = existingSession
+    AND ((agentString = inAgentString) OR (agentString IS NULL AND inAgentString IS NULL))
+    AND ((credential = inCredential) OR (credential IS NULL AND inCredential IS NULL))
+    AND ((referring = inReferring) OR (referring IS NULL AND inReferring IS NULL))
+    AND ((fromAddress = inIPAddress) OR (fromAddress IS NULL AND inIPAddress IS NULL))
+    AND ((location = inLocation) OR (location IS NULL AND inLocation IS NULL))
+   WHERE does_exist.id IS NULL
+  );
+
+ END_IF;
+ RETURN existingSession;
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION SetSchemaVersion (
+ inSchemaName STRING,
+ inMajor STRING,
+ inMinor STRING,
+ inPatch STRING
+) RETURNS INTEGER AS
+ VAR schema_id INTEGER;
+ VAR version_id INTEGER;
+ IF (inSchemaName IS NOT NULL)
+  schema_id = GetWord(inSchemaName);
+  version_id = GetVersion(inMajor, inMinor, inPatch);
+ END_IF;
+
+ INSERT INTO SchemaVersion (schema, version) VALUES (schema_id, version_id);
+ RETURN LAST_INSERT_ID();
+END_FUNCTION;
+@
+SET DELIMITER ;

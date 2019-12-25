@@ -710,7 +710,7 @@ CREATE FUNCTION AnonymousSession (
 
  IF (existingSession IS NULL)
   INSERT INTO Session ("lock") VALUES (0);
-  existingSession = (SELECT MAX(id) FROM Session);
+  existingSession = LAST_INSERT_ID();
   INSERT INTO SessionCredential (session,agentString,fromAddress,referring)
   SELECT existingSession AS session, inAgentString AS agentString,
    inIPAddress AS fromAddress, referringURL
@@ -791,7 +791,7 @@ CREATE FUNCTION SetSession (
 
   IF (existingSession IS NULL)
    INSERT INTO Session ("lock") VALUES (0);
-   existingSession = (SELECT MAX(id) FROM Session);
+   existingSession = LAST_INSERT_ID();
    INSERT INTO SessionToken (session,token,siteApplicationRelease,created) (
     SELECT existingSession, inSessionToken, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created FROM Dual
    );
@@ -1493,7 +1493,7 @@ CREATE FUNCTION SetSchemaVersion (
  END_IF;
 
  INSERT INTO SchemaVersion (schema, version) VALUES (schema_id, version_id);
- RETURN (SELECT MAX(build) FROM SchemaVersion);
+ RETURN LAST_INSERT_ID();
 END_FUNCTION;
 @
 SET DELIMITER ;
