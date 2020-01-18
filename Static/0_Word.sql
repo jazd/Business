@@ -165,3 +165,13 @@ INSERT INTO Word (id,culture,value) VALUES (61053,1033,'Medford');
 INSERT INTO Word (id,culture,value) VALUES (61054,1033,'Westchester');
 INSERT INTO Word (id,culture,value) VALUES (61055,1033,'District of Columbia');
 INSERT INTO Word (id,culture,value) VALUES (61056,1033,'Armonk');
+
+-- Accounting Words
+INSERT INTO Word (id,culture,value) VALUES (70000,1033,'Asset');
+INSERT INTO Word (id,culture,value) VALUES (70001,1033,'Liability');
+INSERT INTO Word (id,culture,value) VALUES (70002,1033,'Equity');
+INSERT INTO Word (id,culture,value) VALUES (70003,1033,'Income');
+INSERT INTO Word (id,culture,value) VALUES (70004,1033,'Expense');
+INSERT INTO Word (id,culture,value) VALUES (70005,1033,'Dividend');
+INSERT INTO Word (id,culture,value) VALUES (70006,1033,'Share');
+INSERT INTO Word (id,culture,value) VALUES (70007,1033,'Retained');

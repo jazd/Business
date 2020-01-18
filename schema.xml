@@ -979,7 +979,24 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <fields>
  <field name="account" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
- <field name="amount" data_type="float" is_nullable="1" order="3">
+ <field name="type" data_type="integer" size="" is_nullable="0" order="3">
+   <comments>Used in conjunction with the credit field.
+    Account.type, Account.credit
+    Asset, false
+    Liability, true
+    Equity, true
+    Income, true
+    Expense, false
+    Dividend, false
+    Share, true
+    Retained, true
+   Contra accounts have same type but invert the credit value.
+   </comments>
+ </field>
+ <field name="credit" data_type="boolean" size="" is_nullable="0" order="4">
+  <comments>True if increases the credit column otherwise increas the debit column</comments>
+ </field>
+ <field name="amount" data_type="float" is_nullable="1" order="5">
   <comments>Default amount if JournalAccount.amout IS NULL</comments>
  </field>
 </fields>
@@ -987,6 +1004,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </indices>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
@@ -1041,9 +1059,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="account" data_type="integer" size="" is_nullable="0" order="2">
   <comments>T Account</comments>
  </field>
- <field name="journal" data_type="integer" size="" is_nullable="0" order="3">
-  <comments>Journal that feeds this Ledger T Account</comments>
- </field>
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
   <comments>No longer associate this ledger with account.  Used instead of DELETE.</comments>
  </field>
@@ -1054,7 +1069,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <constraints>
  <constraint name="ledgeraccount_ledger" type="FOREIGN KEY" fields="ledger" reference_table="LedgerName" reference_fields="ledger" deferrable="1" />
  <constraint name="ledgeraccount_account" type="FOREIGN KEY" fields="account" reference_table="AccountName" reference_fields="account" deferrable="1" />
- <constraint name="ledgeraccount_journal" type="FOREIGN KEY" fields="journal" reference_table="JournalName" reference_fields="journal" deferrable="1" />
 </constraints>
 </table>
 
@@ -1157,8 +1171,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
-ScheduleName...
-
 <table name="Schedule" order="901">
 <comments>untested</comments>
 <fields>
@@ -1226,7 +1238,7 @@ ScheduleName...
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="type" data_type="integer" size="" is_nullable="1" order="2">
-   <comments>Wish, Cart, Order, Invoice, Lading, Payment, Memo, Return</comments>
+   <comments>Wish, Cart, Quote, Order, Invoice, Lading, Payment, Memo, Return</comments>
  </field>
  <field name="supplier" data_type="bigint" size="20" is_nullable="0" order="3">
   <comments>IndividualAssemblyCost.individual</comments>
@@ -1887,6 +1899,58 @@ SELECT MAX(id) AS id FROM (
  UNION
  SELECT COALESCE(MAX(id), 0) AS id FROM Month
 ) AS MaxSpan
+  </sql>
+ </view>
+
+ <view name="Accounts" fields="account,name,type,credit,creditIncrease,debitIncrease">
+  <sql>
+SELECT AccountName.account,
+ Sentence.value AS name,
+ Word.value AS type,
+ AccountName.credit,
+ CASE WHEN AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS creditIncrease,
+ CASE WHEN NOT AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS debitIncrease
+FROM AccountName
+JOIN Sentence ON Sentence.id = AccountName.name
+ AND Sentence.culture = ClientCulture()
+JOIN Word ON Word.id = AccountName.type
+ AND Word.culture = ClientCulture()
+  </sql>
+ </view>
+
+ <view name="Ledgers" fields="ledger,name">
+  <sql>
+SELECT LedgerName.ledger,
+ Sentence.value AS name,
+ Accounts.account,
+ Accounts.name AS accountName,
+ Accounts.type AS type,
+ Accounts.credit,
+ Accounts.creditIncrease,
+ Accounts.debitIncrease
+FROM LedgerName
+JOIN Sentence ON Sentence.id = LedgerName.name
+ AND Sentence.culture = ClientCulture()
+JOIN LedgerAccount ON LedgerAccount.ledger = LedgerName.ledger
+JOIN Accounts ON Accounts.account = LedgerAccount.account
+  </sql>
+ </view>
+
+ <view name="Journals" fields=""><comments>TODO Join JournalAccount AND Accounts</comments>
+  <sql>
+SELECT JournalName.journal,
+ Sentence.value AS name
+FROM JournalName
+JOIN Sentence ON Sentence.id = JournalName.name
+ AND Sentence.culture = ClientCulture()
   </sql>
  </view>
 </views>
