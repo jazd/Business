@@ -974,6 +974,21 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
+<table name="BookName" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="book" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="journal" data_type="integer" size="" is_nullable="0" order="1" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="bookname_journal" type="FOREIGN KEY" fields="journal" reference_table="JournalName" reference_fields="journal" deferrable="1" />
+</constraints>
+</table>
+
 <table name="AccountName" order="900">
 <comments>untested</comments>
 <fields>
@@ -1095,6 +1110,32 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <constraint name="journalaccount_journal" type="FOREIGN KEY" fields="journal" reference_table="JournalName" reference_fields="journal" deferrable="1" />
  <constraint name="journalaccount_credit" type="FOREIGN KEY" fields="credit" reference_table="AccountName" reference_fields="account" deferrable="1" />
  <constraint name="journalaccount_debit" type="FOREIGN KEY" fields="debit" reference_table="AccountName" reference_fields="account" deferrable="1" />
+</constraints>
+</table>
+<comments>TODO reconcile with above</comments>
+<table name="BookAccount" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="book" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="credit" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="debit" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="amount" data_type="float" is_nullable="1" order="4">
+  <comments>Default amount if JournalEntry.amount IS NULL</comments>
+ </field>
+ <field name="split" data_type="float" is_nullable="1" order="5">
+  <comments>% of amount to the credit/debit account[s]. Must specify credit and debit accounts if split is NULL (100% amount to both)</comments>
+ </field>
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer associate accounts with book.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="bookaccount_book" type="FOREIGN KEY" fields="book" reference_table="BookName" reference_fields="book" deferrable="1" />
+ <constraint name="bookaccount_credit" type="FOREIGN KEY" fields="credit" reference_table="AccountName" reference_fields="account" deferrable="1" />
+ <constraint name="bookaccount_debit" type="FOREIGN KEY" fields="debit" reference_table="AccountName" reference_fields="account" deferrable="1" />
 </constraints>
 </table>
 
@@ -1951,6 +1992,32 @@ SELECT JournalName.journal,
 FROM JournalName
 JOIN Sentence ON Sentence.id = JournalName.name
  AND Sentence.culture = ClientCulture()
+  </sql>
+ </view>
+
+ <view name="Books" fields=""><comments>TODO Support Multiple BookAccount account records</comments>
+  <sql>
+SELECT BookName.book,
+ Sentence.value AS name,
+ BookName.journal,
+ Journals.name AS journalName,
+ BookAccount.credit,
+ Credit.name AS creditName,
+ Credit.type AS creditType,
+ Credit.creditIncrease AS creditCreditIncrease,
+ Credit.debitIncrease  AS creditDebitIncrease,
+ BookAccount.debit,
+ Debit.name AS debitName,
+ Debit.type AS debitType,
+ Debit.creditIncrease AS debitCreditIncrease,
+ Debit.debitIncrease  AS debitDebitIncrease
+FROM BookName
+JOIN Sentence ON Sentence.id = BookName.name
+ AND Sentence.culture = ClientCulture()
+JOIN Journals ON Journals.journal = BookName.journal
+JOIN BookAccount ON BookAccount.book = BookName.book
+LEFT JOIN Accounts AS Credit ON Credit.account = BookAccount.credit
+LEFT JOIN Accounts AS Debit  ON Debit.account  = BookAccount.debit
   </sql>
  </view>
 </views>
