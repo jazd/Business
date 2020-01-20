@@ -42,6 +42,7 @@ INSERT INTO BookName (book, name, journal) VALUES (8,  81 , 6); -- Salary, Payme
 INSERT INTO BookName (book, name, journal) VALUES (9,  100, 6); -- Supplies, Payments
 INSERT INTO BookName (book, name, journal) VALUES (10, 125, 6); -- Supply Returns, Payments
 INSERT INTO BookName (book, name, journal) VALUES (11, 121, 7); -- Petty Cash, Petty Cash
+INSERT INTO BookName (book, name, journal) VALUES (12, 129, 7); -- Petty Cash, Petty Cash
 
 -- Simple Book Accounts
 -- Must define balanced transactions to be inserted into journals
@@ -54,14 +55,15 @@ INSERT INTO AccountName (account, name, type, credit) VALUES (105, 81,  70004, f
 INSERT INTO AccountName (account, name, type, credit) VALUES (106, 100, 70004, false); -- Supply
 INSERT INTO AccountName (account, name, type, credit) VALUES (107, 121, 70000, false); -- Petty Cash
 --
-INSERT INTO BookAccount (book, credit, debit) VALUES (1, 100, 101); -- Rent Payment: Cash, Rent
-INSERT INTO BookAccount (book, credit, debit) VALUES (2, 102, 100); -- Sale: Sales, Cash
-INSERT INTO BookAccount (book, credit, debit) VALUES (3, 100, 102); -- Sale Credit: Cash, Sales
-INSERT INTO BookAccount (book, credit, debit) VALUES (4, 100, 103); -- Equipment Purchase: Cash, Equipment
-INSERT INTO BookAccount (book, credit, debit) VALUES (5, 102, 100); -- Equipment Return: Equipment, Cash
-INSERT INTO BookAccount (book, credit, debit) VALUES (6, 104, 100); -- Loan: Loan, Cash
-INSERT INTO BookAccount (book, credit, debit) VALUES (7, 100, 104); -- Loan Payment: Cash, Loan
-INSERT INTO BookAccount (book, credit, debit) VALUES (8, 100, 105); -- Salary: Cash, Salary
-INSERT INTO BookAccount (book, credit, debit) VALUES (9, 100, 106); -- Supplies: Cash, Supply
-INSERT INTO BookAccount (book, credit, debit) VALUES (10, 106, 100);-- Supply Return: Supply, Cash
-INSERT INTO BookAccount (book, credit, debit) VALUES (11, 107, 106);-- Petty Cash: Petty Cash, Supply
+INSERT INTO BookAccount (book, increase, decrease) VALUES (1, 101, 100); -- Rent Payment: Rent, Cash
+INSERT INTO BookAccount (book, increase, decrease) VALUES (2, 100, 102); -- Sale: Cash, Sales
+INSERT INTO BookAccount (book, increase, decrease) VALUES (3, 102, 100); -- Sale Credit: Sales, Cash
+INSERT INTO BookAccount (book, increase, decrease) VALUES (4, 103, 100); -- Equipment Purchase: Equipment, Cash
+INSERT INTO BookAccount (book, increase, decrease) VALUES (5, 100, 103); -- Equipment Return: Cash, Equipment
+INSERT INTO BookAccount (book, increase, decrease) VALUES (6, 100, 104); -- Loan: Cash, Loan
+INSERT INTO BookAccount (book, increase, decrease) VALUES (7, 104, 100); -- Loan Payment: Loan, Cash
+INSERT INTO BookAccount (book, increase, decrease) VALUES (8, 105, 100); -- Salary: Salary, Cash
+INSERT INTO BookAccount (book, increase, decrease) VALUES (9, 106, 100); -- Supplies: Supply, Cash
+INSERT INTO BookAccount (book, increase, decrease) VALUES (10, 100, 106);-- Supply Return: Cash, Supply
+INSERT INTO BookAccount (book, increase, decrease) VALUES (11, 106, 107);-- Petty Cash: Supply, Petty Cash
+INSERT INTO BookAccount (book, increase, decrease) VALUES (12, 107, 106);-- Petty Cash Return: Petty Cash, Supply

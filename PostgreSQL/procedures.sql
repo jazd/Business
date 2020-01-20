@@ -1864,6 +1864,74 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Double Entry Accounting functions
+--
+-- Book single amounts into double entry Journal
+-- TODO Support more than the simplest BookAccount entries (single record with both credit and debit fields set)
+CREATE OR REPLACE FUNCTION Book (
+ inBook varchar,
+ inAmount FLOAT
+) RETURNS integer AS $$
+DECLARE
+ book_id integer;
+ entry_id integer;
+BEGIN
+ book_id := (
+  SELECT book
+  FROM BookName
+  WHERE BookName.name = GetSentence(inBook)
+  LIMIT 1
+ );
+
+ INSERT INTO JournalEntry (journal, book, entry,  account, credit, amount)
+ SELECT journal,
+  book,
+  entry_id AS entry,
+  increase AS account,
+  NOT increaseCredit AS credit,
+  inAmount * increaseCreditIncrease AS amount
+ FROM Books
+ WHERE Books.book = book_id
+  AND inAmount * increaseCreditIncrease IS NOT NULL
+ UNION ALL
+ SELECT journal,
+  book,
+  NULL AS entry,
+  increase AS account,
+  increaseCredit AS credit,
+  inAmount * increaseDebitIncrease AS amount
+ FROM Books
+ WHERE Books.book = book_id
+  AND inAmount * increaseDebitIncrease IS NOT NULL
+ UNION ALL
+ SELECT journal,
+  book,
+  NULL AS entry,
+  decrease AS account,
+  NOT decreaseCredit AS credit,
+  inAmount * decreaseCreditDecrease AS amount
+ FROM Books
+ WHERE Books.book = book_id
+  AND inAmount * decreaseCreditDecrease IS NOT NULL
+ UNION ALL
+ SELECT journal,
+  book,
+  NULL AS entry,
+  decrease AS account,
+  decreaseCredit AS credit,
+  inAmount * decreaseDebitDecrease AS amount
+ FROM Books
+ WHERE Books.book = book_id
+  AND inAmount * decreaseDebitDecrease IS NOT NULL
+ ;
+
+ RETURN book_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Schema Mgmt Functions
+--
 CREATE OR REPLACE FUNCTION SetSchemaVersion (
  inSchemaName varchar,
  inMajor varchar,

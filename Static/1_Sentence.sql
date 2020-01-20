@@ -83,3 +83,4 @@ INSERT INTO Sentence (id,culture,value,length) VALUES (124,1033,'Loan Payment',1
 INSERT INTO Sentence (id,culture,value,length) VALUES (125,1033,'Supply Return',13);
 INSERT INTO Sentence (id,culture,value,length) VALUES (126,1033,'Sale',4);
 INSERT INTO Sentence (id,culture,value,length) VALUES (127,1033,'Equipment Return',16);
+INSERT INTO Sentence (id,culture,value,length) VALUES (128,1033,'Petty Cash Return',17);

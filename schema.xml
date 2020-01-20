@@ -1117,8 +1117,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <comments>untested</comments>
 <fields>
  <field name="book" data_type="integer" size="" is_nullable="0" order="1" />
- <field name="credit" data_type="integer" size="" is_nullable="1" order="2" />
- <field name="debit" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="increase" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="decrease" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="amount" data_type="float" is_nullable="1" order="4">
   <comments>Default amount if JournalEntry.amount IS NULL</comments>
  </field>
@@ -1134,8 +1134,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </indices>
 <constraints>
  <constraint name="bookaccount_book" type="FOREIGN KEY" fields="book" reference_table="BookName" reference_fields="book" deferrable="1" />
- <constraint name="bookaccount_credit" type="FOREIGN KEY" fields="credit" reference_table="AccountName" reference_fields="account" deferrable="1" />
- <constraint name="bookaccount_debit" type="FOREIGN KEY" fields="debit" reference_table="AccountName" reference_fields="account" deferrable="1" />
+ <constraint name="bookaccount_increase" type="FOREIGN KEY" fields="increase" reference_table="AccountName" reference_fields="account" deferrable="1" />
+ <constraint name="bookaccount_decrease" type="FOREIGN KEY" fields="decrease" reference_table="AccountName" reference_fields="account" deferrable="1" />
 </constraints>
 </table>
 
@@ -1146,10 +1146,15 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="assemblyApplicationRelease" data_type="integer" is_nullable="1" order="2" />
  <field name="credential" data_type="integer" is_nullable="1" order="3" />
  <field name="journal" data_type="integer" size="" is_nullable="0" order="4" />
- <field name="entry" data_type="integer" size="" is_nullable="1" order="5">
+ <field name="book" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="entry" data_type="integer" size="" is_nullable="1" order="6">
   <comments>Group a set of journal entries</comments>
  </field>
- <field name="amount" data_type="float" is_nullable="1" order="6">
+ <field name="account" data_type="integer" size="" is_nullable="0" order="7" />
+ <field name="credit" data_type="boolean" size="" is_nullable="0" order="8">
+  <comments>True if increases the credit column otherwise increas the debit column</comments>
+ </field>
+ <field name="amount" data_type="float" is_nullable="1" order="9">
   <comments>COALESCE(amount, JournalAccount.amount, AccountName.amount) to get actual transaction amount.</comments>
  </field>
  <field name="posted" data_type="timestamp" is_nullable="1" order="10">
@@ -1163,6 +1168,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <constraint name="journalentry_assemblyapplicationrelease" type="FOREIGN KEY" fields="assemblyApplicationRelease" reference_table="AssemblyApplicationRelease" reference_fields="id" deferrable="1" />
  <constraint name="journalentry_credential" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" deferrable="1" />
  <constraint name="journalentry_journal" type="FOREIGN KEY" fields="journal" reference_table="JournalName" reference_fields="journal" deferrable="1" />
+ <constraint name="journalentry_book" type="FOREIGN KEY" fields="book" reference_table="BookName" reference_fields="book" deferrable="1" />
+ <constraint name="hournalentry_account" type="FOREIGN KEY" fields="account" reference_table="AccountName" reference_fields="account" deferrable="1" />
 </constraints>
 </table>
 
@@ -1943,12 +1950,22 @@ SELECT MAX(id) AS id FROM (
   </sql>
  </view>
 
- <view name="Accounts" fields="account,name,type,credit,creditIncrease,debitIncrease">
+ <view name="Accounts" fields="account,name,type,credit,debitIncrease,debitDecrease,creditIncrease,creditDecrease">
   <sql>
 SELECT AccountName.account,
  Sentence.value AS name,
  Word.value AS type,
  AccountName.credit,
+ CASE WHEN NOT AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS debitIncrease,
+ CASE WHEN AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS debitDecrease,
  CASE WHEN AccountName.credit THEN
   1
  ELSE
@@ -1958,7 +1975,7 @@ SELECT AccountName.account,
   1
  ELSE
   NULL
- END AS debitIncrease
+ END AS creditDecrease
 FROM AccountName
 JOIN Sentence ON Sentence.id = AccountName.name
  AND Sentence.culture = ClientCulture()
@@ -1975,8 +1992,10 @@ SELECT LedgerName.ledger,
  Accounts.name AS accountName,
  Accounts.type AS type,
  Accounts.credit,
+ Accounts.debitIncrease,
+ Accounts.debitDecrease,
  Accounts.creditIncrease,
- Accounts.debitIncrease
+ Accounts.creditDecrease
 FROM LedgerName
 JOIN Sentence ON Sentence.id = LedgerName.name
  AND Sentence.culture = ClientCulture()
@@ -2001,23 +2020,29 @@ SELECT BookName.book,
  Sentence.value AS name,
  BookName.journal,
  Journals.name AS journalName,
- BookAccount.credit,
- Credit.name AS creditName,
- Credit.type AS creditType,
- Credit.creditIncrease AS creditCreditIncrease,
- Credit.debitIncrease  AS creditDebitIncrease,
- BookAccount.debit,
- Debit.name AS debitName,
- Debit.type AS debitType,
- Debit.creditIncrease AS debitCreditIncrease,
- Debit.debitIncrease  AS debitDebitIncrease
+ BookAccount.increase,
+ Increase.name AS increaseName,
+ Increase.type AS increaseType,
+ Increase.credit AS increaseCredit,
+ Increase.debitIncrease  AS increaseDebitIncrease,
+ Increase.debitDecrease  AS increaseDebitDecrease,
+ Increase.creditIncrease AS increaseCreditIncrease,
+ Increase.creditDecrease  AS increaseCreditDecrease,
+ BookAccount.decrease,
+ Decrease.name AS decreaseName,
+ Decrease.type AS decreaseType,
+ Decrease.credit AS decreaseCredit,
+ Decrease.debitIncrease  AS decreaseDebitIncrease,
+ Decrease.debitDecrease  AS decreaseDebitDecrease,
+ Decrease.creditIncrease AS decreaseCreditIncrease,
+ Decrease.creditDecrease AS decreaseCreditDecrease
 FROM BookName
 JOIN Sentence ON Sentence.id = BookName.name
  AND Sentence.culture = ClientCulture()
 JOIN Journals ON Journals.journal = BookName.journal
 JOIN BookAccount ON BookAccount.book = BookName.book
-LEFT JOIN Accounts AS Credit ON Credit.account = BookAccount.credit
-LEFT JOIN Accounts AS Debit  ON Debit.account  = BookAccount.debit
+LEFT JOIN Accounts AS Increase ON Increase.account = BookAccount.increase
+LEFT JOIN Accounts AS Decrease  ON Decrease.account  = BookAccount.decrease
   </sql>
  </view>
 </views>
