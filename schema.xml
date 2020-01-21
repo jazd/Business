@@ -2058,6 +2058,43 @@ LEFT JOIN Accounts AS Increase ON Increase.account = BookAccount.increase
 LEFT JOIN Accounts AS Decrease  ON Decrease.account  = BookAccount.decrease
   </sql>
  </view>
+
+
+ <view name="JournalEntries" fields="">
+  <comments>ORDER BY created, entry, rightSide</comments>
+  <sql>
+SELECT JournalEntry.id,
+ JournalEntry.journal,
+ JournalNameString.value AS journalName,
+ JournalEntry.book,
+ BookNameString.value AS bookName,
+ JournalEntry.entry,
+ JournalEntry.account,
+ AccountNameString.value AS accountName,
+ AccountTypeName.value AS type,
+ JournalEntry.credit AS rightSide,
+ CASE WHEN NOT JournalEntry.credit THEN
+  JournalEntry.amount
+ END AS debit,
+ CASE WHEN JournalEntry.credit THEN
+  JournalEntry.amount
+ END AS credit,
+ JournalEntry.posted,
+ JournalEntry.created
+FROM JournalEntry
+JOIN AccountName ON AccountName.account = JournalEntry.account
+JOIN Sentence AS AccountNameString ON AccountNameString.id = AccountName.name
+ AND AccountNameString.culture = ClientCulture()
+JOIN Word AS AccountTypeName ON AccountTypeName.id = AccountName.type
+ AND AccountTypeName.culture = ClientCulture()
+JOIN JournalName ON JournalName.journal = JournalEntry.journal
+JOIN Sentence AS JournalNameString ON JournalNameString.id = JournalName.name
+ AND JournalNameString.culture = ClientCulture()
+LEFT JOIN BookName ON BookName.book = JournalEntry.book
+LEFT JOIN Sentence AS BookNameString ON BookNameString.id = BookName.name
+ AND BookNameString.culture = ClientCulture()
+  </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>
