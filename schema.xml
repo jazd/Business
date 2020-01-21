@@ -1087,6 +1087,21 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
+<table name="Entry" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="assemblyApplicationRelease" data_type="integer" is_nullable="1" order="2" />
+ <field name="credential" data_type="integer" is_nullable="1" order="3" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="entry_assemblyapplicationrelease" type="FOREIGN KEY" fields="assemblyApplicationRelease" reference_table="AssemblyApplicationRelease" reference_fields="id" deferrable="1" />
+ <constraint name="entry_credential" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
 <table name="JournalAccount" order="901">
 <comments>untested</comments>
 <fields>
@@ -1143,8 +1158,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="assemblyApplicationRelease" data_type="integer" is_nullable="1" order="2" />
- <field name="credential" data_type="integer" is_nullable="1" order="3" />
  <field name="journal" data_type="integer" size="" is_nullable="0" order="4" />
  <field name="book" data_type="integer" size="" is_nullable="1" order="5" />
  <field name="entry" data_type="integer" size="" is_nullable="1" order="6">
@@ -1165,10 +1178,9 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <indices>
 </indices>
 <constraints>
- <constraint name="journalentry_assemblyapplicationrelease" type="FOREIGN KEY" fields="assemblyApplicationRelease" reference_table="AssemblyApplicationRelease" reference_fields="id" deferrable="1" />
- <constraint name="journalentry_credential" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" deferrable="1" />
  <constraint name="journalentry_journal" type="FOREIGN KEY" fields="journal" reference_table="JournalName" reference_fields="journal" deferrable="1" />
  <constraint name="journalentry_book" type="FOREIGN KEY" fields="book" reference_table="BookName" reference_fields="book" deferrable="1" />
+ <constraint name="journalentry_entry" type="FOREIGN KEY" fields="entry" reference_table="Entry" reference_fields="id" deferrable="1" />
  <constraint name="hournalentry_account" type="FOREIGN KEY" fields="account" reference_table="AccountName" reference_fields="account" deferrable="1" />
 </constraints>
 </table>
@@ -1366,6 +1378,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <indices>
 </indices>
 <constraints>
+ <constraint name="cargostate_entry" type="FOREIGN KEY" fields="entry" reference_table="Entry" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="cargo" reference_table="Cargo" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="toCargo" reference_table="Cargo" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="journal,entry" reference_table="JournalEntry" reference_fields="journal,entry" deferrable="1" /></comments>

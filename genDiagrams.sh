@@ -19,7 +19,7 @@ ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease Applica
 
 EVENTS="Period DateRange TimeOfDay DayOfWeek MonthDay Month PeriodName Sentence"
 
-ACCOUNTING="Word Sentence Individual Part AssemblyApplicationRelease Credential Period  LedgerName AccountName JournalName BookName ScheduleName JobName IndividualLedger LedgerAccount JournalAccount BookAccount JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule JobIndividual Bill Cargo CargoState"
+ACCOUNTING="Word Sentence Individual Part AssemblyApplicationRelease Credential Period  LedgerName AccountName JournalName BookName ScheduleName JobName IndividualLedger LedgerAccount JournalAccount BookAccount Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule JobIndividual Bill Cargo CargoState"
 
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid

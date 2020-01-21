@@ -1883,6 +1883,8 @@ BEGIN
   LIMIT 1
  );
 
+ INSERT INTO Entry (assemblyApplicationRelease,credential) VALUES (NULL, NULL) RETURNING id INTO entry_id;
+
  INSERT INTO JournalEntry (journal, book, entry,  account, credit, amount)
  SELECT journal,
   book,
@@ -1896,7 +1898,7 @@ BEGIN
  UNION ALL
  SELECT journal,
   book,
-  NULL AS entry,
+  entry_id AS entry,
   increase AS account,
   increaseCredit AS credit,
   inAmount * increaseDebitIncrease AS amount
@@ -1906,7 +1908,7 @@ BEGIN
  UNION ALL
  SELECT journal,
   book,
-  NULL AS entry,
+  entry_id AS entry,
   decrease AS account,
   NOT decreaseCredit AS credit,
   inAmount * decreaseCreditDecrease AS amount
@@ -1916,7 +1918,7 @@ BEGIN
  UNION ALL
  SELECT journal,
   book,
-  NULL AS entry,
+  entry_id AS entry,
   decrease AS account,
   decreaseCredit AS credit,
   inAmount * decreaseDebitDecrease AS amount
@@ -1925,7 +1927,7 @@ BEGIN
   AND inAmount * decreaseDebitDecrease IS NOT NULL
  ;
 
- RETURN book_id;
+ RETURN entry_id;
 END;
 $$ LANGUAGE plpgsql;
 
