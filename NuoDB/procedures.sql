@@ -108,8 +108,8 @@ SET DELIMITER ;
 -- Default to en-US
 SET DELIMITER @
 CREATE FUNCTION GetSentence (
- sentence_value DETERMINISTIC STRING
-) RETURNS INTEGER AS
+ sentence_value STRING
+) RETURNS INTEGER DETERMINISTIC AS
  RETURN (
   SELECT GetSentence(sentence_value, 'en-US') FROM DUAL
  );
@@ -121,8 +121,8 @@ DROP FUNCTION IF EXISTS GetIdentityPhrase;
 
 SET DELIMITER @
 CREATE FUNCTION GetIdentityPhrase (
- phrase_value DETERMINISTIC STRING
-) RETURNS INTEGER AS
+ phrase_value STRING
+) RETURNS INTEGER DETERMINISTIC AS
  IF (phrase_value IS NOT NULL)
   INSERT INTO Sentence (value, culture, length) (
    SELECT phrase_value, NULL, CHARACTER_LENGTH(phrase_value)
