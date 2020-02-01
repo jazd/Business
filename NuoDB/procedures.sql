@@ -15,7 +15,7 @@ SET DELIMITER @
 CREATE FUNCTION GetWord (
  word_value STRING,
  culture_name STRING
-) RETURNS INTEGER AS
+) RETURNS INTEGER DETERMINISTIC AS
  IF (word_value IS NOT NULL)
   INSERT INTO Word (value, culture) (
    SELECT word_value, Culture.code
@@ -42,7 +42,7 @@ SET DELIMITER ;
 SET DELIMITER @
 CREATE FUNCTION GetWord (
  word_value STRING
-) RETURNS INTEGER AS
+) RETURNS INTEGER DETERMINISTIC AS
  RETURN (
   SELECT GetWord(word_value, 'en-US') FROM DUAL
  );
@@ -56,7 +56,7 @@ DROP FUNCTION IF EXISTS GetIdentifier;
 SET DELIMITER @
 CREATE FUNCTION GetIdentifier (
  ident_value STRING
-) RETURNS INTEGER AS
+) RETURNS INTEGER DETERMINISTIC AS
  IF (ident_value IS NOT NULL)
   INSERT INTO Word (value, culture) (
    SELECT ident_value, NULL
@@ -83,7 +83,7 @@ SET DELIMITER @
 CREATE FUNCTION GetSentence (
  sentence_value STRING,
  culture_name STRING
-) RETURNS INTEGER AS
+) RETURNS INTEGER DETERMINISTIC AS
  IF (sentence_value IS NOT NULL)
   INSERT INTO Sentence (value, culture, length) (
    SELECT sentence_value, Culture.code, CHARACTER_LENGTH(sentence_value)
@@ -108,7 +108,7 @@ SET DELIMITER ;
 -- Default to en-US
 SET DELIMITER @
 CREATE FUNCTION GetSentence (
- sentence_value STRING
+ sentence_value DETERMINISTIC STRING
 ) RETURNS INTEGER AS
  RETURN (
   SELECT GetSentence(sentence_value, 'en-US') FROM DUAL
@@ -121,7 +121,7 @@ DROP FUNCTION IF EXISTS GetIdentityPhrase;
 
 SET DELIMITER @
 CREATE FUNCTION GetIdentityPhrase (
- phrase_value STRING
+ phrase_value DETERMINISTIC STRING
 ) RETURNS INTEGER AS
  IF (phrase_value IS NOT NULL)
   INSERT INTO Sentence (value, culture, length) (
