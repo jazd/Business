@@ -1067,6 +1067,21 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
+<table name="Entry" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="assemblyApplicationRelease" data_type="integer" is_nullable="1" order="2" />
+ <field name="credential" data_type="integer" is_nullable="1" order="3" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="entry_assemblyapplicationrelease" type="FOREIGN KEY" fields="assemblyApplicationRelease" reference_table="AssemblyApplicationRelease" reference_fields="id" deferrable="1" />
+ <constraint name="entry_credential" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
 <table name="LedgerAccount" order="901">
 <comments>untested</comments>
 <fields>
@@ -1084,21 +1099,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <constraints>
  <constraint name="ledgeraccount_ledger" type="FOREIGN KEY" fields="ledger" reference_table="LedgerName" reference_fields="ledger" deferrable="1" />
  <constraint name="ledgeraccount_account" type="FOREIGN KEY" fields="account" reference_table="AccountName" reference_fields="account" deferrable="1" />
-</constraints>
-</table>
-
-<table name="Entry" order="900">
-<comments>untested</comments>
-<fields>
- <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="assemblyApplicationRelease" data_type="integer" is_nullable="1" order="2" />
- <field name="credential" data_type="integer" is_nullable="1" order="3" />
-</fields>
-<indices>
-</indices>
-<constraints>
- <constraint name="entry_assemblyapplicationrelease" type="FOREIGN KEY" fields="assemblyApplicationRelease" reference_table="AssemblyApplicationRelease" reference_fields="id" deferrable="1" />
- <constraint name="entry_credential" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
 
