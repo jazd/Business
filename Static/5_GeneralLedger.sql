@@ -8,17 +8,15 @@ INSERT INTO AccountName (account, name, type, credit) VALUES (4, 73, 70004, fals
 INSERT INTO AccountName (account, name, type, credit) VALUES (5, 74, 70002, true);  -- Equity
 INSERT INTO AccountName (account, name, type, credit) VALUES (6, 78, 70000, false); -- Equipment
 INSERT INTO AccountName (account, name, type, credit) VALUES (7, 89, 70001, true);  -- Payable
-INSERT INTO AccountName (account, name, type, credit) VALUES (8, 90, 70000, false); -- Receivable
 --
 INSERT INTO LedgerName (ledger, name) VALUES (1, 84);
-INSERT INTO LedgerAccount (ledger, account) VALUES
- (1, 1),
- (1, 2),
- (1, 3),
- (1, 4),
- (1, 5),
- (1, 7),
- (1, 8)
+INSERT INTO LedgerAccount (ledger, account, sequence) VALUES
+ (1, 1, 1),
+ (1, 2, 2),
+ (1, 3, 3),
+ (1, 4, 4),
+ (1, 5, 5),
+ (1, 7, 6)
 ;
 
 -- Journals
@@ -65,6 +63,7 @@ INSERT INTO AccountName (account, name, type, credit) VALUES (104, 77,  70001, t
 INSERT INTO AccountName (account, name, type, credit) VALUES (105, 81,  70004, false); -- Salary
 INSERT INTO AccountName (account, name, type, credit) VALUES (106, 100, 70004, false); -- Supply
 INSERT INTO AccountName (account, name, type, credit) VALUES (107, 121, 70000, false); -- Petty Cash
+INSERT INTO AccountName (account, name, type, credit) VALUES (108, 90,  70000, false); -- Receivable
 --
 INSERT INTO BookAccount (book, increase, decrease) VALUES (1, 101, 100); -- Rent Payment: Rent, Cash
 INSERT INTO BookAccount (book, increase, decrease) VALUES (2, 100, 102); -- Sale: Cash, Sales
