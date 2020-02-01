@@ -30,6 +30,17 @@ INSERT INTO JournalName (journal, name) VALUES (5, 122); -- Liabilities
 INSERT INTO JournalName (journal, name) VALUES (6, 120); -- Payments
 INSERT INTO JournalName (journal, name) VALUES (7, 121); -- Petty Cash
 
+-- Ledger Journals
+INSERT INTO LedgerJournal (ledger, journal) VALUES
+ (1, 1),
+ (1, 2),
+ (1, 3),
+ (1, 4),
+ (1, 5),
+ (1, 6),
+ (1, 7)
+;
+
 -- Books
 INSERT INTO BookName (book, name, journal) VALUES (1,  107, 6); -- Rent, Payments
 INSERT INTO BookName (book, name, journal) VALUES (2,  126, 2); -- Sale, Sales

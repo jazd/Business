@@ -1102,6 +1102,22 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
+<table name="LedgerJournal" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="ledger" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="journal" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="ledgerjournal_ledger" type="FOREIGN KEY" fields="ledger" reference_table="LedgerName" reference_fields="ledger" deferrable="1" />
+ <constraint name="ledgerjournal_journal" type="FOREIGN KEY" fields="journal" reference_table="JournalName" reference_fields="journal" deferrable="1" />
+</constraints>
+</table>
+
+
 <table name="JournalAccount" order="901">
 <comments>untested</comments>
 <fields>
@@ -2072,6 +2088,8 @@ SELECT JournalEntry.id,
  JournalEntry.account,
  AccountNameString.value AS accountName,
  AccountTypeName.value AS type,
+ LedgerJournal.ledger,
+ LedgerNameString.value AS ledgerName,
  JournalEntry.credit AS rightSide,
  CASE WHEN NOT JournalEntry.credit THEN
   JournalEntry.amount
@@ -2093,6 +2111,10 @@ JOIN Sentence AS JournalNameString ON JournalNameString.id = JournalName.name
 LEFT JOIN BookName ON BookName.book = JournalEntry.book
 LEFT JOIN Sentence AS BookNameString ON BookNameString.id = BookName.name
  AND BookNameString.culture = ClientCulture()
+LEFT JOIN LedgerJournal ON LedgerJournal.journal = JournalEntry.journal
+LEFT JOIN LedgerName ON LedgerName.ledger = LedgerJournal.ledger
+LEFT JOIN Sentence AS LedgerNameString ON LedgerNameString.id =LedgerName.name
+ AND LedgerNameString.culture = ClientCulture()
   </sql>
  </view>
 </views>
