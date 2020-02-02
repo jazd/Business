@@ -1575,10 +1575,11 @@ SELECT MAX(id) AS id FROM (
   </sql>
  </view>
 
- <view name="Edges" fields="edge, startName, hops, entry, direct, exit, start, stop">
+ <view name="Edges" fields="edge, startName, stopName, hops, entry, direct, exit, start, stop">
   <sql>
 SELECT Edge.id AS edge,
- Sentence.value AS startName,
+ StartVertexNameString.value AS startName,
+ StopVertexNameString.value AS stopName,
  hops,
  entry,
  direct,
@@ -1586,9 +1587,12 @@ SELECT Edge.id AS edge,
  start,
  stop
 FROM Edge
-JOIN VertexName ON VertexName.vertex = Edge.start
-JOIN Sentence ON Sentence.id = VertexName.name
- AND Sentence.culture = ClientCulture()
+JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
+JOIN Sentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
+ AND StartVertexNameString.culture = ClientCulture()
+JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
+JOIN Sentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
+ AND StopVertexNameString.culture = ClientCulture()
   </sql>
  </view>
 </views>
