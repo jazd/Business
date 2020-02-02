@@ -1574,6 +1574,23 @@ SELECT MAX(id) AS id FROM (
 ) AS MaxSpan
   </sql>
  </view>
+
+ <view name="Edges" fields="edge, startName, hops, entry, direct, exit, start, stop">
+  <sql>
+SELECT Edge.id AS edge,
+ Sentence.value AS startName,
+ hops,
+ entry,
+ direct,
+ exit,
+ start,
+ stop
+FROM Edge
+JOIN VertexName ON VertexName.vertex = Edge.start
+JOIN Sentence ON Sentence.id = VertexName.name
+ AND Sentence.culture = ClientCulture()
+  </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>
