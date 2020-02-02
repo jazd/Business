@@ -19,6 +19,8 @@ ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease Applica
 
 EVENTS="Period DateRange TimeOfDay DayOfWeek MonthDay Month PeriodName Sentence"
 
+DAG="Edge VertexName Individual IndividualVertex Sentence"
+
 ACCOUNTING="Word Sentence Individual LedgerName AccountName JournalName BookName IndividualLedger LedgerAccount LedgerJournal JournalAccount BookAccount Entry JournalEntry AssemblyApplicationRelease Credential"
 
 INVENTORY="Word Sentence Individual Part AssemblyApplicationRelease Credential Period  ScheduleName JobName Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule JobIndividual Bill Cargo CargoState"
@@ -58,6 +60,9 @@ sqlt-diagram --title "Double Entry Accounting" $ARGS -c 4 -o diagrams/accounting
 
 scripts/extractTable.pl schema.xml.invalid $INVENTORY >./zot.xml
 sqlt-diagram --title "Inventory Movement" $ARGS -c 5 -o diagrams/inventory.png ./zot.xml
+
+scripts/extractTable.pl schema.xml.invalid $DAG >./zot.xml
+sqlt-diagram --title "Events" $ARGS -c 3 -o diagrams/dag.png ./zot.xml
 
 # Remove temporary files
 rm zot.xml
