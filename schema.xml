@@ -67,6 +67,58 @@
 <comments></comments>
 </table>
 
+<comments>DAG https://www.codeproject.com/Articles/22824/A-Model-to-Represent-Directed-Acyclic-Graphs-DAG-o</comments>
+<table name="Edge" order="10">
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="hops" data_type="integer" size="" is_nullable="0"	default_value="0" order="2" />
+ <field name="entry" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="direct" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="exit" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="start" data_type="integer" size="" is_nullable="1" order="6" />
+ <field name="stop" data_type="integer" size="" is_nullable="1" order="7" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="edge_entry" type="FOREIGN KEY" fields="entry" reference_table="Edge" reference_fields="id" deferrable="1" />
+ <constraint name="edge_direct" type="FOREIGN KEY" fields="direct" reference_table="Edge" reference_fields="id" deferrable="1" />
+ <constraint name="edge_exit" type="FOREIGN KEY" fields="exit" reference_table="Edge" reference_fields="id" deferrable="1" />
+ <constraint name="edge_start_vertex" type="FOREIGN KEY" fields="start" reference_table="VertexName" reference_fields="vertex" deferrable="1" />
+ <constraint name="edge_stop_vertex" type="FOREIGN KEY" fields="stop" reference_table="VertexName" reference_fields="vertex" deferrable="1" />
+</constraints>
+</table>
+
+<comments>Attach an Individual to a DAG vertex</comments>
+<table name="IndividualVertex" order="11">
+<fields>
+ <field name="individual" data_type="bigint" size="20" is_nullable="0" order="1" />
+ <field name="vertex" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="individualvertex_vertex" type="FOREIGN KEY" fields="vertex" reference_table="VertexName" reference_fields="vertex" deferrable="1" />
+</constraints>
+<indices>
+ <index name="individualvertex_individual" type="NORMAL" fields="individual" />
+ <index name="individualvertex_individual_vertex" type="UNIQUE" fields="individual,vertex" />
+</indices>
+</table>
+
+<table name="VertexName" order="12">
+<fields>
+ <field name="vertex" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="vertexname_name" type="NORMAL" fields="name" />
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 <table name="Timezone" order="302">
 <fields>
  <field name="name" data_type="varchar" size="40" is_nullable="0" is_primary_key="1" is_foreign_key="1" order="1" />
