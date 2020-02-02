@@ -19,7 +19,9 @@ ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease Applica
 
 EVENTS="Period DateRange TimeOfDay DayOfWeek MonthDay Month PeriodName Sentence"
 
-ACCOUNTING="Word Sentence Individual Part AssemblyApplicationRelease Credential Period  LedgerName AccountName JournalName BookName ScheduleName JobName IndividualLedger LedgerAccount JournalAccount BookAccount Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule JobIndividual Bill Cargo CargoState"
+ACCOUNTING="Word Sentence Individual LedgerName AccountName JournalName BookName IndividualLedger LedgerAccount LedgerJournal JournalAccount BookAccount Entry JournalEntry AssemblyApplicationRelease Credential"
+
+INVENTORY="Word Sentence Individual Part AssemblyApplicationRelease Credential Period  ScheduleName JobName Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule JobIndividual Bill Cargo CargoState"
 
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
@@ -52,7 +54,10 @@ scripts/extractTable.pl schema.xml.invalid $EVENTS >./zot.xml
 sqlt-diagram --title "Events" $ARGS -c 2 -o diagrams/events.png ./zot.xml
 
 scripts/extractTable.pl schema.xml.invalid $ACCOUNTING >./zot.xml
-sqlt-diagram --title "Double Entry Accounting" $ARGS -c 6 -o diagrams/accounting.png ./zot.xml
+sqlt-diagram --title "Double Entry Accounting" $ARGS -c 4 -o diagrams/accounting.png ./zot.xml
+
+scripts/extractTable.pl schema.xml.invalid $INVENTORY >./zot.xml
+sqlt-diagram --title "Inventory Movement" $ARGS -c 5 -o diagrams/inventory.png ./zot.xml
 
 # Remove temporary files
 rm zot.xml
