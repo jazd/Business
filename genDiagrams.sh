@@ -19,6 +19,8 @@ ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease Applica
 
 EVENTS="Period DateRange TimeOfDay DayOfWeek MonthDay Month PeriodName Sentence"
 
+DAG="Edge VertexName Individual IndividualVertex Sentence"
+
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
 
@@ -48,6 +50,9 @@ sqlt-diagram --title "Assemblies" $ARGS -c 3 -o diagrams/assemblies.png ./zot.xm
 
 scripts/extractTable.pl schema.xml.invalid $EVENTS >./zot.xml
 sqlt-diagram --title "Events" $ARGS -c 2 -o diagrams/events.png ./zot.xml
+
+scripts/extractTable.pl schema.xml.invalid $DAG >./zot.xml
+sqlt-diagram --title "Events" $ARGS -c 3 -o diagrams/dag.png ./zot.xml
 
 # Remove temporary files
 rm zot.xml
