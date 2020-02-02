@@ -52,7 +52,7 @@ scripts/extractTable.pl schema.xml.invalid $EVENTS >./zot.xml
 sqlt-diagram --title "Events" $ARGS -c 2 -o diagrams/events.png ./zot.xml
 
 scripts/extractTable.pl schema.xml.invalid $DAG >./zot.xml
-sqlt-diagram --title "Events" $ARGS -c 3 -o diagrams/dag.png ./zot.xml
+sqlt-diagram --title "Directed Acyclic Graph" $ARGS -c 3 -o diagrams/dag.png ./zot.xml
 
 # Remove temporary files
 rm zot.xml
