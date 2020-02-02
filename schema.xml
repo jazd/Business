@@ -2148,6 +2148,58 @@ GROUP BY Ledgers.ledger,
  Ledgers.typeName
 </sql>
 </view>
+
+<view name="JournalReport" fields="">
+<sql>
+SELECT journal,
+ entry,
+ accountName AS account,
+ typeName AS type,
+ debit,
+ credit,
+ rightSide,
+ created
+FROM JournalEntries
+WHERE posted IS NULL
+UNION ALL
+SELECT NULL AS journal,
+ NULL AS entry,
+ !apos;Total!apos; AS account,
+ NULL AS type,
+ SUM(debit) AS debit,
+ SUM(credit) AS credit,
+ NULL AS rightSide,
+ NULL AS created
+FROM JournalEntries
+WHERE posted IS NULL
+</sql>
+</view>
+
+<view name="LedgerReport" fields="">
+<sql>
+SELECT ledger,
+ sequence,
+ ledgername,
+ accountname,
+ typename,
+ debit,
+ credit
+FROM LedgerBalance
+UNION ALL
+SELECT ledger,
+ NULL AS sequence,
+ ledgerName,
+ !apos;Total!apos; AS accountName,
+ NULL AS typeName,
+ SUM(debit) AS debit,
+ SUM(credit) AS credit
+FROM LedgerBalance
+GROUP BY ledger,
+ ledgerName
+</sql>
+</view>
+
+
 </views>
 <triggers></triggers>
 <procedures></procedures>
