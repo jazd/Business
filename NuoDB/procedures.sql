@@ -1499,4 +1499,242 @@ END_FUNCTION;
 @
 SET DELIMITER ;
 
+
+-- DAG https://www.codeproject.com/Articles/22824/A-Model-to-Represent-Directed-Acyclic-Graphs-DAG-o
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION AddEdge (
+ v_start INTEGER,
+ v_stop INTEGER
+) RETURNS INTEGER AS
+VAR v_id INTEGER;
+
+-- can t start and stop at the same place
+IF (v_start = v_stop)
+ THROW (SELECT 'Start != Stop' FROM DUAL);
+ RETURN NULL;
+END_IF;
+
+-- detect duplicate
+VAR f INTEGER = (
+ SELECT id
+ FROM Edge
+ WHERE start = v_start
+ AND stop = v_stop
+ AND hops = 0
+);
+IF (f IS NOT NULL)
+ THROW (SELECT 'Duplicate, ' || v_start || ',' || v_stop || ' already exists' FROM DUAL);
+ RETURN NULL; -- found duplicate
+END_IF;
+
+-- detect circular relation attempt
+f = (
+ SELECT id
+ FROM Edge
+ WHERE start = v_stop
+ AND stop = v_start
+);
+IF (f IS NOT NULL)
+ THROW (SELECT 'Circular relation rejected' FROM DUAL);
+ RETURN NULL; -- found circular conflict
+END_IF;
+
+-- insert 0 hop edge
+VAR nextid INTEGER = (SELECT NEXT VALUE FOR EDGE$IDENTITY_SEQUENCE FROM DUAL);
+INSERT INTO edge (
+ id,
+ start, stop,
+ entry, direct, exit)
+VALUES (
+ nextid,
+ v_start,
+ v_stop,
+ nextid,
+ nextid,
+ nextid
+);
+
+v_id = nextid;
+
+-- Connect graphs A (start) and B (stop) together
+-- Step 1: A s incoming edges to B
+INSERT INTO edge (
+ start, stop,
+ hops,
+ entry, direct, exit)
+SELECT
+ start,
+ v_stop,
+ hops + 1,
+ id,
+ v_id,
+ v_id
+FROM edge
+WHERE stop = v_start;
+
+-- Step 2: A to B s outgoing edges
+INSERT INTO edge (
+ start, stop,
+ hops,
+ entry, direct, exit)
+SELECT
+ v_start,
+ stop,
+ hops + 1,
+ v_id,
+ v_id,
+ id
+FROM edge
+WHERE start = v_stop;
+
+-- Step 3: A s incoming edges to the stop node of B s outgoing edges
+INSERT INTO edge (
+ start, stop,
+ hops,
+ entry, direct, exit)
+SELECT
+ A.start,
+ B.stop,
+ A.hops + B.hops + 2,
+ A.id,
+ v_id,
+ B.id
+FROM edge A, edge B
+WHERE A.stop = v_start
+AND B.start = v_stop;
+
+RETURN v_id;
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+SET DELIMITER @
+CREATE OR REPLACE PROCEDURE CreateRemoveEdgePurgeList AS
+DROP TABLE IF EXISTS removeEdgePurgeList;
+CREATE TEMPORARY TABLE removeEdgePurgeList (id int);
+END_PROCEDURE;
+@
+SET DELIMITER ;
+
+
+EXECUTE CreateRemoveEdgePurgeList;
+
+
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION RemoveEdge (
+ v_start INTEGER,
+ v_stop INTEGER
+) RETURNS INTEGER AS
+VAR v_id INTEGER;
+VAR v_count INTEGER;
+-- detect if it actually exists
+v_id = (
+ SELECT id
+ FROM edge
+ WHERE start = v_start
+ AND stop = v_stop
+ AND hops = 0
+);
+IF (v_id IS NOT NULL)
+ -- continue processing
+ELSE
+ THROW (SELECT 'Relation ' || v_start || ',' || v_stop || ' does not exists' FROM DUAL);
+ RETURN NULL;
+END_IF;
+
+EXECUTE CreateRemoveEdgePurgeList;
+
+-- Step 1: rows that were originally inserted for this direct edge
+INSERT INTO removeEdgePurgeList
+ SELECT id
+ FROM edge
+ WHERE direct = v_id;
+
+-- Step 2: scan and find all dependent rows that are inserted after first
+FOR
+ INSERT INTO removeEdgePurgeList
+ SELECT id FROM edge
+ WHERE hops > 0
+ AND (entry IN (SELECT id FROM removeEdgePurgeList)
+  OR exit IN (SELECT id FROM removeEdgePurgeList))
+ AND id NOT IN (SELECT id FROM removeEdgePurgeList);
+END_FOR;
+
+-- count the records to be deleted and then delete them
+v_count = (
+ SELECT count(id) FROM removeEdgePurgeList
+);
+DELETE FROM edge
+WHERE id IN (SELECT id FROM removeEdgePurgeList);
+
+RETURN v_count;
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+-- Can Return NULL
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION GetVertex (
+ inVertexName STRING
+) RETURNS INTEGER DETERMINISTIC AS
+RETURN (
+ SELECT vertex
+ FROM VertexName
+ WHERE VertexName.name = GetSentence(inVertexName)
+ LIMIT 1
+);
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION AddEdgeName (
+ inStart STRING,
+ inStop  STRING
+) RETURNS INTEGER AS
+VAR v_start INTEGER;
+VAR v_stop  INTEGER;
+
+v_start = GetVertex(inStart);
+IF (v_start IS NULL)
+ INSERT INTO VertexName (name) VALUES (GetSentence(inStart));
+ v_start = (SELECT LAST_INSERT_ID() FROM DUAL);
+END_IF;
+
+v_stop = GetVertex(inStop);
+IF (v_stop IS NULL)
+ INSERT INTO VertexName (name) VALUES (GetSentence(inStop));
+ v_stop = (SELECT LAST_INSERT_ID() FROM DUAL);
+END_IF;
+
+RETURN AddEdge(v_start, v_stop);
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION RemoveEdgeName (
+ inStart STRING,
+ inStop  STRING
+) RETURNS INTEGER AS
+VAR v_start INTEGER;
+VAR v_stop  INTEGER;
+VAR v_count INTEGER;
+
+v_start = GetVertex(inStart);
+v_stop  = GetVertex(inStop);
+
+IF (v_start IS NOT NULL AND v_stop IS NOT NULL)
+ v_count = (SELECT RemoveEdge(v_start, v_stop) FROM DUAL);
+END_IF;
+
+RETURN v_count;
+END_FUNCTION;
+@
+SET DELIMITER ;
+
 -- Procedures
