@@ -1737,4 +1737,89 @@ END_FUNCTION;
 @
 SET DELIMITER ;
 
+
+-- Can return NULL
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION GetIndividualVertex (
+ inIndividual BIGINT,
+ inVertex  INTEGER
+) RETURNS INTEGER AS
+RETURN (
+ SELECT VertexName.vertex
+ FROM IndividualVertex
+ JOIN VertexName ON VertexName.vertex = inVertex
+ JOIN Edge ON Edge.start = inVertex
+ WHERE IndividualVertex.individual = inIndividual
+ ORDER BY Edge.hops ASC
+ LIMIT 1
+);
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+-- Can return NULL
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION GetIndividualVertex (
+ inIndividual BIGINT
+) RETURNS INTEGER AS
+RETURN (
+ SELECT VertexName.vertex
+ FROM IndividualVertex
+ JOIN VertexName ON VertexName.vertex = IndividualVertex.vertex
+ LEFT JOIN Edge ON Edge.start = IndividualVertex.vertex
+ WHERE IndividualVertex.individual = inIndividual
+ ORDER BY Edge.hops ASC
+ LIMIT 1
+);
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+-- Vertex without a name
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION CreateVertex (
+) RETURNS INTEGER AS
+INSERT INTO VertexName (name) VALUES (NULL);
+RETURN LAST_INSERT_ID();
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION SetIndividualVertex (
+ inIndividual BIGINT,
+ inType STRING
+) RETURNS INTEGER AS
+VAR v_id INTEGER = GetIndividualVertex(inIndividual);
+VAR t_id INTEGER;
+
+IF (inType IS NOT NULL AND inType != '')
+ t_id = GetIdentifier(inType);
+END_IF;
+
+-- Create no-name Vertex
+IF (v_id IS NULL)
+ v_id = CreateVertex();
+ INSERT INTO IndividualVertex (individual, vertex, type) VALUES (inIndividual, v_id, t_id);
+END_IF;
+
+RETURN v_id;
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION SetIndividualVertex (
+ inIndividual BIGINT
+) RETURNS INTEGER AS
+RETURN SetIndividualVertex(inIndividual, NULL);
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
 -- Procedures

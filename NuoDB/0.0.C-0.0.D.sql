@@ -145,6 +145,8 @@ ALTER SEQUENCE EDGE$IDENTITY_SEQUENCE START WITH 10000;
 CREATE TABLE IndividualVertex (
   individual BIGINT NOT NULL,
   vertex INTEGER NOT NULL,
+  type INTEGER,
+  stop TIMESTAMP,
   created TIMESTAMP NOT NULL DEFAULT NOW()
 );
 CREATE INDEX individualvertex_individual ON IndividualVertex (individual);
@@ -162,7 +164,7 @@ ALTER SEQUENCE VERTEXNAME$IDENTITY_SEQUENCE START WITH 10000;
 
 -- View
 --
-CREATE OR REPLACE VIEW Edges AS
+CREATE VIEW Edges AS
 SELECT Edge.id AS edge,
  StartVertexNameString.value AS startName,
  StopVertexNameString.value AS stopName,
@@ -177,8 +179,43 @@ JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
 JOIN Sentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
  AND StartVertexNameString.culture = ClientCulture()
 JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
-JOIN Sentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
+LEFT JOIN Sentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
  AND StopVertexNameString.culture = ClientCulture()
+;
+
+CREATE VIEW EdgeIndividuals AS
+SELECT Edge.id AS edge,
+ StartVertexNameString.value AS startName,
+ StopVertexNameString.value AS stopName,
+ StartIndividualVertex.individual AS startIndividual,
+ StartType.value AS startType,
+ COALESCE(StartPeople.fullname, StartEntities.name) AS startIndividualName,
+ StopIndividualVertex.individual AS stopIndividual,
+ COALESCE(StopPeople.fullname, StopEntities.name) AS stopIndividualName,
+ StopType.value AS stopType,
+ hops,
+ entry,
+ direct,
+ exit,
+ start,
+ Edge.stop
+FROM Edge
+JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
+JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
+LEFT JOIN Sentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
+ AND StartVertexNameString.culture = ClientCulture()
+LEFT JOIN Sentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
+ AND StopVertexNameString.culture = ClientCulture()
+LEFT JOIN IndividualVertex AS StartIndividualVertex ON StartIndividualVertex.vertex = Edge.start
+LEFT JOIN People AS StartPeople ON StartPeople.individual = StartIndividualVertex.individual
+LEFT JOIN Entities AS StartEntities ON StartEntities.individual = StartIndividualVertex.individual
+LEFT JOIN Word AS StartType ON StartType.id = StartIndividualVertex.type
+ AND StartType.culture IS NULL
+LEFT JOIN IndividualVertex AS StopIndividualVertex ON StopIndividualVertex.vertex = Edge.stop
+LEFT JOIN People AS StopPeople ON StopPeople.individual = StopIndividualVertex.individual
+LEFT JOIN Entities AS StopEntities ON StopEntities.individual = StopIndividualVertex.individual
+LEFT JOIN Word AS StopType ON StopType.id = StopIndividualVertex.type
+ AND StopType.culture IS NULL
 ;
 
 -- Functions
@@ -412,6 +449,90 @@ IF (v_start IS NOT NULL AND v_stop IS NOT NULL)
 END_IF;
 
 RETURN v_count;
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+-- Can return NULL
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION GetIndividualVertex (
+ inIndividual BIGINT,
+ inVertex  INTEGER
+) RETURNS INTEGER AS
+RETURN (
+ SELECT VertexName.vertex
+ FROM IndividualVertex
+ JOIN VertexName ON VertexName.vertex = inVertex
+ JOIN Edge ON Edge.start = inVertex
+ WHERE IndividualVertex.individual = inIndividual
+ ORDER BY Edge.hops ASC
+ LIMIT 1
+);
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+-- Can return NULL
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION GetIndividualVertex (
+ inIndividual BIGINT
+) RETURNS INTEGER AS
+RETURN (
+ SELECT VertexName.vertex
+ FROM IndividualVertex
+ JOIN VertexName ON VertexName.vertex = IndividualVertex.vertex
+ LEFT JOIN Edge ON Edge.start = IndividualVertex.vertex
+ WHERE IndividualVertex.individual = inIndividual
+ ORDER BY Edge.hops ASC
+ LIMIT 1
+);
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+-- Vertex without a name
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION CreateVertex (
+) RETURNS INTEGER AS
+INSERT INTO VertexName (name) VALUES (NULL);
+RETURN LAST_INSERT_ID();
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION SetIndividualVertex (
+ inIndividual BIGINT,
+ inType STRING
+) RETURNS INTEGER AS
+VAR v_id INTEGER = GetIndividualVertex(inIndividual);
+VAR t_id INTEGER;
+
+IF (inType IS NOT NULL AND inType != '')
+ t_id = GetIdentifier(inType);
+END_IF;
+
+-- Create no-name Vertex
+IF (v_id IS NULL)
+ v_id = CreateVertex();
+ INSERT INTO IndividualVertex (individual, vertex, type) VALUES (inIndividual, v_id, t_id);
+END_IF;
+
+RETURN v_id;
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION SetIndividualVertex (
+ inIndividual BIGINT
+) RETURNS INTEGER AS
+RETURN SetIndividualVertex(inIndividual, NULL);
 END_FUNCTION;
 @
 SET DELIMITER ;
