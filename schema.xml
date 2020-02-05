@@ -93,10 +93,17 @@
 <fields>
  <field name="individual" data_type="bigint" size="20" is_nullable="0" order="1" />
  <field name="vertex" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="3">
+  <comments>NULL = child, spouse, partner, subsidiary etc. </comments>
+ </field>
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer associate this individual with a vertex</comments>
+ </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <constraint name="individualvertex_vertex" type="FOREIGN KEY" fields="vertex" reference_table="VertexName" reference_fields="vertex" deferrable="1" />
 </constraints>
 <indices>
@@ -1591,8 +1598,44 @@ JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
 JOIN Sentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
  AND StartVertexNameString.culture = ClientCulture()
 JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
-JOIN Sentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
+LEFT JOIN Sentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
  AND StopVertexNameString.culture = ClientCulture()
+  </sql>
+ </view>
+ <view name="EdgeIndividuals" fields="edge,startname,stopname,startindividual,startindividualname,starttype,stopindividual,stopindividualname,stoptype,hops,entry,direct,exit">
+  <sql>
+SELECT Edge.id AS edge,
+ StartVertexNameString.value AS startName,
+ StopVertexNameString.value AS stopName,
+ StartIndividualVertex.individual AS startIndividual,
+ StartType.value AS startType,
+ COALESCE(StartPeople.fullname, StartEntities.name) AS startIndividualName,
+ StopIndividualVertex.individual AS stopIndividual,
+ COALESCE(StopPeople.fullname, StopEntities.name) AS stopIndividualName,
+ StopType.value AS stopType,
+ hops,
+ entry,
+ direct,
+ exit,
+ start,
+ Edge.stop
+FROM Edge
+JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
+JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
+LEFT JOIN Sentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
+ AND StartVertexNameString.culture = ClientCulture()
+LEFT JOIN Sentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
+ AND StopVertexNameString.culture = ClientCulture()
+LEFT JOIN IndividualVertex AS StartIndividualVertex ON StartIndividualVertex.vertex = Edge.start
+LEFT JOIN People AS StartPeople ON StartPeople.individual = StartIndividualVertex.individual
+LEFT JOIN Entities AS StartEntities ON StartEntities.individual = StartIndividualVertex.individual
+LEFT JOIN Word AS StartType ON StartType.id = StartIndividualVertex.type
+ AND StartType.culture IS NULL
+LEFT JOIN IndividualVertex AS StopIndividualVertex ON StopIndividualVertex.vertex = Edge.stop
+LEFT JOIN People AS StopPeople ON StopPeople.individual = StopIndividualVertex.individual
+LEFT JOIN Entities AS StopEntities ON StopEntities.individual = StopIndividualVertex.individual
+LEFT JOIN Word AS StopType ON StopType.id = StopIndividualVertex.type
+ AND StopType.culture IS NULL
   </sql>
  </view>
 </views>

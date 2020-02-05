@@ -643,7 +643,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-Create OR REPLACE FUNCTION ListSubscribe (
+CREATE OR REPLACE FUNCTION ListSubscribe (
  inListName varchar,
  inSetName varchar,
  inIndividual bigint
@@ -2060,6 +2060,89 @@ BEGIN
  END IF;
 
  RETURN v_count;
+END
+$$ LANGUAGE plpgsql;
+
+-- Can return NULL
+CREATE OR REPLACE FUNCTION GetIndividualVertex (
+ inIndividual bigint,
+ inVertex  integer
+) RETURNS integer AS $$
+BEGIN
+
+ RETURN (
+  SELECT VertexName.vertex
+  FROM IndividualVertex
+  JOIN VertexName ON VertexName.vertex = inVertex
+  JOIN Edge ON Edge.start = inVertex
+  WHERE IndividualVertex.individual = inIndividual
+  ORDER BY Edge.hops ASC
+  LIMIT 1
+ );
+END
+$$ LANGUAGE plpgsql;
+
+-- Can return NULL
+CREATE OR REPLACE FUNCTION GetIndividualVertex (
+ inIndividual bigint
+) RETURNS integer AS $$
+BEGIN
+
+ RETURN (
+  SELECT VertexName.vertex
+  FROM IndividualVertex
+  JOIN VertexName ON VertexName.vertex = IndividualVertex.vertex
+  LEFT JOIN Edge ON Edge.start = IndividualVertex.vertex
+  WHERE IndividualVertex.individual = inIndividual
+  ORDER BY Edge.hops ASC
+  LIMIT 1
+ );
+END
+$$ LANGUAGE plpgsql;
+
+-- Vertex without a name
+CREATE OR REPLACE FUNCTION CreateVertex (
+) RETURNS integer AS $$
+DECLARE
+ v_id integer;
+BEGIN
+ INSERT INTO VertexName (name) VALUES (NULL) RETURNING vertex INTO v_id;
+
+ RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetIndividualVertex (
+ inIndividual bigint,
+ inType varchar
+) RETURNS integer AS $$
+DECLARE
+ v_id integer;
+ t_id integer;
+BEGIN
+
+ v_id := GetIndividualVertex(inIndividual);
+ IF inType IS NOT NULL AND inType != '' THEN
+  t_id := GetIdentifier(inType);
+ END IF;
+
+ -- Create no-name Vertex
+ IF v_id IS NULL THEN
+  v_id := CreateVertex();
+  INSERT INTO IndividualVertex (individual, vertex, type) VALUES (inIndividual, v_id, t_id);
+ END IF;
+
+RETURN v_id;
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION SetIndividualVertex (
+ inIndividual bigint
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN SetIndividualVertex(inIndividual, NULL);
 END
 $$ LANGUAGE plpgsql;
 
