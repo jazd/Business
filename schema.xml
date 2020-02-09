@@ -2109,7 +2109,7 @@ LEFT JOIN Word AS IndividualAccountType ON IndividualAccountType.id = Individual
   </sql>
  </view>
 
- <view name="Ledgers" fields="ledger,name">
+ <view name="Ledgers" fields="ledger,name,sequence,account,accountname,type,typename,credit,debitincrease,debitdecrease,creditincrease,creditdecrease">
   <sql>
 SELECT LedgerName.ledger,
  Sentence.value AS name,
@@ -2131,7 +2131,7 @@ JOIN Accounts ON Accounts.account = LedgerAccount.account
   </sql>
  </view>
 
- <view name="Journals" fields=""><comments>TODO Join JournalAccount AND Accounts</comments>
+ <view name="Journals" fields="journal,name">
   <sql>
 SELECT JournalName.journal,
  Sentence.value AS name
@@ -2141,7 +2141,7 @@ JOIN Sentence ON Sentence.id = JournalName.name
   </sql>
  </view>
 
- <view name="Books" fields=""><comments>TODO Support Multiple BookAccount account records</comments>
+ <view name="Books" fields="book,name,journal,journalname,increase,increasename,increasetype,increasecredit,increasedebitincrease,increasedebitdecrease,increasecreditincrease,increasecreditdecrease,decrease,decreasename,decreasetype,decreasecredit,decreasedebitincrease,decreasedebitdecrease,decreasecreditincrease,decreasecreditdecrease">
   <sql>
 SELECT BookName.book,
  Sentence.value AS name,
@@ -2174,7 +2174,7 @@ LEFT JOIN Accounts AS Decrease  ON Decrease.account  = BookAccount.decrease
  </view>
 
 
- <view name="JournalEntries" fields="">
+ <view name="JournalEntries" fields="id,journal,journalname,book,bookname,entry,account,accountname,type,typename,ledger,ledgername,rightside,debit,credit,posted,created">
   <comments>ORDER BY created, entry, rightSide</comments>
   <sql>
 SELECT JournalEntry.id,
@@ -2216,7 +2216,7 @@ LEFT JOIN Sentence AS LedgerNameString ON LedgerNameString.id =LedgerName.name
  AND LedgerNameString.culture = ClientCulture()
   </sql>
  </view>
-<view name="LedgerBalance" fields="">
+<view name="LedgerBalance" fields="ledger,ledgername,sequence,account,accountname,type,typename,debit,credit">
 <sql>
 SELECT Ledgers.ledger,
  Ledgers.name AS ledgerName,
@@ -2241,7 +2241,7 @@ GROUP BY Ledgers.ledger,
 </sql>
 </view>
 
-<view name="JournalReport" fields="">
+<view name="JournalReport" fields="journal,entry,account,type,debit,credit,rightside,created">
 <sql>
 SELECT journal,
  entry,
@@ -2267,7 +2267,7 @@ WHERE posted IS NULL
 </sql>
 </view>
 
-<view name="LedgerReport" fields="">
+<view name="LedgerReport" fields="ledger,sequence,ledgername,accountname,typename,debit,credit">
 <sql>
 SELECT ledger,
  sequence,
