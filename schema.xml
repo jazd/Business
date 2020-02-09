@@ -1068,7 +1068,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
    </comments>
  </field>
  <field name="credit" data_type="boolean" size="" is_nullable="0" order="4">
-  <comments>True if increases the credit column otherwise increas the debit column</comments>
+  <comments>True if increases the credit column otherwise increase the debit column</comments>
  </field>
  <field name="amount" data_type="float" is_nullable="1" order="5">
   <comments>Default amount if JournalAccount.amout IS NULL</comments>
@@ -1204,8 +1204,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <comments>untested</comments>
 <fields>
  <field name="journal" data_type="integer" size="" is_nullable="0" order="1" />
- <field name="credit" data_type="integer" size="" is_nullable="1" order="2" />
- <field name="debit" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="debit" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="credit" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="amount" data_type="float" is_nullable="1" order="4">
   <comments>Default amount if JournalEntry.amount IS NULL</comments>
  </field>
@@ -1221,8 +1221,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </indices>
 <constraints>
  <constraint name="journalaccount_journal" type="FOREIGN KEY" fields="journal" reference_table="JournalName" reference_fields="journal" deferrable="1" />
- <constraint name="journalaccount_credit" type="FOREIGN KEY" fields="credit" reference_table="AccountName" reference_fields="account" deferrable="1" />
  <constraint name="journalaccount_debit" type="FOREIGN KEY" fields="debit" reference_table="AccountName" reference_fields="account" deferrable="1" />
+ <constraint name="journalaccount_credit" type="FOREIGN KEY" fields="credit" reference_table="AccountName" reference_fields="account" deferrable="1" />
 </constraints>
 </table>
 <comments>TODO reconcile with above</comments>
@@ -2084,6 +2084,7 @@ SELECT AccountName.account,
  ELSE
   NULL
  END AS debitDecrease,
+
  CASE WHEN AccountName.credit THEN
   1
  ELSE
