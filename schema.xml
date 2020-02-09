@@ -2069,6 +2069,10 @@ SELECT AccountName.account,
  Sentence.value AS name,
  AccountName.type,
  TypeName.value AS typeName,
+ IndividualAccount.individual,
+ COALESCE(People.fullname, Entities.name) AS individualName,
+ IndividualAccount.type AS individualAccountType,
+ IndividualAccountType.value AS individualAccountTypeName,
  AccountName.credit,
  CASE WHEN NOT AccountName.credit THEN
   1
@@ -2095,6 +2099,12 @@ JOIN Sentence ON Sentence.id = AccountName.name
  AND Sentence.culture = ClientCulture()
 JOIN Word AS TypeName ON TypeName.id = AccountName.type
  AND TypeName.culture = ClientCulture()
+LEFT JOIN IndividualAccount ON IndividualAccount.account = AccountName.account
+ AND IndividualAccount.stop IS NULL
+LEFT JOIN People ON People.individual = IndividualAccount.individual
+LEFT JOIN Entities ON Entities.individual = IndividualAccount.individual
+LEFT JOIN Word AS IndividualAccountType ON IndividualAccountType.id = IndividualAccount.type
+ AND IndividualAccountType.culture = ClientCulture()
   </sql>
  </view>
 

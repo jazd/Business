@@ -175,3 +175,4 @@ INSERT INTO Word (id,culture,value) VALUES (70004,1033,'Expense');
 INSERT INTO Word (id,culture,value) VALUES (70005,1033,'Dividend');
 INSERT INTO Word (id,culture,value) VALUES (70006,1033,'Share');
 INSERT INTO Word (id,culture,value) VALUES (70007,1033,'Retained');
+INSERT INTO Word (id,culture,value) VALUES (70100,1033,'Payroll');
