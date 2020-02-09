@@ -1,5 +1,7 @@
 # Personal
-notes.txt
+schemaNotes.txt
+schemaNotesNuoDB.txt
+sqlServer.txt
 # Targets
 *.pgsql
 *.mysql

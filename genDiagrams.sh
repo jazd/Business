@@ -21,6 +21,10 @@ EVENTS="Period DateRange TimeOfDay DayOfWeek MonthDay Month PeriodName Sentence"
 
 DAG="Edge VertexName Individual IndividualVertex Sentence"
 
+ACCOUNTING="Word Sentence Individual LedgerName AccountName JournalName BookName IndividualLedger IndividualAccount LedgerAccount LedgerJournal JournalAccount BookAccount Entry JournalEntry AssemblyApplicationRelease Credential"
+
+INVENTORY="Word Sentence Individual Part AssemblyApplicationRelease Credential Period  ScheduleName JobName Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule JobIndividual Bill Cargo CargoState"
+
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
 
@@ -50,6 +54,12 @@ sqlt-diagram --title "Assemblies" $ARGS -c 3 -o diagrams/assemblies.png ./zot.xm
 
 scripts/extractTable.pl schema.xml.invalid $EVENTS >./zot.xml
 sqlt-diagram --title "Events" $ARGS -c 2 -o diagrams/events.png ./zot.xml
+
+scripts/extractTable.pl schema.xml.invalid $ACCOUNTING >./zot.xml
+sqlt-diagram --title "Double Entry Accounting" $ARGS -c 5 -o diagrams/accounting.png ./zot.xml
+
+scripts/extractTable.pl schema.xml.invalid $INVENTORY >./zot.xml
+sqlt-diagram --title "Inventory Movement" $ARGS -c 5 -o diagrams/inventory.png ./zot.xml
 
 scripts/extractTable.pl schema.xml.invalid $DAG >./zot.xml
 sqlt-diagram --title "Directed Acyclic Graph" $ARGS -c 3 -o diagrams/dag.png ./zot.xml

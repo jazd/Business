@@ -1006,18 +1006,499 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
+<comments>Double Entry Accounting</comments>
+<table name="LedgerName" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="ledger" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
 
+<table name="JournalName" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="journal" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="BookName" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="book" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="journal" data_type="integer" size="" is_nullable="0" order="1" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="bookname_journal" type="FOREIGN KEY" fields="journal" reference_table="JournalName" reference_fields="journal" deferrable="1" />
+</constraints>
+</table>
+
+<table name="AccountName" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="account" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="type" data_type="integer" size="" is_nullable="0" order="3">
+   <comments>Used in conjunction with the credit field.
+    Account.type, Account.credit
+    Asset, false
+    Liability, true
+    Equity, true
+    Income, true
+    Expense, false
+    Dividend, false
+    Share, true
+    Retained, true
+   Contra accounts have same type but invert the credit value.
+   </comments>
+ </field>
+ <field name="credit" data_type="boolean" size="" is_nullable="0" order="4">
+  <comments>True if increases the credit column otherwise increase the debit column</comments>
+ </field>
+ <field name="amount" data_type="float" is_nullable="1" order="5">
+  <comments>Default amount if JournalAccount.amout IS NULL</comments>
+ </field>
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="JobName" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="job" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="ScheduleName" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="schedule" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="IndividualLedger" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="individual" data_type="bigint" size="20" is_nullable="0" order="1" />
+ <field name="ledger" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer associate this individual with ledger.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="individualledger_ledger" type="FOREIGN KEY" fields="ledger" reference_table="LedgerName" reference_fields="ledger" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="IndividualAccount" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="individual" data_type="bigint" size="20" is_nullable="0" order="1" />
+ <field name="account" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer associate this individual with account.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="individualaccount_account" type="FOREIGN KEY" fields="account" reference_table="AccountName" reference_fields="account" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="Entry" order="900">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="assemblyApplicationRelease" data_type="integer" is_nullable="1" order="2" />
+ <field name="credential" data_type="integer" is_nullable="1" order="3" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="entry_assemblyapplicationrelease" type="FOREIGN KEY" fields="assemblyApplicationRelease" reference_table="AssemblyApplicationRelease" reference_fields="id" deferrable="1" />
+ <constraint name="entry_credential" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
+<table name="LedgerAccount" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="ledger" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="account" data_type="integer" size="" is_nullable="0" order="2">
+  <comments>T Account</comments>
+ </field>
+ <field name="sequence" data_type="smallint" size="5" order="3">
+  <comments>Order in a displayed list.</comments>
+ </field>
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer associate this ledger with account.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="ledgeraccount_ledger" type="FOREIGN KEY" fields="ledger" reference_table="LedgerName" reference_fields="ledger" deferrable="1" />
+ <constraint name="ledgeraccount_account" type="FOREIGN KEY" fields="account" reference_table="AccountName" reference_fields="account" deferrable="1" />
+</constraints>
+</table>
+
+<table name="LedgerJournal" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="ledger" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="journal" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="ledgerjournal_ledger" type="FOREIGN KEY" fields="ledger" reference_table="LedgerName" reference_fields="ledger" deferrable="1" />
+ <constraint name="ledgerjournal_journal" type="FOREIGN KEY" fields="journal" reference_table="JournalName" reference_fields="journal" deferrable="1" />
+</constraints>
+</table>
+
+
+<table name="JournalAccount" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="journal" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="debit" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="credit" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="amount" data_type="float" is_nullable="1" order="4">
+  <comments>Default amount if JournalEntry.amount IS NULL</comments>
+ </field>
+ <field name="split" data_type="float" is_nullable="1" order="5">
+  <comments>% of amount to the credit/debit account[s]. Must specify credit and debit accounts if split is NULL (100% amount to both)</comments>
+ </field>
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer associate accounts with journal.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="journalaccount_journal" type="FOREIGN KEY" fields="journal" reference_table="JournalName" reference_fields="journal" deferrable="1" />
+ <constraint name="journalaccount_debit" type="FOREIGN KEY" fields="debit" reference_table="AccountName" reference_fields="account" deferrable="1" />
+ <constraint name="journalaccount_credit" type="FOREIGN KEY" fields="credit" reference_table="AccountName" reference_fields="account" deferrable="1" />
+</constraints>
+</table>
+<comments>TODO reconcile with above</comments>
+<table name="BookAccount" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="book" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="increase" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="decrease" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="amount" data_type="float" is_nullable="1" order="4">
+  <comments>Default amount if JournalEntry.amount IS NULL</comments>
+ </field>
+ <field name="split" data_type="float" is_nullable="1" order="5">
+  <comments>% of amount to the credit/debit account[s]. Must specify credit and debit accounts if split is NULL (100% amount to both)</comments>
+ </field>
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer associate accounts with book.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="bookaccount_book" type="FOREIGN KEY" fields="book" reference_table="BookName" reference_fields="book" deferrable="1" />
+ <constraint name="bookaccount_increase" type="FOREIGN KEY" fields="increase" reference_table="AccountName" reference_fields="account" deferrable="1" />
+ <constraint name="bookaccount_decrease" type="FOREIGN KEY" fields="decrease" reference_table="AccountName" reference_fields="account" deferrable="1" />
+</constraints>
+</table>
+
+<table name="JournalEntry" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="journal" data_type="integer" size="" is_nullable="0" order="4" />
+ <field name="book" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="entry" data_type="integer" size="" is_nullable="1" order="6">
+  <comments>Group a set of journal entries</comments>
+ </field>
+ <field name="account" data_type="integer" size="" is_nullable="0" order="7" />
+ <field name="credit" data_type="boolean" size="" is_nullable="0" order="8">
+  <comments>True if increases the credit column otherwise increas the debit column</comments>
+ </field>
+ <field name="amount" data_type="float" is_nullable="1" order="9">
+  <comments>COALESCE(amount, JournalAccount.amount, AccountName.amount) to get actual transaction amount.</comments>
+ </field>
+ <field name="posted" data_type="timestamp" is_nullable="1" order="10">
+  <comments>Posted to General Ledger</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="journalentry_journal" type="FOREIGN KEY" fields="journal" reference_table="JournalName" reference_fields="journal" deferrable="1" />
+ <constraint name="journalentry_book" type="FOREIGN KEY" fields="book" reference_table="BookName" reference_fields="book" deferrable="1" />
+ <constraint name="journalentry_entry" type="FOREIGN KEY" fields="entry" reference_table="Entry" reference_fields="id" deferrable="1" />
+ <constraint name="hournalentry_account" type="FOREIGN KEY" fields="account" reference_table="AccountName" reference_fields="account" deferrable="1" />
+</constraints>
+</table>
+
+<table name="IndividualAssemblyCost" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="individual" data_type="bigint" size="20" is_nullable="0" order="1" />
+ <field name="assembly" data_type="integer" size="" is_nullable="1" order="2">
+   <comments>Default for all assemblies if NULL</comments>
+ </field>
+ <field name="cost" data_type="float" is_nullable="0" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer associate this cost with indiviudal assembly</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+</table>
+
+<table name="IndividualAssemblyCustomerPrice" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="individual" data_type="bigint" size="20" is_nullable="0" order="1" />
+ <field name="assembly" data_type="integer" size="" is_nullable="1" order="2">
+  <comments>Default for all assemblies if NULL</comments>
+ </field>
+ <field name="customer" data_type="bigint" size="20" is_nullable="1" order="3">
+  <comments>Default price for all customers if NULL</comments>
+ </field>
+ <field name="price" data_type="float" is_nullable="0" order="4" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer associate this price with indiviudal assembly</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="customer" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="Schedule" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="schedule" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="period" data_type="integer" size="" is_nullable="1" is_auto_increment="0" is_primary_key="0" is_foreign_key="0" order="2" />
+ <field name="fromCount" data_type="float" is_nullable="1" order="3" />
+ <field name="toCount" data_type="float" is_nullable="1" order="4" />
+ <field name="fromAmount" data_type="float" is_nullable="1" order="5" />
+ <field name="toAmount" data_type="float" is_nullable="1" order="6" />
+ <field name="rate" data_type="float" is_nullable="1" order="7">
+  <comments>% of Cargo.count x Cargo.amount</comments>
+ </field>
+ <field name="rateCost" data_type="float" is_nullable="1" order="8">
+  <comments>% of Cargo.count x Cargo.amount</comments>
+ </field>
+ <field name="price" data_type="float" is_nullable="1" order="9">
+  <comments>Price per Cargo.count</comments>
+ </field>
+ <field name="cost" data_type="float" is_nullable="1" order="10">
+  <comments>Cost per Cargo.count</comments>
+ </field>
+ <field name="costAccount" data_type="integer" size="" is_nullable="1" order="11" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="schedule_schedule" type="FOREIGN KEY" fields="schedule" reference_table="ScheduleName" reference_fields="schedule" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="period" reference_table="Period" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="schedual_costAccount" type="FOREIGN KEY" fields="costAccount" reference_table="AccountName" reference_fields="account" deferrable="1" />
+</constraints>
+</table>
+
+<table name="JobIndividual" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" order="1">
+  <comments>Not unique.  Used to group one or more individuals and/or schedules together for a single corgo record</comments>
+ </field>
+ <field name="job" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="1" order="3">
+  <comments>NULL if a service fee</comments>
+ </field>
+ <field name="schedule" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="aggregate" data_type="integer" size="" is_nullable="1" order="5">
+  <comments>NULL if schedule shown in detail, otherwise group together under this name</comments>
+ </field>
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer associate this record with job.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="jobindividual_job" type="FOREIGN KEY" fields="job" reference_table="JobName" reference_fields="job" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="schedule" reference_table="ScheduleName" reference_fields="schedule" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="aggregate" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="Bill" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="2">
+   <comments>Wish, Cart, Quote, Order, Invoice, Lading, Payment, Memo, Return</comments>
+ </field>
+ <field name="supplier" data_type="bigint" size="20" is_nullable="0" order="3">
+  <comments>IndividualAssemblyCost.individual</comments>
+ </field>
+ <field name="sent" data_type="timestamp" is_nullable="1" order="4" />
+ <field name="shipper" data_type="bigint" size="20" is_nullable="1" order="5" />
+ <field name="received" data_type="timestamp" is_nullable="1" order="6" />
+ <field name="carrier" data_type="bigint" size="20" is_nullable="1" order="7" />
+ <field name="loaded" data_type="timestamp" is_nullable="1" order="8" />
+ <field name="consignee" data_type="bigint" size="20" is_nullable="0" order="9">
+  <comments>IndividualAssemblyCustomerPrice.individual</comments>
+ </field>
+ <field name="delivered" data_type="timestamp" is_nullable="1" order="10" />
+ <field name="clean" data_type="timestamp" is_nullable="1" order="20">
+  <comments>Posted without discrepency between sent and delivered</comments>
+ </field>
+ <field name="dirty" data_type="timestamp" is_nullable="1" order="21">
+  <comments>Posted with discrepency between sent and delivered. Not all CargoState records account for Cargo counts</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="supplier" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="shipper" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid3" type="FOREIGN KEY" fields="carrier" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid4" type="FOREIGN KEY" fields="consignee" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="Cargo" order="901">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="1" order="1">
+  <comments>Not unique. Cargo lines can be adjusted before Bill.clean or Bill.dirty</comments>
+ </field>
+ <field name="bill" data_type="integer" is_nullable="0" order="2" />
+ <field name="count" data_type="float" is_nullable="1" order="3">
+  <comments>NULL is count 1</comments>
+ </field>
+ <field name="assembly" data_type="integer" size="" is_nullable="1" order="4">
+   <comments>NULL if Job</comments>
+ </field>
+ <field name="jobIndividual" data_type="integer" size="" is_nullable="1" order="5">
+   <comments>NULL if Assembly</comments>
+ </field>
+ <field name="journal" data_type="integer" size="" is_nullable="1" order="6" />
+ <field name="entry" data_type="integer" size="" is_nullable="1" order="7">
+  <comments>Item.amount and Item.cost like field comes from JournalEntry records.
+            Line item total is count x amount. JournalEntry.amount Overrides IndividualAssemblyCustomerPrice.price or JobIndividual.schedule.
+            Line item total cost. JournalEntry.amount Overrides IndividualAssemblyCost or JobIndividual.schedule
+  </comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="cargo_bill" type="FOREIGN KEY" fields="bill" reference_table="Bill" reference_fields="id" deferrable="1" />
+ <constraint name="cargo_assembly" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="jobIndividual" reference_table="JobIndividual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="journal,entry" reference_table="JournalEntry" reference_fields="journal,entry" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="CargoState" order="901">
+<comments>untested. How things move from Bill to Bill</comments>
+<fields>
+ <field name="cargo" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="toCargo" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="count" data_type="float" is_nullable="1" order="3">
+  <comments>NULL is count 1</comments>
+ </field>
+ <field name="journal" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="entry" data_type="integer" size="" is_nullable="1" order="5" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="cargostate_entry" type="FOREIGN KEY" fields="entry" reference_table="Entry" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="cargo" reference_table="Cargo" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="toCargo" reference_table="Cargo" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="journal,entry" reference_table="JournalEntry" reference_fields="journal,entry" deferrable="1" /></comments>
+</constraints>
+</table>
 
 
 <comments>Template</comments>
-<table name="unfinished" order="9999">
+<table name="unfinished" order="910">
+<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
  <field name="field" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<indices>
+</indices>
+<constraints>
+</constraints>
 </table>
-
 </tables>
 
 
@@ -1581,6 +2062,234 @@ SELECT MAX(id) AS id FROM (
 ) AS MaxSpan
   </sql>
  </view>
+
+ <view name="Accounts" fields="">
+  <sql>
+SELECT AccountName.account,
+ Sentence.value AS name,
+ AccountName.type,
+ TypeName.value AS typeName,
+ IndividualAccount.individual,
+ COALESCE(People.fullname, Entities.name) AS individualName,
+ IndividualAccount.type AS individualAccountType,
+ IndividualAccountType.value AS individualAccountTypeName,
+ AccountName.credit,
+ CASE WHEN NOT AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS debitIncrease,
+ CASE WHEN AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS debitDecrease,
+
+ CASE WHEN AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS creditIncrease,
+ CASE WHEN NOT AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS creditDecrease
+FROM AccountName
+JOIN Sentence ON Sentence.id = AccountName.name
+ AND Sentence.culture = ClientCulture()
+JOIN Word AS TypeName ON TypeName.id = AccountName.type
+ AND TypeName.culture = ClientCulture()
+LEFT JOIN IndividualAccount ON IndividualAccount.account = AccountName.account
+ AND IndividualAccount.stop IS NULL
+LEFT JOIN People ON People.individual = IndividualAccount.individual
+LEFT JOIN Entities ON Entities.individual = IndividualAccount.individual
+LEFT JOIN Word AS IndividualAccountType ON IndividualAccountType.id = IndividualAccount.type
+ AND IndividualAccountType.culture = ClientCulture()
+  </sql>
+ </view>
+
+ <view name="Ledgers" fields="ledger,name,sequence,account,accountname,type,typename,credit,debitincrease,debitdecrease,creditincrease,creditdecrease">
+  <sql>
+SELECT LedgerName.ledger,
+ Sentence.value AS name,
+ LedgerAccount.sequence,
+ Accounts.account,
+ Accounts.name AS accountName,
+ Accounts.type,
+ Accounts.typeName,
+ Accounts.credit,
+ Accounts.debitIncrease,
+ Accounts.debitDecrease,
+ Accounts.creditIncrease,
+ Accounts.creditDecrease
+FROM LedgerName
+JOIN Sentence ON Sentence.id = LedgerName.name
+ AND Sentence.culture = ClientCulture()
+JOIN LedgerAccount ON LedgerAccount.ledger = LedgerName.ledger
+JOIN Accounts ON Accounts.account = LedgerAccount.account
+  </sql>
+ </view>
+
+ <view name="Journals" fields="journal,name">
+  <sql>
+SELECT JournalName.journal,
+ Sentence.value AS name
+FROM JournalName
+JOIN Sentence ON Sentence.id = JournalName.name
+ AND Sentence.culture = ClientCulture()
+  </sql>
+ </view>
+
+ <view name="Books" fields="book,name,journal,journalname,increase,increasename,increasetype,increasecredit,increasedebitincrease,increasedebitdecrease,increasecreditincrease,increasecreditdecrease,decrease,decreasename,decreasetype,decreasecredit,decreasedebitincrease,decreasedebitdecrease,decreasecreditincrease,decreasecreditdecrease">
+  <sql>
+SELECT BookName.book,
+ Sentence.value AS name,
+ BookName.journal,
+ Journals.name AS journalName,
+ BookAccount.increase,
+ Increase.name AS increaseName,
+ Increase.type AS increaseType,
+ Increase.credit AS increaseCredit,
+ Increase.debitIncrease  AS increaseDebitIncrease,
+ Increase.debitDecrease  AS increaseDebitDecrease,
+ Increase.creditIncrease AS increaseCreditIncrease,
+ Increase.creditDecrease  AS increaseCreditDecrease,
+ BookAccount.decrease,
+ Decrease.name AS decreaseName,
+ Decrease.type AS decreaseType,
+ Decrease.credit AS decreaseCredit,
+ Decrease.debitIncrease  AS decreaseDebitIncrease,
+ Decrease.debitDecrease  AS decreaseDebitDecrease,
+ Decrease.creditIncrease AS decreaseCreditIncrease,
+ Decrease.creditDecrease AS decreaseCreditDecrease
+FROM BookName
+JOIN Sentence ON Sentence.id = BookName.name
+ AND Sentence.culture = ClientCulture()
+JOIN Journals ON Journals.journal = BookName.journal
+JOIN BookAccount ON BookAccount.book = BookName.book
+LEFT JOIN Accounts AS Increase ON Increase.account = BookAccount.increase
+LEFT JOIN Accounts AS Decrease  ON Decrease.account  = BookAccount.decrease
+  </sql>
+ </view>
+
+
+ <view name="JournalEntries" fields="id,journal,journalname,book,bookname,entry,account,accountname,type,typename,ledger,ledgername,rightside,debit,credit,posted,created">
+  <comments>ORDER BY created, entry, rightSide</comments>
+  <sql>
+SELECT JournalEntry.id,
+ JournalEntry.journal,
+ JournalNameString.value AS journalName,
+ JournalEntry.book,
+ BookNameString.value AS bookName,
+ JournalEntry.entry,
+ JournalEntry.account,
+ AccountNameString.value AS accountName,
+ AccountName.type,
+ AccountTypeName.value AS typeName,
+ LedgerJournal.ledger,
+ LedgerNameString.value AS ledgerName,
+ JournalEntry.credit AS rightSide,
+ CASE WHEN NOT JournalEntry.credit THEN
+  JournalEntry.amount
+ END AS debit,
+ CASE WHEN JournalEntry.credit THEN
+  JournalEntry.amount
+ END AS credit,
+ JournalEntry.posted,
+ JournalEntry.created
+FROM JournalEntry
+JOIN AccountName ON AccountName.account = JournalEntry.account
+JOIN Sentence AS AccountNameString ON AccountNameString.id = AccountName.name
+ AND AccountNameString.culture = ClientCulture()
+JOIN Word AS AccountTypeName ON AccountTypeName.id = AccountName.type
+ AND AccountTypeName.culture = ClientCulture()
+JOIN JournalName ON JournalName.journal = JournalEntry.journal
+JOIN Sentence AS JournalNameString ON JournalNameString.id = JournalName.name
+ AND JournalNameString.culture = ClientCulture()
+LEFT JOIN BookName ON BookName.book = JournalEntry.book
+LEFT JOIN Sentence AS BookNameString ON BookNameString.id = BookName.name
+ AND BookNameString.culture = ClientCulture()
+LEFT JOIN LedgerJournal ON LedgerJournal.journal = JournalEntry.journal
+LEFT JOIN LedgerName ON LedgerName.ledger = LedgerJournal.ledger
+LEFT JOIN Sentence AS LedgerNameString ON LedgerNameString.id =LedgerName.name
+ AND LedgerNameString.culture = ClientCulture()
+  </sql>
+ </view>
+<view name="LedgerBalance" fields="ledger,ledgername,sequence,account,accountname,type,typename,debit,credit">
+<sql>
+SELECT Ledgers.ledger,
+ Ledgers.name AS ledgerName,
+ Ledgers.sequence,
+ Ledgers.account,
+ Ledgers.accountName,
+ Ledgers.type,
+ Ledgers.typeName,
+ SUM(JournalEntries.debit) AS debit,
+ SUM(JournalEntries.credit) AS credit
+FROM JournalEntries
+JOIN Ledgers ON Ledgers.ledger = JournalEntries.ledger
+ AND Ledgers.type = JournalEntries.type
+WHERE JournalEntries.posted IS NULL
+GROUP BY Ledgers.ledger,
+ Ledgers.name,
+ Ledgers.sequence,
+ Ledgers.account,
+ Ledgers.accountName,
+ Ledgers.type,
+ Ledgers.typeName
+</sql>
+</view>
+
+<view name="JournalReport" fields="journal,entry,account,type,debit,credit,rightside,created">
+<sql>
+SELECT journal,
+ entry,
+ accountName AS account,
+ typeName AS type,
+ debit,
+ credit,
+ rightSide,
+ created
+FROM JournalEntries
+WHERE posted IS NULL
+UNION ALL
+SELECT NULL AS journal,
+ NULL AS entry,
+ !apos;Total!apos; AS account,
+ NULL AS type,
+ SUM(debit) AS debit,
+ SUM(credit) AS credit,
+ NULL AS rightSide,
+ NULL AS created
+FROM JournalEntries
+WHERE posted IS NULL
+</sql>
+</view>
+
+<view name="LedgerReport" fields="ledger,sequence,ledgername,accountname,typename,debit,credit">
+<sql>
+SELECT ledger,
+ sequence,
+ ledgername,
+ accountname,
+ typename,
+ debit,
+ credit
+FROM LedgerBalance
+UNION ALL
+SELECT ledger,
+ NULL AS sequence,
+ ledgerName,
+ !apos;Total!apos; AS accountName,
+ NULL AS typeName,
+ SUM(debit) AS debit,
+ SUM(credit) AS credit
+FROM LedgerBalance
+GROUP BY ledger,
+ ledgerName
+</sql>
+</view>
 
  <view name="Edges" fields="edge, startName, stopName, hops, entry, direct, exit, start, stop">
   <sql>
