@@ -43,7 +43,7 @@ schema.mysql: schema.xml
 	sqlt -f XML-SQLFairy -t MySQL $(DROP_TABLE) $< >> $@
 	chmod -w $@
 
-SQLITE_UNSUPORTED_VIEWS = IndividualPersonEvent PeopleEvent TimePeriod
+SQLITE_UNSUPORTED_VIEWS = IndividualPersonEvent PeopleEvent TimePeriod People Entities Accounts EdgeIndividuals
 schema.sqlite: schema.xml
 	@echo Creating SQLite file $@
 	scripts/excludeView.pl $< $(SQLITE_UNSUPORTED_VIEWS) > $<.excludeSomeViews
@@ -79,3 +79,11 @@ pgsqldb: schema.pgsql
 	cat Static/[01]_* | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
 	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
 	cat Static/[23456789]_* | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
+
+business.sqlite3: schema.sqlite
+	@echo Creating new SQLite database with $@
+	cat SQLite/pre.sql schema.sqlite | sqlite3 $@
+	cat Static/[01]_* | sed -e "/GetInterval */d" | sqlite3 $@
+	# TODO come up with GetPostal replacement
+	# TODO come up with GetSentence and GetAddress replacements
+	cat Static/[23456789]_* | sed -e "/GetSentence */d" | sed -e "/GetAddress */d" | sqlite3 $@
