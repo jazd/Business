@@ -1054,18 +1054,17 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="account" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
  <field name="type" data_type="integer" size="" is_nullable="0" order="3">
-   <comments>Used in conjunction with the credit field.
-    Account.type, Account.credit
-    Asset, false
-    Liability, true
-    Equity, true
-    Income, true
-    Expense, false
-    Dividend, false
-    Share, true
-    Retained, true
-   Contra accounts have same type but invert the credit value.
-   </comments>
+  <comments>Used in conjunction with the credit field.</comments>
+  <comments> Account.type, Account.credit</comments>
+  <comments> Asset, false</comments>
+  <comments> Liability, true</comments>
+  <comments> Equity, true</comments>
+  <comments> Income, true</comments>
+  <comments> Expense, false</comments>
+  <comments> Dividend, false</comments>
+  <comments> Share, true</comments>
+  <comments> Retained, true</comments>
+  <comments>Contra accounts have same type but invert the credit value.</comments>
  </field>
  <field name="credit" data_type="boolean" size="" is_nullable="0" order="4">
   <comments>True if increases the credit column otherwise increase the debit column</comments>
@@ -1447,10 +1446,9 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  </field>
  <field name="journal" data_type="integer" size="" is_nullable="1" order="6" />
  <field name="entry" data_type="integer" size="" is_nullable="1" order="7">
-  <comments>Item.amount and Item.cost like field comes from JournalEntry records.
-            Line item total is count x amount. JournalEntry.amount Overrides IndividualAssemblyCustomerPrice.price or JobIndividual.schedule.
-            Line item total cost. JournalEntry.amount Overrides IndividualAssemblyCost or JobIndividual.schedule
-  </comments>
+  <comments>Item.amount and Item.cost like field comes from JournalEntry records.</comments>
+  <comments>Line item total is count x amount. JournalEntry.amount Overrides IndividualAssemblyCustomerPrice.price or JobIndividual.schedule.</comments>
+  <comments>Line item total cost. JournalEntry.amount Overrides IndividualAssemblyCost or JobIndividual.schedule</comments>
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>

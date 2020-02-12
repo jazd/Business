@@ -9,6 +9,12 @@ PostgreSQLServer = localhost
 
 TARGETS = schema.pgsql schema.mysql schema.sqlite schema.db2
 
+ifeq ($(DROP_TABLE),)
+DROP_TABLE =
+else
+DROP_TABLE = --add-drop-table
+endif
+
 all: schema.pgsql
 
 pgsql: schema.pgsql
@@ -20,42 +26,45 @@ schema.pgsql: schema.xml
 	@echo Creating PostgreSQL file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	sqlt -f XML-SQLFairy -t PostgreSQL --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
+	sqlt -f XML-SQLFairy -t PostgreSQL $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
 	chmod -w $@
 
 schema.nuodb: schema.xml
 	@echo Creating NuoDB file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	sqlt -f XML-SQLFairy -t NuoDB --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e 's|lock|"lock"|g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "/--/d" | sed -e "s/CROSS /INNER /g" | sed -e "s/bool_AND/MIN/g" >> $@
+	sqlt -f XML-SQLFairy -t NuoDB $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e 's|lock|"lock"|g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "/--/d" | sed -e "s/CROSS /INNER /g" | sed -e "s/bool_AND/MIN/g" >> $@
 	chmod -w $@
 
 schema.mysql: schema.xml
 	@echo Creating MySQL file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	sqlt -f XML-SQLFairy -t MySQL --add-drop-table $< >> $@
+	sqlt -f XML-SQLFairy -t MySQL $(DROP_TABLE) $< >> $@
 	chmod -w $@
 
+SQLITE_UNSUPORTED_VIEWS = IndividualPersonEvent PeopleEvent TimePeriod
 schema.sqlite: schema.xml
 	@echo Creating SQLite file $@
+	scripts/excludeView.pl $< $(SQLITE_UNSUPORTED_VIEWS) > $<.excludeSomeViews
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	sqlt -f XML-SQLFairy -t SQLite --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "s/NOW()/CURRENT_TIMESTAMP/g" | sed -e "s/LEFT(number,3)/SUBSTR(number,1,3)/g" | sed -e "s/RIGHT(number,4)/SUBSTR(number,-4)/g" >> $@
+	sqlt -f XML-SQLFairy -t SQLite $(DROP_TABLE) $<.excludeSomeViews | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "s/NOW()/CURRENT_TIMESTAMP/g" | sed -e "s/LEFT(number,3)/SUBSTR(number,1,3)/g" | sed -e "s/RIGHT(number,4)/SUBSTR(number,-4)/g" | sed -e "s/bool_AND/MIN/g" | sed -e "s/ClientCulture()/1033/g" >> $@
 	chmod -w $@
+	rm -f $<.excludeSomeViews
 
 schema.db2: schema.xml
 	@echo Creating DB2 file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	sqlt -f XML-SQLFairy -t DB2 --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
+	sqlt -f XML-SQLFairy -t DB2 $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
 	chmod -w $@
 
 schema.sqlserver: schema.xml
 	@echo Creating SQLServer file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	sqlt -f XML-SQLFairy -t SQLServer --add-drop-table $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
+	sqlt -f XML-SQLFairy -t SQLServer $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
 	chmod -w $@
 
 
