@@ -72,6 +72,7 @@ clean:
 	@echo Removing target files $(TARGETS)
 	rm -f $(TARGETS)
 
+pgsqldb: export DROP_TABLE = --add-drop-table
 pgsqldb: schema.pgsql
 	@echo Creating new PostgreSQL database with $@
 	@echo Ignore: ERROR:  view \"*\" does not exist
