@@ -2150,7 +2150,6 @@ $$ LANGUAGE plpgsql;
 -- Double Entry Accounting functions
 --
 -- Book single amounts into double entry Journal
--- TODO Support more than the simplest BookAccount entries (single record with both credit and debit fields set)
 CREATE OR REPLACE FUNCTION Book (
  inBook varchar,
  inAmount FLOAT
