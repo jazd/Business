@@ -2174,7 +2174,7 @@ BEGIN
   entry_id AS entry,
   increase AS account,
   NOT increaseCredit AS credit,
-  inAmount * increaseCreditIncrease AS amount
+  (inAmount * increaseCreditIncrease) * split AS amount
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * increaseCreditIncrease IS NOT NULL
@@ -2184,7 +2184,7 @@ BEGIN
   entry_id AS entry,
   increase AS account,
   increaseCredit AS credit,
-  inAmount * increaseDebitIncrease AS amount
+  (inAmount * increaseDebitIncrease) * split AS amount
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * increaseDebitIncrease IS NOT NULL
@@ -2194,7 +2194,7 @@ BEGIN
   entry_id AS entry,
   decrease AS account,
   NOT decreaseCredit AS credit,
-  inAmount * decreaseCreditDecrease AS amount
+  (inAmount * decreaseCreditDecrease) * split AS amount
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * decreaseCreditDecrease IS NOT NULL
@@ -2204,7 +2204,7 @@ BEGIN
   entry_id AS entry,
   decrease AS account,
   decreaseCredit AS credit,
-  inAmount * decreaseDebitDecrease AS amount
+  (inAmount * decreaseDebitDecrease) * split AS amount
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * decreaseDebitDecrease IS NOT NULL

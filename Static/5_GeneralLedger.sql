@@ -51,7 +51,7 @@ INSERT INTO BookName (book, name, journal) VALUES (8,  81 , 6); -- Salary, Payme
 INSERT INTO BookName (book, name, journal) VALUES (9,  100, 6); -- Supplies, Payments
 INSERT INTO BookName (book, name, journal) VALUES (10, 125, 6); -- Supply Returns, Payments
 INSERT INTO BookName (book, name, journal) VALUES (11, 121, 7); -- Petty Cash, Petty Cash
-INSERT INTO BookName (book, name, journal) VALUES (12, 129, 7); -- Petty Cash, Petty Cash
+INSERT INTO BookName (book, name, journal) VALUES (12, 128, 7); -- Petty Cash Return, Petty Cash
 
 -- Simple Book Accounts
 -- Must define balanced transactions to be inserted into journals
@@ -77,3 +77,20 @@ INSERT INTO BookAccount (book, increase, decrease) VALUES (9, 106, 100); -- Supp
 INSERT INTO BookAccount (book, increase, decrease) VALUES (10, 100, 106);-- Supply Return: Cash, Supply
 INSERT INTO BookAccount (book, increase, decrease) VALUES (11, 106, 107);-- Petty Cash: Supply, Petty Cash
 INSERT INTO BookAccount (book, increase, decrease) VALUES (12, 107, 106);-- Petty Cash Return: Petty Cash, Supply
+
+-- More Complex Book Accounts
+-- Split amount across acounts
+-- Book Commission Sales for Jane and John Doe
+INSERT INTO JournalName (journal, name) VALUES (20, 200); -- Commission Sales
+INSERT INTO LedgerJournal (ledger, journal) VALUES (1, 20);
+INSERT INTO BookName (book, name, journal) VALUES (20, 210, 7); -- Sale Jane Doe
+INSERT INTO BookName (book, name, journal) VALUES (21, 211, 7); -- Sale John Doe
+INSERT INTO AccountName (account, name, type, credit) VALUES (200, 201,  70001, true);   -- Commissions Payable
+-- Book Jane Commission Sales
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (20, 100,  NULL, NULL); -- Commision Sale: Cash 100%
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (20, NULL, 102,  .80);  -- Comission Sale: Sales 80%
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (20, NULL, 200,  .20);  -- Comission Sale: Comission 20%
+-- Book Jone Commission Sales
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (21, 100,  NULL, NULL); -- Commision Sale: Cash 100%
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (21, NULL, 102,  .85);  -- Comission Sale: Sales 85%
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (21, NULL, 200,  .15);  -- Comission Sale: Comission 15%
