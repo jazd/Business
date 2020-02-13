@@ -45,7 +45,7 @@ $$ language sql immutable strict;
 
 
 -- Simulate the DUAL fake table used on other servers
-DROP TABLE DUAL CASCADE;
+DROP TABLE IF EXISTS DUAL CASCADE;
 CREATE TABLE DUAL (
  value INTEGER
 );

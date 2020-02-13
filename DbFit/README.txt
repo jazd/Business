@@ -15,11 +15,13 @@ As postgres user
 createdb -E UNICODE MyCo
 
 psql MyCo
-MyCo=# CREATE USER test;
-MyCo=# ALTER ROLE test WITH LOGIN;
-MyCo=# CREATE SCHEMA Business;
-MyCo=# GRANT ALL ON SCHEMA Business TO test;
-MyCo=# ALTER USER test SET search_path TO Business;
+MyCo=#
+CREATE USER test;
+ALTER ROLE test WITH LOGIN;
+CREATE SCHEMA Business;
+GRANT ALL ON SCHEMA Business TO test;
+ALTER USER test SET search_path TO Business;
+\q
 
 You may need to edit <git root>/Business/Makefile PostgreSQLServer host entry.
 
