@@ -1,5 +1,6 @@
 dbfit http://dbfit.github.io/dbfit/
 PostgreSQL database schema test server setup
+	Prior to version 10
 
 As root
 Add
@@ -11,7 +12,14 @@ To /var/lib/pgsql/data/pg_hba.conf
 Restart
 /etc/init.d/postgresql restart
 
-As postgres user
+PostgreSQL database schema test server setup
+	After version 9
+
+su - postgres
+mkdir -p postgres/data
+initdb postgres/data
+pg_ctl -D postgres/data -l logfile start
+
 createdb -E UNICODE MyCo
 
 psql MyCo
