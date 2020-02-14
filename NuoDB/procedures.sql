@@ -24,6 +24,7 @@ CREATE FUNCTION GetWord (
     AND does_exist.culture = Culture.code
    WHERE Culture.name = culture_name
     AND does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  
@@ -33,6 +34,7 @@ CREATE FUNCTION GetWord (
   JOIN Culture ON Culture.name = culture_name
   WHERE Word.value = word_value
    AND Word.culture = Culture.code
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -64,6 +66,7 @@ CREATE FUNCTION GetIdentifier (
    LEFT JOIN Word AS does_exist ON does_exist.value = ident_value
     AND does_exist.culture IS NULL
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
 
@@ -72,6 +75,7 @@ CREATE FUNCTION GetIdentifier (
   FROM Word
   WHERE Word.value = ident_value
    AND Word.culture IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -92,6 +96,7 @@ CREATE FUNCTION GetSentence (
     AND does_exist.culture = Culture.code
    WHERE Culture.name = culture_name
     AND does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -100,6 +105,7 @@ CREATE FUNCTION GetSentence (
   JOIN Culture ON Culture.name = culture_name
   WHERE Sentence.value = sentence_value
    AND Sentence.culture = Culture.code
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -130,6 +136,7 @@ CREATE FUNCTION GetIdentityPhrase (
    LEFT JOIN Sentence AS does_exist ON does_exist.value = phrase_value
     AND does_exist.culture IS NULL
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -137,6 +144,7 @@ CREATE FUNCTION GetIdentityPhrase (
   FROM Sentence
   WHERE Sentence.value = phrase_value
    AND Sentence.culture IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -161,6 +169,7 @@ CREATE FUNCTION GetLocation (
     AND does_exist.longitude = inLongitude
     AND ((does_exist.accuracy = accuracy_code) OR (does_exist.accuracy IS NULL AND accuracy_code IS NULL))
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -174,6 +183,7 @@ CREATE FUNCTION GetLocation (
    AND level = 1
    AND altitudeabovesealevel IS NULL
    AND area IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -202,6 +212,7 @@ CREATE FUNCTION GetVersion (
     AND ((does_exist.minor = COALESCE(minor_id, no_match)) OR (does_exist.minor IS NULL AND minor_id IS NULL))
     AND ((does_exist.patch = COALESCE(patch_id, no_match)) OR (does_exist.patch IS NULL AND patch_id IS NULL))
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -211,6 +222,7 @@ CREATE FUNCTION GetVersion (
    AND ((minor = COALESCE(minor_id, no_match)) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = COALESCE(patch_id, no_match)) OR (patch IS NULL AND patch_id IS NULL))
    AND name IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -244,6 +256,7 @@ CREATE FUNCTION GetVersionName (
     AND ((does_exist.minor = COALESCE(minor_id, no_match)) OR (does_exist.minor IS NULL AND minor_id IS NULL))
     AND ((does_exist.patch = COALESCE(patch_id, no_match)) OR (does_exist.patch IS NULL AND patch_id IS NULL))
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -253,6 +266,7 @@ CREATE FUNCTION GetVersionName (
    AND ((major = COALESCE(major_id, no_match)) OR (major IS NULL AND major_id IS NULL))
    AND ((minor = COALESCE(minor_id, no_match)) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = COALESCE(patch_id, no_match)) OR (patch IS NULL AND patch_id IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -283,6 +297,7 @@ CREATE FUNCTION GetRelease (
    LEFT JOIN Release AS does_exist ON does_exist.version = inVersion
     AND ((does_exist.build = build_id) OR (does_exist.build IS NULL AND build_id IS NULL)) 
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -290,6 +305,7 @@ CREATE FUNCTION GetRelease (
   FROM Release
   WHERE version = inVersion
    AND ((build = build_id) OR (build IS NULL AND build_id IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -318,12 +334,14 @@ CREATE FUNCTION GetApplication(
    FROM Dual
    LEFT JOIN Application AS does_exist ON does_exist.name = name_ident
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
   SELECT id
   FROM Application
   WHERE name = name_ident
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -343,6 +361,7 @@ CREATE FUNCTION GetApplicationRelease (
    LEFT JOIN ApplicationRelease AS does_exist ON does_exist.application = inApplication
     AND ((does_exist.release = inRelease) OR (does_exist.release IS NULL AND inRelease IS NULL))
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -350,6 +369,7 @@ CREATE FUNCTION GetApplicationRelease (
   FROM ApplicationRelease
   WHERE application = inApplication
    AND ((release = inRelease) OR (release IS NULL AND inRelease IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -372,6 +392,7 @@ CREATE FUNCTION GetPart (
     AND does_exist.version IS NULL
     AND does_exist.serial IS NULL
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -381,6 +402,7 @@ CREATE FUNCTION GetPart (
    AND parent IS NULL
    AND version IS NULL
    AND serial IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -402,6 +424,7 @@ CREATE FUNCTION GetPartWithParent (
     AND does_exist.version IS NULL
     AND does_exist.serial IS NULL
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -411,6 +434,7 @@ CREATE FUNCTION GetPartWithParent (
    AND parent = inParentId
    AND version IS NULL
    AND serial IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -467,6 +491,7 @@ CREATE FUNCTION GetPart (
     AND does_exist.version = inVersion
     AND does_exist.serial IS NULL
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
 
@@ -477,6 +502,7 @@ CREATE FUNCTION GetPart (
    AND parent = parent_id
    AND version = inVersion
    AND serial IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -497,12 +523,14 @@ CREATE FUNCTION GetPartbySerial (
    AND does_exist.serial = inSerial
   WHERE parent.id = inParent
    AND does_exist.id IS NULL
+   LIMIT 1
  );
  RETURN (
   SELECT part.id
   FROM Part
   WHERE Part.parent = inParent
    AND Part.serial = inSerial
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -525,6 +553,7 @@ CREATE FUNCTION GetAssemblyApplicationRelease (
     AND does_exist.applicationRelease = inApplicationRelease
     AND ((does_exist.parent = inParent) OR (does_exist.parent IS NULL AND inParent IS NULL))
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -533,6 +562,7 @@ CREATE FUNCTION GetAssemblyApplicationRelease (
   WHERE assembly = inAssembly
    AND applicationRelease = inApplicationRelease
    AND ((parent = inParent) OR (parent IS NULL AND inParent IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -572,6 +602,7 @@ CREATE FUNCTION GetPath (
     AND ((does_exist.value = inValue) OR (does_exist.value IS NULL OR inValue IS NULL))
     AND ((does_exist.get = inGet) OR (does_exist.get IS NULL AND inGet IS NULL))
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -582,6 +613,7 @@ CREATE FUNCTION GetPath (
    AND ((host = inHost) OR (host IS NULL and inHost IS NULL))
    AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
    AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -670,6 +702,7 @@ CREATE FUNCTION GetAgentString (
    LEFT JOIN AgentString AS does_exist ON does_exist.userAgentString = inString
     AND ((does_exist.agent = inAgent) OR (does_exist.agent IS NULL AND inAgent IS NULL))
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -677,6 +710,7 @@ CREATE FUNCTION GetAgentString (
   FROM AgentString
   WHERE userAgentString = inString
    AND ((agent = inAgent) OR (agent IS NULL AND inAgent IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -931,6 +965,7 @@ CREATE FUNCTION GetPostal (
   LEFT JOIN Postal AS does_exist ON does_exist.country = countrycode_id
    AND UPPER(does_exist.code) = UPPER(zipcode)
   WHERE does_exist.id IS NULL
+  LIMIT 1
  );
 
  RETURN (
@@ -938,6 +973,7 @@ CREATE FUNCTION GetPostal (
   FROM Postal
   WHERE country = countrycode_id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -954,6 +990,7 @@ CREATE FUNCTION GetPostal (
   JOIN Country ON UPPER(Country.code) = UPPER(countrycode)
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -969,6 +1006,7 @@ CREATE FUNCTION GetPostal (
   JOIN Country ON UPPER(Country.code) = 'USA'
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -1011,6 +1049,7 @@ CREATE FUNCTION GetAddress (
     AND does_exist.line3 IS NULL
     AND does_exist.line4 IS NULL
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -1023,6 +1062,7 @@ CREATE FUNCTION GetAddress (
    AND line2 IS NULL
    AND line3 IS NULL
    AND line4 IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -1047,6 +1087,7 @@ CREATE FUNCTION GetAddress (
     AND does_exist.line3 IS NULL
     AND does_exist.line4 IS NULL
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
  RETURN (
@@ -1077,6 +1118,7 @@ CREATE FUNCTION GetGiven (
    FROM DUAL
    LEFT JOIN Given AS does_exist ON does_exist.value = inGiven
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
 
@@ -1084,6 +1126,7 @@ CREATE FUNCTION GetGiven (
   SELECT id
   FROM Given
   WHERE Given.value = inGiven
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -1101,6 +1144,7 @@ CREATE FUNCTION GetFamily (
    FROM DUAL
    LEFT JOIN Family AS does_exist ON does_exist.value = inFamily
    WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
 
@@ -1108,6 +1152,7 @@ CREATE FUNCTION GetFamily (
   SELECT id
   FROM Family
   WHERE Family.value = inFamily
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -1137,7 +1182,8 @@ CREATE FUNCTION GetName (
         ((does_exist.given = first_id) OR (does_exist.given IS NULL AND first_id IS NULL))
     AND ((does_exist.middle = middle_id) OR (does_exist.middle IS NULL AND middle_id IS NULL))
     AND ((does_exist.family = last_id) OR (does_exist.family IS NULL AND last_id IS NULL))
-  WHERE does_exist.id IS NULL
+   WHERE does_exist.id IS NULL
+   LIMIT 1
   );
  END_IF;
 
@@ -1147,13 +1193,14 @@ CREATE FUNCTION GetName (
   WHERE ((Name.given = first_id) OR (Name.given IS NULL AND first_id IS NULL))
     AND ((Name.middle = middle_id) OR (Name.middle IS NULL AND middle_id IS NULL))
     AND ((Name.family = last_id) OR (Name.family IS NULL AND last_id IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
 SET DELIMITER ;
 
 
-DROP FUNCTION IF EXISTS GetIndividualPerson;
+DROP FUNCTION IF EXISTS GetIndividualPerson/6;
 
 -- inBirth can't be NULL
 SET DELIMITER @
@@ -1220,6 +1267,7 @@ CREATE FUNCTION GetEntityName (
   FROM DUAL
   LEFT JOIN Entity AS does_exist ON UPPER(does_exist.name) = UPPER(inName)
   WHERE does_exist.id IS NULL
+  LIMIT 1
   ;
  END_IF;
 
@@ -1227,6 +1275,7 @@ CREATE FUNCTION GetEntityName (
   SELECT id
   FROM Entity
   WHERE UPPER(Entity.name) = UPPER(inName)
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -1252,6 +1301,7 @@ CREATE FUNCTION GetIndividualEntity (
   FROM DUAL
   LEFT JOIN Individual AS does_exist ON does_exist.entity = entity_name_id
   WHERE does_exist.id IS NULL
+  LIMIT 1
   ;
  END_IF;
 
@@ -1279,6 +1329,7 @@ IF (inUserName IS NOT NULL AND inHost IS NOT NULL)
    AND UPPER(does_exist.host) = UPPER(inHost)
    AND ((UPPER(does_exist.plus) = UPPER(inPlus)) OR (does_exist.plus IS NULL AND inPlus IS NULL))
   WHERE does_exist.id IS NULL
+  LIMIT 1
  );
 END_IF;
 RETURN (
@@ -1287,6 +1338,7 @@ RETURN (
  WHERE UPPER(username) = UPPER(inUserName)
   AND UPPER(host) = UPPER(inHost)
   AND ((UPPER(plus) = UPPER(inPlus)) OR (plus IS NULL AND inPlus IS NULL))
+ LIMIT 1
 );
 
 END_FUNCTION;
@@ -1459,6 +1511,7 @@ IF (inIndividual_id IS NOT NULL AND inEmail_id IS NOT NULL)
   AND ((does_exist.type = type_id) OR (does_exist.type IS NULL AND type_id IS NULL))
   AND does_exist.stop IS NULL
  WHERE does_exist.individual IS NULL
+ LIMIT 1
  ;
 END_IF;
 RETURN inIndividual_id;

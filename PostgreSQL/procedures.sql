@@ -21,6 +21,7 @@ BEGIN
     AND exists.culture = Culture.code
    WHERE UPPER(Culture.name) = UPPER(culture_name)
     AND exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -29,6 +30,7 @@ BEGIN
   JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
   WHERE UPPER(Word.value) = UPPER(word_value)
    AND Word.culture = Culture.code
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -61,6 +63,7 @@ BEGIN
    LEFT JOIN Word AS exists ON UPPER(exists.value) = UPPER(ident_value)
     AND exists.culture IS NULL
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -68,6 +71,7 @@ BEGIN
   FROM Word
   WHERE UPPER(Word.value) = UPPER(ident_value)
    AND Word.culture IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -86,6 +90,7 @@ BEGIN
     AND exists.culture = Culture.code
    WHERE UPPER(Culture.name) = UPPER(culture_name)
     AND exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -94,6 +99,7 @@ BEGIN
   JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
   WHERE UPPER(Sentence.value) = UPPER(sentence_value)
    AND Sentence.culture = Culture.code
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -123,6 +129,7 @@ BEGIN
    LEFT JOIN Sentence AS exists ON UPPER(exists.value) = UPPER(phrase_value)
     AND exists.culture IS NULL
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -130,6 +137,7 @@ BEGIN
   FROM Sentence
   WHERE UPPER(Sentence.value) = UPPER(phrase_value)
    AND Sentence.culture IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -154,6 +162,7 @@ BEGIN
     AND exists.longitude = inLongitude
     AND ((exists.accuracy = accuracy_code) OR (exists.accuracy IS NULL AND accuracy_code IS NULL))
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -167,6 +176,7 @@ BEGIN
    AND level = 1 -- Default level
    AND altitudeabovesealevel IS NULL
    AND area IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -204,6 +214,7 @@ BEGIN
   LEFT JOIN Postal AS exists ON exists.country = countrycode_id
    AND UPPER(exists.code) = UPPER(zipcode)
   WHERE exists.id IS NULL
+  LIMIT 1
  );
  RETURN (
   SELECT id
@@ -211,6 +222,7 @@ BEGIN
   -- Unique on country and code
   WHERE country = countrycode_id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -229,6 +241,7 @@ BEGIN
   JOIN Country ON UPPER(Country.code) = UPPER(countrycode)
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -247,6 +260,7 @@ BEGIN
   JOIN Country ON UPPER(Country.code) = 'USA'
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -293,6 +307,7 @@ BEGIN
      AND exists.line3 IS NULL
      AND exists.line4 IS NULL
     WHERE exists.id IS NULL
+    LIMIT 1
    );
   END IF;
   RETURN (
@@ -305,6 +320,7 @@ BEGIN
     AND line2 IS NULL
     AND line3 IS NULL
     AND line4 IS NULL
+   LIMIT 1
   );
 END;
 $$ LANGUAGE plpgsql;
@@ -332,6 +348,7 @@ BEGIN
      AND exists.line3 IS NULL
      AND exists.line4 IS NULL
     WHERE exists.id IS NULL
+    LIMIT 1
    );
   END IF;
   RETURN (
@@ -360,6 +377,7 @@ BEGIN
    FROM DUAL
    LEFT JOIN Given AS exists ON exists.value = inGiven
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
 
@@ -367,6 +385,7 @@ BEGIN
   SELECT id
   FROM Given
   WHERE Given.value = inGiven
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -382,12 +401,14 @@ BEGIN
    FROM DUAL
    LEFT JOIN Family AS exists ON exists.value = inFamily
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
   SELECT id
   FROM Family
   WHERE Family.value = inFamily
+  LIMIT 1
  ); 
 END;
 $$ LANGUAGE plpgsql;
@@ -416,6 +437,7 @@ BEGIN
     AND ((exists.middle = middle_id) OR (exists.middle IS NULL AND middle_id IS NULL))
     AND ((exists.family = last_id) OR (exists.family IS NULL AND last_id IS NULL))
   WHERE exists.id IS NULL
+  LIMIT 1
   );
  END IF;
 
@@ -425,6 +447,7 @@ BEGIN
   WHERE ((Name.given = first_id) OR (Name.given IS NULL AND first_id IS NULL))
     AND ((Name.middle = middle_id) OR (Name.middle IS NULL AND middle_id IS NULL))
     AND ((Name.family = last_id) OR (Name.family IS NULL AND last_id IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -492,12 +515,14 @@ BEGIN
   FROM DUAL
   LEFT JOIN Entity AS exists ON UPPER(exists.name) = UPPER(inName)
   WHERE exists.id IS NULL
+  LIMIT 1
   ;
  END IF;
  RETURN (
   SELECT id
   FROM Entity
   WHERE UPPER(Entity.name) = UPPER(inName)
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -521,6 +546,7 @@ BEGIN
   FROM DUAL
   LEFT JOIN Individual AS exists ON exists.entity = entity_name_id
   WHERE exists.id IS NULL
+  LIMIT 1
   ; 
  END IF;
  RETURN (
@@ -546,6 +572,7 @@ BEGIN
     AND UPPER(exists.host) = UPPER(inHost)
     AND ((UPPER(exists.plus) = UPPER(inPlus)) OR (exists.plus IS NULL AND inPlus IS NULL))
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -554,6 +581,7 @@ BEGIN
   WHERE UPPER(username) = UPPER(inUserName)
    AND UPPER(host) = UPPER(inHost)
    AND ((UPPER(plus) = UPPER(inPlus)) OR (plus IS NULL AND inPlus IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -725,6 +753,7 @@ BEGIN
     AND ((exists.type = type_id) OR (exists.type IS NULL AND type_id IS NULL))
     AND exists.stop IS NULL
    WHERE exists.individual IS NULL
+   LIMIT 1
   );
  END IF;
 END;
@@ -820,6 +849,7 @@ BEGIN
     AND ((exists.minor = minor_id) OR (exists.minor IS NULL AND minor_id IS NULL))
     AND ((exists.patch = patch_id) OR (exists.patch IS NULL AND patch_id IS NULL))
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -829,6 +859,7 @@ BEGIN
    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
    AND name IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -858,6 +889,7 @@ BEGIN
     AND ((exists.minor = minor_id) OR (exists.minor IS NULL AND minor_id IS NULL))
     AND ((exists.patch = patch_id) OR (exists.patch IS NULL AND patch_id IS NULL))
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -867,6 +899,7 @@ BEGIN
    AND ((major = major_id) OR (major IS NULL AND major_id IS NULL))
    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -896,6 +929,7 @@ BEGIN
    LEFT JOIN Release AS exists ON exists.version = inVersion
     AND ((exists.build = build_id) OR (exists.build IS NULL AND build_id IS NULL)) 
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -903,6 +937,7 @@ BEGIN
   FROM Release
   WHERE version = inVersion
    AND ((build = build_id) OR (build IS NULL AND build_id IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -929,12 +964,14 @@ BEGIN
    FROM Dual
    LEFT JOIN Application AS exists ON exists.name = name_ident
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
   SELECT id
   FROM Application
   WHERE name = name_ident
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -952,6 +989,7 @@ BEGIN
    LEFT JOIN ApplicationRelease AS exists ON exists.application = inApplication
     AND ((exists.release = inRelease) OR (exists.release IS NULL AND inRelease IS NULL))
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -959,6 +997,7 @@ BEGIN
   FROM ApplicationRelease
   WHERE application = inApplication
    AND ((release = inRelease) OR (release IS NULL AND inRelease IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -980,6 +1019,7 @@ BEGIN
     AND exists.version IS NULL
     AND exists.serial IS NULL
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -989,6 +1029,7 @@ BEGIN
    AND parent IS NULL
    AND version IS NULL
    AND serial IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1009,6 +1050,7 @@ BEGIN
     AND exists.version IS NULL
     AND exists.serial IS NULL
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -1018,6 +1060,7 @@ BEGIN
    AND parent = inParentId
    AND version IS NULL
    AND serial IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1151,6 +1194,7 @@ BEGIN
     AND exists.version = inVersion
     AND exists.serial IS NULL
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -1160,6 +1204,7 @@ BEGIN
    AND parent = parent_id
    AND version = inVersion
    AND serial IS NULL
+  LIMIT 1
   );
 END;
 $$ LANGUAGE plpgsql;
@@ -1247,12 +1292,14 @@ BEGIN
   AND exists.serial = inSerial
  WHERE parent.id = inParent
   AND exists.id IS NULL
+ LIMIT 1
  );
  RETURN (
   SELECT part.id
   FROM Part
   WHERE Part.parent = inParent
    AND Part.serial = inSerial
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1275,6 +1322,7 @@ BEGIN
    AND ((exists.designator = designator_id) OR (exists.designator IS NULL AND designator_id IS NULL))
    AND ((exists.quantity = inQuantity) OR (exists.quantity IS NULL AND inQuantity IS NULL))
   WHERE exists.assembly IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1316,6 +1364,7 @@ BEGIN
     AND exists.applicationRelease = inApplicationRelease
     AND ((exists.parent = inParent) OR (exists.parent IS NULL AND inParent IS NULL))
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -1324,6 +1373,7 @@ BEGIN
   WHERE assembly = inAssembly
    AND applicationRelease = inApplicationRelease
    AND ((parent = inParent) OR (parent IS NULL AND inParent IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1362,6 +1412,7 @@ BEGIN
     AND ((exists.value = inValue) OR (exists.value IS NULL OR inValue IS NULL))
     AND ((exists.get = inGet) OR (exists.get IS NULL AND inGet IS NULL))
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -1372,6 +1423,7 @@ BEGIN
    AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
    AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
    AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1414,6 +1466,7 @@ BEGIN
     AND exists.area = inAreaCode
     AND exists.number = inNumber
    WHERE exists.id IS NULL
+   LIMIT 1
  );
  END IF;
  RETURN (
@@ -1557,7 +1610,8 @@ BEGIN
   LEFT JOIN AgentString ON AgentString.userAgentString = Sentence.id
   LEFT JOIN ParsedAgentStringShort ON ParsedAgentStringShort.agentstring = AgentString.id
   WHERE Sentence.culture IS NULL
-  AND Sentence.id = string_id
+   AND Sentence.id = string_id
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1574,6 +1628,7 @@ BEGIN
    LEFT JOIN AgentString AS exists ON exists.userAgentString = inString
     AND ((exists.agent = inAgent) OR (exists.agent IS NULL AND inAgent IS NULL))
    WHERE exists.id IS NULL
+   LIMIT 1
   );
  END IF;
  RETURN (
@@ -1581,6 +1636,7 @@ BEGIN
   FROM AgentString
   WHERE userAgentString = inString
    AND ((agent = inAgent) OR (agent IS NULL AND inAgent IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1856,6 +1912,7 @@ BEGIN
     AND ((fromAddress = inIPAddress) OR (fromAddress IS NULL AND inIPAddress IS NULL))
     AND ((location = inLocation) OR (location IS NULL AND inLocation IS NULL))
    WHERE exists.id IS NULL
+   LIMIT 1
   );
 
  END IF;
