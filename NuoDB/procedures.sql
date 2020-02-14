@@ -33,6 +33,7 @@ CREATE FUNCTION GetWord (
   JOIN Culture ON Culture.name = culture_name
   WHERE Word.value = word_value
    AND Word.culture = Culture.code
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -72,6 +73,7 @@ CREATE FUNCTION GetIdentifier (
   FROM Word
   WHERE Word.value = ident_value
    AND Word.culture IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -100,6 +102,7 @@ CREATE FUNCTION GetSentence (
   JOIN Culture ON Culture.name = culture_name
   WHERE Sentence.value = sentence_value
    AND Sentence.culture = Culture.code
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -137,6 +140,7 @@ CREATE FUNCTION GetIdentityPhrase (
   FROM Sentence
   WHERE Sentence.value = phrase_value
    AND Sentence.culture IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -174,6 +178,7 @@ CREATE FUNCTION GetLocation (
    AND level = 1
    AND altitudeabovesealevel IS NULL
    AND area IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -211,6 +216,7 @@ CREATE FUNCTION GetVersion (
    AND ((minor = COALESCE(minor_id, no_match)) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = COALESCE(patch_id, no_match)) OR (patch IS NULL AND patch_id IS NULL))
    AND name IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -253,6 +259,7 @@ CREATE FUNCTION GetVersionName (
    AND ((major = COALESCE(major_id, no_match)) OR (major IS NULL AND major_id IS NULL))
    AND ((minor = COALESCE(minor_id, no_match)) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = COALESCE(patch_id, no_match)) OR (patch IS NULL AND patch_id IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -290,6 +297,7 @@ CREATE FUNCTION GetRelease (
   FROM Release
   WHERE version = inVersion
    AND ((build = build_id) OR (build IS NULL AND build_id IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -324,6 +332,7 @@ CREATE FUNCTION GetApplication(
   SELECT id
   FROM Application
   WHERE name = name_ident
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -350,6 +359,7 @@ CREATE FUNCTION GetApplicationRelease (
   FROM ApplicationRelease
   WHERE application = inApplication
    AND ((release = inRelease) OR (release IS NULL AND inRelease IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -381,6 +391,7 @@ CREATE FUNCTION GetPart (
    AND parent IS NULL
    AND version IS NULL
    AND serial IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -411,6 +422,7 @@ CREATE FUNCTION GetPartWithParent (
    AND parent = inParentId
    AND version IS NULL
    AND serial IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -477,6 +489,7 @@ CREATE FUNCTION GetPart (
    AND parent = parent_id
    AND version = inVersion
    AND serial IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -503,6 +516,7 @@ CREATE FUNCTION GetPartbySerial (
   FROM Part
   WHERE Part.parent = inParent
    AND Part.serial = inSerial
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -533,6 +547,7 @@ CREATE FUNCTION GetAssemblyApplicationRelease (
   WHERE assembly = inAssembly
    AND applicationRelease = inApplicationRelease
    AND ((parent = inParent) OR (parent IS NULL AND inParent IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -582,6 +597,7 @@ CREATE FUNCTION GetPath (
    AND ((host = inHost) OR (host IS NULL and inHost IS NULL))
    AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
    AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -677,6 +693,7 @@ CREATE FUNCTION GetAgentString (
   FROM AgentString
   WHERE userAgentString = inString
    AND ((agent = inAgent) OR (agent IS NULL AND inAgent IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -938,6 +955,7 @@ CREATE FUNCTION GetPostal (
   FROM Postal
   WHERE country = countrycode_id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -954,6 +972,7 @@ CREATE FUNCTION GetPostal (
   JOIN Country ON UPPER(Country.code) = UPPER(countrycode)
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -969,6 +988,7 @@ CREATE FUNCTION GetPostal (
   JOIN Country ON UPPER(Country.code) = 'USA'
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -1023,6 +1043,7 @@ CREATE FUNCTION GetAddress (
    AND line2 IS NULL
    AND line3 IS NULL
    AND line4 IS NULL
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -1084,6 +1105,7 @@ CREATE FUNCTION GetGiven (
   SELECT id
   FROM Given
   WHERE Given.value = inGiven
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -1108,6 +1130,7 @@ CREATE FUNCTION GetFamily (
   SELECT id
   FROM Family
   WHERE Family.value = inFamily
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -1147,13 +1170,14 @@ CREATE FUNCTION GetName (
   WHERE ((Name.given = first_id) OR (Name.given IS NULL AND first_id IS NULL))
     AND ((Name.middle = middle_id) OR (Name.middle IS NULL AND middle_id IS NULL))
     AND ((Name.family = last_id) OR (Name.family IS NULL AND last_id IS NULL))
+  LIMIT 1
  );
 END_FUNCTION;
 @
 SET DELIMITER ;
 
 
-DROP FUNCTION IF EXISTS GetIndividualPerson;
+DROP FUNCTION IF EXISTS GetIndividualPerson/6;
 
 -- inBirth can't be NULL
 SET DELIMITER @
@@ -1227,6 +1251,7 @@ CREATE FUNCTION GetEntityName (
   SELECT id
   FROM Entity
   WHERE UPPER(Entity.name) = UPPER(inName)
+  LIMIT 1
  );
 END_FUNCTION;
 @
@@ -1287,6 +1312,7 @@ RETURN (
  WHERE UPPER(username) = UPPER(inUserName)
   AND UPPER(host) = UPPER(inHost)
   AND ((UPPER(plus) = UPPER(inPlus)) OR (plus IS NULL AND inPlus IS NULL))
+ LIMIT 1
 );
 
 END_FUNCTION;

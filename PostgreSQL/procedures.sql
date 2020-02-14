@@ -29,6 +29,7 @@ BEGIN
   JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
   WHERE UPPER(Word.value) = UPPER(word_value)
    AND Word.culture = Culture.code
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -68,6 +69,7 @@ BEGIN
   FROM Word
   WHERE UPPER(Word.value) = UPPER(ident_value)
    AND Word.culture IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -94,6 +96,7 @@ BEGIN
   JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
   WHERE UPPER(Sentence.value) = UPPER(sentence_value)
    AND Sentence.culture = Culture.code
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -130,6 +133,7 @@ BEGIN
   FROM Sentence
   WHERE UPPER(Sentence.value) = UPPER(phrase_value)
    AND Sentence.culture IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -167,6 +171,7 @@ BEGIN
    AND level = 1 -- Default level
    AND altitudeabovesealevel IS NULL
    AND area IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -211,6 +216,7 @@ BEGIN
   -- Unique on country and code
   WHERE country = countrycode_id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -229,6 +235,7 @@ BEGIN
   JOIN Country ON UPPER(Country.code) = UPPER(countrycode)
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -247,6 +254,7 @@ BEGIN
   JOIN Country ON UPPER(Country.code) = 'USA'
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -305,6 +313,7 @@ BEGIN
     AND line2 IS NULL
     AND line3 IS NULL
     AND line4 IS NULL
+   LIMIT 1
   );
 END;
 $$ LANGUAGE plpgsql;
@@ -367,6 +376,7 @@ BEGIN
   SELECT id
   FROM Given
   WHERE Given.value = inGiven
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -388,6 +398,7 @@ BEGIN
   SELECT id
   FROM Family
   WHERE Family.value = inFamily
+  LIMIT 1
  ); 
 END;
 $$ LANGUAGE plpgsql;
@@ -425,6 +436,7 @@ BEGIN
   WHERE ((Name.given = first_id) OR (Name.given IS NULL AND first_id IS NULL))
     AND ((Name.middle = middle_id) OR (Name.middle IS NULL AND middle_id IS NULL))
     AND ((Name.family = last_id) OR (Name.family IS NULL AND last_id IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -498,6 +510,7 @@ BEGIN
   SELECT id
   FROM Entity
   WHERE UPPER(Entity.name) = UPPER(inName)
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -554,6 +567,7 @@ BEGIN
   WHERE UPPER(username) = UPPER(inUserName)
    AND UPPER(host) = UPPER(inHost)
    AND ((UPPER(plus) = UPPER(inPlus)) OR (plus IS NULL AND inPlus IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -829,6 +843,7 @@ BEGIN
    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
    AND name IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -867,6 +882,7 @@ BEGIN
    AND ((major = major_id) OR (major IS NULL AND major_id IS NULL))
    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -903,6 +919,7 @@ BEGIN
   FROM Release
   WHERE version = inVersion
    AND ((build = build_id) OR (build IS NULL AND build_id IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -935,6 +952,7 @@ BEGIN
   SELECT id
   FROM Application
   WHERE name = name_ident
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -959,6 +977,7 @@ BEGIN
   FROM ApplicationRelease
   WHERE application = inApplication
    AND ((release = inRelease) OR (release IS NULL AND inRelease IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -989,6 +1008,7 @@ BEGIN
    AND parent IS NULL
    AND version IS NULL
    AND serial IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1018,6 +1038,7 @@ BEGIN
    AND parent = inParentId
    AND version IS NULL
    AND serial IS NULL
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1160,6 +1181,7 @@ BEGIN
    AND parent = parent_id
    AND version = inVersion
    AND serial IS NULL
+  LIMIT 1
   );
 END;
 $$ LANGUAGE plpgsql;
@@ -1253,6 +1275,7 @@ BEGIN
   FROM Part
   WHERE Part.parent = inParent
    AND Part.serial = inSerial
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1324,6 +1347,7 @@ BEGIN
   WHERE assembly = inAssembly
    AND applicationRelease = inApplicationRelease
    AND ((parent = inParent) OR (parent IS NULL AND inParent IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1372,6 +1396,7 @@ BEGIN
    AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
    AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
    AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1557,7 +1582,8 @@ BEGIN
   LEFT JOIN AgentString ON AgentString.userAgentString = Sentence.id
   LEFT JOIN ParsedAgentStringShort ON ParsedAgentStringShort.agentstring = AgentString.id
   WHERE Sentence.culture IS NULL
-  AND Sentence.id = string_id
+   AND Sentence.id = string_id
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1581,6 +1607,7 @@ BEGIN
   FROM AgentString
   WHERE userAgentString = inString
    AND ((agent = inAgent) OR (agent IS NULL AND inAgent IS NULL))
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
