@@ -2270,6 +2270,48 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Inventory Movement
+--
+CREATE OR REPLACE FUNCTION CreateBill (
+ inSupplier bigint,
+ inConsignee bigint,
+ inType varchar
+) RETURNS integer AS $$
+DECLARE
+ bill_id integer;
+BEGIN
+ INSERT INTO Bill (supplier, consignee, type) VALUES (inSupplier, inConsignee, GetWord(inType)) RETURNING id INTO bill_id;
+
+ RETURN bill_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Can return NULL
+-- Gets the oldest of type
+CREATE OR REPLACE FUNCTION GetOutstandingBill (
+ inSupplier bigint,
+ inConsignee bigint,
+ inType varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN (
+  SELECT id
+  FROM Bill
+  WHERE supplier = inSupplier
+   AND consignee = inConsignee
+   AND type = GetWord(inType)
+   AND received IS NULL
+   AND loaded IS NULL
+   AND clean IS NULL
+   AND dirty IS NULL
+  ORDER BY created ASC
+  LIMIT 1
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+
 
 -- Schema Mgmt Functions
 --

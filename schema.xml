@@ -1394,21 +1394,23 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
- <field name="type" data_type="integer" size="" is_nullable="1" order="2">
-   <comments>Wish, Cart, Quote, Order, Invoice, Lading, Payment, Memo, Return</comments>
- </field>
- <field name="supplier" data_type="bigint" size="20" is_nullable="0" order="3">
+ <field name="supplier" data_type="bigint" size="20" is_nullable="0" order="2">
   <comments>IndividualAssemblyCost.individual</comments>
  </field>
- <field name="sent" data_type="timestamp" is_nullable="1" order="4" />
- <field name="shipper" data_type="bigint" size="20" is_nullable="1" order="5" />
- <field name="received" data_type="timestamp" is_nullable="1" order="6" />
- <field name="carrier" data_type="bigint" size="20" is_nullable="1" order="7" />
- <field name="loaded" data_type="timestamp" is_nullable="1" order="8" />
- <field name="consignee" data_type="bigint" size="20" is_nullable="0" order="9">
+ <field name="consignee" data_type="bigint" size="20" is_nullable="0" order="3">
   <comments>IndividualAssemblyCustomerPrice.individual</comments>
  </field>
- <field name="delivered" data_type="timestamp" is_nullable="1" order="10" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="4">
+   <comments>Wish, Cart, Quote, Order, Invoice, Lading, Payment, Memo, Return</comments>
+ </field>
+ <field name="source" data_type="integer" is_nullable="1" order="5" />
+ <field name="parent" data_type="integer" is_nullable="1" order="6" />
+ <field name="sent" data_type="timestamp" is_nullable="1" order="7" />
+ <field name="shipper" data_type="bigint" size="20" is_nullable="1" order="8" />
+ <field name="received" data_type="timestamp" is_nullable="1" order="9" />
+ <field name="carrier" data_type="bigint" size="20" is_nullable="1" order="10" />
+ <field name="loaded" data_type="timestamp" is_nullable="1" order="11" />
+ <field name="delivered" data_type="timestamp" is_nullable="1" order="12" />
  <field name="clean" data_type="timestamp" is_nullable="1" order="20">
   <comments>Posted without discrepency between sent and delivered</comments>
  </field>
@@ -1420,6 +1422,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <indices>
 </indices>
 <constraints>
+ <constraint name="bill_source" type="FOREIGN KEY" fields="source" reference_table="Bill" reference_fields="id" deferrable="1" />
+ <constraint name="bill_parent" type="FOREIGN KEY" fields="parent" reference_table="Bill" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="supplier" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="shipper" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
