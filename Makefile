@@ -81,9 +81,14 @@ pgsqldb: schema.pgsql
 	cat Static/[23456789]_* | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
 
 business.sqlite3: schema.sqlite
+ifeq ($(wildcard business.sqlite3),)
 	@echo Creating new SQLite database with $@
 	cat SQLite/pre.sql schema.sqlite | sqlite3 $@
 	cat Static/[01]_* | sed -e "/GetInterval */d" | sqlite3 $@
 	# TODO come up with GetPostal replacement
 	# TODO come up with GetSentence and GetAddress replacements
 	cat Static/[23456789]_* | sed -e "/GetSentence */d" | sed -e "/GetAddress */d" | sqlite3 $@
+else
+	@echo SQLite database $@ already exists.
+	@echo Please move or remove it.
+endif
