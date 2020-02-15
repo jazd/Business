@@ -72,8 +72,12 @@ clean:
 	@echo Removing target files $(TARGETS)
 	rm -f $(TARGETS)
 
+touch-xml:
+	@echo Force re-make of schema files
+	@touch schema.xml
+
 pgsqldb: export DROP_TABLE = --add-drop-table
-pgsqldb: schema.pgsql
+pgsqldb: touch-xml schema.pgsql
 	@echo Creating new PostgreSQL database with $@
 	cat PostgreSQL/pre.sql schema.pgsql PostgreSQL/procedures.sql PostgreSQL/post.sql | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true
 	cat Static/[01]_* | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
