@@ -2311,7 +2311,51 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION AddCargo (
+ inBill integer,
+ inAssembly integer,
+ inCount integer
+) RETURNS integer AS $$
+DECLARE
+ cargo_id integer;
+BEGIN
+ SELECT INTO cargo_id
+  id AS cargo_id
+ FROM Cargo
+ WHERE bill = inBill
+  AND assembly = inAssembly
+  AND jobIndividual IS NULL
+  AND journal IS NULL
+  AND entry IS NULL
+ ORDER BY id DESC
+ LIMIT 1
+ ;
 
+ IF cargo_id IS NULL THEN
+  INSERT INTO Cargo (bill, count, assembly)
+  SELECT inBill, inCount, inAssembly
+  FROM DUAL
+  RETURNING id INTO cargo_id;
+ ELSE
+  INSERT INTO Cargo (id, bill, count, assembly)
+  SELECT cargo_id, inBill, inCount, inAssembly
+  FROM DUAL
+  ;
+ END IF;
+
+ RETURN cargo_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION AddCargo (
+ inBill integer,
+ inAssembly integer
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN AddCargo (inBill, inAssembly, NULL);
+END;
+$$ LANGUAGE plpgsql;
 
 -- Schema Mgmt Functions
 --

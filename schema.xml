@@ -2350,6 +2350,25 @@ LEFT JOIN Word AS StopType ON StopType.id = StopIndividualVertex.type
  AND StopType.culture IS NULL
   </sql>
  </view>
+ <view name="Cargoes">
+  <sql>
+SELECT Bill.id AS bill,
+ Bill.type,
+ Bill.supplier,
+ Bill.consignee,
+ Cargo.id AS cargo,
+ SUM(COALESCE(Cargo.count, 1)) AS count,
+ Cargo.assembly
+FROM Bill
+JOIN Cargo ON Cargo.bill = Bill.id
+GROUP BY Bill.id,
+ Bill.type,
+ Bill.supplier,
+ Bill.consignee,
+ Cargo.id,
+ Cargo.assembly
+  </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>
