@@ -6,6 +6,7 @@ sqlServer.txt
 *.pgsql
 *.mysql
 *.sqlite
+*.sqlite3
 *.db2
 *.oracle
 *.sqlserver
