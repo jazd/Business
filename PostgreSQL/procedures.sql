@@ -2333,7 +2333,13 @@ BEGIN
 
  IF cargo_id IS NULL THEN
   INSERT INTO Cargo (bill, count, assembly)
-  SELECT inBill, inCount, inAssembly
+  SELECT inBill,
+   CASE WHEN inCount = 1 THEN
+    NULL -- cargo record itself is a count of one unless overridden
+   ELSE
+    inCount
+   END AS count,
+   inAssembly
   FROM DUAL
   RETURNING id INTO cargo_id;
  ELSE
