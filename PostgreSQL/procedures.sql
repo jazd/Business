@@ -2314,7 +2314,10 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
  inAssembly integer,
- inCount integer
+ inCount float,
+ inJobIndividual integer,
+ inJournal integer,
+ inEntry integer
 ) RETURNS integer AS $$
 DECLARE
  cargo_id integer;
@@ -2324,27 +2327,36 @@ BEGIN
  FROM Cargo
  WHERE bill = inBill
   AND assembly = inAssembly
-  AND jobIndividual IS NULL
-  AND journal IS NULL
-  AND entry IS NULL
+  AND ((jobIndividual = inJobIndividual) OR (inJobIndividual IS NULL AND jobIndividual IS NULL))
+  AND ((journal = inJournal) OR (inJournal IS NULL AND journal IS NULL))
+  AND ((entry = inEntry) OR (inEntry IS NULL AND entry IS NULL))
  ORDER BY id DESC
  LIMIT 1
  ;
 
  IF cargo_id IS NULL THEN
-  INSERT INTO Cargo (bill, count, assembly)
+  INSERT INTO Cargo (bill, count, assembly, jobIndividual, journal, entry)
   SELECT inBill,
    CASE WHEN inCount = 1 THEN
     NULL -- cargo record itself is a count of one unless overridden
    ELSE
     inCount
    END AS count,
-   inAssembly
+   inAssembly,
+   inJobIndividual,
+   inJournal,
+   inEntry
   FROM DUAL
   RETURNING id INTO cargo_id;
  ELSE
-  INSERT INTO Cargo (id, bill, count, assembly)
-  SELECT cargo_id, inBill, inCount, inAssembly
+  INSERT INTO Cargo (id, bill, count, assembly, jobIndividual, journal, entry)
+  SELECT cargo_id,
+   inBill,
+   inCount,
+   inAssembly,
+   inJobIndividual,
+   inJournal,
+   inEntry
   FROM DUAL
   ;
  END IF;
@@ -2355,11 +2367,64 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
+ inAssembly integer,
+ inCount float
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN AddCargo (inBill, inAssembly, inCount, NULL, NULL, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION AddCargo (
+ inBill integer,
  inAssembly integer
 ) RETURNS integer AS $$
 DECLARE
 BEGIN
  RETURN AddCargo (inBill, inAssembly, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION MoveCargo (
+ inFromBill integer,
+ inToBill integer,
+ inItem integer,
+ inCount float
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+IF inItem IS NULL THEN
+ -- Move all remaining cargo to inToBill
+ -- Use AddCargo
+ PERFORM AddCargo(inToBill,
+  Cargo.assembly,
+  SUM(COALESCE(Cargo.count, 1)) - (
+   CASE WHEN CargoState.cargo IS NOT NULL THEN
+    SUM(COALESCE(CargoState.count, 1))
+   ELSE
+    0
+   END
+  ),
+  Cargo.jobIndividual,
+  Cargo.journal,
+  Cargo.entry)
+ FROM Cargo
+ LEFT JOIN CargoState ON CargoState.cargo = Cargo.id
+ WHERE Cargo.bill = inFromBill
+ GROUP BY Cargo.id,
+  Cargo.assembly,
+  Cargo.jobIndividual,
+  Cargo.journal,
+  Cargo.entry,
+  CargoState.cargo
+;
+-- TODO Create CargoState records
+
+RETURN inToBill;
+END IF;
+
 END;
 $$ LANGUAGE plpgsql;
 
