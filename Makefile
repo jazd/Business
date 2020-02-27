@@ -43,7 +43,7 @@ schema.mysql: schema.xml
 	sqlt -f XML-SQLFairy -t MySQL $(DROP_TABLE) $< >> $@
 	chmod -w $@
 
-SQLITE_UNSUPORTED_VIEWS = IndividualPersonEvent PeopleEvent TimePeriod People Entities Accounts EdgeIndividuals
+SQLITE_UNSUPORTED_VIEWS = IndividualPersonEvent PeopleEvent TimePeriod People Entities Accounts Ledgers Books LedgerBalance LedgerReport EdgeIndividuals IndividualURL IndividualEmailAddress
 schema.sqlite: schema.xml
 	@echo Creating SQLite file $@
 	scripts/excludeView.pl $< $(SQLITE_UNSUPORTED_VIEWS) > $<.excludeSomeViews
@@ -91,7 +91,7 @@ ifeq ($(wildcard business.sqlite3),)
 	cat Static/[01]_* | sed -e "/GetInterval */d" | sqlite3 $@
 	# TODO come up with GetPostal replacement
 	# TODO come up with GetSentence and GetAddress replacements
-	cat Static/[23456789]_* | sed -e "/GetSentence */d" | sed -e "/GetAddress */d" | sqlite3 $@
+	cat Static/[23456789]_* | sed -e "/GetSentence */d" | sed -e "/GetAddress */d" | sed -e "s/, false/, 0/g" | sed -e "s/, true/, 1/g" | sqlite3 $@
 else
 	@echo SQLite database $@ already exists.
 	@echo Please move or remove it.

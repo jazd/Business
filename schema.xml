@@ -2065,7 +2065,7 @@ SELECT MAX(id) AS id FROM (
   </sql>
  </view>
 
- <view name="Accounts" fields="">
+ <view name="Accounts" fields="account,name,type,typeName,individual,individualName,individualAccountType,individualAccountTypeName,credit,debitIncrease,debitDecrease,creditIncrease,creditDecrease" order="900">
   <sql>
 SELECT AccountName.account,
  Sentence.value AS name,
