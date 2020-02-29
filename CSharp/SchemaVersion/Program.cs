@@ -7,7 +7,7 @@ namespace Version
     {
         public static void Main(string[] args) {
             Console.WriteLine("Hello World!");
-            var profile = new Profile("SQLite");
+            var profile = new Profile();
 
             var database = new Core.SQLite.Database(profile);
             Console.WriteLine(database.Version());
