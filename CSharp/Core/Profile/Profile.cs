@@ -4,14 +4,14 @@ using System.IO;
 namespace Core
 {
     public class Profile {
-        public string DatabasePath {
+        public string SQLiteDatabasePath {
             get {
                 return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
                     "sandbox/Business/business.sqlite3");
             }
         }
 
-        public Profile(string databaseServer) {
+        public Profile() {
         }
     }
 }
