@@ -5,12 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Class1.cs" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.2" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Part\" />
-    <Folder Include="Book\" />
-    <Folder Include="Profile\" />
-    <Folder Include="Version\" />
+    <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 </Project>

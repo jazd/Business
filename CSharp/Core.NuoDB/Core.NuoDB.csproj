@@ -5,12 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Class1.cs" />
+    <PackageReference Include="NuoDb.Data.Client" Version="2.3.0.12" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Part\" />
-    <Folder Include="Book\" />
-    <Folder Include="Profile\" />
-    <Folder Include="Version\" />
+    <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 </Project>

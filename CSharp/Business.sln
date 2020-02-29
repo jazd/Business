@@ -5,6 +5,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Test", "Core.Test\Core
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{0212D9FB-44E3-4261-8B7D-407A58AB5FD5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.PostreSQL", "Core.PostreSQL\Core.PostreSQL.csproj", "{A40DBEB9-DF8B-4E1A-91D1-B862A6F65075}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.SQLite", "Core.SQLite\Core.SQLite.csproj", "{82B34ABA-B46A-4E70-8907-9701A66D968C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchemaVersion", "SchemaVersion\SchemaVersion.csproj", "{523528C1-95A4-4904-8FD7-CB98A0C9B006}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.NuoDB", "Core.NuoDB\Core.NuoDB.csproj", "{95B1D071-F2E3-4CEA-98E7-0AB99D72B3B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +27,22 @@ Global
 		{0212D9FB-44E3-4261-8B7D-407A58AB5FD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0212D9FB-44E3-4261-8B7D-407A58AB5FD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0212D9FB-44E3-4261-8B7D-407A58AB5FD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A40DBEB9-DF8B-4E1A-91D1-B862A6F65075}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A40DBEB9-DF8B-4E1A-91D1-B862A6F65075}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A40DBEB9-DF8B-4E1A-91D1-B862A6F65075}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A40DBEB9-DF8B-4E1A-91D1-B862A6F65075}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82B34ABA-B46A-4E70-8907-9701A66D968C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82B34ABA-B46A-4E70-8907-9701A66D968C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82B34ABA-B46A-4E70-8907-9701A66D968C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82B34ABA-B46A-4E70-8907-9701A66D968C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{523528C1-95A4-4904-8FD7-CB98A0C9B006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{523528C1-95A4-4904-8FD7-CB98A0C9B006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{523528C1-95A4-4904-8FD7-CB98A0C9B006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{523528C1-95A4-4904-8FD7-CB98A0C9B006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95B1D071-F2E3-4CEA-98E7-0AB99D72B3B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95B1D071-F2E3-4CEA-98E7-0AB99D72B3B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95B1D071-F2E3-4CEA-98E7-0AB99D72B3B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95B1D071-F2E3-4CEA-98E7-0AB99D72B3B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
