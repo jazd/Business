@@ -12,7 +12,7 @@ namespace Core
         public override string ToString() {
             if(Name == null)
                 return "0.0.0-Nil";
-            return Name + "-" + Value + "-" + Build;
+            return Name + Value + "-" + Build;
         }
     }
 }
