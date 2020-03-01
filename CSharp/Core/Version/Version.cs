@@ -10,9 +10,12 @@ namespace Core
         public string Value { get; set; }
 
         public override string ToString() {
-            if(Name == null)
+            if(Value == null)
                 return "0.0.0-Nil";
-            return Name + Value + "-" + Build;
+            if( Build == null)
+                return Name + Value;
+            else
+                return Name + Value + "-" + Build;
         }
     }
 }
