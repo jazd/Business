@@ -1,6 +1,5 @@
 ﻿using NUnit.Framework;
-using System;
-using Core;
+
 namespace Core.Test
 {
     [TestFixture()]

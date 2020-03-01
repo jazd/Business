@@ -35,11 +35,16 @@
     <Compile Include="TestPart.cs" />
     <Compile Include="TestBook.cs" />
     <Compile Include="TestVersion.cs" />
+    <Compile Include="TestVersionDB.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">
       <Project>{0212D9FB-44E3-4261-8B7D-407A58AB5FD5}</Project>
       <Name>Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core.Fake\Core.Fake.csproj">
+      <Project>{B730E629-DD83-40A5-9813-717E3B9B08AC}</Project>
+      <Name>Core.Fake</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
