@@ -21,6 +21,17 @@ namespace Core.SQLite
 
             }
         }
+
+        IConnection IDatabase.Connection {
+            get { return (IConnection)Connection; }
+            set { Connection = (SqliteConnection)value; }
+        }
+        ICommand IDatabase.Command {
+            get {
+                return (ICommand)Command;
+            }
+        }
+
         SqliteCommand command;
 
         public void Connect () {
