@@ -1,13 +1,23 @@
-﻿using System;
-namespace Core.Fake
+using System;
+using Microsoft.Data.Sqlite;
+
+namespace Core.SQLite
 {
     public class Connection : IConnection, IDisposable
     {
-        public Connection() {
+        public SqliteConnection SQLiteConnection { get; set; }
+
+        public Connection() { }
+        public Connection(string connectionString) {
+	       SQLiteConnection = new SqliteConnection(connectionString);
         }
 
-        public void Open() { }
-        public void Close() { }
+        public void Open() {
+          SQLiteConnection?.Open();
+	}
+        public void Close() {
+          SQLiteConnection?.Close();
+        }
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls

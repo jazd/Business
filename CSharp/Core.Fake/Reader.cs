@@ -14,5 +14,9 @@ namespace Core.Fake
         }
 
         public void Read() {}
+
+        public IReader ExecuteReader() {
+            throw new NotImplementedException();
+        }
     }
 }
