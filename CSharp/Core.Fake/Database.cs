@@ -1,10 +1,10 @@
-﻿
+﻿// Fake IDatabase, IConnection, ICommand, IReader Wrapper
+//
 using System;
 
 namespace Core.Fake
 {
-    public class Database : IDatabase
-    {
+    public class Database : IDatabase {
         private Profile Profile;
 
         public IConnection Connection { get; set; }
@@ -23,7 +23,9 @@ namespace Core.Fake
             return new Version();
         }
 
+        String[] strings;
         public void Add(string[] strings) {
+            this.strings = strings;
         }
     }
 
