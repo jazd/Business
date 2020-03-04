@@ -4,7 +4,6 @@ namespace Core.SQLite
 {
     public class Command : ICommand
     {
-        public IConnection Connection { get; set; }
         IReader Reader { get; set; }
         public SqliteConnection SQLiteConnection { get; set; }
         public SqliteCommand SQLiteCommand { get; set; }
@@ -26,7 +25,7 @@ namespace Core.SQLite
         public IReader ExecuteReader() {
             SQLiteCommand.Connection = SQLiteConnection;
             SQLiteReader = SQLiteCommand.ExecuteReader();
-            Reader = new Reader() { SQLiteReader = SQLiteReader, Connection = Connection, Command = this };
+            Reader = new Reader() { SQLiteReader = SQLiteReader };
             return Reader;
         }
     }
