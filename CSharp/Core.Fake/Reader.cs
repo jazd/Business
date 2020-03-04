@@ -1,22 +1,22 @@
-﻿using System;
-namespace Core.Fake
+﻿namespace Core.Fake
 {
-    public class Reader : IReader {
-        bool IReader.HasRows => throw new NotImplementedException();
+    public class Reader : IReader
+    {
+        string[] strings;
+        bool IReader.HasRows => true;
 
         public Reader() {
         }
 
         public bool HasRows { get { return true; } }
 
+        public void Add(string[] strings) {
+            this.strings = strings;
+        }
         public string GetString(int i) {
-            return "";
+            return strings[i];
         }
 
-        public void Read() {}
-
-        public IReader ExecuteReader() {
-            throw new NotImplementedException();
-        }
+        public void Read() { }
     }
 }

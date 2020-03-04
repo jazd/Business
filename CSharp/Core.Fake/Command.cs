@@ -2,13 +2,16 @@
 {
     public class Command : ICommand
     {
-        public Command() {
-        }
-
+        public Reader Reader { get; set; }
         public string CommandText { get; set; }
 
+        public Command() {
+            if (Reader == null)
+                Reader = new Reader();
+        }
+
         public IReader ExecuteReader() {
-            return new Reader();
+            return Reader;
         }
     }
 }

@@ -4,28 +4,34 @@ using System;
 
 namespace Core.Fake
 {
-    public class Database : IDatabase {
+    public class Database : IDatabase
+    {
         private Profile Profile;
 
-        public IConnection Connection { get; set; }
+        public Connection Connection { get; set; }
 
-        ICommand IDatabase.Command { get; }
+        public Command Command { get; set; }
+
+        IConnection IDatabase.Connection { get => Connection; set => throw new NotImplementedException(); }
+        ICommand IDatabase.Command => Command;
 
         public Database(Profile profile) {
             this.Profile = profile;
         }
 
         public void Connect() {
-            Connection = new Connection();
+            if (Connection == null)
+                Connection = new Connection();
+            if (Command == null)
+                Command = new Command();
         }
 
         public Version Version() {
-            return new Version();
+            return new Version() { Database = this };
         }
 
-        String[] strings;
         public void Add(string[] strings) {
-            this.strings = strings;
+            Command.Reader.Add(strings);
         }
     }
 
