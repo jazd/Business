@@ -12,11 +12,8 @@ namespace Core.SQLite
             }
         }
 
-        public IConnection Connection { get; internal set; }
-        public ICommand Command { get; internal set; }
-
         public string GetString(int i) {
-            return SQLiteReader.GetString(i);
+            return SQLiteReader.IsDBNull(i) ? null : SQLiteReader.GetString(i);
         }
 
         public void Read() {
