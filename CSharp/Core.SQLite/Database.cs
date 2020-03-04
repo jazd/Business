@@ -6,10 +6,10 @@ namespace Core.SQLite
 {
     public class Database : IDatabase
     {
-        private Profile Profile;
+        private readonly Profile Profile;
 
         public Database(Profile profile) {
-            this.Profile = profile;
+            Profile = profile;
         }
 
         SqliteConnection SQLiteConnection { get; set; }
@@ -20,7 +20,7 @@ namespace Core.SQLite
         void IDatabase.Connect() {
             SQLiteConnection = new SqliteConnection($"Filename={Profile?.SQLiteDatabasePath}");
             Connection = new Connection() { SQLiteConnection = SQLiteConnection };
-            Command = new Command { Connection = Connection, SQLiteConnection = SQLiteConnection };
+            Command = new Command { SQLiteConnection = SQLiteConnection };
         }
 
         public Version Version() {
