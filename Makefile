@@ -45,12 +45,15 @@ schema.pgsql: schema.xml
 	sqlt -f XML-SQLFairy -t PostgreSQL $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "s/DROP TABLE /DROP TABLE IF EXISTS /g" | sed -e "s/DROP VIEW /DROP VIEW IF EXISTS /g" >> $@
 	chmod -w $@
 
+NUODB_UNSUPORTED_VIEWS = IndividualURL IndividualEmailAddress
 schema.nuodb: schema.xml
 	@echo Creating NuoDB file $@
+	scripts/excludeView.pl $< $(NUODB_UNSUPORTED_VIEWS) > $<.excludeSomeViews
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	sqlt -f XML-SQLFairy -t NuoDB $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e 's|lock|"lock"|g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "/--/d" | sed -e "s/CROSS /INNER /g" | sed -e "s/bool_AND/MIN/g" >> $@
+	sqlt -f XML-SQLFairy -t NuoDB $(DROP_TABLE) $<.excludeSomeViews | sed -e 's|["'\'']||g' | sed -e 's|lock|"lock"|g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "/--/d" | sed -e "s/CROSS /INNER /g" | sed -e "s/bool_AND/MIN/g" >> $@
 	chmod -w $@
+	rm -f $<.excludeSomeViews
 
 schema.mysql: schema.xml
 	@echo Creating MySQL file $@

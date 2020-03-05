@@ -1,12 +1,15 @@
 -- No need for UPPER() calls in NuoDB
 ALTER TABLE Culture ALTER COLUMN name COLLATE case_insensitive;
+
+DROP INDEX word_id_culture_value;
 ALTER TABLE Word ALTER COLUMN value COLLATE case_insensitive;
+CREATE UNIQUE INDEX word_id_culture_value ON Word (id, culture, value);
 CREATE INDEX Word_culture_value ON Word (culture,value);
 CREATE INDEX Word_value ON Word (value);
 
-DROP INDEX SENTENCE_CULTURE_VALUE;
+DROP INDEX SENTENCE_ID_CULTURE_VALUE;
 ALTER TABLE Sentence ALTER COLUMN value COLLATE case_insensitive;
-CREATE INDEX Sentence_culture_value ON Sentence(culture,value);
+CREATE INDEX Sentence_id_culture_value ON Sentence(culture,value);
 CREATE INDEX Sentence_value ON Sentence(value);
 
 ALTER TABLE Country ALTER COLUMN code COLLATE case_insensitive;
