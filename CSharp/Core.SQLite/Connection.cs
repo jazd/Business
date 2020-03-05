@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Data.Sqlite;
 
-namespace Core.SQLite
+namespace Business.Core.SQLite
 {
     public class Connection : IConnection, IDisposable
     {

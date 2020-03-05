@@ -1,5 +1,5 @@
 ﻿using System;
-using Core;
+using Business.Core;
 
 namespace Version
 {
@@ -9,7 +9,7 @@ namespace Version
             Console.WriteLine("Hello World!");
             var profile = new Profile();
 
-            var database = new Core.SQLite.Database(profile);
+            var database = new Business.Core.SQLite.Database(profile);
             Console.WriteLine(database.Version());
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace Core
+﻿namespace Business.Core
 {
     public class Version
     {

@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Core.Fake
+namespace Business.Core.Fake
 {
     public class Connection : IConnection, IDisposable
     {

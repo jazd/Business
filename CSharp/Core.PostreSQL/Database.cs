@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace Core.PostreSQL
+namespace Business.Core.PostreSQL
 {
     public class Database { }
 }

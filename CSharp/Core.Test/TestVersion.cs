@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-namespace Core.Test
+namespace Business.Core.Test
 {
 
     [TestFixture]
