@@ -133,9 +133,6 @@
  <field name="utc_offset" data_type="interval" size="" is_nullable="0" is_auto_increment="0" order="3" />
  <field name="is_dst" data_type="smallint" size="1" is_nullable="0" order="4" />
 </fields>
-<indices>
- <index name="timezone_name" type="UNIQUE" fields="name" />
-</indices>
 </table>
 
 <table name="Area" order="300">
