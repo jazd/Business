@@ -20,7 +20,7 @@ ifeq ($(NuoDBPassword),)
 NuoDBPassword = secret
 endif
 
-NuoSQLCommand = nuosql $(NuoDBDatabase)@$(NuoDBServer) --user $(NuoDBUser) --password $(NuoDBPassword) --schema Business --conection-property timezone=Etc/GMT
+NuoSQLCommand = nuosql $(NuoDBDatabase)@$(NuoDBServer) --user $(NuoDBUser) --password $(NuoDBPassword) --schema Business --connection-property timezone=Etc/GMT
 NuoDBLoad = $(NuoSQLCommand) 3>&1 1>&2 2>&3 3>&- 1>/dev/null
 
 TARGETS = schema.pgsql schema.mysql schema.sqlite schema.db2
