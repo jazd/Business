@@ -8,9 +8,13 @@ namespace Version
         public static void Main(string[] args) {
             Console.WriteLine("Hello World!");
             var profile = new Profile();
+            var sqlitedatabase = new Business.Core.SQLite.Database(profile);
+            Console.WriteLine($"SQLite\t\t{sqlitedatabase.Version()}");
+            sqlitedatabase.Connection.Close();
 
-            var database = new Business.Core.SQLite.Database(profile);
-            Console.WriteLine(database.Version());
+            var pgsqldatabase = new Business.Core.PostgreSQL.Database(profile);
+            Console.WriteLine($"PostgreSQL\t{pgsqldatabase.Version()}");
+            pgsqldatabase.Connection.Close();
         }
     }
 }

@@ -19,6 +19,5 @@ namespace Business.Core.SQLite
         public void Read() {
             SQLiteReader.Read();
         }
-
     }
 }

@@ -11,6 +11,10 @@ namespace Business.Core
             }
         }
 
+        public string PostgreSQLHost { get { return "postgresql"; } }
+        public string PostgreSQLDatabase { get { return "MyCo"; } }
+        public string PostgreSQLUser { get { return "test"; } }
+
         public Profile() {
         }
     }
