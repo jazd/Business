@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Core
+namespace Business.Core
 {
     public class Profile {
         public string SQLiteDatabasePath {

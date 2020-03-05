@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Core.SchemaVersion
+namespace Business.Core.SchemaVersion
 {
     public class SchemaVersion
     {

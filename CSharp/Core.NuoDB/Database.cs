@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Core.NuoDB
+namespace Business.Core.NuoDB
 {
     public class Database { }
 }

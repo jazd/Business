@@ -1,4 +1,4 @@
-﻿namespace Core.Fake
+﻿namespace Business.Core.Fake
 {
     public class Command : ICommand
     {

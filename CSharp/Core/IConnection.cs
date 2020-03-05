@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Core
+namespace Business.Core
 {
     public interface IConnection : IDisposable
     {
