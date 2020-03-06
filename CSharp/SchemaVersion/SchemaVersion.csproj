@@ -76,6 +76,10 @@
     <Reference Include="Npgsql">
       <HintPath>..\packages\Npgsql.4.1.3.1\lib\net461\Npgsql.dll</HintPath>
     </Reference>
+    <Reference Include="NuoDb.Data.Client">
+      <HintPath>..\packages\NuoDb.Data.Client.2.3.0.12\lib\net40\NuoDb.Data.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -93,6 +97,10 @@
     <ProjectReference Include="..\Core.PostreSQL\Core.PostreSQL.csproj">
       <Project>{A40DBEB9-DF8B-4E1A-91D1-B862A6F65075}</Project>
       <Name>Core.PostreSQL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core.NuoDB\Core.NuoDB.csproj">
+      <Project>{95B1D071-F2E3-4CEA-98E7-0AB99D72B3B4}</Project>
+      <Name>Core.NuoDB</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
