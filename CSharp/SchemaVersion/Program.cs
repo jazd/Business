@@ -15,6 +15,10 @@ namespace Version
             var pgsqldatabase = new Business.Core.PostgreSQL.Database(profile);
             Console.WriteLine($"PostgreSQL\t{pgsqldatabase.Version()}");
             pgsqldatabase.Connection.Close();
+
+            var nuodbdatabase = new Business.Core.NuoDB.Database(profile);
+            Console.WriteLine($"NuoDB\t\t{nuodbdatabase.Version()}");
+            nuodbdatabase.Connection.Close();
         }
     }
 }

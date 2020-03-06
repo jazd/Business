@@ -3,13 +3,17 @@ schemaNotes.txt
 schemaNotesNuoDB.txt
 sqlServer.txt
 # Targets
-*.pgsql
-*.mysql
-*.sqlite
-*.sqlite3
-*.db2
-*.oracle
-*.sqlserver
-*.nuodb
+schema.pgsql
+schema.mysql
+schema.sqlite
+schema.sqlite3
+schema.db2
+schema.oracle
+schema.sqlserver
+schema.nuodb
+business.sqlite3
+# OS Files
+.DS_Store
 # Temporary files
 *~
+*.swp
