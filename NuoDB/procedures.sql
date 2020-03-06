@@ -1875,4 +1875,139 @@ END_FUNCTION;
 SET DELIMITER ;
 
 
+-- Double Entry Accounting functions
+--
+-- Book single amounts into double entry Journal
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION Book (
+ inBook STRING,
+ inAmount FLOAT
+) RETURNS INTEGER AS
+VAR book_id = (
+ SELECT book
+ FROM BookName
+ WHERE BookName.name = GetSentence(inBook)
+ LIMIT 1
+);
+
+INSERT INTO Entry (assemblyApplicationRelease,credential) VALUES (NULL, NULL);
+VAR entry_id = LAST_INSERT_ID();
+
+INSERT INTO JournalEntry (journal, book, entry,  account, credit, amount)
+SELECT journal,
+ book,
+ entry_id AS entry,
+ increase AS account,
+ NOT (increaseCredit) AS credit,
+ (inAmount * increaseCreditIncrease) * split AS amount
+FROM Books
+WHERE Books.book = book_id
+ AND inAmount * increaseCreditIncrease IS NOT NULL
+UNION ALL
+SELECT journal,
+ book,
+ entry_id AS entry,
+ increase AS account,
+ increaseCredit AS credit,
+ (inAmount * increaseDebitIncrease) * split AS amount
+FROM Books
+WHERE Books.book = book_id
+ AND inAmount * increaseDebitIncrease IS NOT NULL
+UNION ALL
+SELECT journal,
+ book,
+ entry_id AS entry,
+ decrease AS account,
+ NOT decreaseCredit AS credit,
+ (inAmount * decreaseCreditDecrease) * split AS amount
+FROM Books
+WHERE Books.book = book_id
+ AND inAmount * decreaseCreditDecrease IS NOT NULL
+UNION ALL
+SELECT journal,
+ book,
+ entry_id AS entry,
+ decrease AS account,
+ decreaseCredit AS credit,
+ (inAmount * decreaseDebitDecrease) * split AS amount
+FROM Books
+WHERE Books.book = book_id
+ AND inAmount * decreaseDebitDecrease IS NOT NULL
+;
+
+RETURN entry_id;
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+-- Book and return new balances
+SET DELIMITER @
+CREATE OR REPLACE FUNCTION BookBalance (
+ inBook STRING,
+ inAmount FLOAT
+) RETURNS TABLE BookBalance (
+ book INTEGER,
+ entry INTEGER,
+ account INTEGER,
+ nameId INTEGER,
+ name STRING,
+ rightside BOOLEAN,
+ type INTEGER,
+ typeName STRING,
+ debit FLOAT,
+ credit FLOAT
+) AS
+VAR book_id = (
+ SELECT BookName.book
+ FROM BookName
+ WHERE BookName.name = GetSentence(inBook)
+ LIMIT 1
+);
+
+VAR entry_id = Book(inBook, inAmount);
+
+RETURN (
+ SELECT book_id AS book,
+  entry_id AS entry,
+  Transactions.account,
+  AccountName.name AS nameId,
+  Sentence.value AS name,
+  AccountName.credit AS rightside,
+  AccountName.type,
+  Word.value AS typeName,
+  SUM(Transactions.debit) AS debit,
+  SUM(transactions.credit) AS credit
+ FROM (
+  SELECT JournalEntry.account,
+   CASE WHEN NOT JournalEntry.credit THEN
+    JournalEntry.amount
+   END AS debit,
+   CASE WHEN JournalEntry.credit THEN
+    JournalEntry.amount
+   END AS credit
+  FROM JournalEntry
+  WHERE JournalEntry.account IN (
+   SELECT DISTINCT JournalEntry.account
+   FROM JournalEntry
+   WHERE JournalEntry.entry = entry_id
+    AND posted IS NULL
+  ) AND JournalEntry.posted IS NULL
+ ) AS Transactions
+ JOIN AccountName ON AccountName.account = Transactions.account
+ JOIN Word ON Word.id = AccountName.type
+  AND Word.culture = 1033
+ JOIN Sentence ON Sentence.id = AccountName.name
+  AND Sentence.culture = 1033
+ GROUP BY Transactions.account, AccountName.name, AccountName.credit, AccountName.type, Word.value, Sentence.value
+);
+END_FUNCTION;
+@
+SET DELIMITER ;
+
+
+-- Inventory Movement
+--
+
+
 -- Procedures
