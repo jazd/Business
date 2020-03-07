@@ -6,7 +6,7 @@ namespace Business.Core.Fake
 {
     public class Database : IDatabase
     {
-        private Profile Profile;
+        private Profile.Profile Profile;
 
         public Connection Connection { get; set; }
 
@@ -15,7 +15,7 @@ namespace Business.Core.Fake
         IConnection IDatabase.Connection { get => Connection; set => throw new NotImplementedException(); }
         ICommand IDatabase.Command => Command;
 
-        public Database(Profile profile) {
+        public Database(Profile.Profile profile) {
             this.Profile = profile;
         }
 

@@ -1,5 +1,5 @@
 ﻿using System;
-using Business.Core;
+using Business.Core.Profile;
 
 namespace Version
 {

@@ -6,9 +6,9 @@ namespace Business.Core.PostgreSQL
 {
     public class Database : IDatabase
     {
-        private readonly Profile Profile;
+        private readonly Profile.Profile Profile;
 
-        public Database(Profile profile) {
+        public Database(Profile.Profile profile) {
             Profile = profile;
         }
 
@@ -19,7 +19,7 @@ namespace Business.Core.PostgreSQL
 
         void IDatabase.Connect() {
             PostgreSQLConnection = new NpgsqlConnection(
-                $"Host={Profile?.PostgreSQLHost};Username={Profile?.PostgreSQLUser};Database={Profile?.PostgreSQLDatabase}");
+                $"Host={Profile?.PostgreSQLProfile.Host};Username={Profile?.PostgreSQLProfile.User};Database={Profile?.PostgreSQLProfile.Database}");
             Connection = new Connection() { PostgreSQLConnection = PostgreSQLConnection };
             Command = new Command { PostgreSQLConnection = PostgreSQLConnection };
         }

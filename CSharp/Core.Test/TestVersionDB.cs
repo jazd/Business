@@ -7,7 +7,7 @@ namespace Business.Core.Test
     {
         [Test]
         public void NormalFullResult() {
-            var profile = new Profile();
+            var profile = new Profile.Profile();
 
             var database = new Core.Fake.Database(profile);
             database.Connect();
