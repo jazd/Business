@@ -7,6 +7,22 @@
 
 PostgreSQLServer = localhost
 
+ifeq ($(NuoDBDatabase),)
+NuoDBDatabase = MyCo
+endif
+ifeq ($(NuoDBServer),)
+NuoDBServer = localhost
+endif
+ifeq ($(NuoDBUser),)
+NuoDBUser = dba
+endif
+ifeq ($(NuoDBPassword),)
+NuoDBPassword = secret
+endif
+
+NuoSQLCommand = nuosql $(NuoDBDatabase)@$(NuoDBServer) --user $(NuoDBUser) --password $(NuoDBPassword) --schema Business --conection-property timezone=Etc/GMT
+NuoDBLoad = $(NuoSQLCommand) 3>&1 1>&2 2>&3 3>&- 1>/dev/null
+
 TARGETS = schema.pgsql schema.mysql schema.sqlite schema.db2
 
 ifeq ($(DROP_TABLE),)
@@ -83,6 +99,14 @@ pgsqldb: touch-xml schema.pgsql
 	cat Static/[01]_* | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
 	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
 	cat Static/[23456789]_* | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
+
+nuodbdb: export DROP_TABLE = --add-drop-table
+nuodbdb: touch-xml schema.nuodb
+	@echo Creating new NuoDB database with $@
+	cat NuoDB/pre.sql schema.nuodb NuoDB/procedures.sql NuoDB/post.sql | $(NuoDBLoad)
+	cat Static/[01]_* |  $(NuoDBLoad)
+	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | $(NuoDBLoad)
+	cat Static/[23456789]_* | $(NuoDBLoad)
 
 business.sqlite3: schema.sqlite
 ifeq ($(wildcard business.sqlite3),)
