@@ -8,7 +8,7 @@ namespace Business.Core.NuoDB
 
         public bool HasRows {
             get {
-                return NuoDBReader.HasRows;
+                return NuoDBReader.FieldCount > 0;
             }
         }
 
