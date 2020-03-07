@@ -39,10 +39,11 @@ LIMIT 1
 
                 var reader = version.Database.Command.ExecuteReader();
                 if (reader.HasRows) {
-                    reader.Read();
-                    version.Name = reader.GetString(0);
-                    version.Value = reader.GetString(1);
-                    version.Build = reader.GetString(2);
+                    if (reader.Read()) {
+                        version.Name = reader.GetString(0);
+                        version.Value = reader.GetString(1);
+                        version.Build = reader.GetString(2);
+                    }
                 }
 
                 connection.Close();

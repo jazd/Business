@@ -5,7 +5,7 @@ namespace Business.Core
     {
         bool HasRows { get; }
 
-        void Read();
+        bool Read();
         string GetString(int v);
     }
 }

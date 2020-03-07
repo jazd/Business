@@ -17,6 +17,8 @@
             return strings[i];
         }
 
-        public void Read() { }
+        public bool Read() {
+            return true;
+        }
     }
 }
