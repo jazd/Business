@@ -16,8 +16,8 @@ namespace Business.Core.SQLite
             return SQLiteReader.IsDBNull(i) ? null : SQLiteReader.GetString(i);
         }
 
-        public void Read() {
-            SQLiteReader.Read();
+        public bool Read() {
+            return SQLiteReader.Read();
         }
     }
 }

@@ -7,6 +7,6 @@ namespace Business.Core
         ICommand Command { get;}
 
         void Connect();
-        Version Version();
+        Version SchemaVersion();
     }
 }

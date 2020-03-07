@@ -8,6 +8,7 @@ namespace Business.Core.NuoDB
 
         public bool HasRows {
             get {
+                // HasRows basically does not work with the NuoDB library, so almost always return true
                 return NuoDBReader.FieldCount > 0;
             }
         }
@@ -16,8 +17,8 @@ namespace Business.Core.NuoDB
             return NuoDBReader.IsDBNull(i) ? null : NuoDBReader.GetString(i);
         }
 
-        public void Read() {
-            NuoDBReader.Read();
+        public bool Read() {
+            return NuoDBReader.Read();
         }
     }
 }

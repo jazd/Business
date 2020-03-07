@@ -6,9 +6,9 @@ namespace Business.Core.SQLite
 {
     public class Database : IDatabase
     {
-        private readonly Profile Profile;
+        private readonly Profile.Profile Profile;
 
-        public Database(Profile profile) {
+        public Database(Profile.Profile profile) {
             Profile = profile;
         }
 
@@ -23,8 +23,8 @@ namespace Business.Core.SQLite
             Command = new Command { SQLiteConnection = SQLiteConnection };
         }
 
-        public Version Version() {
-            return new Version() { Database = this };
+        public Version SchemaVersion() {
+            return Core.SchemaVersion.Get(this);
         }
     }
 }

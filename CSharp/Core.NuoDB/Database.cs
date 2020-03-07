@@ -6,9 +6,9 @@ namespace Business.Core.NuoDB
 {
     public class Database : IDatabase
     {
-        private readonly Profile Profile;
+        private readonly Profile.Profile Profile;
 
-        public Database(Profile profile) {
+        public Database(Profile.Profile profile) {
             Profile = profile;
         }
 
@@ -19,11 +19,11 @@ namespace Business.Core.NuoDB
 
         void IDatabase.Connect() {
             NuoDbConnectionStringBuilder builder = new NuoDbConnectionStringBuilder {
-                Server = Profile?.NuoDBServer,
-                Database = Profile?.NuoDBDatabase,
-                User = Profile?.NuoDBUser,
-                Password = Profile?.NuoDBPassword,
-                Schema = Profile?.NuoDBSchema
+                Server = Profile?.NuoDBProfile.Server,
+                Database = Profile?.NuoDBProfile.Database,
+                User = Profile?.NuoDBProfile.User,
+                Password = Profile?.NuoDBProfile.Password,
+                Schema = "Business"
             };
 
             NuoDBClientConnection = new NuoDbConnection(builder.ConnectionString);
@@ -31,8 +31,8 @@ namespace Business.Core.NuoDB
             Command = new Command { NuoDBClientConnection = NuoDBClientConnection };
         }
 
-        public Version Version() {
-            return new Version() { Database = this };
+        public Version SchemaVersion() {
+            return Core.SchemaVersion.Get(this);
         }
     }
 }

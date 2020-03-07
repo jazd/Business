@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
+using Newtonsoft;
 
-namespace Business.Core
+namespace Business.Core.Profile
 {
     public class Profile
     {
@@ -12,17 +14,46 @@ namespace Business.Core
             }
         }
 
-        public string PostgreSQLHost { get { return "postgresql"; } }
-        public string PostgreSQLDatabase { get { return "MyCo"; } }
-        public string PostgreSQLUser { get { return "test"; } }
-
-        public string NuoDBServer { get { return "nuodb"; } }
-        public string NuoDBDatabase { get { return "MyCo"; } }
-        public string NuoDBUser { get { return "test"; } }
-        public string NuoDBPassword { get { return "secret"; } }
-        public string NuoDBSchema { get { return "Business"; } }
+        public NuoDB NuoDBProfile { get; set; }
+        public PostgreSQL PostgreSQLProfile { get; set; }
 
         public Profile() {
+            NuoDBProfile = new NuoDB();
+            PostgreSQLProfile = new PostgreSQL();
+
+            var filePath = GetBasePath() + "profile.json";
+            try {
+                Newtonsoft.Json.Linq.JObject profileJSON = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(filePath));
+
+                var nuoDb = profileJSON["NuoDb"];
+                NuoDBProfile = nuoDb?.ToObject<NuoDB>();
+
+
+                var postgreSQL = profileJSON["PostgreSQL"];
+                PostgreSQLProfile = postgreSQL?.ToObject<PostgreSQL>();
+            } catch {
+                // Use the profile object defaults
+            }
         }
+
+        public static string GetBasePath() {
+            return AppDomain.CurrentDomain.RelativeSearchPath ?? AppDomain.CurrentDomain.BaseDirectory;
+        }
+
+    }
+
+    public class NuoDB
+    {
+        public string Server { get; set; } = "nuodb";
+        public string Database { get; set; } = "MyCo";
+        public string User { get; set; } = "test";
+        public string Password { get; set; } = "secret";
+    }
+
+    public class PostgreSQL
+    {
+        public string Host { get; set; } = "postgresql";
+        public string Database { get; set; } = "MyCo";
+        public string User { get; set; } = "test";
     }
 }

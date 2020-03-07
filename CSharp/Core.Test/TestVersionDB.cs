@@ -7,13 +7,13 @@ namespace Business.Core.Test
     {
         [Test]
         public void NormalFullResult() {
-            var profile = new Profile();
+            var profile = new Profile.Profile();
 
             var database = new Core.Fake.Database(profile);
             database.Connect();
 
             database.Add(new string[3] { "Business", "1.2.3", "4" });
-            Assert.AreEqual("Business1.2.3-4", database.Version().ToString());
+            Assert.AreEqual("Business1.2.3-4", database.SchemaVersion().ToString());
         }
     }
 }

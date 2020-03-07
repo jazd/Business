@@ -16,8 +16,8 @@ namespace Business.Core.PostgreSQL
             return PostgreSQLReader.IsDBNull(i) ? null : PostgreSQLReader.GetString(i);
         }
 
-        public void Read() {
-            PostgreSQLReader.Read();
+        public bool Read() {
+            return PostgreSQLReader.Read();
         }
     }
 }
