@@ -24,22 +24,12 @@ namespace Business.Core
             using (var connection = version.Database.Connection) {
                 connection.Open();
 
-                version.Database.Command.CommandText = @"
-SELECT Versions.name,
- Versions.value,
- Word.value AS build
-FROM Versions, SchemaVersion
-JOIN Word ON Word.id = SchemaVersion.build
-AND Word.culture = 1033
-WHERE Versions.version = SchemaVersion.version
-ORDER BY SchemaVersion.build DESC
-LIMIT 1
-;";
+                version.Database.Command.CommandText = SchemaVersionSQL;
 
                 var reader = version.Database.Command.ExecuteReader();
                 if (reader.HasRows) {
                     if (reader.Read()) {
-                        version.Name = reader.GetString(0);
+                        version.Name  = reader.GetString(0);
                         version.Value = reader.GetString(1);
                         version.Build = reader.GetString(2);
                     }
@@ -50,6 +40,18 @@ LIMIT 1
                 return version;
             }
         }
+
+        private const string SchemaVersionSQL = @"
+SELECT Versions.name,
+ Versions.value,
+ Word.value AS build
+FROM Versions, SchemaVersion
+JOIN Word ON Word.id = SchemaVersion.build
+AND Word.culture = 1033
+WHERE Versions.version = SchemaVersion.version
+ORDER BY SchemaVersion.build DESC
+LIMIT 1
+;";
 
     }
 }
