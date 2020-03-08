@@ -1,9 +1,9 @@
 ﻿using System;
 namespace Business.Core
 {
-    public class Book
-    {
-        public Book() {
-        }
-    }
+	public class Book
+	{
+		public Book() {
+		}
+	}
 }
