@@ -31,8 +31,8 @@ namespace Business.Core.NuoDB
             Command = new Command { NuoDBClientConnection = NuoDBClientConnection };
         }
 
-        public Version Version() {
-            return new Version() { Database = this };
+        public Version SchemaVersion() {
+            return Core.SchemaVersion.Get(this);
         }
     }
 }

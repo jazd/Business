@@ -26,8 +26,8 @@ namespace Business.Core.Fake
                 Command = new Command();
         }
 
-        public Version Version() {
-            return new Version() { Database = this };
+        public Version SchemaVersion() {
+            return Core.SchemaVersion.Get(this);
         }
 
         public void Add(string[] strings) {

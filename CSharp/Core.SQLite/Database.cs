@@ -23,8 +23,8 @@ namespace Business.Core.SQLite
             Command = new Command { SQLiteConnection = SQLiteConnection };
         }
 
-        public Version Version() {
-            return new Version() { Database = this };
+        public Version SchemaVersion() {
+            return Core.SchemaVersion.Get(this);
         }
     }
 }

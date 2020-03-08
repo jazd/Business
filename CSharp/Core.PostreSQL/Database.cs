@@ -24,8 +24,8 @@ namespace Business.Core.PostgreSQL
             Command = new Command { PostgreSQLConnection = PostgreSQLConnection };
         }
 
-        public Version Version() {
-            return new Version() { Database = this };
+        public Version SchemaVersion() {
+            return Core.SchemaVersion.Get(this);
         }
     }
 }

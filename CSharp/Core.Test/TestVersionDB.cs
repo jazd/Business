@@ -13,7 +13,7 @@ namespace Business.Core.Test
             database.Connect();
 
             database.Add(new string[3] { "Business", "1.2.3", "4" });
-            Assert.AreEqual("Business1.2.3-4", database.Version().ToString());
+            Assert.AreEqual("Business1.2.3-4", database.SchemaVersion().ToString());
         }
     }
 }
