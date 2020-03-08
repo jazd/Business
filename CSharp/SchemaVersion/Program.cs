@@ -1,4 +1,5 @@
 ﻿using System;
+using Business.Core;
 using Business.Core.Profile;
 
 namespace Version
@@ -8,17 +9,20 @@ namespace Version
         public static void Main(string[] args) {
             Console.WriteLine("Hello World!");
             var profile = new Profile();
-            var sqlitedatabase = new Business.Core.SQLite.Database(profile);
-            Console.WriteLine($"SQLite\t\t{sqlitedatabase.SchemaVersion()}");
-            sqlitedatabase.Connection.Close();
 
-            var pgsqldatabase = new Business.Core.PostgreSQL.Database(profile);
-            Console.WriteLine($"PostgreSQL\t{pgsqldatabase.SchemaVersion()}");
-            pgsqldatabase.Connection.Close();
+            IDatabase database;
 
-            var nuodbdatabase = new Business.Core.NuoDB.Database(profile);
-            Console.WriteLine($"NuoDB\t\t{nuodbdatabase.SchemaVersion()}");
-            nuodbdatabase.Connection.Close();
+            database = new Business.Core.SQLite.Database(profile);
+            Console.WriteLine($"SQLite\t\t{database.SchemaVersion()}");
+            database.Connection.Close();
+
+            database = new Business.Core.PostgreSQL.Database(profile);
+            Console.WriteLine($"PostgreSQL\t{database.SchemaVersion()}");
+            database.Connection.Close();
+
+            database = new Business.Core.NuoDB.Database(profile);
+            Console.WriteLine($"NuoDB\t\t{database.SchemaVersion()}");
+            database.Connection.Close();
         }
     }
 }
