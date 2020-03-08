@@ -4,35 +4,35 @@ using System;
 
 namespace Business.Core.Fake
 {
-    public class Database : IDatabase
-    {
-        private Profile.Profile Profile;
+	public class Database : IDatabase
+	{
+		private Profile.Profile Profile;
 
-        public Connection Connection { get; set; }
+		public Connection Connection { get; set; }
 
-        public Command Command { get; set; }
+		public Command Command { get; set; }
 
-        IConnection IDatabase.Connection { get => Connection; set => throw new NotImplementedException(); }
-        ICommand IDatabase.Command => Command;
+		IConnection IDatabase.Connection { get => Connection; set => throw new NotImplementedException(); }
+		ICommand IDatabase.Command => Command;
 
-        public Database(Profile.Profile profile) {
-            this.Profile = profile;
-        }
+		public Database(Profile.Profile profile) {
+			this.Profile = profile;
+		}
 
-        public void Connect() {
-            if (Connection == null)
-                Connection = new Connection();
-            if (Command == null)
-                Command = new Command();
-        }
+		public void Connect() {
+			if (Connection == null)
+				Connection = new Connection();
+			if (Command == null)
+				Command = new Command();
+		}
 
-        public Version SchemaVersion() {
-            return Core.SchemaVersion.Get(this);
-        }
+		public Version SchemaVersion() {
+			return Core.SchemaVersion.Get(this);
+		}
 
-        public void Add(string[] strings) {
-            Command.Reader.Add(strings);
-        }
-    }
+		public void Add(string[] strings) {
+			Command.Reader.Add(strings);
+		}
+	}
 
 }

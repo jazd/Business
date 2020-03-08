@@ -4,28 +4,28 @@ using Npgsql;
 
 namespace Business.Core.PostgreSQL
 {
-    public class Database : IDatabase
-    {
-        private readonly Profile.Profile Profile;
+	public class Database : IDatabase
+	{
+		private readonly Profile.Profile Profile;
 
-        public Database(Profile.Profile profile) {
-            Profile = profile;
-        }
+		public Database(Profile.Profile profile) {
+			Profile = profile;
+		}
 
-        NpgsqlConnection PostgreSQLConnection { get; set; }
+		NpgsqlConnection PostgreSQLConnection { get; set; }
 
-        public IConnection Connection { get; set; }
-        public ICommand Command { get; set; }
+		public IConnection Connection { get; set; }
+		public ICommand Command { get; set; }
 
-        void IDatabase.Connect() {
-            PostgreSQLConnection = new NpgsqlConnection(
-                $"Host={Profile?.PostgreSQLProfile.Host};Username={Profile?.PostgreSQLProfile.User};Database={Profile?.PostgreSQLProfile.Database}");
-            Connection = new Connection() { PostgreSQLConnection = PostgreSQLConnection };
-            Command = new Command { PostgreSQLConnection = PostgreSQLConnection };
-        }
+		void IDatabase.Connect() {
+			PostgreSQLConnection = new NpgsqlConnection(
+					$"Host={Profile?.PostgreSQLProfile.Host};Username={Profile?.PostgreSQLProfile.User};Database={Profile?.PostgreSQLProfile.Database}");
+			Connection = new Connection() { PostgreSQLConnection = PostgreSQLConnection };
+			Command = new Command { PostgreSQLConnection = PostgreSQLConnection };
+		}
 
-        public Version SchemaVersion() {
-            return Core.SchemaVersion.Get(this);
-        }
-    }
+		public Version SchemaVersion() {
+			return Core.SchemaVersion.Get(this);
+		}
+	}
 }

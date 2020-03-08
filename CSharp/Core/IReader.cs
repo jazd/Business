@@ -1,11 +1,11 @@
 ﻿using System;
 namespace Business.Core
 {
-    public interface IReader
-    {
-        bool HasRows { get; }
+	public interface IReader
+	{
+		bool HasRows { get; }
 
-        bool Read();
-        string GetString(int v);
-    }
+		bool Read();
+		string GetString(int v);
+	}
 }

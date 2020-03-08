@@ -4,35 +4,35 @@ using NuoDb.Data.Client;
 
 namespace Business.Core.NuoDB
 {
-    public class Database : IDatabase
-    {
-        private readonly Profile.Profile Profile;
+	public class Database : IDatabase
+	{
+		private readonly Profile.Profile Profile;
 
-        public Database(Profile.Profile profile) {
-            Profile = profile;
-        }
+		public Database(Profile.Profile profile) {
+			Profile = profile;
+		}
 
-        NuoDbConnection NuoDBClientConnection { get; set; }
+		NuoDbConnection NuoDBClientConnection { get; set; }
 
-        public IConnection Connection { get; set; }
-        public ICommand Command { get; set; }
+		public IConnection Connection { get; set; }
+		public ICommand Command { get; set; }
 
-        void IDatabase.Connect() {
-            NuoDbConnectionStringBuilder builder = new NuoDbConnectionStringBuilder {
-                Server = Profile?.NuoDBProfile.Server,
-                Database = Profile?.NuoDBProfile.Database,
-                User = Profile?.NuoDBProfile.User,
-                Password = Profile?.NuoDBProfile.Password,
-                Schema = "Business"
-            };
+		void IDatabase.Connect() {
+			NuoDbConnectionStringBuilder builder = new NuoDbConnectionStringBuilder {
+				Server = Profile?.NuoDBProfile.Server,
+				Database = Profile?.NuoDBProfile.Database,
+				User = Profile?.NuoDBProfile.User,
+				Password = Profile?.NuoDBProfile.Password,
+				Schema = "Business"
+			};
 
-            NuoDBClientConnection = new NuoDbConnection(builder.ConnectionString);
-            Connection = new Connection() { NuoDBClientConnection = NuoDBClientConnection };
-            Command = new Command { NuoDBClientConnection = NuoDBClientConnection };
-        }
+			NuoDBClientConnection = new NuoDbConnection(builder.ConnectionString);
+			Connection = new Connection() { NuoDBClientConnection = NuoDBClientConnection };
+			Command = new Command { NuoDBClientConnection = NuoDBClientConnection };
+		}
 
-        public Version SchemaVersion() {
-            return Core.SchemaVersion.Get(this);
-        }
-    }
+		public Version SchemaVersion() {
+			return Core.SchemaVersion.Get(this);
+		}
+	}
 }
