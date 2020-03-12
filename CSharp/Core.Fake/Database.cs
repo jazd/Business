@@ -1,6 +1,7 @@
 ﻿// Fake IDatabase, IConnection, ICommand, IReader Wrapper
 //
 using System;
+using System.Net.Sockets;
 
 namespace Business.Core.Fake
 {
@@ -15,6 +16,8 @@ namespace Business.Core.Fake
 		IConnection IDatabase.Connection { get => Connection; set => throw new NotImplementedException(); }
 		ICommand IDatabase.Command => Command;
 
+		public SocketException ConnectionException { get; set; }
+
 		public Database(Profile.Profile profile) {
 			this.Profile = profile;
 		}
@@ -24,6 +27,11 @@ namespace Business.Core.Fake
 				Connection = new Connection();
 			if (Command == null)
 				Command = new Command();
+
+			if (Profile.Log != null && ConnectionException != null) {
+				Profile.Log.Fatal(ConnectionException);
+				throw ConnectionException;
+			}
 		}
 
 		public Version SchemaVersion() {

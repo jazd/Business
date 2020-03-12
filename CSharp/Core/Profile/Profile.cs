@@ -7,6 +7,8 @@ namespace Business.Core.Profile
 {
 	public class Profile
 	{
+		public ILog Log { get; set; }
+
 		public string SQLiteDatabasePath {
 			get {
 				return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
