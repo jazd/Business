@@ -39,6 +39,8 @@
     <Compile Include="TestBook.cs" />
     <Compile Include="TestVersion.cs" />
     <Compile Include="TestVersionDB.cs" />
+    <Compile Include="TestLog.cs" />
+    <Compile Include="TestFakeLog.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">
