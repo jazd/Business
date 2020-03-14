@@ -5,16 +5,26 @@ namespace Business.Core.Fake
 {
 	public class Connection : IConnection, IDisposable
 	{
-	  public Profile.Profile Profile { get; set; }
+		public Profile.Profile Profile { get; set; }
 		public SocketException ConnectionException { get; set; }
+		public Exception Exception { get; set; }
 
 		public Connection() {
 		}
 
 		public void Open() {
-			if (Profile.Log != null && ConnectionException != null) {
-				Profile.Log.Fatal(ConnectionException);
-				throw ConnectionException;
+			if (Profile?.Log != null) {
+				// Socket exceptions
+				if (ConnectionException != null) {
+					Profile.Log.Fatal(ConnectionException);
+					throw ConnectionException;
+				}
+
+				// Database driver exceptions
+				if (Exception != null) {
+					Profile.Log.Fatal(Exception);
+					throw Exception;
+				}
 			}
 		}
 

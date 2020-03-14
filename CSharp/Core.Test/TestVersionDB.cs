@@ -48,6 +48,22 @@ namespace Business.Core.Test
 			Assert.That(log.Output, Contains.Substring(Log.Level.Fatal.ToString()));
 			Assert.That(log.Output, Contains.Substring("refused"));
 		}
+
+		[Test]
+		public void ExceptionLoggingDatabaseAuthenticationFailure() {
+			var log = new Core.Fake.Log();
+			var profile = new Profile.Profile() { Log = log };
+
+			Database = new Fake.Database(profile);
+
+			// Driver specific Exceptions
+			Database.Exception = new System.Exception("Authentication failed");
+			Assert.Throws(typeof(System.Exception), new TestDelegate(HostConnectOpenException));
+
+			Assert.That(log.Output, Contains.Substring(Log.Level.Fatal.ToString()));
+			Assert.That(log.Output, Contains.Substring("Authentication failed"));
+		}
+
 		void HostConnectOpenException() {
 			Database.Connect();
 			Database.Connection.Open();
