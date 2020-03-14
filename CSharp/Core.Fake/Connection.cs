@@ -7,7 +7,7 @@ namespace Business.Core.Fake
 	{
 		public Profile.Profile Profile { get; set; }
 		public SocketException ConnectionException { get; set; }
-		public Exception Exception { get; set; }
+		public Exception DatabaseException { get; set; }
 
 		public Connection() {
 		}
@@ -21,9 +21,9 @@ namespace Business.Core.Fake
 				}
 
 				// Database driver exceptions
-				if (Exception != null) {
-					Profile.Log.Fatal(Exception);
-					throw Exception;
+				if (DatabaseException != null) {
+					Profile.Log.Fatal(DatabaseException);
+					throw DatabaseException;
 				}
 			}
 		}

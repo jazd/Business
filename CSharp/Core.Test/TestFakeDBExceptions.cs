@@ -8,7 +8,7 @@ namespace Business.Core.Test
 		Fake.Database Database;
 
 		[Test]
-		public void ExceptionLoggingHostname() {
+		public void Hostname() {
 			var log = new Core.Fake.Log();
 			var profile = new Profile.Profile() { Log = log };
 
@@ -24,7 +24,7 @@ namespace Business.Core.Test
 		}
 
 		[Test]
-		public void ExceptionLoggingConnectionRefused() {
+		public void ConnectionRefused() {
 			var log = new Core.Fake.Log();
 			var profile = new Profile.Profile() { Log = log };
 
@@ -40,23 +40,46 @@ namespace Business.Core.Test
 		}
 
 		[Test]
-		public void ExceptionLoggingDatabaseAuthenticationFailure() {
+		public void AuthenticationFailure() {
 			var log = new Core.Fake.Log();
 			var profile = new Profile.Profile() { Log = log };
 
 			Database = new Fake.Database(profile);
 
-			// Driver specific Exceptions
-			Database.Exception = new System.Exception("Authentication failed");
+			// Driver specific Exception
+			Database.DatabaseException = new System.Exception("Authentication failed");
 			Assert.Throws(typeof(System.Exception), new TestDelegate(HostConnectOpenException));
 
 			Assert.That(log.Output, Contains.Substring(Log.Level.Fatal.ToString()));
 			Assert.That(log.Output, Contains.Substring("Authentication failed"));
 		}
 
+		[Test]
+		public void CantFindTable() {
+			var log = new Core.Fake.Log();
+			var profile = new Profile.Profile() { Log = log };
+
+			// Driver specific Exception
+			Database = new Fake.Database(profile);
+			Database.CommandException = new System.Exception("can't find table \"VERSIONS\"");
+			Database.Connect();
+			Database.Connection.Open();
+
+			Assert.Throws(typeof(System.Exception), new TestDelegate(ExecuteReaderException));
+
+			Assert.That(log.Output, Contains.Substring(Log.Level.Fatal.ToString()));
+			Assert.That(log.Output, Contains.Substring("VERSIONS"));
+		}
+
 		void HostConnectOpenException() {
 			Database.Connect();
 			Database.Connection.Open();
+		}
+
+		void ExecuteReaderException() {
+			Database.Command.CommandText = "";
+
+			Database.Command.ExecuteReader();
 		}
 	}
 }
