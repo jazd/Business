@@ -6,13 +6,25 @@ namespace Business.Core.Fake
 	{
 		public Profile.Profile Profile { get; set; }
 		public Exception CommandException { get; set; }
+		public Exception ReaderGetException { get; set; }
 
-		public Reader Reader { get; set; }
+		public Reader Reader {
+			get {
+				if (reader == null) {
+					reader = new Reader() {
+						Profile = Profile,
+						ReaderGetException = ReaderGetException
+					};
+				}
+				return reader;
+			}
+			set { reader = value; }
+		}
+		private Reader reader;
+
 		public string CommandText { get; set; }
 
 		public Command() {
-			if (Reader == null)
-				Reader = new Reader();
 		}
 
 		public IReader ExecuteReader() {
