@@ -6,6 +6,7 @@ namespace Business.Core.Test
 	public class TestFakeDatabaseExceptions
 	{
 		Fake.Database Database;
+		Fake.Reader Reader;
 
 		[Test]
 		public void Hostname() {
@@ -71,6 +72,26 @@ namespace Business.Core.Test
 			Assert.That(log.Output, Contains.Substring("VERSIONS"));
 		}
 
+		[Test]
+		public void ReaderGet() {
+			var log = new Core.Fake.Log();
+			var profile = new Profile.Profile() { Log = log };
+
+			// Driver specific Exception
+			Database = new Fake.Database(profile);
+			Database.ReaderGetException = new System.Exception("Before start of result set");
+			Database.Connect();
+			Database.Connection.Open();
+			Database.Command.CommandText = "";
+			Reader = (Fake.Reader)Database.Command.ExecuteReader();
+			Reader.Read();
+
+			Assert.Throws(typeof(System.Exception), new TestDelegate(ReadGetException));
+
+			Assert.That(log.Output, Contains.Substring(Log.Level.Error.ToString()));
+			Assert.That(log.Output, Contains.Substring("Before start"));
+		}
+
 		void HostConnectOpenException() {
 			Database.Connect();
 			Database.Connection.Open();
@@ -78,8 +99,11 @@ namespace Business.Core.Test
 
 		void ExecuteReaderException() {
 			Database.Command.CommandText = "";
-
 			Database.Command.ExecuteReader();
+		}
+
+		void ReadGetException() {
+			Reader.GetString(0);
 		}
 	}
 }

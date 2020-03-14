@@ -19,6 +19,7 @@ namespace Business.Core.Fake
 		public SocketException ConnectionException { get; set; }
 		public Exception DatabaseException { get; set; }
 		public Exception CommandException { get; set; }
+		public Exception ReaderGetException { get; set; }
 
 		public Database(Profile.Profile profile) {
 			this.Profile = profile;
@@ -35,7 +36,8 @@ namespace Business.Core.Fake
 			if (Command == null)
 				Command = new Command() {
 					Profile = Profile,
-					CommandException = CommandException
+					CommandException = CommandException,
+					ReaderGetException = ReaderGetException
 				};
 		}
 
