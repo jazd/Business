@@ -17,6 +17,7 @@ namespace Business.Core.Fake
 		ICommand IDatabase.Command => Command;
 
 		public SocketException ConnectionException { get; set; }
+		public Exception Exception { get; set; }
 
 		public Database(Profile.Profile profile) {
 			this.Profile = profile;
@@ -26,7 +27,9 @@ namespace Business.Core.Fake
 			if (Connection == null)
 				Connection = new Connection() {
 					Profile = Profile,
-					ConnectionException = ConnectionException };
+					ConnectionException = ConnectionException,
+					Exception = Exception
+				};
 			if (Command == null)
 				Command = new Command();
 		}
