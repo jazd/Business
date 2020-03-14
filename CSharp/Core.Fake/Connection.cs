@@ -1,12 +1,23 @@
 ﻿using System;
+using System.Net.Sockets;
+
 namespace Business.Core.Fake
 {
 	public class Connection : IConnection, IDisposable
 	{
+	  public Profile.Profile Profile { get; set; }
+		public SocketException ConnectionException { get; set; }
+
 		public Connection() {
 		}
 
-		public void Open() { }
+		public void Open() {
+			if (Profile.Log != null && ConnectionException != null) {
+				Profile.Log.Fatal(ConnectionException);
+				throw ConnectionException;
+			}
+		}
+
 		public void Close() { }
 
 		#region IDisposable Support

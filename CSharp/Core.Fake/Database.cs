@@ -7,7 +7,7 @@ namespace Business.Core.Fake
 {
 	public class Database : IDatabase
 	{
-		private Profile.Profile Profile;
+		private Profile.Profile Profile { get; set; }
 
 		public Connection Connection { get; set; }
 
@@ -24,14 +24,11 @@ namespace Business.Core.Fake
 
 		public void Connect() {
 			if (Connection == null)
-				Connection = new Connection();
+				Connection = new Connection() {
+					Profile = Profile,
+					ConnectionException = ConnectionException };
 			if (Command == null)
 				Command = new Command();
-
-			if (Profile.Log != null && ConnectionException != null) {
-				Profile.Log.Fatal(ConnectionException);
-				throw ConnectionException;
-			}
 		}
 
 		public Version SchemaVersion() {
