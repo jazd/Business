@@ -29,10 +29,10 @@ namespace Business.Core.Test
 		public void DataReadError() {
 			var log = new Core.Fake.Log();
 			var profile = new Profile.Profile() { Log = log };
-			var database = new Fake.Database(profile);
-
-			// Driver specific Exception
-			database.ReaderGetException = new System.Exception("Before start of result set");
+			var database = new Fake.Database(profile) {
+				// Driver specific Exception
+				ReaderGetException = new System.Exception("Before start of result set")
+			};
 			database.Connect();
 
 			database.Add(new string[3] { "Business", "1.2.3", "4" });

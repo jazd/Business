@@ -13,11 +13,12 @@ namespace Business.Core.Test
 			var log = new Core.Fake.Log();
 			var profile = new Profile.Profile() { Log = log };
 
-			Database = new Fake.Database(profile);
+			Database = new Fake.Database(profile) {
+				// Could not resolve host 'hostname'
+				// https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
+				ConnectionException = new System.Net.Sockets.SocketException(11001)
+			};
 
-			// Could not resolve host 'hostname'
-			// https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
-			Database.ConnectionException = new System.Net.Sockets.SocketException(11001);
 			Assert.Throws(typeof(System.Net.Sockets.SocketException), new TestDelegate(HostConnectOpenException));
 
 			Assert.That(log.Output, Contains.Substring(Log.Level.Fatal.ToString()));
@@ -29,11 +30,12 @@ namespace Business.Core.Test
 			var log = new Core.Fake.Log();
 			var profile = new Profile.Profile() { Log = log };
 
-			Database = new Fake.Database(profile);
+			Database = new Fake.Database(profile) {
+				// Could not resolve host 'hostname'
+				// https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
+				ConnectionException = new System.Net.Sockets.SocketException(10061)
+			};
 
-			// Could not resolve host 'hostname'
-			// https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
-			Database.ConnectionException = new System.Net.Sockets.SocketException(10061);
 			Assert.Throws(typeof(System.Net.Sockets.SocketException), new TestDelegate(HostConnectOpenException));
 
 			Assert.That(log.Output, Contains.Substring(Log.Level.Fatal.ToString()));
@@ -45,10 +47,11 @@ namespace Business.Core.Test
 			var log = new Core.Fake.Log();
 			var profile = new Profile.Profile() { Log = log };
 
-			Database = new Fake.Database(profile);
+			Database = new Fake.Database(profile) {
+				// Driver specific Exception
+				DatabaseException = new System.Exception("Authentication failed")
+			};
 
-			// Driver specific Exception
-			Database.DatabaseException = new System.Exception("Authentication failed");
 			Assert.Throws(typeof(System.Exception), new TestDelegate(HostConnectOpenException));
 
 			Assert.That(log.Output, Contains.Substring(Log.Level.Fatal.ToString()));
@@ -61,8 +64,9 @@ namespace Business.Core.Test
 			var profile = new Profile.Profile() { Log = log };
 
 			// Driver specific Exception
-			Database = new Fake.Database(profile);
-			Database.CommandException = new System.Exception("can't find table \"VERSIONS\"");
+			Database = new Fake.Database(profile) {
+				CommandException = new System.Exception("can't find table \"VERSIONS\"")
+			};
 			Database.Connect();
 			Database.Connection.Open();
 
@@ -78,8 +82,9 @@ namespace Business.Core.Test
 			var profile = new Profile.Profile() { Log = log };
 
 			// Driver specific Exception
-			Database = new Fake.Database(profile);
-			Database.ReaderGetException = new System.Exception("Before start of result set");
+			Database = new Fake.Database(profile) {
+				ReaderGetException = new System.Exception("Before start of result set")
+			};
 			Database.Connect();
 			Database.Connection.Open();
 			Database.Command.CommandText = "";
