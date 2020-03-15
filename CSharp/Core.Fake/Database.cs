@@ -7,7 +7,7 @@ namespace Business.Core.Fake
 {
 	public class Database : IDatabase
 	{
-		private Profile.Profile Profile { get; set; }
+		public Profile.Profile Profile { get; set; }
 
 		public Connection Connection { get; set; }
 
