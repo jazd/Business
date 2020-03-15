@@ -29,9 +29,14 @@ namespace Business.Core
 				var reader = version.Database.Command.ExecuteReader();
 				if (reader.HasRows) {
 					if (reader.Read()) {
-						version.Name = reader.GetString(0);
-						version.Value = reader.GetString(1);
-						version.Build = reader.GetString(2);
+						try {
+							version.Name = reader.GetString(0);
+							version.Value = reader.GetString(1);
+							version.Build = reader.GetString(2);
+						} catch (Exception ex) {
+							// Some sort of type or data issue
+							version.Database.Profile.Log.Error($"reading Versions: {ex.Message}");
+						}
 					}
 				}
 

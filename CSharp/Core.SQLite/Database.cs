@@ -6,7 +6,7 @@ namespace Business.Core.SQLite
 {
 	public class Database : IDatabase
 	{
-		private readonly Profile.Profile Profile;
+		public Profile.Profile Profile { get; set; }
 
 		public Database(Profile.Profile profile) {
 			Profile = profile;
