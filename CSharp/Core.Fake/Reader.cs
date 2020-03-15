@@ -8,12 +8,14 @@ namespace Business.Core.Fake
 		public Exception ReaderGetException { get; set; }
 
 		string[] strings;
-		bool IReader.HasRows => true;
 
-		public Reader() {
+		public bool HasRows {
+			get {
+				if (strings == null)
+					return false;
+				return true;
+			}
 		}
-
-		public bool HasRows { get { return true; } }
 
 		public void Add(string[] strings) {
 			this.strings = strings;

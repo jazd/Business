@@ -15,5 +15,14 @@ namespace Business.Core.Test
 			database.Add(new string[3] { "Business", "1.2.3", "4" });
 			Assert.AreEqual("Business1.2.3-4", database.SchemaVersion().ToString());
 		}
+
+		[Test]
+		public void NoResultFromDatabase() {
+			var profile = new Profile.Profile();
+
+			var database = new Fake.Database(profile);
+			database.Connect();
+			Assert.AreEqual("0.0.0-Nil", database.SchemaVersion().ToString());
+		}
 	}
 }
