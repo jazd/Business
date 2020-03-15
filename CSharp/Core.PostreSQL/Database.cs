@@ -12,6 +12,8 @@ namespace Business.Core.PostgreSQL
 			Profile = profile;
 		}
 
+		public string Type => "PostgreSQL";
+
 		NpgsqlConnection PostgreSQLConnection { get; set; }
 
 		public IConnection Connection { get; set; }

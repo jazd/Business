@@ -12,6 +12,8 @@ namespace Business.Core.SQLite
 			Profile = profile;
 		}
 
+		public string Type => "SQLite";
+
 		SqliteConnection SQLiteConnection { get; set; }
 
 		public IConnection Connection { get; set; }

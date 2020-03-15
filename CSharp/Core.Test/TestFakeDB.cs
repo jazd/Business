@@ -18,5 +18,14 @@ namespace Business.Core.Test
 			var reader = database.Command.ExecuteReader();
 			Assert.IsFalse(reader.HasRows);
 		}
+
+		[Test]
+		public void DatabaseType() {
+			var log = new Core.Fake.Log();
+			var profile = new Profile.Profile() { Log = log };
+
+			var database = new Fake.Database(profile);
+			Assert.AreEqual("Fake", database.Type);
+		}
 	}
 }

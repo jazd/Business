@@ -7,6 +7,8 @@ namespace Business.Core
 		IConnection Connection { get; set; }
 		ICommand Command { get; }
 
+		String Type { get; }
+
 		void Connect();
 		Version SchemaVersion();
 	}

@@ -12,6 +12,8 @@ namespace Business.Core.NuoDB
 			Profile = profile;
 		}
 
+		public string Type => "NuoDB";
+
 		NuoDbConnection NuoDBClientConnection { get; set; }
 
 		public IConnection Connection { get; set; }

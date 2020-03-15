@@ -13,6 +13,7 @@
     <Folder Include="Profile\" />
     <Folder Include="Version\" />
     <Folder Include="SchemaVersion\" />
+    <Folder Include="Individual\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
