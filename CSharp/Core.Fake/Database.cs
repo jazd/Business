@@ -13,6 +13,8 @@ namespace Business.Core.Fake
 
 		public Command Command { get; set; }
 
+		public string Type => "Fake";
+
 		IConnection IDatabase.Connection { get => Connection; set => throw new NotImplementedException(); }
 		ICommand IDatabase.Command => Command;
 
