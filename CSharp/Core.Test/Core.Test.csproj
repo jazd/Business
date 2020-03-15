@@ -43,6 +43,8 @@
     <Compile Include="TestFakeLog.cs" />
     <Compile Include="TestFakeDBExceptions.cs" />
     <Compile Include="TestFakeDB.cs" />
+    <Compile Include="TestIndividual.cs" />
+    <Compile Include="TestIndividualDB.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">

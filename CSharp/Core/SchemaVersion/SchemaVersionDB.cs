@@ -35,7 +35,7 @@ namespace Business.Core
 							version.Build = reader.GetString(2);
 						} catch (Exception ex) {
 							// Some sort of type or data issue
-							version.Database.Profile.Log.Error($"reading Versions: {ex.Message}");
+							version.Database.Profile.Log?.Error($"reading Versions: {ex.Message}");
 						}
 					}
 				}
