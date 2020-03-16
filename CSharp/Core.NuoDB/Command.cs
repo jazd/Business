@@ -1,4 +1,5 @@
 using NuoDb.Data.Client;
+using System.Collections.Generic;
 using System.Data.Common;
 
 namespace Business.Core.NuoDB
@@ -6,6 +7,8 @@ namespace Business.Core.NuoDB
 	public class Command : ICommand
 	{
 		IReader Reader { get; set; }
+		public List<Parameter> Parameters { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+
 		public NuoDbConnection NuoDBClientConnection { get; set; }
 		public NuoDbCommand NuoDBClientCommand { get; set; }
 		public DbDataReader NuoDBReader { get; set; }

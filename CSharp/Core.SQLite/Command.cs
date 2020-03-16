@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using System.Collections.Generic;
 
 namespace Business.Core.SQLite
 {
@@ -8,9 +9,12 @@ namespace Business.Core.SQLite
 		public SqliteConnection SQLiteConnection { get; set; }
 		public SqliteCommand SQLiteCommand { get; set; }
 		public SqliteDataReader SQLiteReader { get; set; }
+		public List<Parameter> Parameters { get; set; }
+
 
 		public Command() {
 			SQLiteCommand = new SqliteCommand();
+			Parameters = new List<Parameter>();
 		}
 
 		public string CommandText {
@@ -24,6 +28,9 @@ namespace Business.Core.SQLite
 
 		public IReader ExecuteReader() {
 			SQLiteCommand.Connection = SQLiteConnection;
+			foreach(var parameter in Parameters) {
+				SQLiteCommand.Parameters.Add(new SqliteParameter(parameter.Name, parameter.Value));
+			}
 			SQLiteReader = SQLiteCommand.ExecuteReader();
 			Reader = new Reader() { SQLiteReader = SQLiteReader };
 			return Reader;
