@@ -28,17 +28,9 @@ namespace Business.Core
 			if (Database != null) {
 				Database.Connect();
 				Database.Connection.Open();
-				string sql;
 
-				if (Database.Type == "SQLite") {
-					// Don't use VIEW with SQLite
-					sql = @"";
-				} else {
-					// Use VIEW
-					sql = @"SELECT fullname, goesBy FROM People WHERE individual = @";
-				}
-				Database.Command.CommandText = sql;
-				//Database.Command.Parameters.Add(id);
+				Database.Command.CommandText = @"SELECT fullname, goesBy FROM People WHERE individual = @id";
+				Database.Command.Parameters.Add(new Parameter() { Name= "@id", Value = 3 });
 				var reader = Database.Command.ExecuteReader();
 				if (reader.HasRows) {
 					if (reader.Read()) {

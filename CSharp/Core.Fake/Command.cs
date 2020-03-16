@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Business.Core.Fake
 {
@@ -7,6 +8,7 @@ namespace Business.Core.Fake
 		public Profile.Profile Profile { get; set; }
 		public Exception CommandException { get; set; }
 		public Exception ReaderGetException { get; set; }
+		public List<Parameter> Parameters { get; set; }
 
 		public Reader Reader {
 			get {
@@ -25,6 +27,7 @@ namespace Business.Core.Fake
 		public string CommandText { get; set; }
 
 		public Command() {
+			Parameters = new List<Parameter>();
 		}
 
 		public IReader ExecuteReader() {
