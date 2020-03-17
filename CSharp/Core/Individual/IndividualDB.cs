@@ -23,7 +23,7 @@ namespace Business.Core
 				Database.Connection.Open();
 
 				Database.Command.CommandText = GetIndividualSQL;
-				Database.Command.Parameters.Add(new Parameter() { Name= "@id", Value = 3 });
+				Database.Command.Parameters.Add(new Parameter() { Name= "@id", Value = id });
 				var reader = Database.Command.ExecuteReader();
 				if (reader.HasRows) {
 					if (reader.Read()) {
@@ -40,9 +40,17 @@ namespace Business.Core
 		}
 
 		private const string GetIndividualSQL = @"
-SELECT fullname, goesBy
-FROM People
-WHERE individual = @id
+SELECT fullname, goesBY
+FROM (
+ SELECT fullname, goesBy
+ FROM People
+ WHERE individual = @id
+ UNION
+ SELECT name AS fullname, goesBy
+ FROM Entities
+ WHERE individual = @id
+) AS Individual
+LIMIT 1
 ";
 	}
 }
