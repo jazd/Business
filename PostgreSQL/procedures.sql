@@ -2270,6 +2270,73 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Book and return new balances
+CREATE OR REPLACE FUNCTION BookBalance (
+ inBook varchar,
+ inAmount FLOAT
+) RETURNS TABLE (
+ book integer,
+ entry integer,
+ account integer,
+ nameId integer,
+ name varchar,
+ rightside boolean,
+ type integer,
+ typeName varchar,
+ debit float,
+ credit float
+) AS $$
+DECLARE
+ book_id integer;
+ entry_id integer;
+BEGIN
+ book_id := (
+  SELECT BookName.book
+  FROM BookName
+  WHERE BookName.name = GetSentence(inBook)
+  LIMIT 1
+ );
+
+ entry_id := Book(inBook, inAmount);
+
+ RETURN QUERY
+  SELECT book_id AS book,
+   entry_id AS entry,
+   Transactions.account,
+   AccountName.name AS nameId,
+   Sentence.value AS name,
+   AccountName.credit AS rightside,
+   AccountName.type,
+   Word.value AS typeName,
+   SUM(Transactions.debit) AS debit,
+   SUM(transactions.credit) AS credit
+  FROM (
+   SELECT JournalEntry.account,
+    CASE WHEN NOT JournalEntry.credit THEN
+     JournalEntry.amount
+    END AS debit,
+    CASE WHEN JournalEntry.credit THEN
+     JournalEntry.amount
+    END AS credit
+   FROM JournalEntry
+   WHERE JournalEntry.account IN (
+    SELECT DISTINCT JournalEntry.account
+    FROM JournalEntry
+    WHERE JournalEntry.entry = entry_id
+     AND posted IS NULL
+   ) AND JournalEntry.posted IS NULL
+  ) AS Transactions
+  JOIN AccountName ON AccountName.account = Transactions.account
+  JOIN Word ON Word.id = AccountName.type
+   AND Word.culture = 1033
+  JOIN Sentence ON Sentence.id = AccountName.name
+   AND Sentence.culture = 1033
+  GROUP BY Transactions.account, AccountName.name, AccountName.credit, AccountName.type, Word.value, Sentence.value
+  ;
+END;
+$$ LANGUAGE plpgsql;
+
+
 -- Inventory Movement
 --
 CREATE OR REPLACE FUNCTION CreateBill (
