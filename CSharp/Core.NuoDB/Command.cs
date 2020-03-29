@@ -1,4 +1,6 @@
 using NuoDb.Data.Client;
+using System.Text;
+using System.Linq;
 using System.Collections.Generic;
 using System.Data.Common;
 
@@ -41,15 +43,25 @@ namespace Business.Core.NuoDB
 		private void MakeReady() {
 			NuoDBClientCommand.Connection = NuoDBClientConnection;
 			if (Parameters.Count > 0) {
-				// NuoDB uses ? for parameters in order, so new convert SQL Command Text
-				// TODO analize SQL to get actual order and repeats
-				// For now us super simple and not efficient assumint parameters are in order and no repeats
-				var sql = NuoDBClientCommand.CommandText;
-				foreach (var parameter in Parameters) {
-					sql = sql.Replace(parameter.Name, "?");
-					NuoDBClientCommand.Parameters.Add(parameter.Value);
+				// NuoDB uses ? for parameters in order, so convert SQL Command Text
+				List<object> parametersInOrder = new List<object>();
+				StringBuilder newSQL = new StringBuilder();
+				// Convert parameter @<name> to just ? and add parameter to an ordered list
+				var names = NuoDBClientCommand.CommandText.Split('@');
+				newSQL.Append(names[0]);
+				for (var segment = 1; segment < names.Length; segment++) {
+					// replace parameter name with ?
+					newSQL.Append('?');
+					// remove parameter name from front of string segment
+					var i = names[segment].TakeWhile(char.IsLetterOrDigit).Count();
+					newSQL.Append(names[segment].Substring(i));
+					// Add the value to an ordered list
+					parametersInOrder.Add(Parameters.Find(n => n.Name == "@" + names[segment].Substring(0,i))?.Value);
 				}
-				NuoDBClientCommand.CommandText = sql;
+				NuoDBClientCommand.CommandText = newSQL.ToString();
+				foreach (var parameterValue in parametersInOrder) {
+					NuoDBClientCommand.Parameters.Add(parameterValue);
+				}
 			}
 		}
 	}
