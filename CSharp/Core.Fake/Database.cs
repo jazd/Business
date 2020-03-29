@@ -47,6 +47,10 @@ namespace Business.Core.Fake
 			return Core.SchemaVersion.Get(this);
 		}
 
+		public UInt32? Book(string Name, float Amount) {
+			return Core.Function.Book(this, Name, Amount);
+		}
+
 		public void Add(string[] strings) {
 			Command.Reader.Add(strings);
 		}
