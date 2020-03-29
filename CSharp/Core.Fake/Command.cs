@@ -43,5 +43,9 @@ namespace Business.Core.Fake
 		public object ExecuteScalar() {
 			return Reader.Value;
 		}
+
+		public int ExecuteNonQuery() {
+			throw new NotImplementedException();
+		}
 	}
 }

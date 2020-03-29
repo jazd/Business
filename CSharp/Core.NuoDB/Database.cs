@@ -38,6 +38,7 @@ namespace Business.Core.NuoDB
 			return Core.SchemaVersion.Get(this);
 		}
 
+		// Server-side functions
 		public UInt32? Book(string Name, float Amount) {
 			return Core.Function.Book(this, Name, Amount);
 		}

@@ -2,7 +2,7 @@
 
 namespace Business.Core
 {
-	public class Function
+	public partial class Function
 	{
 		public static UInt32? Book(Core.IDatabase database, string name, float amount) {
 			UInt32? entry = null;

@@ -38,6 +38,12 @@ namespace Business.Core.SQLite
 			return SQLiteCommand.ExecuteScalar();
 		}
 
+
+		public int ExecuteNonQuery() {
+			MakeReady();
+			return SQLiteCommand.ExecuteNonQuery();
+		}
+
 		private void MakeReady() {
 			SQLiteCommand.Connection = SQLiteConnection;
 			foreach (var parameter in Parameters) {

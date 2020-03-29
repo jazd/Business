@@ -8,6 +8,8 @@ namespace Business.Core
 		List<Parameter> Parameters { get; set; }
 
 		IReader ExecuteReader();
-		object ExecuteScalar();
+		object  ExecuteScalar();
+		int     ExecuteNonQuery();
+
 	}
 }

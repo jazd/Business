@@ -39,6 +39,11 @@ namespace Business.Core.PostgreSQL
 			return PostgreSQLCommand.ExecuteScalar();
 		}
 
+
+		public int ExecuteNonQuery() {
+			throw new NotImplementedException();
+		}
+
 		private void MakeReady() {
 			PostgreSQLCommand.Connection = PostgreSQLConnection;
 			foreach (var parameter in Parameters) {
