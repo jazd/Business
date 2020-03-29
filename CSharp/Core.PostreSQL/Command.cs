@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Npgsql;
 
@@ -41,7 +42,12 @@ namespace Business.Core.PostgreSQL
 		private void MakeReady() {
 			PostgreSQLCommand.Connection = PostgreSQLConnection;
 			foreach (var parameter in Parameters) {
-				PostgreSQLCommand.Parameters.Add(new NpgsqlParameter(parameter.Name, parameter.Value));
+				// PostgreSQL does not support UInt64
+				var value = parameter.Value;
+				if (value.GetType().Equals(typeof(UInt64))) {
+					value = Convert.ToInt64(value);
+				}
+				PostgreSQLCommand.Parameters.Add(new NpgsqlParameter(parameter.Name, value));
 			}
 		}
 	}
