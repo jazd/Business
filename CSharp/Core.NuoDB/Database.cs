@@ -1,5 +1,6 @@
 ﻿// NuoDB IDatabase, IConnection, ICommand, IReader Wrapper
 //
+using System;
 using NuoDb.Data.Client;
 
 namespace Business.Core.NuoDB
@@ -35,6 +36,10 @@ namespace Business.Core.NuoDB
 
 		public Version SchemaVersion() {
 			return Core.SchemaVersion.Get(this);
+		}
+
+		public UInt32? Book(string Name, float Amount) {
+			return Core.Function.Book(this, Name, Amount);
 		}
 	}
 }

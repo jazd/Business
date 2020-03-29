@@ -32,5 +32,9 @@ namespace Business.Core.NuoDB
 			Reader = new Reader() { NuoDBReader = NuoDBReader };
 			return Reader;
 		}
+
+		public object ExecuteScalar() {
+			throw new System.NotImplementedException();
+		}
 	}
 }

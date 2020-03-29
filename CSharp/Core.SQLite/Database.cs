@@ -1,5 +1,6 @@
 ﻿// SQLite IDatabase, IConnection, ICommand, IReader Wrapper
 //
+using System;
 using Microsoft.Data.Sqlite;
 
 namespace Business.Core.SQLite
@@ -27,6 +28,10 @@ namespace Business.Core.SQLite
 
 		public Version SchemaVersion() {
 			return Core.SchemaVersion.Get(this);
+		}
+
+		public UInt32? Book(string Name, float Amount) {
+			return Core.Function.Book(this, Name, Amount);
 		}
 	}
 }

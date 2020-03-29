@@ -35,5 +35,9 @@ namespace Business.Core.SQLite
 			Reader = new Reader() { SQLiteReader = SQLiteReader };
 			return Reader;
 		}
+
+		public object ExecuteScalar() {
+			throw new System.NotImplementedException();
+		}
 	}
 }

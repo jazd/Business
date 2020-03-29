@@ -39,5 +39,9 @@ namespace Business.Core.Fake
 
 			return Reader;
 		}
+
+		public object ExecuteScalar() {
+			return Reader.Value;
+		}
 	}
 }

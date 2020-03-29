@@ -12,8 +12,16 @@ namespace Business.Core.SQLite
 			}
 		}
 
+		public uint? GetInt32(int i) {
+			throw new System.NotImplementedException();
+		}
+
 		public string GetString(int i) {
 			return SQLiteReader.IsDBNull(i) ? null : SQLiteReader.GetString(i);
+		}
+
+		public bool IsDBNull(int i) {
+			throw new System.NotImplementedException();
 		}
 
 		public bool Read() {

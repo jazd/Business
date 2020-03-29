@@ -7,18 +7,23 @@ namespace Business.Core.Fake
 		public Profile.Profile Profile { get; set; }
 		public Exception ReaderGetException { get; set; }
 
-		string[] strings;
+		public object Value { get; set; }
+		object[] objects;
 
 		public bool HasRows {
 			get {
-				if (strings == null)
+				if (objects == null)
 					return false;
 				return true;
 			}
 		}
 
 		public void Add(string[] strings) {
-			this.strings = strings;
+			this.objects = strings;
+		}
+
+		public void Add(object[] objects) {
+			this.objects = objects;
 		}
 
 		public string GetString(int i) {
@@ -26,11 +31,27 @@ namespace Business.Core.Fake
 				Profile.Log.Error(ReaderGetException);
 				throw ReaderGetException;
 			}
-			return strings[i];
+			return (string)objects[i];
+		}
+
+		public UInt32? GetInt32(int i) {
+			if (this.HasRows && this.IsDBNull(i))
+				return null;
+
+			return (UInt32?)objects[i];
+		}
+
+
+		public Boolean IsDBNull(int i) {
+			return this.objects[i] == null;
 		}
 
 		public bool Read() {
 			return true;
+		}
+
+		internal void SetValue(object value) {
+			this.Value = value;
 		}
 	}
 }

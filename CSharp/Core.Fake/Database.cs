@@ -51,8 +51,16 @@ namespace Business.Core.Fake
 			return Core.Function.Book(this, Name, Amount);
 		}
 
+		public void SetValue(object value) {
+			Command.Reader.SetValue(value);
+		}
+
 		public void Add(string[] strings) {
 			Command.Reader.Add(strings);
+		}
+
+		public void Add(object[] objects) {
+			Command.Reader.Add(objects);
 		}
 	}
 
