@@ -9,7 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Part\" />
-    <Folder Include="Book\" />
     <Folder Include="Profile\" />
     <Folder Include="Version\" />
     <Folder Include="SchemaVersion\" />

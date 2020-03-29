@@ -36,7 +36,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestPart.cs" />
-    <Compile Include="TestBook.cs" />
     <Compile Include="TestVersion.cs" />
     <Compile Include="TestVersionDB.cs" />
     <Compile Include="TestLog.cs" />
@@ -45,6 +44,7 @@
     <Compile Include="TestFakeDB.cs" />
     <Compile Include="TestIndividual.cs" />
     <Compile Include="TestIndividualDB.cs" />
+    <Compile Include="TestDBFunctions.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">
