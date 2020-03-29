@@ -40,7 +40,7 @@ namespace Business.Core
 		}
 
 		private const string GetIndividualSQL = @"
-SELECT fullname, goesBY
+SELECT fullname, goesBy
 FROM (
  SELECT fullname, goesBy
  FROM People
