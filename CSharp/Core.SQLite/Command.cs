@@ -27,17 +27,22 @@ namespace Business.Core.SQLite
 		}
 
 		public IReader ExecuteReader() {
-			SQLiteCommand.Connection = SQLiteConnection;
-			foreach(var parameter in Parameters) {
-				SQLiteCommand.Parameters.Add(new SqliteParameter(parameter.Name, parameter.Value));
-			}
+			MakeReady();
 			SQLiteReader = SQLiteCommand.ExecuteReader();
 			Reader = new Reader() { SQLiteReader = SQLiteReader };
 			return Reader;
 		}
 
 		public object ExecuteScalar() {
-			throw new System.NotImplementedException();
+			MakeReady();
+			return SQLiteCommand.ExecuteScalar();
+		}
+
+		private void MakeReady() {
+			SQLiteCommand.Connection = SQLiteConnection;
+			foreach (var parameter in Parameters) {
+				SQLiteCommand.Parameters.Add(new SqliteParameter(parameter.Name, parameter.Value));
+			}
 		}
 	}
 }
