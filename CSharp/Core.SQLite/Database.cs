@@ -30,8 +30,9 @@ namespace Business.Core.SQLite
 			return Core.SchemaVersion.Get(this);
 		}
 
+		// SQLite does not have server-side functions
 		public UInt32? Book(string Name, float Amount) {
-			return Core.Function.Book(this, Name, Amount);
+			return Core.Function.SQLiteBook(this, Name, Amount);
 		}
 	}
 }
