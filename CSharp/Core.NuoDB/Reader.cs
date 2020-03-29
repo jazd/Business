@@ -13,8 +13,16 @@ namespace Business.Core.NuoDB
 			}
 		}
 
+		public uint? GetInt32(int i) {
+			throw new System.NotImplementedException();
+		}
+
 		public string GetString(int i) {
 			return NuoDBReader.IsDBNull(i) ? null : NuoDBReader.GetString(i);
+		}
+
+		public bool IsDBNull(int i) {
+			throw new System.NotImplementedException();
 		}
 
 		public bool Read() {

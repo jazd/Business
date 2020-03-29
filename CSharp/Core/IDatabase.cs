@@ -10,6 +10,10 @@ namespace Business.Core
 		String Type { get; }
 
 		void Connect();
+
 		Version SchemaVersion();
+
+		// Server Side Functions
+		UInt32? Book(string Name, float Amount);
 	}
 }

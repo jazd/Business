@@ -1,3 +1,4 @@
+using System;
 using Npgsql;
 
 namespace Business.Core.PostgreSQL
@@ -16,8 +17,18 @@ namespace Business.Core.PostgreSQL
 			return PostgreSQLReader.IsDBNull(i) ? null : PostgreSQLReader.GetString(i);
 		}
 
+		public UInt32? GetInt32(int i) {
+			if (HasRows && PostgreSQLReader.IsDBNull(i))
+				return null;
+			return (UInt32?) PostgreSQLReader.GetInt32(i);
+		}
+
 		public bool Read() {
 			return PostgreSQLReader.Read();
+		}
+
+		public bool IsDBNull(int i) {
+			throw new NotImplementedException();
 		}
 	}
 }
