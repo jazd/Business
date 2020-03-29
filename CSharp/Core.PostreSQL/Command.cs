@@ -27,21 +27,22 @@ namespace Business.Core.PostgreSQL
 		}
 
 		public IReader ExecuteReader() {
-			PostgreSQLCommand.Connection = PostgreSQLConnection;
-			foreach (var parameter in Parameters) {
-				PostgreSQLCommand.Parameters.Add(new NpgsqlParameter(parameter.Name, parameter.Value));
-			}
+			MakeReady();
 			PostgreSQLReader = PostgreSQLCommand.ExecuteReader();
 			Reader = new Reader() { PostgreSQLReader = PostgreSQLReader };
 			return Reader;
 		}
 
 		public object ExecuteScalar() {
+			MakeReady();
+			return PostgreSQLCommand.ExecuteScalar();
+		}
+
+		private void MakeReady() {
 			PostgreSQLCommand.Connection = PostgreSQLConnection;
 			foreach (var parameter in Parameters) {
 				PostgreSQLCommand.Parameters.Add(new NpgsqlParameter(parameter.Name, parameter.Value));
 			}
-			return PostgreSQLCommand.ExecuteScalar();
 		}
 	}
 }
