@@ -15,7 +15,6 @@ namespace Business.Core.NuoDB
 		public DbDataReader NuoDBReader { get; set; }
 
 		public Command() {
-			NuoDBClientCommand = new NuoDbCommand();
 			Parameters = new List<Parameter>();
 		}
 
@@ -24,6 +23,7 @@ namespace Business.Core.NuoDB
 				return NuoDBClientCommand?.CommandText;
 			}
 			set {
+				NuoDBClientCommand = new NuoDbCommand() { Connection = NuoDBClientConnection };
 				NuoDBClientCommand.CommandText = value;
 			}
 		}
@@ -46,7 +46,6 @@ namespace Business.Core.NuoDB
 		}
 
 		private void MakeReady() {
-			NuoDBClientCommand.Connection = NuoDBClientConnection;
 			if (Parameters.Count > 0) {
 				// NuoDB uses ? for parameters in order, so convert SQL Command Text
 				List<object> parametersInOrder = new List<object>();

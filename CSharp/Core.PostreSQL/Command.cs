@@ -13,9 +13,7 @@ namespace Business.Core.PostgreSQL
 		public List<Parameter> Parameters { get; set; }
 
 		public Command() {
-			PostgreSQLCommand = new NpgsqlCommand();
 			Parameters = new List<Parameter>();
-
 		}
 
 		public string CommandText {
@@ -23,6 +21,7 @@ namespace Business.Core.PostgreSQL
 				return PostgreSQLCommand?.CommandText;
 			}
 			set {
+				PostgreSQLCommand = new NpgsqlCommand() { Connection = PostgreSQLConnection };
 				PostgreSQLCommand.CommandText = value;
 			}
 		}
@@ -45,7 +44,6 @@ namespace Business.Core.PostgreSQL
 		}
 
 		private void MakeReady() {
-			PostgreSQLCommand.Connection = PostgreSQLConnection;
 			foreach (var parameter in Parameters) {
 				// PostgreSQL does not support UInt64
 				var value = parameter.Value;

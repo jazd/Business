@@ -13,7 +13,6 @@ namespace Business.Core.SQLite
 
 
 		public Command() {
-			SQLiteCommand = new SqliteCommand();
 			Parameters = new List<Parameter>();
 		}
 
@@ -22,6 +21,7 @@ namespace Business.Core.SQLite
 				return SQLiteCommand?.CommandText;
 			}
 			set {
+				SQLiteCommand = new SqliteCommand() { Connection = SQLiteConnection };
 				SQLiteCommand.CommandText = value;
 			}
 		}
@@ -45,7 +45,6 @@ namespace Business.Core.SQLite
 		}
 
 		private void MakeReady() {
-			SQLiteCommand.Connection = SQLiteConnection;
 			foreach (var parameter in Parameters) {
 				// SQLite requires NULL fields to be set to DBNull.Value no just null
 				var value = parameter.Value;
