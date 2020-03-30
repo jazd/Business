@@ -36,18 +36,18 @@ namespace Business.Core
 				database.Command.ExecuteNonQuery(); // Database is locked here
 
 				// Get Entry Id
-				database.Command.TransactionText(transaction, GetIdentity);
+				database.Command.TransactionText(transaction, GetIdentitySQL);
 				entry = System.Convert.ToUInt32(
 					database.Command.ExecuteScalar()
 				);
 
 				// Make Journal Inserts
-				//database.Command.CommandText = InsertJournalEntries;
-				//database.Command.Parameters.Add(new Parameter() { Name = "@clientCulture", Value = 1033 });
-				//database.Command.Parameters.Add(new Parameter() { Name = "@entry", Value = entry });
-				//database.Command.Parameters.Add(new Parameter() { Name = "@book", Value = book });
-				//database.Command.Parameters.Add(new Parameter() { Name = "@amount", Value = amount });
-				//database.Command.ExecuteNonQuery();]
+				database.Command.TransactionText(transaction, InsertJournalEntriesSQL);
+				database.Command.Parameters.Add(new Parameter() { Name = "@clientCulture", Value = 1033 });
+				database.Command.Parameters.Add(new Parameter() { Name = "@entry", Value = entry });
+				database.Command.Parameters.Add(new Parameter() { Name = "@book", Value = book });
+				database.Command.Parameters.Add(new Parameter() { Name = "@amount", Value = amount });
+				database.Command.ExecuteNonQuery();
 
 				database.Connection.Commit();
 			}
@@ -69,12 +69,12 @@ LIMIT 1;
 INSERT INTO Entry (assemblyApplicationRelease, credential) VALUES (@assemblyApplicationRelease, @credential);
 ";
 
-		private const string GetIdentity = @"
+		private const string GetIdentitySQL = @"
 SELECT LAST_INSERT_ROWID();
 ";
 
 		// Parameters @clientCulture, @entry, @amount, @book
-		private const string InsertJournalEntries = "WITH " +
+		private const string InsertJournalEntriesSQL = "WITH " +
       AccountsCTE + "," +
 			BooksCTE +
 			@"
