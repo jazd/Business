@@ -6,6 +6,7 @@ namespace Business.Core.SQLite
 	public class Connection : IConnection, IDisposable
 	{
 		public SqliteConnection SQLiteConnection { get; set; }
+		public SqliteTransaction SQLiteTransaction { get; set; }
 
 		public Connection() { }
 		public Connection(string connectionString) {
@@ -17,6 +18,19 @@ namespace Business.Core.SQLite
 		}
 		public void Close() {
 			SQLiteConnection?.Close();
+		}
+
+		public IDisposable BeginTransaction(System.Data.IsolationLevel isolation) {
+			SQLiteTransaction = SQLiteConnection.BeginTransaction(isolation);
+			return SQLiteTransaction;
+		}
+
+		public void Commit() {
+			SQLiteTransaction.Commit();
+		}
+
+		public void Rollback() {
+			SQLiteTransaction.Rollback();
 		}
 
 		#region IDisposable Support

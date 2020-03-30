@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using Npgsql;
 
 namespace Business.Core.PostgreSQL
@@ -17,6 +18,18 @@ namespace Business.Core.PostgreSQL
 		}
 		public void Close() {
 			PostgreSQLConnection?.Close();
+		}
+
+		public IDisposable BeginTransaction(IsolationLevel isolation) {
+			throw new NotImplementedException();
+		}
+
+		public void Commit() {
+			throw new NotImplementedException();
+		}
+
+		public void Rollback() {
+			throw new NotImplementedException();
 		}
 
 		#region IDisposable Support

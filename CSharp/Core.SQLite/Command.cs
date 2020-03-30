@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using System;
 using System.Collections.Generic;
 
 namespace Business.Core.SQLite
@@ -9,6 +10,7 @@ namespace Business.Core.SQLite
 		public SqliteConnection SQLiteConnection { get; set; }
 		public SqliteCommand SQLiteCommand { get; set; }
 		public SqliteDataReader SQLiteReader { get; set; }
+
 		public List<Parameter> Parameters { get; set; }
 
 
@@ -24,6 +26,11 @@ namespace Business.Core.SQLite
 				SQLiteCommand = new SqliteCommand() { Connection = SQLiteConnection };
 				SQLiteCommand.CommandText = value;
 			}
+		}
+
+		public void TransactionText(IDisposable transaction, string sql) {
+			SQLiteCommand = new SqliteCommand() { Connection = SQLiteConnection, Transaction = (SqliteTransaction)transaction };
+			SQLiteCommand.CommandText = sql;
 		}
 
 		public IReader ExecuteReader() {
