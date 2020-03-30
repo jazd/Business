@@ -3,6 +3,7 @@ using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using System.Data.Common;
+using System;
 
 namespace Business.Core.NuoDB
 {
@@ -26,6 +27,10 @@ namespace Business.Core.NuoDB
 				NuoDBClientCommand = new NuoDbCommand() { Connection = NuoDBClientConnection };
 				NuoDBClientCommand.CommandText = value;
 			}
+		}
+
+		public void TransactionText(IDisposable transaction, string sql) {
+			throw new NotImplementedException();
 		}
 
 		public IReader ExecuteReader() {

@@ -5,5 +5,8 @@ namespace Business.Core
 	{
 		void Open();
 		void Close();
+		IDisposable BeginTransaction(System.Data.IsolationLevel isolation);
+		void Commit();
+		void Rollback();
 	}
 }

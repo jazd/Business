@@ -9,6 +9,7 @@ namespace Business.Core
 			UInt32? book = null;
 
 
+
 			// TODO must be done inside a transaction
 			//      test Fake transactions first
 
@@ -16,33 +17,40 @@ namespace Business.Core
 
 			database.Connect();
 			database.Connection.Open();
-			// Get Id of Book
-			database.Command.CommandText = GetBookIdSQL;
-			database.Command.Parameters.Add(new Parameter() { Name = "@book", Value = name });
-			book = System.Convert.ToUInt32(
-				database.Command.ExecuteScalar()
-			);
+			using (var transaction = database.Connection.BeginTransaction(System.Data.IsolationLevel.ReadCommitted)) {
 
-			// Create new Entry
-			// Insert Entry record
-			database.Command.CommandText = GetEntryIdSQL;
-			database.Command.Parameters.Clear();
-			database.Command.Parameters.Add(new Parameter() { Name = "@assemblyApplicationRelease", Value = null });
-			database.Command.Parameters.Add(new Parameter() { Name = "@credential", Value = null });
-			// database.Command.ExecuteNonQuery(); // Database is locked here
-			//   // Get Entry Id
-			//   database.Command.CommandText = GetIdentity;
-			//   entry = System.Convert.ToUInt32(
-			//	database.Command.ExecuteScalar()
-			//);
+				// Get Id of Book
+				database.Command.TransactionText(transaction, GetBookIdSQL);
+				//database.Command.CommandText = GetBookIdSQL;
+				database.Command.Parameters.Add(new Parameter() { Name = "@book", Value = name });
+				book = System.Convert.ToUInt32(
+					database.Command.ExecuteScalar()
+				);
 
-			// Make Journal Inserts
-			//database.Command.CommandText = InsertJournalEntries;
-			//database.Command.Parameters.Add(new Parameter() { Name = "@clientCulture", Value = 1033 });
-			//database.Command.Parameters.Add(new Parameter() { Name = "@entry", Value = entry });
-			//database.Command.Parameters.Add(new Parameter() { Name = "@book", Value = book });
-			//database.Command.Parameters.Add(new Parameter() { Name = "@amount", Value = amount });
-			//database.Command.ExecuteNonQuery();
+				// Create new Entry
+				// Insert Entry record
+				database.Command.TransactionText(transaction, GetEntryIdSQL);
+				database.Command.Parameters.Clear();
+				database.Command.Parameters.Add(new Parameter() { Name = "@assemblyApplicationRelease", Value = null });
+				database.Command.Parameters.Add(new Parameter() { Name = "@credential", Value = null });
+				database.Command.ExecuteNonQuery(); // Database is locked here
+
+				// Get Entry Id
+				database.Command.TransactionText(transaction, GetIdentity);
+				entry = System.Convert.ToUInt32(
+					database.Command.ExecuteScalar()
+				);
+
+				// Make Journal Inserts
+				//database.Command.CommandText = InsertJournalEntries;
+				//database.Command.Parameters.Add(new Parameter() { Name = "@clientCulture", Value = 1033 });
+				//database.Command.Parameters.Add(new Parameter() { Name = "@entry", Value = entry });
+				//database.Command.Parameters.Add(new Parameter() { Name = "@book", Value = book });
+				//database.Command.Parameters.Add(new Parameter() { Name = "@amount", Value = amount });
+				//database.Command.ExecuteNonQuery();]
+
+				database.Connection.Commit();
+			}
 
 			return entry;
 		}

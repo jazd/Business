@@ -26,6 +26,10 @@ namespace Business.Core.PostgreSQL
 			}
 		}
 
+		public void TransactionText(IDisposable transaction, string sql) {
+			throw new NotImplementedException();
+		}
+
 		public IReader ExecuteReader() {
 			MakeReady();
 			PostgreSQLReader = PostgreSQLCommand.ExecuteReader();

@@ -1,6 +1,6 @@
 using NuoDb.Data.Client;
 using System;
-
+using System.Data;
 
 namespace Business.Core.NuoDB
 {
@@ -18,6 +18,18 @@ namespace Business.Core.NuoDB
 		}
 		public void Close() {
 			NuoDBClientConnection?.Close();
+		}
+
+		public IDisposable BeginTransaction(IsolationLevel isolation) {
+			throw new NotImplementedException();
+		}
+
+		public void Commit() {
+			throw new NotImplementedException();
+		}
+
+		public void Rollback() {
+			throw new NotImplementedException();
 		}
 
 		#region IDisposable Support
