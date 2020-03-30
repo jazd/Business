@@ -47,7 +47,11 @@ namespace Business.Core.SQLite
 		private void MakeReady() {
 			SQLiteCommand.Connection = SQLiteConnection;
 			foreach (var parameter in Parameters) {
-				SQLiteCommand.Parameters.Add(new SqliteParameter(parameter.Name, parameter.Value));
+				// SQLite requires NULL fields to be set to DBNull.Value no just null
+				var value = parameter.Value;
+				if (value == null)
+					value = System.DBNull.Value;
+				SQLiteCommand.Parameters.Add(new SqliteParameter(parameter.Name, value));
 			}
 		}
 	}
