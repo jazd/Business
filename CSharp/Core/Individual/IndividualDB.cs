@@ -36,6 +36,7 @@ namespace Business.Core
 						}
 					}
 				}
+				Database.Connection.Close();
 			}
 		}
 
