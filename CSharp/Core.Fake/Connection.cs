@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Net.Sockets;
 
 namespace Business.Core.Fake
@@ -29,6 +30,18 @@ namespace Business.Core.Fake
 		}
 
 		public void Close() { }
+
+		public IDisposable BeginTransaction(IsolationLevel isolation) {
+			throw new NotImplementedException();
+		}
+
+		public void Commit() {
+			throw new NotImplementedException();
+		}
+
+		public void Rollback() {
+			throw new NotImplementedException();
+		}
 
 		#region IDisposable Support
 		private bool disposedValue = false; // To detect redundant calls
