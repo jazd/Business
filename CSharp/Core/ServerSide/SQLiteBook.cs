@@ -52,6 +52,7 @@ namespace Business.Core
 				database.Connection.Commit();
 			}
 
+			database.Connection.Close();
 			return entry;
 		}
 

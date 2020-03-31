@@ -23,6 +23,7 @@ namespace Business.Core.Test
 			Assert.IsTrue(database.Connection.TransactionStarted);
 			Assert.IsFalse(database.Connection.TransactionRollback);
 			Assert.IsTrue(database.Connection.TransactionCommited);
+			Assert.IsTrue(database.Connection.Closed);
 
 			Assert.IsNotNull(entry);
 			Assert.Greater(entry, 0);
