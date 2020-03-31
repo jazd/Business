@@ -27,7 +27,6 @@ namespace Business.Core.Fake
 		public string CommandText { get; set; }
 
 		public void TransactionText(IDisposable transaction, string sql) {
-			throw new NotImplementedException();
 		}
 
 		public Command() {
