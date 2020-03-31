@@ -9,8 +9,14 @@ namespace Business.Core.Fake
 		public Profile.Profile Profile { get; set; }
 		public SocketException ConnectionException { get; set; }
 		public Exception DatabaseException { get; set; }
+		public bool? TransactionStarted { get; set; }
+		public bool? TransactionCommited { get; set; }
+		public bool? TransactionRollback { get; set; }
 
 		public Connection() {
+			TransactionStarted = false;
+			TransactionCommited = false;
+			TransactionRollback = false;
 		}
 
 		public void Open() {

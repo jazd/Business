@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Data;
 
 namespace Business.Core.Test
 {
@@ -39,8 +40,27 @@ namespace Business.Core.Test
 		}
 
 		[Test]
-		public void Transactions() {
+		public void TransactionsNormal() {
+			Assert.IsFalse(database.Connection.TransactionStarted);
+			Assert.IsFalse(database.Connection.TransactionCommited);
+			Assert.IsFalse(database.Connection.TransactionRollback);
 
+			using (var transaction = database.Connection.BeginTransaction(System.Data.IsolationLevel.ReadCommitted)) {
+				database.Command.TransactionText(transaction, "INSERT INTO AnyTable (a, b) VALUES (8, 9)");
+				database.Connection.Commit();
+			}
+
+			Assert.IsTrue(database.Connection.TransactionStarted);
+			Assert.IsTrue(database.Connection.TransactionCommited);
+			Assert.IsFalse(database.Connection.TransactionRollback);
+
+			using (var transaction = database.Connection.BeginTransaction(System.Data.IsolationLevel.ReadCommitted)) {
+				database.Command.TransactionText(transaction, "INSERT INTO AnyTable (a, b) VALUES (8, 9)");
+				database.Connection.Rollback();
+			}
+			Assert.IsTrue(database.Connection.TransactionStarted);
+			Assert.IsFalse(database.Connection.TransactionCommited);
+			Assert.IsTrue(database.Connection.TransactionRollback);
 		}
 	}
 }
