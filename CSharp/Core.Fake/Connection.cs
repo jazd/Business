@@ -12,11 +12,13 @@ namespace Business.Core.Fake
 		public bool? TransactionStarted { get; set; }
 		public bool? TransactionCommited { get; set; }
 		public bool? TransactionRollback { get; set; }
+		public bool? Closed { get; set; }
 
 		public Connection() {
 			TransactionStarted = false;
 			TransactionCommited = false;
 			TransactionRollback = false;
+			Closed = false;
 		}
 
 		public void Open() {
@@ -32,10 +34,14 @@ namespace Business.Core.Fake
 					Profile.Log.Fatal(DatabaseException);
 					throw DatabaseException;
 				}
+
+				Closed = false;
 			}
 		}
 
-		public void Close() { }
+		public void Close() {
+			Closed = true;
+		}
 
 		public IDisposable BeginTransaction(IsolationLevel isolation) {
 			TransactionStarted = true;
