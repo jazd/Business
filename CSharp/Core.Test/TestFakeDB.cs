@@ -28,6 +28,13 @@ namespace Business.Core.Test
 		}
 
 		[Test]
+		public void NonQuery() {
+			database.Command.CommandText = "INSERT INTO AnyTable (a, b) VALUES (8, 9)";
+			var result = database.Command.ExecuteNonQuery();
+			Assert.Greater(result, 0);
+		}
+
+		[Test]
 		public void DatabaseType() {
 			Assert.AreEqual("Fake", database.Type);
 		}
