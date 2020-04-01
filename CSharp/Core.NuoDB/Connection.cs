@@ -7,6 +7,7 @@ namespace Business.Core.NuoDB
 	public class Connection : IConnection, IDisposable
 	{
 		public NuoDbConnection NuoDBClientConnection { get; set; }
+		public System.Data.Common.DbTransaction NuoDBClientTransaction { get; set; }
 
 		public Connection() { }
 		public Connection(string connectionString) {
@@ -21,15 +22,16 @@ namespace Business.Core.NuoDB
 		}
 
 		public IDisposable BeginTransaction(IsolationLevel isolation) {
-			throw new NotImplementedException();
+			NuoDBClientTransaction = NuoDBClientConnection.BeginTransaction(isolation);
+			return NuoDBClientTransaction;
 		}
 
 		public void Commit() {
-			throw new NotImplementedException();
+			NuoDBClientTransaction.Commit();
 		}
 
 		public void Rollback() {
-			throw new NotImplementedException();
+			NuoDBClientTransaction.Rollback();
 		}
 
 		#region IDisposable Support

@@ -22,9 +22,9 @@ namespace Business.Core
 						Value = amount
 					});
 					entry = (UInt32?)(int?)database.Command.ExecuteScalar();
-				}
 
-				database.Connection.Commit();
+					database.Connection.Commit();
+				}
 			}
 
 			database.Connection.Close();

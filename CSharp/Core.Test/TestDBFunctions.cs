@@ -18,7 +18,6 @@ namespace Business.Core.Test
 
 			database.SetValue(entryId);
 
-			Assert.IsFalse(database.Connection.TransactionStarted);
 			var entry = database.Book(bookName, bookAmount);
 			Assert.IsTrue(database.Connection.TransactionStarted);
 			Assert.IsFalse(database.Connection.TransactionRollback);
