@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 
 namespace Business.Core.NuoDB
@@ -14,15 +15,23 @@ namespace Business.Core.NuoDB
 		}
 
 		public uint? GetInt32(int i) {
-			throw new System.NotImplementedException();
+			throw new NotImplementedException();
 		}
 
 		public string GetString(int i) {
 			return NuoDBReader.IsDBNull(i) ? null : NuoDBReader.GetString(i);
 		}
 
+		public bool? GetBoolean(int i) {
+			throw new NotImplementedException();
+		}
+
+		public float? GetFloat(int i) {
+			throw new NotImplementedException();
+		}
+
 		public bool IsDBNull(int i) {
-			throw new System.NotImplementedException();
+			throw new NotImplementedException();
 		}
 
 		public bool Read() {

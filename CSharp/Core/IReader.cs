@@ -9,5 +9,7 @@ namespace Business.Core
 		Boolean IsDBNull(int i);
 		string GetString(int v);
 		UInt32? GetInt32(int i);
+		Boolean? GetBoolean(int i);
+		float? GetFloat(int i);
 	}
 }

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Data.Sqlite;
 
 namespace Business.Core.SQLite
@@ -20,8 +21,16 @@ namespace Business.Core.SQLite
 			return SQLiteReader.IsDBNull(i) ? null : SQLiteReader.GetString(i);
 		}
 
+		public bool? GetBoolean(int i) {
+			throw new NotImplementedException();
+		}
+
+		public float? GetFloat(int i) {
+			throw new NotImplementedException();
+		}
+
 		public bool IsDBNull(int i) {
-			throw new System.NotImplementedException();
+			throw new NotImplementedException();
 		}
 
 		public bool Read() {
