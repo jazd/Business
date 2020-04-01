@@ -22,7 +22,8 @@ namespace Business.Core.PostgreSQL
 
 		void IDatabase.Connect() {
 			PostgreSQLConnection = new NpgsqlConnection(
-					$"Host={Profile?.PostgreSQLProfile.Host};Username={Profile?.PostgreSQLProfile.User};Database={Profile?.PostgreSQLProfile.Database}");
+					$"Host={Profile?.PostgreSQLProfile.Host};Username={Profile?.PostgreSQLProfile.User};Database={Profile?.PostgreSQLProfile.Database}"
+			);
 			Connection = new Connection() { PostgreSQLConnection = PostgreSQLConnection };
 			Command = new Command { PostgreSQLConnection = PostgreSQLConnection };
 		}

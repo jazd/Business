@@ -12,8 +12,6 @@ namespace Version
 
 			IDatabase database;
 
-			// TODO Book function in SQLite
-
 			database = new Business.Core.SQLite.Database(profile);
 			Console.WriteLine($"SQLite\t\t{database.SchemaVersion()}");
 			var individual = new Individual(database, 3);

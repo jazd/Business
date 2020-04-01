@@ -6,18 +6,11 @@ namespace Business.Core
 		// Book single amounts into double entry Journal
 		public static UInt32? SQLiteBook(Core.IDatabase database, string name, float amount) {
 			UInt32? entry = null;
-			UInt32? book = null;
-
-
-
-			// TODO must be done inside a transaction
-			//      test Fake transactions first
-
-			// TODO Database is locked when try and do an insert
 
 			database.Connect();
 			database.Connection.Open();
 			using (var transaction = database.Connection.BeginTransaction(System.Data.IsolationLevel.ReadCommitted)) {
+				UInt32? book = null;
 
 				// Get Id of Book
 				database.Command.TransactionText(transaction, GetBookIdSQL);
@@ -33,7 +26,7 @@ namespace Business.Core
 				database.Command.Parameters.Clear();
 				database.Command.Parameters.Add(new Parameter() { Name = "@assemblyApplicationRelease", Value = null });
 				database.Command.Parameters.Add(new Parameter() { Name = "@credential", Value = null });
-				database.Command.ExecuteNonQuery(); // Database is locked here
+				database.Command.ExecuteNonQuery();
 
 				// Get Entry Id
 				database.Command.TransactionText(transaction, GetIdentitySQL);
