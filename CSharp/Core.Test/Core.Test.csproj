@@ -46,6 +46,7 @@
     <Compile Include="TestIndividual.cs" />
     <Compile Include="TestIndividualDB.cs" />
     <Compile Include="TestDBFunctions.cs" />
+    <Compile Include="TestBalanceDB.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">
