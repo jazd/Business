@@ -27,7 +27,8 @@ namespace Business.Core.PostgreSQL
 		}
 
 		public void TransactionText(IDisposable transaction, string sql) {
-			throw new NotImplementedException();
+			PostgreSQLCommand = new NpgsqlCommand() { Connection = PostgreSQLConnection, Transaction = (NpgsqlTransaction)transaction };
+			PostgreSQLCommand.CommandText = sql;
 		}
 
 		public IReader ExecuteReader() {

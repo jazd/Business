@@ -30,7 +30,8 @@ namespace Business.Core.NuoDB
 		}
 
 		public void TransactionText(IDisposable transaction, string sql) {
-			throw new NotImplementedException();
+			NuoDBClientCommand = new NuoDbCommand() { Connection = NuoDBClientConnection, Transaction = (System.Data.Common.DbTransaction)transaction };
+			NuoDBClientCommand.CommandText = sql;
 		}
 
 		public IReader ExecuteReader() {

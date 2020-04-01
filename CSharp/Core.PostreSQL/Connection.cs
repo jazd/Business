@@ -7,6 +7,7 @@ namespace Business.Core.PostgreSQL
 	public class Connection : IConnection, IDisposable
 	{
 		public NpgsqlConnection PostgreSQLConnection { get; set; }
+		public NpgsqlTransaction PostgreSQLTransaction { get; set; }
 
 		public Connection() { }
 		public Connection(string connectionString) {
@@ -21,15 +22,16 @@ namespace Business.Core.PostgreSQL
 		}
 
 		public IDisposable BeginTransaction(IsolationLevel isolation) {
-			throw new NotImplementedException();
+			PostgreSQLTransaction = PostgreSQLConnection.BeginTransaction(isolation);
+			return PostgreSQLTransaction;
 		}
 
 		public void Commit() {
-			throw new NotImplementedException();
+			PostgreSQLTransaction.Commit();
 		}
 
 		public void Rollback() {
-			throw new NotImplementedException();
+			PostgreSQLTransaction.Rollback();
 		}
 
 		#region IDisposable Support
