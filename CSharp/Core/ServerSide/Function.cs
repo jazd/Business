@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Business.Core
 {
 	public partial class Function
 	{
+		private const string BookSQL = @"
+SELECT Book(@book, @amount) FROM DUAL;
+";
+
 		public static UInt32? Book(Core.IDatabase database, string name, float amount) {
 			UInt32? entry = null;
 
@@ -12,9 +17,9 @@ namespace Business.Core
 				database.Connection.Open();
 
 				using (var transaction = database.Connection.BeginTransaction(System.Data.IsolationLevel.ReadCommitted)) {
-					database.Command.CommandText = BookSQL;
-					database.Command.Parameters.Add(new Parameter() { Name = "@book", Value = name});
-					database.Command.Parameters.Add(new Parameter() { Name = "@amount", Value = amount});
+					database.Command.TransactionText(transaction, BookSQL);
+					database.Command.Parameters.Add(new Parameter() { Name = "@book", Value = name });
+					database.Command.Parameters.Add(new Parameter() { Name = "@amount", Value = amount });
 					entry = (UInt32?)(int?)database.Command.ExecuteScalar();
 
 					database.Connection.Commit();
@@ -24,9 +29,5 @@ namespace Business.Core
 			database.Connection.Close();
 			return entry;
 		}
-
-		private const string BookSQL = @"
-SELECT Book(@book, @amount) FROM DUAL;
-";
 	}
 }
