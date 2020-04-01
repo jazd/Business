@@ -48,7 +48,7 @@ namespace Business.Core.Fake
 		}
 
 		public int ExecuteNonQuery() {
-			throw new NotImplementedException();
+			return 1;
 		}
 	}
 }
