@@ -31,6 +31,9 @@ namespace Business.Core.Fake
 				Profile.Log.Error(ReaderGetException);
 				throw ReaderGetException;
 			}
+			if (this.IsDBNull(i))
+				return String.Empty;
+
 			return (string)objects[i];
 		}
 
@@ -41,9 +44,22 @@ namespace Business.Core.Fake
 			return (UInt32?)objects[i];
 		}
 
+		public bool? GetBoolean(int i) {
+			if (this.IsDBNull(i))
+				return null;
+
+			return (Boolean?)objects[i];
+		}
+
+		public float? GetFloat(int i) {
+			if (this.IsDBNull(i))
+				return null;
+
+			return (float?)objects[i];
+		}
 
 		public Boolean IsDBNull(int i) {
-			return this.objects[i] == null;
+			return this.objects[i] == null || this.objects[i] == System.DBNull.Value;
 		}
 
 		public bool Read() {

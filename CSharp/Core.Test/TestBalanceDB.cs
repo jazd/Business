@@ -12,13 +12,13 @@ namespace Business.Core.Test
 			Core.Fake.Reader reader = new Fake.Reader();
 
 			var record = new object[] {
-				2,
-				1,
-				100,
-				76,
+				(UInt32?)2,
+				(UInt32?)1,
+				(UInt32?)100,
+				(UInt32?)76,
 				"Cash",
 				false,
-				70000,
+				(UInt32?)70000,
 				"Asset",
 				100.00F,
 				DBNull.Value
@@ -28,7 +28,7 @@ namespace Business.Core.Test
 
 			var balanceRecord = Business.Core.Balance.LoadFromReader(reader);
 
-			Assert.AreEqual(record[0],balanceRecord.Book);
+			Assert.AreEqual(record[0], balanceRecord.Book);
 			Assert.AreEqual(record[1], balanceRecord.Entry);
 			Assert.AreEqual(record[2], balanceRecord.Account);
 			Assert.AreEqual(record[3], balanceRecord.NameId);

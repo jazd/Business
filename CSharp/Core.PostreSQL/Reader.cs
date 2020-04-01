@@ -23,6 +23,14 @@ namespace Business.Core.PostgreSQL
 			return (UInt32?) PostgreSQLReader.GetInt32(i);
 		}
 
+		public bool? GetBoolean(int i) {
+			throw new NotImplementedException();
+		}
+
+		public float? GetFloat(int i) {
+			throw new NotImplementedException();
+		}
+
 		public bool Read() {
 			return PostgreSQLReader.Read();
 		}
