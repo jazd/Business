@@ -36,5 +36,9 @@ namespace Business.Core.SQLite
 		public bool Read() {
 			return SQLiteReader.Read();
 		}
+
+		public void Dispose() {
+			throw new NotImplementedException();
+		}
 	}
 }

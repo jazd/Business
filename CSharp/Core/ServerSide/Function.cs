@@ -50,6 +50,7 @@ SELECT Book(@book, @amount) FROM DUAL;
 							result.Add(Balance.LoadFromReader(reader));
 						}
 					}
+					reader.Dispose();
 					database.Connection.Commit();
 				}
 			}

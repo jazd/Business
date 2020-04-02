@@ -24,11 +24,15 @@ namespace Business.Core.PostgreSQL
 		}
 
 		public bool? GetBoolean(int i) {
-			throw new NotImplementedException();
+			if (HasRows && PostgreSQLReader.IsDBNull(i))
+				return null;
+			return (bool?)PostgreSQLReader.GetBoolean(i);
 		}
 
 		public float? GetFloat(int i) {
-			throw new NotImplementedException();
+			if (HasRows && PostgreSQLReader.IsDBNull(i))
+				return null;
+			return (float?)Convert.ToDouble(PostgreSQLReader.GetValue(i));
 		}
 
 		public bool Read() {
@@ -36,7 +40,11 @@ namespace Business.Core.PostgreSQL
 		}
 
 		public bool IsDBNull(int i) {
-			throw new NotImplementedException();
+			return PostgreSQLReader.IsDBNull(i);
+		}
+
+		public void Dispose() {
+			PostgreSQLReader.Dispose();
 		}
 	}
 }
