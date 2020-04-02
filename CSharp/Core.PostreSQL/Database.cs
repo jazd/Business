@@ -1,6 +1,7 @@
 ﻿// PostgreSQL IDatabase, IConnection, ICommand, IReader Wrapper
 //
 using System;
+using System.Collections.Generic;
 using Npgsql;
 
 namespace Business.Core.PostgreSQL
@@ -35,6 +36,10 @@ namespace Business.Core.PostgreSQL
 		// Server-side functions
 		public UInt32? Book(string Name, float Amount) {
 			return Core.Function.Book(this, Name, Amount);
+		}
+
+		public List<Balance> BookBalance(string Name, float Amount) {
+			throw new NotImplementedException();
 		}
 	}
 }

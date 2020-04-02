@@ -1,6 +1,7 @@
 ﻿// SQLite IDatabase, IConnection, ICommand, IReader Wrapper
 //
 using System;
+using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 
 namespace Business.Core.SQLite
@@ -33,6 +34,10 @@ namespace Business.Core.SQLite
 		// SQLite does not have server-side functions
 		public UInt32? Book(string Name, float Amount) {
 			return Core.Function.SQLiteBook(this, Name, Amount);
+		}
+
+		public List<Balance> BookBalance(string Name, float Amount) {
+			throw new NotImplementedException();
 		}
 	}
 }
