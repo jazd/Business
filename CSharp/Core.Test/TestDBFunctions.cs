@@ -73,8 +73,21 @@ namespace Business.Core.Test
 				100.00F,
 				DBNull.Value
 			};
+			var record2 = new object[] {
+				(UInt32?)2,
+				(UInt32?)1,
+				(UInt32?)102,
+				(UInt32?)112,
+				"Sales",
+				true,
+				(UInt32?)70003,
+				"Income",
+				DBNull.Value,
+				100.00F
+			};
 
 			database.Add(record1);
+			database.Add(record2);
 
 			System.Collections.Generic.List<Balance> entry = database.BookBalance(bookName, bookAmount);
 			Assert.IsTrue(database.Connection.TransactionStarted);
@@ -82,10 +95,11 @@ namespace Business.Core.Test
 			Assert.IsTrue(database.Connection.TransactionCommited);
 			Assert.IsTrue(database.Connection.Closed);
 
-			Assert.Greater(entry.Count, 0);
+			Assert.Greater(entry.Count, 1);
 			Assert.IsNotNull(entry[0].Entry);
 			Assert.Greater(entry[0].Entry, 0);
-			Assert.AreEqual(record1[1], entry[0].Entry);
+			Assert.AreEqual(record1[2], entry[0].Account);
+			Assert.AreEqual(record2[2], entry[1].Account);
 		}
 	}
 }

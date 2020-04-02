@@ -46,7 +46,7 @@ SELECT Book(@book, @amount) FROM DUAL;
 					database.Command.Parameters.Add(new Parameter() { Name = "@amount", Value = amount });
 					var reader = database.Command.ExecuteReader();
 					if (reader.HasRows) {
-						if (reader.Read()) {
+						while (reader.Read()) {
 							result.Add(Balance.LoadFromReader(reader));
 						}
 					}
