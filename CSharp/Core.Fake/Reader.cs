@@ -90,5 +90,8 @@ namespace Business.Core.Fake
 		internal void SetValue(object value) {
 			this.Value = value;
 		}
+
+		public void Dispose() {
+		}
 	}
 }
