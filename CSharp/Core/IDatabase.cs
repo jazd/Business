@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 namespace Business.Core
 {
 	public interface IDatabase
@@ -15,5 +17,6 @@ namespace Business.Core
 
 		// Server Side Functions
 		UInt32? Book(string Name, float Amount);
+		List<Balance> BookBalance(string Name, float Amount);
 	}
 }

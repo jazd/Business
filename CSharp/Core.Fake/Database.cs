@@ -1,6 +1,7 @@
 ﻿// Fake IDatabase, IConnection, ICommand, IReader Wrapper
 //
 using System;
+using System.Collections.Generic;
 using System.Net.Sockets;
 
 namespace Business.Core.Fake
@@ -62,6 +63,10 @@ namespace Business.Core.Fake
 		// Server-side functions
 		public UInt32? Book(string Name, float Amount) {
 			return Core.Function.Book(this, Name, Amount);
+		}
+
+		public List<Balance> BookBalance(string Name, float Amount) {
+			return Core.Function.BookBalance(this, Name, Amount);
 		}
 	}
 
