@@ -18,19 +18,19 @@ namespace Business.Core.PostgreSQL
 		}
 
 		public UInt32? GetInt32(int i) {
-			if (HasRows && PostgreSQLReader.IsDBNull(i))
+			if (PostgreSQLReader.IsDBNull(i))
 				return null;
 			return (UInt32?) PostgreSQLReader.GetInt32(i);
 		}
 
 		public bool? GetBoolean(int i) {
-			if (HasRows && PostgreSQLReader.IsDBNull(i))
+			if (PostgreSQLReader.IsDBNull(i))
 				return null;
 			return (bool?)PostgreSQLReader.GetBoolean(i);
 		}
 
 		public float? GetFloat(int i) {
-			if (HasRows && PostgreSQLReader.IsDBNull(i))
+			if (PostgreSQLReader.IsDBNull(i))
 				return null;
 			return (float?)Convert.ToDouble(PostgreSQLReader.GetValue(i));
 		}

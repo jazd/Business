@@ -14,7 +14,7 @@ namespace Business.Core.SQLite
 		}
 
 		public UInt32? GetInt32(int i) {
-			if(HasRows && SQLiteReader.IsDBNull(i))
+			if(SQLiteReader.IsDBNull(i))
 				return null;
 			return (UInt32?)SQLiteReader.GetInt32(i);
 		}
@@ -24,13 +24,13 @@ namespace Business.Core.SQLite
 		}
 
 		public bool? GetBoolean(int i) {
-			if (HasRows && SQLiteReader.IsDBNull(i))
+			if (SQLiteReader.IsDBNull(i))
 				return null;
 			return (bool?)SQLiteReader.GetBoolean(i);
 		}
 
 		public float? GetFloat(int i) {
-			if (HasRows && SQLiteReader.IsDBNull(i))
+			if (SQLiteReader.IsDBNull(i))
 				return null;
 			return (float?)SQLiteReader.GetFloat(i);
 		}

@@ -55,7 +55,7 @@ namespace Business.Core.Fake
 		}
 
 		public UInt32? GetInt32(int i) {
-			if (this.HasRows && this.IsDBNull(i))
+			if (this.IsDBNull(i))
 				return null;
 
 			return (UInt32?)objects[i];
