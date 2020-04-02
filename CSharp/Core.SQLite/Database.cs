@@ -37,7 +37,7 @@ namespace Business.Core.SQLite
 		}
 
 		public List<Balance> BookBalance(string Name, float Amount) {
-			throw new NotImplementedException();
+			return Core.Function.SQLiteBookBalance(this, Name, Amount);
 		}
 	}
 }

@@ -14,7 +14,6 @@ namespace Business.Core
 
 				// Get Id of Book
 				database.Command.TransactionText(transaction, GetBookIdSQL);
-				//database.Command.CommandText = GetBookIdSQL;
 				database.Command.Parameters.Add(new Parameter() { Name = "@book", Value = name });
 				book = System.Convert.ToUInt32(
 					database.Command.ExecuteScalar()
