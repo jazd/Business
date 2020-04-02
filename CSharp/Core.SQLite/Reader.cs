@@ -13,8 +13,10 @@ namespace Business.Core.SQLite
 			}
 		}
 
-		public uint? GetInt32(int i) {
-			throw new System.NotImplementedException();
+		public UInt32? GetInt32(int i) {
+			if(HasRows && SQLiteReader.IsDBNull(i))
+				return null;
+			return (UInt32?)SQLiteReader.GetInt32(i);
 		}
 
 		public string GetString(int i) {
@@ -22,15 +24,19 @@ namespace Business.Core.SQLite
 		}
 
 		public bool? GetBoolean(int i) {
-			throw new NotImplementedException();
+			if (HasRows && SQLiteReader.IsDBNull(i))
+				return null;
+			return (bool?)SQLiteReader.GetBoolean(i);
 		}
 
 		public float? GetFloat(int i) {
-			throw new NotImplementedException();
+			if (HasRows && SQLiteReader.IsDBNull(i))
+				return null;
+			return (float?)SQLiteReader.GetFloat(i);
 		}
 
 		public bool IsDBNull(int i) {
-			throw new NotImplementedException();
+			return SQLiteReader.IsDBNull(i);
 		}
 
 		public bool Read() {
@@ -38,7 +44,7 @@ namespace Business.Core.SQLite
 		}
 
 		public void Dispose() {
-			throw new NotImplementedException();
+			SQLiteReader.Dispose();
 		}
 	}
 }

@@ -19,6 +19,12 @@ namespace Version
 				Console.WriteLine($"Author: {individual.FullName}");
 			}
 			Console.WriteLine(database.Book("Sale", 111.11F));
+			Console.WriteLine(
+				Balance.AccountTypeValue(
+					database.BookBalance("Sale", 111.11F),
+					"Income"
+				)
+			);
 
 			database = new Business.Core.PostgreSQL.Database(profile);
 			Console.WriteLine($"PostgreSQL\t{database.SchemaVersion()}");
