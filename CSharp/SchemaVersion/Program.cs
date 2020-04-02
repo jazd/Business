@@ -19,7 +19,6 @@ namespace Version
 				Console.WriteLine($"Author: {individual.FullName}");
 			}
 			Console.WriteLine(database.Book("Sale", 111.11F));
-			database.Connection.Close();
 
 			database = new Business.Core.PostgreSQL.Database(profile);
 			Console.WriteLine($"PostgreSQL\t{database.SchemaVersion()}");
@@ -28,7 +27,12 @@ namespace Version
 				Console.WriteLine($"Author: {individual.FullName}");
 			}
 			Console.WriteLine(database.Book("Sale", 111.11F));
-			database.Connection.Close();
+			Console.WriteLine(
+				Balance.AccountTypeValue(
+					database.BookBalance("Sale", 111.11F),
+					"Income"
+				)
+			);
 
 			database = new Business.Core.NuoDB.Database(profile);
 			Console.WriteLine($"NuoDB\t\t{database.SchemaVersion()}");
@@ -37,7 +41,6 @@ namespace Version
 				Console.WriteLine($"Author: {individual.FullName}");
 			}
 			Console.WriteLine(database.Book("Sale", 111.11F));
-			database.Connection.Close();
 		}
 	}
 }

@@ -6,6 +6,7 @@ namespace Business.Core
 		bool HasRows { get; }
 
 		bool Read();
+		void Dispose();
 		Boolean IsDBNull(int i);
 		string GetString(int v);
 		UInt32? GetInt32(int i);

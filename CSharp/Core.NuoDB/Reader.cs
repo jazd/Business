@@ -37,5 +37,9 @@ namespace Business.Core.NuoDB
 		public bool Read() {
 			return NuoDBReader.Read();
 		}
+
+		public void Dispose() {
+			throw new NotImplementedException();
+		}
 	}
 }
