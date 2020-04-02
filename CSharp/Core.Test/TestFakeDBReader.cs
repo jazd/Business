@@ -40,5 +40,28 @@ namespace Business.Core.Test
 		public void GetFloat() {
 			Assert.AreEqual(100.00F, reader.GetFloat(4));
 		}
+
+		[Test]
+		public void MultiRead() {
+			object[] record = {
+				DBNull.Value,
+				(UInt32?)33,
+				"String Two",
+				true,
+				200.22F
+			};
+
+			// Add a second record
+			reader.Add(record);
+
+			UInt32? value = 0;
+			int i = 0;
+			while(reader.Read()) {
+				Assert.AreNotEqual(value, reader.GetInt32(1));
+				value = reader.GetInt32(1);
+				i++;
+			}
+			Assert.Greater(i, 1);
+		}
 	}
 }
