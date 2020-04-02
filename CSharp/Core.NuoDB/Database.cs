@@ -45,7 +45,7 @@ namespace Business.Core.NuoDB
 		}
 
 		public List<Balance> BookBalance(string Name, float Amount) {
-			throw new NotImplementedException();
+			return Core.Function.BookBalance(this, Name, Amount);
 		}
 	}
 }
