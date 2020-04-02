@@ -4,7 +4,7 @@ namespace Business.Core
 	public partial class Function
 	{
 		// Book single amounts into double entry Journal
-		public static UInt32? SQLiteBook(Core.IDatabase database, string name, float amount) {
+		public static UInt32? SQLiteBook(Core.IDatabase database, string name, float amount, Boolean close = true) {
 			UInt32? entry = null;
 
 			database.Connect();
@@ -44,7 +44,8 @@ namespace Business.Core
 				database.Connection.Commit();
 			}
 
-			database.Connection.Close();
+			if(close)
+				database.Connection.Close();
 			return entry;
 		}
 

@@ -6,12 +6,9 @@ namespace Business.Core
 		// Book single amounts into double entry Journal
 		public static List<Balance> SQLiteBookBalance(Core.IDatabase database, string name, float amount) {
 			List<Balance> result = new List<Balance>();
-			// Book the amount
-			var entry = SQLiteBook(database, name, amount);
+			// Book the amount, don't close connection afterwords
+			var entry = SQLiteBook(database, name, amount, false);
 
-			// Report on current book balances
-			// TODO don't close in SQLiteBook call
-			database.Connection.Open();
 			database.Command.CommandText = ReportJournalEntryBalancesSQL;
 			database.Command.Parameters.Clear();
 			database.Command.Parameters.Add(new Parameter() { Name = "@book", Value = name });
