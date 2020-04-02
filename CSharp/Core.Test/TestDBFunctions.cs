@@ -150,6 +150,9 @@ namespace Business.Core.Test
 			Assert.Greater(entries[0].Entry, 0);
 			Assert.AreEqual(record1[2], entries[0].Account);
 			Assert.AreEqual(record2[2], entries[1].Account);
+
+			Assert.AreEqual(1, database.Connection.OpenCount);
+			Assert.Less(database.Connection.CloseCount, 2);
 		}
 	}
 }
