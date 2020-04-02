@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Business.Core.Fake
 {
@@ -9,6 +10,24 @@ namespace Business.Core.Fake
 
 		public object Value { get; set; }
 		object[] objects;
+		List<object[]> records;
+
+		int recordIndex;
+
+		public int RecordCount {
+			get {
+				return records.Count;
+			}
+		}
+
+		public Reader() {
+			Empty();
+		}
+
+		public void Empty() {
+			records = new List<object[]>();
+			recordIndex = 0;
+		}
 
 		public bool HasRows {
 			get {
@@ -18,12 +37,10 @@ namespace Business.Core.Fake
 			}
 		}
 
-		public void Add(string[] strings) {
-			this.objects = strings;
-		}
-
 		public void Add(object[] objects) {
 			this.objects = objects;
+			records.Add(objects);
+			recordIndex = 0;  // Assuming starting back at the beginning
 		}
 
 		public string GetString(int i) {
@@ -63,7 +80,11 @@ namespace Business.Core.Fake
 		}
 
 		public bool Read() {
-			return true;
+			if (recordIndex < RecordCount) {
+				objects = records[recordIndex++];
+				return true;
+			}
+			return false;
 		}
 
 		internal void SetValue(object value) {
