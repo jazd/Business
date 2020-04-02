@@ -14,8 +14,10 @@ namespace Business.Core.NuoDB
 			}
 		}
 
-		public uint? GetInt32(int i) {
-			throw new NotImplementedException();
+		public UInt32? GetInt32(int i) {
+			if (NuoDBReader.IsDBNull(i))
+				return null;
+			return (UInt32?)NuoDBReader.GetInt32(i);
 		}
 
 		public string GetString(int i) {
@@ -23,15 +25,19 @@ namespace Business.Core.NuoDB
 		}
 
 		public bool? GetBoolean(int i) {
-			throw new NotImplementedException();
+			if (NuoDBReader.IsDBNull(i))
+				return null;
+			return (bool?)NuoDBReader.GetBoolean(i);
 		}
 
 		public float? GetFloat(int i) {
-			throw new NotImplementedException();
+			if (NuoDBReader.IsDBNull(i))
+				return null;
+			return (float?)NuoDBReader.GetFloat(i);
 		}
 
 		public bool IsDBNull(int i) {
-			throw new NotImplementedException();
+			return NuoDBReader.IsDBNull(i);
 		}
 
 		public bool Read() {
@@ -39,7 +45,7 @@ namespace Business.Core.NuoDB
 		}
 
 		public void Dispose() {
-			throw new NotImplementedException();
+			NuoDBReader.Dispose();
 		}
 	}
 }
