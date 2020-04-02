@@ -18,6 +18,7 @@ namespace Business.Core.Test
 
 		[SetUp]
 		public void Setup() {
+			reader.Empty();
 			reader.Add(record);
 		}
 		[Test]
