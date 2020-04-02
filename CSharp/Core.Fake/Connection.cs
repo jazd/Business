@@ -13,12 +13,16 @@ namespace Business.Core.Fake
 		public bool? TransactionCommited { get; set; }
 		public bool? TransactionRollback { get; set; }
 		public bool? Closed { get; set; }
+		public int CloseCount { get; set; }
+		public int OpenCount { get; set; }
 
 		public Connection() {
 			TransactionStarted = false;
 			TransactionCommited = false;
 			TransactionRollback = false;
 			Closed = false;
+			CloseCount = 0;
+			OpenCount = 0;
 		}
 
 		public void Open() {
@@ -34,13 +38,15 @@ namespace Business.Core.Fake
 					Profile.Log.Fatal(DatabaseException);
 					throw DatabaseException;
 				}
-
-				Closed = false;
 			}
+			Closed = false;
+			CloseCount = 0;
+			OpenCount++;
 		}
 
 		public void Close() {
 			Closed = true;
+			CloseCount++;
 		}
 
 		public IDisposable BeginTransaction(IsolationLevel isolation) {
