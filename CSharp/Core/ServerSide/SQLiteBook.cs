@@ -44,7 +44,7 @@ namespace Business.Core
 				database.Connection.Commit();
 			}
 
-			if(close)
+			if (close)
 				database.Connection.Close();
 			return entry;
 		}
@@ -56,20 +56,20 @@ FROM BookName
 JOIN Sentence ON Sentence.id = BookName.name
  AND Sentence.value = @book
  AND Sentence.culture = 1033
-LIMIT 1;
+LIMIT 1
 ";
-    // Parameters @assemblyApplicationRelease, @credential
-    private const string GetEntryIdSQL = @"
-INSERT INTO Entry (assemblyApplicationRelease, credential) VALUES (@assemblyApplicationRelease, @credential);
+		// Parameters @assemblyApplicationRelease, @credential
+		private const string GetEntryIdSQL = @"
+INSERT INTO Entry (assemblyApplicationRelease, credential) VALUES (@assemblyApplicationRelease, @credential)
 ";
 
 		private const string GetIdentitySQL = @"
-SELECT LAST_INSERT_ROWID();
+SELECT LAST_INSERT_ROWID()
 ";
 
 		// Parameters @clientCulture, @entry, @amount, @book
 		private const string InsertJournalEntriesSQL = "WITH " +
-      AccountsCTE + "," +
+			AccountsCTE + "," +
 			BooksCTE +
 			@"
  INSERT INTO JournalEntry (journal, book, entry,  account, credit, amount)
@@ -112,7 +112,6 @@ SELECT LAST_INSERT_ROWID();
  FROM Books
  WHERE Books.book = @book
   AND @amount * decreaseDebitDecrease IS NOT NULL
- ;
 ";
 	}
 }

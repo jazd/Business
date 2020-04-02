@@ -1,5 +1,4 @@
-﻿using System;
-namespace Business.Core
+﻿namespace Business.Core
 {
 	public class Part
 	{

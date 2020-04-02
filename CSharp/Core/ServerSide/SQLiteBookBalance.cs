@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 namespace Business.Core
 {
-	public partial class Function {
+	public partial class Function
+	{
 		// Book single amounts into double entry Journal
 		public static List<Balance> SQLiteBookBalance(Core.IDatabase database, string name, float amount) {
 			List<Balance> result = new List<Balance>();
@@ -15,8 +15,8 @@ namespace Business.Core
 			database.Command.Parameters.Add(new Parameter() { Name = "@entry", Value = entry });
 			database.Command.Parameters.Add(new Parameter() { Name = "@clientCulture", Value = 1033 });
 			var reader = database.Command.ExecuteReader();
-			if(reader.HasRows) {
-				while(reader.Read()) {
+			if (reader.HasRows) {
+				while (reader.Read()) {
 					result.Add(Balance.LoadFromReader(reader));
 				}
 			}

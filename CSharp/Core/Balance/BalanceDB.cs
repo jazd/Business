@@ -1,7 +1,7 @@
-﻿using System;
-namespace Business.Core
+﻿namespace Business.Core
 {
-	public partial class Balance {
+	public partial class Balance
+	{
 		public static Balance LoadFromReader(IReader reader) {
 			Balance record = new Balance();
 			record.Book = reader.GetInt32(0).Value;

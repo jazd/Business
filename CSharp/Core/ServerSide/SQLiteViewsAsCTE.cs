@@ -4,9 +4,9 @@ namespace Business.Core
 	public partial class Function
 	{
 
-    // VIEWS as CTEs to preserve indexes
-    // Parameter @clientCulture
-    public const string AccountsCTE = @"
+		// VIEWS as CTEs to preserve indexes
+		// Parameter @clientCulture
+		public const string AccountsCTE = @"
 Accounts AS (
 SELECT AccountName.account,
  Sentence.value AS name,
@@ -27,7 +27,6 @@ SELECT AccountName.account,
  ELSE
   NULL
  END AS debitDecrease,
-
  CASE WHEN AccountName.credit THEN
   1
  ELSE
@@ -52,8 +51,8 @@ LEFT JOIN Word AS IndividualAccountType ON IndividualAccountType.id = Individual
 )
 ";
 
-    // Parameter @clientCulture
-    public const string BooksCTE = @"
+		// Parameter @clientCulture
+		public const string BooksCTE = @"
 Books AS (
 SELECT BookName.book,
  Sentence.value AS name,
@@ -86,5 +85,5 @@ LEFT JOIN Accounts AS Decrease  ON Decrease.account  = BookAccount.decrease
 )
 ";
 
-  }
+	}
 }

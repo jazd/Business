@@ -20,7 +20,7 @@ namespace Business.Core.PostgreSQL
 		public UInt32? GetInt32(int i) {
 			if (PostgreSQLReader.IsDBNull(i))
 				return null;
-			return (UInt32?) PostgreSQLReader.GetInt32(i);
+			return (UInt32?)PostgreSQLReader.GetInt32(i);
 		}
 
 		public bool? GetBoolean(int i) {

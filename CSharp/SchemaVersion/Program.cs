@@ -12,7 +12,7 @@ namespace Version
 			var profile = new Profile();
 
 			// For each database connection enabled in Profile, execute the same application code
-			foreach(var database in Databases(profile)) {
+			foreach (var database in Databases(profile)) {
 				Console.WriteLine($"{database.Type}\t\t{database.SchemaVersion()}");
 #if DEBUG
 				// Sample database agnostic objects classes and function calls

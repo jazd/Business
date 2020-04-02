@@ -14,7 +14,7 @@ namespace Business.Core.SQLite
 		}
 
 		public UInt32? GetInt32(int i) {
-			if(SQLiteReader.IsDBNull(i))
+			if (SQLiteReader.IsDBNull(i))
 				return null;
 			return (UInt32?)SQLiteReader.GetInt32(i);
 		}

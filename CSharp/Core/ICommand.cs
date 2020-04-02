@@ -9,8 +9,8 @@ namespace Business.Core
 		List<Parameter> Parameters { get; set; }
 
 		IReader ExecuteReader();
-		object  ExecuteScalar();
-		int     ExecuteNonQuery();
+		object ExecuteScalar();
+		int ExecuteNonQuery();
 		void TransactionText(IDisposable transaction, string sql);
 	}
 }
