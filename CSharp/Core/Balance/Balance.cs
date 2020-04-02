@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Business.Core
 {
@@ -17,14 +18,21 @@ namespace Business.Core
 
 		// Virtual field
 		public float Value { get {
-				if (RightSide)
-					return (Debit ?? 0) - (Credit ?? 0);
-				return (Credit ?? 0) - (Debit ?? 0);
+				return Math.Abs((Debit ?? 0) - (Credit ?? 0));
 			}
 		}
 
 		public override string ToString() {
 			return $"{Book}, {Entry}, {Account}, {Name}, {Type}, {Debit}, {Credit}, {Value}";
+		}
+
+		public static float AccountTypeValue(List<Balance> records, string type) {
+			float value = 0;
+			foreach(var record in records) {
+				if (record.Type == type)
+					value += record.Value;
+			}
+			return value;
 		}
 	}
 }
