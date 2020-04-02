@@ -18,8 +18,8 @@ namespace Business.Core.Test
 
 			Assert.AreEqual(3, individual.Id);
 			Assert.AreEqual(true, individual.Person);
-			Assert.AreEqual("Steve",individual.GoesBy);
-			Assert.AreEqual("Stephen Arthur Jazdzewski",individual.FullName);
+			Assert.AreEqual("Steve", individual.GoesBy);
+			Assert.AreEqual("Stephen Arthur Jazdzewski", individual.FullName);
 		}
 	}
 }

@@ -1,8 +1,6 @@
 ﻿using System;
 namespace Business.Core
 {
-
-
 	public class Log : ILog
 	{
 		public enum Level
@@ -21,7 +19,7 @@ namespace Business.Core
 
 		private void Write(Level level, Exception exception) {
 			Console.WriteLine($"{level} {exception}");
-}
+		}
 
 		public void Debug(string message) {
 			Write(Level.Debug, message);

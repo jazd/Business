@@ -70,7 +70,7 @@ namespace Business.Core.Test
 
 			Assert.AreEqual(4750, Balance.AccountTypeValue(records, "Asset"));
 			Assert.AreEqual(3300, Balance.AccountTypeValue(records, "Income"));
-			Assert.AreEqual(750,  Balance.AccountTypeValue(records, "Liability"));
+			Assert.AreEqual(750, Balance.AccountTypeValue(records, "Liability"));
 		}
 
 		[Test]

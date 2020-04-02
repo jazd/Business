@@ -69,5 +69,4 @@ namespace Business.Core.Fake
 			return Core.Function.BookBalance(this, Name, Amount);
 		}
 	}
-
 }

@@ -57,7 +57,7 @@ namespace Business.Core.Test
 
 			UInt32? value = 0;
 			int i = 0;
-			while(reader.Read()) {
+			while (reader.Read()) {
 				Assert.AreNotEqual(value, reader.GetInt32(1));
 				value = reader.GetInt32(1);
 				i++;

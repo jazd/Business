@@ -69,7 +69,7 @@ namespace Business.Core.NuoDB
 					newSQL.Append(names[segment].Substring(i));
 
 					// Add the value to an ordered list
-					parametersInOrder.Add(Parameters.Find(n => n.Name == "@" + names[segment].Substring(0,i))?.Value);
+					parametersInOrder.Add(Parameters.Find(n => n.Name == "@" + names[segment].Substring(0, i))?.Value);
 				}
 				NuoDBClientCommand.CommandText = newSQL.ToString();
 				foreach (var parameterValue in parametersInOrder) {

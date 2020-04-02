@@ -17,7 +17,8 @@ namespace Business.Core
 		public float? Credit { get; set; }
 
 		// Virtual field
-		public float Value { get {
+		public float Value {
+			get {
 				return Math.Abs((Debit ?? 0) - (Credit ?? 0));
 			}
 		}
@@ -28,7 +29,7 @@ namespace Business.Core
 
 		public static float AccountTypeValue(List<Balance> records, string type) {
 			float value = 0;
-			foreach(var record in records) {
+			foreach (var record in records) {
 				if (record.Type == type)
 					value += record.Value;
 			}

@@ -7,7 +7,7 @@ namespace Business.Core
 
 		public Individual(IDatabase database, UInt64? id = null) {
 			Database = database;
-			if(id != null)
+			if (id != null)
 				Load((UInt64)id);
 		}
 
@@ -23,7 +23,7 @@ namespace Business.Core
 				Database.Connection.Open();
 
 				Database.Command.CommandText = GetIndividualSQL;
-				Database.Command.Parameters.Add(new Parameter() { Name= "@id", Value = id });
+				Database.Command.Parameters.Add(new Parameter() { Name = "@id", Value = id });
 				var reader = Database.Command.ExecuteReader();
 				if (reader.HasRows) {
 					if (reader.Read()) {
