@@ -49,6 +49,7 @@
     <Compile Include="TestBalanceDB.cs" />
     <Compile Include="TestFakeDBReader.cs" />
     <Compile Include="TestBalance.cs" />
+    <Compile Include="TestProfile.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">
