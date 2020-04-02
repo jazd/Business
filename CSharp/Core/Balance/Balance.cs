@@ -1,4 +1,5 @@
 ﻿using System;
+
 namespace Business.Core
 {
 	public partial class Balance
@@ -13,5 +14,17 @@ namespace Business.Core
 		public String Type { get; set; }
 		public float? Debit { get; set; }
 		public float? Credit { get; set; }
+
+		// Virtual field
+		public float Value { get {
+				if (RightSide)
+					return (Debit ?? 0) - (Credit ?? 0);
+				return (Credit ?? 0) - (Debit ?? 0);
+			}
+		}
+
+		public override string ToString() {
+			return $"{Book}, {Entry}, {Account}, {Name}, {Type}, {Debit}, {Credit}, {Value}";
+		}
 	}
 }
