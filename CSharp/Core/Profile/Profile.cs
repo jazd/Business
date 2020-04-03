@@ -9,8 +9,14 @@ namespace Business.Core.Profile
 
 		public string SQLiteDatabasePath {
 			get {
-				return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
-						"sandbox/Business/business.sqlite3");
+				String path;
+
+				if (String.IsNullOrEmpty(SQLiteProfile.Path))
+					path = "sandbox/Business/business.sqlite3";
+				else
+					path = SQLiteProfile.Path;
+
+				return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), path);
 			}
 		}
 
@@ -26,6 +32,12 @@ namespace Business.Core.Profile
 			var filePath = GetBasePath() + "profile.json";
 			try {
 				Newtonsoft.Json.Linq.JObject profileJSON = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(filePath));
+
+				var sqlite = profileJSON["SQLite"];
+				if(sqlite != null) {
+					SQLiteProfile = sqlite.ToObject<SQLite>();
+					SQLiteProfile.Active = true;
+				}
 
 				var nuoDb = profileJSON["NuoDb"];
 				if (nuoDb != null) {
@@ -51,6 +63,7 @@ namespace Business.Core.Profile
 	public class SQLite
 	{
 		public Boolean Active { get; set; } = true;
+		public string Path { get; set; }
 	}
 
 	public class NuoDB

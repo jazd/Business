@@ -1,4 +1,7 @@
 ﻿{
+  "SQLite": {
+    "Path": "business.sqlite3"
+  },
   "NuoDb": {
     "Server": "nuodb",
     "Database": "MyCo",
