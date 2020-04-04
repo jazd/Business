@@ -9,9 +9,9 @@ namespace Business.Core.Profile
 
 		public string SQLiteDatabasePath {
 			get {
-				String path;
+				string path;
 
-				if (String.IsNullOrEmpty(SQLiteProfile.Path))
+				if (string.IsNullOrEmpty(SQLiteProfile.Path))
 					path = "sandbox/Business/business.sqlite3";
 				else
 					path = SQLiteProfile.Path;
@@ -20,9 +20,49 @@ namespace Business.Core.Profile
 			}
 		}
 
-		public SQLite SQLiteProfile { get; set; }
-		public NuoDB NuoDBProfile { get; set; }
-		public PostgreSQL PostgreSQLProfile { get; set; }
+		public SQLite SQLiteProfile {
+			get {
+				if (sqliteprofile == null) {
+					var tokens = JSON["SQLite"];
+					if (tokens != null) {
+						sqliteprofile = tokens.ToObject<SQLite>();
+						sqliteprofile.Active = true;
+					} else {
+						sqliteprofile = new SQLite();
+					}
+				}
+				return sqliteprofile;
+			}
+		}
+		SQLite sqliteprofile;
+
+		public PostgreSQL PostgreSQLProfile {
+			get {
+				if(postgresqlprofile == null) {
+					var tokens = JSON["PostgreSQL"];
+					if(tokens != null) {
+						postgresqlprofile = tokens.ToObject<PostgreSQL>();
+						postgresqlprofile.Active = true;
+					}
+				}
+				return postgresqlprofile;
+			}
+		}
+		PostgreSQL postgresqlprofile;
+
+		public NuoDB NuoDBProfile {
+			get {
+				if(nuodbprofile == null) {
+					var tokens = JSON["NuoDb"];
+					if (tokens != null) {
+						nuodbprofile = tokens.ToObject<NuoDB>();
+						nuodbprofile.Active = true;
+					}
+				}
+				return nuodbprofile;
+			}
+		}
+		NuoDB nuodbprofile;
 
 		public string ProfilePath {
 			get {
@@ -43,32 +83,6 @@ namespace Business.Core.Profile
 		Newtonsoft.Json.Linq.JObject json;
 
 		public Profile() {
-			SQLiteProfile = new SQLite();
-			NuoDBProfile = new NuoDB();
-			PostgreSQLProfile = new PostgreSQL();
-
-			try {
-				var sqlite = JSON["SQLite"];
-				if(sqlite != null) {
-					SQLiteProfile = sqlite.ToObject<SQLite>();
-					SQLiteProfile.Active = true;
-				}
-
-				var nuoDb = JSON["NuoDb"];
-				if (nuoDb != null) {
-					NuoDBProfile = nuoDb.ToObject<NuoDB>();
-					NuoDBProfile.Active = true;
-				}
-
-				var postgreSQL = JSON["PostgreSQL"];
-				if (postgreSQL != null) {
-					PostgreSQLProfile = postgreSQL.ToObject<PostgreSQL>();
-					PostgreSQLProfile.Active = true;
-				}
-			} catch (Exception e) {
-				throw e;
-				// Use the profile object defaults
-			}
 		}
 
 		public virtual string GetBasePath() {
