@@ -24,38 +24,54 @@ namespace Business.Core.Profile
 		public NuoDB NuoDBProfile { get; set; }
 		public PostgreSQL PostgreSQLProfile { get; set; }
 
+		public string ProfilePath {
+			get {
+				return GetBasePath() + "profile.json";
+			}
+		}
+
+		public Newtonsoft.Json.Linq.JObject JSON {
+			get {
+				if(json == null)
+					json = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(ProfilePath));
+				return json;
+			}
+			set {
+				json = value;
+			}
+		}
+		Newtonsoft.Json.Linq.JObject json;
+
 		public Profile() {
 			SQLiteProfile = new SQLite();
 			NuoDBProfile = new NuoDB();
 			PostgreSQLProfile = new PostgreSQL();
 
-			var filePath = GetBasePath() + "profile.json";
 			try {
-				Newtonsoft.Json.Linq.JObject profileJSON = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(filePath));
-
-				var sqlite = profileJSON["SQLite"];
+				var sqlite = JSON["SQLite"];
 				if(sqlite != null) {
 					SQLiteProfile = sqlite.ToObject<SQLite>();
 					SQLiteProfile.Active = true;
 				}
 
-				var nuoDb = profileJSON["NuoDb"];
+				var nuoDb = JSON["NuoDb"];
 				if (nuoDb != null) {
 					NuoDBProfile = nuoDb.ToObject<NuoDB>();
 					NuoDBProfile.Active = true;
 				}
 
-				var postgreSQL = profileJSON["PostgreSQL"];
+				var postgreSQL = JSON["PostgreSQL"];
 				if (postgreSQL != null) {
 					PostgreSQLProfile = postgreSQL.ToObject<PostgreSQL>();
 					PostgreSQLProfile.Active = true;
 				}
-			} catch {
+			} catch (Exception e) {
+				throw e;
 				// Use the profile object defaults
 			}
 		}
 
-		public static string GetBasePath() {
+		public virtual string GetBasePath() {
 			return AppDomain.CurrentDomain.RelativeSearchPath ?? AppDomain.CurrentDomain.BaseDirectory;
 		}
 	}
