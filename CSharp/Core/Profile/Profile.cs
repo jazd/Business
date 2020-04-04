@@ -12,7 +12,7 @@ namespace Business.Core.Profile
 				string path;
 
 				if (string.IsNullOrEmpty(SQLiteProfile.Path))
-					path = "sandbox/Business/business.sqlite3";
+					path = "sandbox/Business"+ System.IO.Path.DirectorySeparatorChar + "business.sqlite3";
 				else
 					path = SQLiteProfile.Path;
 
@@ -29,6 +29,7 @@ namespace Business.Core.Profile
 						sqliteprofile.Active = true;
 					} else {
 						sqliteprofile = new SQLite();
+						sqliteprofile.Path = SQLiteDatabasePath;
 					}
 				}
 				return sqliteprofile;
@@ -43,6 +44,8 @@ namespace Business.Core.Profile
 					if(tokens != null) {
 						postgresqlprofile = tokens.ToObject<PostgreSQL>();
 						postgresqlprofile.Active = true;
+					} else {
+						postgresqlprofile = new PostgreSQL();
 					}
 				}
 				return postgresqlprofile;
@@ -57,6 +60,8 @@ namespace Business.Core.Profile
 					if (tokens != null) {
 						nuodbprofile = tokens.ToObject<NuoDB>();
 						nuodbprofile.Active = true;
+					} else {
+						nuodbprofile = new NuoDB();
 					}
 				}
 				return nuodbprofile;
