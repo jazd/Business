@@ -18,9 +18,9 @@ namespace Business.Core.Profile
 						sqliteprofile = new SQLite();
 					}
 					if (String.IsNullOrEmpty(sqliteprofile.Path))
-						sqliteprofile.Path = Path.Combine(GetBasePath() + "business.sqlite3");
+						sqliteprofile.Path = Path.Combine(ProfileBasePath, "business.sqlite3");
 					else
-						sqliteprofile.Path = Path.Combine(GetBasePath(), sqliteprofile.Path);
+						sqliteprofile.Path = Path.Combine(ProfileBasePath, sqliteprofile.Path);
 				}
 				return sqliteprofile;
 			}
@@ -29,9 +29,9 @@ namespace Business.Core.Profile
 
 		public PostgreSQL PostgreSQLProfile {
 			get {
-				if(postgresqlprofile == null) {
+				if (postgresqlprofile == null) {
 					var tokens = JSON["PostgreSQL"];
-					if(tokens != null) {
+					if (tokens != null) {
 						postgresqlprofile = tokens.ToObject<PostgreSQL>();
 						postgresqlprofile.Active = true;
 					} else {
@@ -45,7 +45,7 @@ namespace Business.Core.Profile
 
 		public NuoDB NuoDBProfile {
 			get {
-				if(nuodbprofile == null) {
+				if (nuodbprofile == null) {
 					var tokens = JSON["NuoDb"];
 					if (tokens != null) {
 						nuodbprofile = tokens.ToObject<NuoDB>();
@@ -59,15 +59,21 @@ namespace Business.Core.Profile
 		}
 		NuoDB nuodbprofile;
 
+		public virtual string ProfileBasePath {
+			get {
+				return GetBasePath();
+			}
+		}
+
 		public virtual string ProfilePath {
 			get {
-				return GetBasePath() + "profile.json";
+				return Path.Combine(ProfileBasePath, "profile.json");
 			}
 		}
 
 		public Newtonsoft.Json.Linq.JObject JSON {
 			get {
-				if(json == null)
+				if (json == null)
 					json = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(ProfilePath));
 				return json;
 			}
