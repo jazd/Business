@@ -22,7 +22,7 @@ namespace Business.Core.SQLite
 		public ICommand Command { get; set; }
 
 		void IDatabase.Connect() {
-			SQLiteConnection = new SqliteConnection($"Filename={Profile?.SQLiteDatabasePath}");
+			SQLiteConnection = new SqliteConnection($"Filename={Profile?.SQLiteProfile.Path}");
 			Connection = new Connection() { SQLiteConnection = SQLiteConnection };
 			Command = new Command { SQLiteConnection = SQLiteConnection };
 		}

@@ -20,7 +20,7 @@ namespace Business.Core.Test
 			var profile = new Profile.Profile() { JSON = JSON };
 
 			Assert.IsTrue(profile.SQLiteProfile.Active);
-			Assert.IsTrue(profile.SQLiteProfile.Path.EndsWith("Business" + System.IO.Path.DirectorySeparatorChar + "business.sqlite3"));
+			Assert.IsTrue(profile.SQLiteProfile.Path.EndsWith(System.IO.Path.DirectorySeparatorChar + "business.sqlite3"));
 
 			Assert.IsFalse(profile.NuoDBProfile.Active);
 			Assert.AreEqual("nuodb", profile.NuoDBProfile.Server);
@@ -58,7 +58,7 @@ namespace Business.Core.Test
 			var profile = new Profile.Profile() { JSON = JSON };
 
 			Assert.IsTrue(profile.SQLiteProfile.Active);
-			Assert.AreEqual("MyCo/business.sqlite3", profile.SQLiteProfile.Path);
+			Assert.IsTrue(profile.SQLiteProfile.Path.EndsWith(System.IO.Path.DirectorySeparatorChar + "MyCo/business.sqlite3"));
 
 			Assert.IsTrue(profile.NuoDBProfile.Active);
 			Assert.AreEqual("localhost", profile.NuoDBProfile.Server);
@@ -77,7 +77,7 @@ namespace Business.Core.Test
 			var profile = new Profile.Profile();
 
 			Assert.IsTrue(profile.SQLiteProfile.Active);
-			Assert.IsTrue(profile.SQLiteProfile.Path.EndsWith("Business" + System.IO.Path.DirectorySeparatorChar + "business.sqlite3"));
+			Assert.IsTrue(profile.SQLiteProfile.Path.EndsWith(System.IO.Path.DirectorySeparatorChar + "business.sqlite3"));
 
 			Assert.IsTrue(profile.NuoDBProfile.Active);
 			Assert.AreEqual("nuodb", profile.NuoDBProfile.Server);

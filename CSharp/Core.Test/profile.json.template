@@ -1,6 +1,6 @@
 ﻿{
   "SQLite": {
-    "Path": "sandbox/Business/business.sqlite3"
+    "Path": "business.sqlite3"
   },
   "NuoDb": {
     "Server": "nuodb",

@@ -7,19 +7,6 @@ namespace Business.Core.Profile
 	{
 		public ILog Log { get; set; }
 
-		public string SQLiteDatabasePath {
-			get {
-				string path;
-
-				if (string.IsNullOrEmpty(SQLiteProfile.Path))
-					path = "sandbox/Business"+ System.IO.Path.DirectorySeparatorChar + "business.sqlite3";
-				else
-					path = SQLiteProfile.Path;
-
-				return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), path);
-			}
-		}
-
 		public SQLite SQLiteProfile {
 			get {
 				if (sqliteprofile == null) {
@@ -29,8 +16,11 @@ namespace Business.Core.Profile
 						sqliteprofile.Active = true;
 					} else {
 						sqliteprofile = new SQLite();
-						sqliteprofile.Path = SQLiteDatabasePath;
 					}
+					if (String.IsNullOrEmpty(sqliteprofile.Path))
+						sqliteprofile.Path = Path.Combine(GetBasePath() + "business.sqlite3");
+					else
+						sqliteprofile.Path = Path.Combine(GetBasePath(), sqliteprofile.Path);
 				}
 				return sqliteprofile;
 			}
@@ -69,7 +59,7 @@ namespace Business.Core.Profile
 		}
 		NuoDB nuodbprofile;
 
-		public string ProfilePath {
+		public virtual string ProfilePath {
 			get {
 				return GetBasePath() + "profile.json";
 			}
@@ -90,7 +80,7 @@ namespace Business.Core.Profile
 		public Profile() {
 		}
 
-		public virtual string GetBasePath() {
+		public static string GetBasePath() {
 			return AppDomain.CurrentDomain.RelativeSearchPath ?? AppDomain.CurrentDomain.BaseDirectory;
 		}
 	}
