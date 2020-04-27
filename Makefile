@@ -59,7 +59,7 @@ schema.mysql: schema.xml
 	@echo Creating MySQL file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	sqlt -f XML-SQLFairy -t MySQL $(DROP_TABLE) $< >> $@
+	sqlt -f XML-SQLFairy -t MySQL $(DROP_TABLE) $< | sed -e "s/\`//g" >> $@
 	chmod -w $@
 
 SQLITE_UNSUPORTED_VIEWS = TimePeriod Accounts Ledgers Books LedgerBalance LedgerReport EdgeIndividuals IndividualURL IndividualEmailAddress
