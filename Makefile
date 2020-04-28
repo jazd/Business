@@ -59,7 +59,7 @@ schema.mysql: schema.xml
 	@echo Creating MySQL file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	sqlt -f XML-SQLFairy -t MySQL $(DROP_TABLE) $< | sed -e "s/\`//g" | sed -E 's|([^_])exit|\1`exit`|g' | sed -e "s/'NOW()'/CURRENT_TIMESTAMP/g" | sed -e 's|lock|`lock`|g' | sed -E 's|([ \(])release([^_])|\1`release`\2|g' | sed -e 's/\sRelease[^_]/ `Release`/g' | sed -e 's|get text|`get` text|g' | sed -e "s/'false'/'0'/g" | sed -e "s/ interval / float /g" | sed -e 's|inet|varchar|g' | sed -e 's/WITHOUT TIME ZONE//g' | sed -e 's/integer integer/`integer` integer/g' | sed -e 's/float float/`float` float/g' | sed -e 's| schema | `schema` |g'>> $@
+	sqlt -f XML-SQLFairy -t MySQL $(DROP_TABLE) $< | sed -e "s/\`//g" | sed -E 's|([^_])exit|\1`exit`|g' | sed -e "s/'NOW()'/CURRENT_TIMESTAMP/g" | sed -e 's|lock|`lock`|g' | sed -E 's|([ \(])release([^_])|\1`release`\2|g' | sed -E 's/\sRelease([^_])/ `Release`\1/g' | sed -e 's|get text|`get` text|g' | sed -e "s/'false'/'0'/g" | sed -e "s/ interval / float /g" | sed -e 's|inet|varchar|g' | sed -e 's/WITHOUT TIME ZONE//g' | sed -e 's/integer integer/`integer` integer/g' | sed -e 's/float float/`float` float/g' | sed -e 's| schema | `schema` |g'>> $@
 	chmod -w $@
 
 SQLITE_UNSUPORTED_VIEWS = TimePeriod Accounts Ledgers Books LedgerBalance LedgerReport EdgeIndividuals IndividualURL IndividualEmailAddress
@@ -111,9 +111,12 @@ nuodbdb: touch-xml schema.nuodb
 	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | $(NuoDBLoad)
 	cat Static/[23456789]_* | $(NuoDBLoad)
 
+MySQLServer = myco-1.cluster-ro-c71ep4cmnaje.us-west-2.rds.amazonaws.com
+MySQLPassword = --ssl-ca=~/rds-combined-ca-bundle.pem --password=`cat ~/password.txt`
 mysqldb: export DROP_TABLE = --add-drop-table
-mysqldb: touch-xml schma.mysql
+mysqldb: touch-xml schema.mysql
 	@echo Creating new MySQL database with $@
+	cat schema.mysql | mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
 
 
 business.sqlite3: schema.sqlite
