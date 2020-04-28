@@ -59,7 +59,7 @@ schema.mysql: schema.xml
 	@echo Creating MySQL file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	sqlt -f XML-SQLFairy -t MySQL $(DROP_TABLE) $< | sed -e "s/\`//g" | sed -E 's|([^_])exit|\1`exit`|g' | sed -e "s/'NOW()'/CURRENT_TIMESTAMP/g" |  sed -e 's|lock|`lock`|g' | sed -E 's|([^_])release|\1`release`|g' | sed -e 's|inet|varchar|g' >> $@
+	sqlt -f XML-SQLFairy -t MySQL $(DROP_TABLE) $< | sed -e "s/\`//g" | sed -E 's|([^_])exit|\1`exit`|g' | sed -e "s/'NOW()'/CURRENT_TIMESTAMP/g" | sed -e 's|lock|`lock`|g' | sed -E 's|([ \(])release([^_])|\1`release`\2|g' | sed -e 's/\sRelease[^_]/ `Release`/g' | sed -e 's|get text|`get` text|g' | sed -e "s/'false'/'0'/g" | sed -e "s/ interval / float /g" | sed -e 's|inet|varchar|g' >> $@
 	chmod -w $@
 
 SQLITE_UNSUPORTED_VIEWS = TimePeriod Accounts Ledgers Books LedgerBalance LedgerReport EdgeIndividuals IndividualURL IndividualEmailAddress
@@ -110,6 +110,11 @@ nuodbdb: touch-xml schema.nuodb
 	cat Static/[01]_* |  $(NuoDBLoad)
 	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | $(NuoDBLoad)
 	cat Static/[23456789]_* | $(NuoDBLoad)
+
+mysqldb: export DROP_TABLE = --add-drop-table
+mysqldb: touch-xml schma.mysql
+	@echo Creating new MySQL database with $@
+
 
 business.sqlite3: schema.sqlite
 ifeq ($(wildcard business.sqlite3),)
