@@ -7,6 +7,13 @@
 
 PostgreSQLServer = localhost
 
+ifeq ($(MySQLServer),)
+MySQLServer = localhost
+endif
+ifeq ($(MySQLPassword),)
+MySQLPassword =
+endif
+
 ifeq ($(NuoDBDatabase),)
 NuoDBDatabase = MyCo
 endif
@@ -111,8 +118,6 @@ nuodbdb: touch-xml schema.nuodb
 	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | $(NuoDBLoad)
 	cat Static/[23456789]_* | $(NuoDBLoad)
 
-MySQLServer = myco-1.cluster-ro-c71ep4cmnaje.us-west-2.rds.amazonaws.com
-MySQLPassword = --ssl-ca=~/rds-combined-ca-bundle.pem --password=`cat ~/password.txt`
 mysqldb: export DROP_TABLE = --add-drop-table
 mysqldb: touch-xml schema.mysql
 	@echo Creating new MySQL database with $@
