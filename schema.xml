@@ -1489,7 +1489,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <table name="unfinished" order="910">
 <comments>untested</comments>
 <fields>
- <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1g" is_foreign_key="0" order="1" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="field" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
