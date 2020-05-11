@@ -2,3 +2,12 @@
 !|Query Stats                                              |
 |query                                |row count?|is empty?|
 |SELECT period FROM PeriodName LIMIT 1|1         |false    |
+
+!|Insert|PeriodName|
+|name|period?|
+|29|>>periodid|
+
+First inserted period should be >= 1000
+!|Query| SELECT period FROM PeriodName WHERE period >= 1000 AND name = 29|
+|period|
+|<<periodid|
