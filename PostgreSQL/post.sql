@@ -46,8 +46,6 @@ CREATE UNIQUE INDEX sentence_id_culture_null ON Sentence (id) WHERE culture IS N
 CREATE UNIQUE INDEX paragraph_id_culture_null ON Paragraph (id) WHERE culture IS NULL;
 
 -- Sequences
-DROP SEQUENCE IF EXISTS period_shared_id_seq;
-CREATE SEQUENCE period_shared_id_seq START WITH 10000;
 DROP SEQUENCE IF EXISTS span_shared_id_seq;
 CREATE SEQUENCE span_shared_id_seq START WITH 10000;
 
@@ -69,7 +67,7 @@ ALTER SEQUENCE area_id_seq RESTART WITH 100000;
 ALTER SEQUENCE location_id_seq RESTART WITH 10000;
 ALTER SEQUENCE country_id_seq RESTART WITH 10000;
 ALTER SEQUENCE phone_id_seq RESTART WITH 10000;
-ALTER SEQUENCE period_id_seq RESTART WITH 1000;
+ALTER SEQUENCE periodname_period_seq RESTART WITH 1000;
 -- Untested
 ALTER SEQUENCE application_id_seq RESTART WITH 10000;
 ALTER SEQUENCE version_id_seq RESTART WITH 10000;

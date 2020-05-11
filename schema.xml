@@ -840,6 +840,9 @@
  <field name="exclude" data_type="boolean" size="" is_nullable="0" default_value="false" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<constraints>
+ <constraint name="period_periodname_period" type="FOREIGN KEY" fields="id" reference_table="PeriodName" reference_fields="period" deferrable="1" />
+</constraints>
 </table>
 
 <comments>Span tables share the same unique sequence id</comments>
@@ -912,7 +915,7 @@
 
 <table name="PeriodName" order="390">
 <fields>
- <field name="period" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="0" is_foreign_key="0" order="1" />
+ <field name="period" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
@@ -921,7 +924,6 @@
  <index name="periodname_period" type="NORMAL" fields="period" />
 </indices>
 <constraints>
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="period" reference_table="Period" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
@@ -1353,7 +1355,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </indices>
 <constraints>
  <constraint name="schedule_schedule" type="FOREIGN KEY" fields="schedule" reference_table="ScheduleName" reference_fields="schedule" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="period" reference_table="Period" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="schedule_periodname_period" type="FOREIGN KEY" fields="period" reference_table="PeriodName" reference_fields="period" deferrable="1" />
  <constraint name="schedual_costAccount" type="FOREIGN KEY" fields="costAccount" reference_table="AccountName" reference_fields="account" deferrable="1" />
 </constraints>
 </table>
