@@ -13,8 +13,8 @@ CREATE FUNCTION GetSentenceCulture (
 ) RETURNS Integer DETERMINISTIC
 BEGIN
  IF sentence_value IS NOT NULL THEN
-  INSERT INTO Sentence (value, culture) (
-   SELECT sentence_value, Culture.code
+  INSERT INTO Sentence (value, culture, length) (
+   SELECT sentence_value, Culture.code AS culture, LENGTH(sentence_value)
    FROM Culture
    LEFT JOIN Sentence AS does_exists ON UPPER(does_exists.value) = UPPER(sentence_value)
     AND does_exists.culture = Culture.code
