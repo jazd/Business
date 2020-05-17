@@ -1668,7 +1668,7 @@ LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
 WHERE Individual.nameChange IS NULL
   </sql>
  </view>
- <view name="List" fields="id,individual,name,namevalue,listSet,listSetValue,sequence" order="30">
+ <view name="List" fields="id,individual,listName,listNameValue,listSet,listSetValue,sequence,send,created" order="30">
   <sql>
 SELECT ListIndividual.id,
  ListIndividual.individual,
@@ -1871,7 +1871,7 @@ SELECT AgentString.id AS agentString,
  deviceOS.applicationrelease AS osApplicationRelease,
  agentApplicationRelease.id AS agentApplicationRelease
 FROM AgentString
-JOIN AssemblyApplicationRelease AS deviceAgent ON deviceAgent.id = agentString.agent
+JOIN AssemblyApplicationRelease AS deviceAgent ON deviceAgent.id = AgentString.agent
 JOIN Part AS device ON device.id = deviceAgent.assembly
 JOIN Sentence AS deviceName ON deviceName.id = device.name AND deviceName.culture = ClientCulture()
 JOIN AssemblyApplicationRelease AS deviceOS ON deviceOS.id = deviceAgent.parent
@@ -1901,23 +1901,23 @@ LEFT JOIN Versions AS AgentVersion ON AgentVersion.version = AgentRelease.versio
  </view>
  <view name="Sessions" fields="session,token,siteapplicationrelease,agentstring,deviceid,device,osid,os,agentid,agent,referring,referrringurl,fromaddress,credential,individual,username,email,created,touched">
   <sql>
-SELECT session.id AS session,
- sessionToken.token, sessionToken.siteapplicationrelease,
- sessionCredential.agentstring,
+SELECT Session.id AS session,
+ SessionToken.token, SessionToken.siteapplicationrelease,
+ SessionCredential.agentstring,
  deviceid, ParsedAgentStringShort.device, osid, ParsedAgentStringShort.os, agentid, ParsedAgentStringShort.agent,
- sessionCredential.referring, URL.value AS referrringURL,
- sessionCredential.fromaddress,
- sessionCredential.credential, credential.individual,  credential.username,
+ SessionCredential.referring, URL.value AS referrringURL,
+ SessionCredential.fromaddress,
+ SessionCredential.credential, Credential.individual,  Credential.username,
  EmailAddress.value AS email,
- COALESCE(sessionToken.created, session.created) AS created, session.touched
-FROM session
-CROSS JOIN sessionCredential
-LEFT JOIN sessionToken ON sessionToken.session = session.id
-LEFT JOIN ParsedAgentStringShort ON ParsedAgentStringShort.agentstring = sessionCredential.agentstring
-LEFT JOIN credential ON credential.id = sessionCredential.credential
-LEFT JOIN EmailAddress ON EmailAddress.email = credential.email
-LEFT JOIN URL ON URL.path = sessionCredential.referring
-WHERE session.id = sessionCredential.session
+ COALESCE(SessionToken.created, Session.created) AS created, Session.touched
+FROM Session
+CROSS JOIN SessionCredential
+LEFT JOIN SessionToken ON SessionToken.session = Session.id
+LEFT JOIN ParsedAgentStringShort ON ParsedAgentStringShort.agentstring = SessionCredential.agentstring
+LEFT JOIN Credential ON Credential.id = SessionCredential.credential
+LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email
+LEFT JOIN URL ON URL.path = SessionCredential.referring
+WHERE Session.id = SessionCredential.session
   </sql>
  </view>
  <view name="Parts" fields="part,parent,name,nameId,version,versionId,serial,created">
