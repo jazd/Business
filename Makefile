@@ -121,10 +121,10 @@ nuodbdb: touch-xml schema.nuodb
 mysqldb: export DROP_TABLE = --add-drop-table
 mysqldb: touch-xml schema.mysql
 	@echo Creating new MySQL database with $@
-	cat schema.mysql | mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
+	cat schema.mysql MySQL/procedures.sql | mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
 	cat MySQL/0_TimeZone.sql |  mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
 	cat Static/[01]_[^T]* |  mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
-	cat Static/[23456789]_* | grep -v GetSentence | grep -v GetAddress | mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
+	cat Static/[23456789]_* | grep -v GetAddress | mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
 
 business.sqlite3: schema.sqlite
 ifeq ($(wildcard business.sqlite3),)
