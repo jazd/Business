@@ -62,7 +62,7 @@ schema.nuodb: schema.xml
 	chmod -w $@
 	rm -f $<.excludeSomeViews
 
-MYSQL_UNSUPORTED_VIEWS = People PeopleEvent Entities IndividualURL URL Sessions File TimePeriod Accounts Ledgers Books LedgerBalance LedgerReport EdgeIndividuals IndividualURL IndividualEmailAddress
+MYSQL_UNSUPORTED_VIEWS = People PeopleEvent Entities IndividualURL URL Sessions File TimePeriod Accounts Ledgers Books LedgerBalance LedgerReport EdgeIndividuals IndividualURL IndividualEmailAddress MaxSpan
 schema.mysql: schema.xml
 	@echo Creating MySQL file $@
 	scripts/excludeView.pl $< $(MYSQL_UNSUPORTED_VIEWS) > $<.excludeSomeViews
