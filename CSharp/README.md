@@ -8,6 +8,6 @@ Copy to CSharp/SchemaVersion/business.sqlite3
 
 ## Minimum application profiles
 ```
-Copy CSharp/Core.Test/profile.json.SQLite to CSharp/Core.Test/profile.json
+Copy CSharp/Core.Test/profile.json.template to CSharp/Core.Test/profile.json
 Copy CSharp/SchemaVersion/profile.json.SQLite to CSharp/SchemaVersion/profile.json
 ```
