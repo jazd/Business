@@ -1,0 +1,5 @@
+﻿{
+  "SQLite": {
+    "Path": "business.sqlite3"
+  }
+}
