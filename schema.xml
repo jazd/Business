@@ -59,7 +59,6 @@
 </fields>
 <indices>
  <index name="paragraph_id_culture" type="NORMAL" fields="id,culture" />
- <index name="paragraph_id_culture_value" type="UNIQUE" fields="id,culture,value" />
 </indices>
 <constraints>
  <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -590,9 +589,9 @@
  <index name="part_parent_name_version_serial" type="UNIQUE" fields="parent,name,version,serial" />
 </indices>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="parent" reference_table="Part" reference_fields="id" deferrable="1" />
+ <constraint name="part_parent" type="FOREIGN KEY" fields="parent" reference_table="Part" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
+ <constraint name="part_version" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
 
@@ -605,8 +604,8 @@
  <field name="quantity" data_type="integer" size="" is_nullable="1" order="4" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="part" reference_table="Part" reference_fields="id" deferrable="1" />
+ <constraint name="assemplypart_assembly" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" deferrable="1" />
+ <constraint name="assemblypart_part" type="FOREIGN KEY" fields="part" reference_table="Part" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="designator" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
@@ -639,9 +638,9 @@
  <index name="AssemblyApplicationRelease_applicationRelease" type="NORMAL" fields="applicationRelease" />
 </indices>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="parent" reference_table="AssemblyApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="applicationRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="assemblyapplicationrelease_parent" type="FOREIGN KEY" fields="parent" reference_table="AssemblyApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="assemblyapplicationrelease_assembly" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="assemblyapplicationrelease_applicationRelease" type="FOREIGN KEY" fields="applicationRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
@@ -669,8 +668,8 @@
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="site" reference_table="Site" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="applicationRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="siteapplicationrelease_site" type="FOREIGN KEY" fields="site" reference_table="Site" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="siteapplicationrelease_applicatoinRelease" type="FOREIGN KEY" fields="applicationRelease" reference_table="ApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
@@ -706,8 +705,8 @@
  <index name="sessionToken_session_token" type="UNIQUE" fields="session,token" />
 </indices>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="SiteApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="sessionToken_session" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="sessionToken_siteApplicationRelease" type="FOREIGN KEY" fields="siteApplicationRelease" reference_table="SiteApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
@@ -746,9 +745,9 @@
 </indices>
 <constraints>
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="email" reference_table="Email" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="password" reference_table="Password" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="credential_email" type="FOREIGN KEY" fields="email" reference_table="Email" reference_fields="id" deferrable="1" />
+ <constraint name="credential_password" type="FOREIGN KEY" fields="password" reference_table="Password" reference_fields="id" deferrable="1" />
+ <constraint name="credential_culture" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
@@ -785,11 +784,11 @@
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="agentString" reference_table="AgentString" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="referring" reference_table="Path" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
+ <constraint name="sessioncredential_session" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="sessioncredential_agentString" type="FOREIGN KEY" fields="agentString" reference_table="AgentString" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="sessioncredential_credential" type="FOREIGN KEY" fields="credential" reference_table="Credential" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="sessioncredential_path" type="FOREIGN KEY" fields="referring" reference_table="Path" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="sessioncredential_location" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
 
