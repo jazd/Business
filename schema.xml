@@ -217,9 +217,9 @@
  <index name="name_given_middle_family" type="UNIQUE" fields="given,middle,family" />
 </indices>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="given" reference_table="Given" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="middle" reference_table="Given" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="family" reference_table="Family" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="name_given" type="FOREIGN KEY" fields="given" reference_table="Given" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="name_middle" type="FOREIGN KEY" fields="middle" reference_table="Given" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="name_family" type="FOREIGN KEY" fields="family" reference_table="Family" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
@@ -255,13 +255,13 @@
  <index name="individual_id" type="NORMAL" fields="id" />
 </indices>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="name" reference_table="Name" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="entity" reference_table="Entity" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="goesBy" reference_table="Given" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="individual_name" type="FOREIGN KEY" fields="name" reference_table="Name" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="individual_entity" type="FOREIGN KEY" fields="entity" reference_table="Entity" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="individual_goesBy" type="FOREIGN KEY" fields="goesBy" reference_table="Given" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="prefix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="suffix" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="post" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
+ <constraint name="individual_location" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
 
@@ -416,8 +416,8 @@
  </field>
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="country" reference_table="Country" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
+ <constraint name="phone_country" type="FOREIGN KEY" fields="country" reference_table="Country" reference_fields="id" deferrable="1" />
+ <constraint name="phone_location" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
 </constraints>
 <indices>
  <index name="phone_country_area_number" type="UNIQUE" fields="country,area,number" />
@@ -462,12 +462,12 @@
  <field name="location" data_type="integer" size="" is_nullable="1" order="8" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="country" reference_table="Country" reference_fields="id" deferrable="1" />
+ <constraint name="postal_country" type="FOREIGN KEY" fields="country" reference_table="Country" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="state" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="stateAbbreviation" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalud2" type="FOREIGN KEY" fields="county" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalud3" type="FOREIGN KEY" fields="city" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
+ <constraint name="postal_location" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
 </constraints>
 <indices>
  <index name="postal_country_code" type="UNIQUE" fields="country,code" />
@@ -488,8 +488,8 @@
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="9" />
 </fields>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="postal" reference_table="Postal" reference_fields="id" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
+ <constraint name="address_postal" type="FOREIGN KEY" fields="postal" reference_table="Postal" reference_fields="id" deferrable="1" />
+ <constraint name="address_location" type="FOREIGN KEY" fields="location" reference_table="Location" reference_fields="id" deferrable="1" />
 </constraints>
 <indices>
  <index name="address_postal_postalplus_location" type="NORMAL" fields="postal, postalPlus, location" />
@@ -534,10 +534,10 @@
  <index name="release_version_build" type="UNIQUE" fields="version,build" />
 </indices>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
+ <constraint name="release_version" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="build" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
- <constraint name="" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
+ <constraint name="release_path" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
 
@@ -571,8 +571,8 @@
  <index name="application_release" type="UNIQUE" fields="application,release" />
 </indices>
 <constraints>
- <constraint name="" type="FOREIGN KEY" fields="application" reference_table="Application" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <constraint name="" type="FOREIGN KEY" fields="release" reference_table="Release" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="applicationrelease_application" type="FOREIGN KEY" fields="application" reference_table="Application" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="applicationrelease_release" type="FOREIGN KEY" fields="release" reference_table="Release" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
