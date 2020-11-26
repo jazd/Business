@@ -92,7 +92,7 @@ schema.sqlserver: schema.xml
 	@echo Creating SQLServer file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	sqlt -f XML-SQLFairy -t SQLServer $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
+	sqlt -f XML-SQLFairy -t SQLServer $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | tr -d [] | sed -e "s/NOW()/GETUTCDATE()/g" | sed -e "s/timestamp/datetime/g" >> $@
 	chmod -w $@
 
 
