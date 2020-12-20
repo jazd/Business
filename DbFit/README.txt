@@ -1,4 +1,6 @@
 dbfit http://dbfit.github.io/dbfit/
+
+
 PostgreSQL database schema test server setup
 	Prior to version 10
 
@@ -53,3 +55,48 @@ http://localhost:8085/BusinessSchema.PostgreSqlSuite?suite
 
 Access the database directly
 psql MyCo test
+
+
+SQL Server Database Server
+
+Enable the tcp/ip protocol using Sql Server Configuration Manager
+Restart sqlserver
+
+Create Database and allow username and password logins
+
+sqlcmd -S localhost -E
+> CREATE DATABASE MyDB;
+> GO
+> exec sp_configure 'contained database authentication', 1
+> GO
+> Reconfigure
+> GO
+
+> USE [master]
+> GO
+> ALTER DATABASE [MyDB] SET CONTAINMENT = PARTIAL
+> GO
+> USE [MyDB];
+> GO
+> CREATE SCHEMA Business
+> GO
+> CREATE USER test WITH PASSWORD = '<password>', DEFAULT_SCHEMA = Business;
+> GO
+> QUIT
+
+Verify login
+sqlcmd -S localhost -U test -P <password> -d MyDB
+
+Create Business Schema in SQL Server
+
+Symbolic link  <git root>/Business/DbFit/BusinessSchema to <dbfit install directory>/dbfit/FitNesseRoot/BusinessSchema
+
+mklink /D <dbfit install directory>\FitNessRoot\BusinessSchema <git root>\Business\DbFit\BusinessSchema
+
+D:\Users\stevej\sandbox\Business\DbFit\BusinessSchema\SQLServerSuite>mklink /D TableTests ..\BusinessSuite\TableTests
+
+
+cd <dbfit install directory>
+./startFitnesse.bat
+
+http://localhost:8085/BusinessSchema

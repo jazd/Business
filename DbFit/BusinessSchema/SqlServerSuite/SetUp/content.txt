@@ -1,0 +1,3 @@
+!path lib/*.jar
+!|dbfit.SqlServerTest|
+!|Connect|localhost|test|password|MyDB|
