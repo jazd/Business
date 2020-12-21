@@ -95,6 +95,8 @@ mklink /D <dbfit install directory>\FitNessRoot\BusinessSchema <git root>\Busine
 
 D:\Users\stevej\sandbox\Business\DbFit\BusinessSchema\SQLServerSuite>mklink /D TableTests ..\BusinessSuite\TableTests
 
+Temporary fix to the test Queries
+find BusinessSchema/BusinessSuite/ -name content.txt -print0 | xargs -0 sed -i '/LIMIT 1/ s/SELECT /SELECT TOP 1 /;s/ LIMIT 1//'
 
 cd <dbfit install directory>
 ./startFitnesse.bat
