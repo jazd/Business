@@ -65,7 +65,7 @@ Restart sqlserver
 Create Database and allow username and password logins
 
 sqlcmd -S localhost -E
-> CREATE DATABASE MyDB;
+> CREATE DATABASE MyCo;
 > GO
 > exec sp_configure 'contained database authentication', 1
 > GO
@@ -74,9 +74,9 @@ sqlcmd -S localhost -E
 
 > USE [master]
 > GO
-> ALTER DATABASE [MyDB] SET CONTAINMENT = PARTIAL
+> ALTER DATABASE [MyCo] SET CONTAINMENT = PARTIAL
 > GO
-> USE [MyDB];
+> USE [MyCo];
 > GO
 > CREATE SCHEMA Business
 > GO
@@ -85,7 +85,7 @@ sqlcmd -S localhost -E
 > QUIT
 
 Verify login
-sqlcmd -S localhost -U test -P <password> -d MyDB
+sqlcmd -S localhost -U test -P <password> -d MyCo
 
 Create Business Schema in SQL Server
 
