@@ -82,12 +82,19 @@ sqlcmd -S localhost -E
 > GO
 > CREATE USER test WITH PASSWORD = '<password>', DEFAULT_SCHEMA = Business;
 > GO
+> GRANT CONTROL ON schema :: dbo TO test;
+> GO
+> GRANT CONTROL ON schema :: Business TO test;
 > QUIT
 
 Verify login
 sqlcmd -S localhost -U test -P <password> -d MyCo
 
 Create Business Schema in SQL Server
+sqlcmd -S localhost -E -d MyCo -i schema.sqlserver
+
+sqlcmd -S localhost -E -d MyCo -i SQLServer\Statics.sql
+
 
 Symbolic link  <git root>/Business/DbFit/BusinessSchema to <dbfit install directory>/dbfit/FitNesseRoot/BusinessSchema
 
@@ -95,7 +102,7 @@ mklink /D <dbfit install directory>\FitNessRoot\BusinessSchema <git root>\Busine
 
 D:\Users\stevej\sandbox\Business\DbFit\BusinessSchema\SQLServerSuite>mklink /D TableTests ..\BusinessSuite\TableTests
 
-Temporary fix to the test Queries
+Temporary fix to the test Queries so they work with SQL Server
 find BusinessSchema/BusinessSuite/ -name content.txt -print0 | xargs -0 sed -i '/LIMIT 1/ s/SELECT /SELECT TOP 1 /;s/ LIMIT 1//'
 
 cd <dbfit install directory>
