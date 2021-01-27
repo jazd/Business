@@ -120,6 +120,15 @@ nuodbdb: touch-xml schema.nuodb
 	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | $(NuoDBLoad)
 	cat Static/[23456789]_* | $(NuoDBLoad)
 
+sqlserverdb: export DROP_TABLE = --add-drop-table
+sqlserverdb: touch-xml schema.sqlserver
+	@echo To Create new SQLServer Database with $@
+	@echo sqlcmd -S localhost -E -d MyCo -i schema.sqlserver
+	@echo sqlcmd -S localhost -E -d MyCo -i SQLServer/Statics.sql
+	@echo sqlcmd -S localhost -E -d MyCo -i SQLServer/views.sql
+	@echo sqlcmd -S localhost -E -d MyCo -i SQLServer/procedures.sql
+	@echo sqlcmd -S localhost -E -d MyCo -i SQLServer/post.sql
+
 mysqldb: export DROP_TABLE = --add-drop-table
 mysqldb: touch-xml schema.mysql
 	@echo Creating new MySQL database with $@
