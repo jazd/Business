@@ -1,5 +1,4 @@
-# Take CSV and turn it into Procedure Calls PorgreSQL
-# Copyright (c) 2014 Stephen A Jazdzewski
+# Take TSV and turn it into Procedure Calls PorgreSQL
 BEGIN {
  FS = OFS = "\t";
  # $1 Country Code
