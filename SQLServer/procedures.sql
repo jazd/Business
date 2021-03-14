@@ -274,6 +274,121 @@ RETURN (
 )
 GO
 
+IF OBJECT_ID('GetFamily', 'P') IS NOT NULL
+ DROP PROCEDURE GetFamily;
+GO
+CREATE PROCEDURE GetFamily
+ @inFamily varchar(25)
+AS
+IF @inFamily IS NOT NULL
+BEGIN
+ INSERT INTO Family (value) (
+  SELECT TOP 1 @inFamily
+  FROM DUAL
+  LEFT JOIN Family AS does_exists ON does_exists.value = @inFamily
+  WHERE does_exists.id IS NULL
+ )
+END
+RETURN (
+ SELECT TOP 1 id
+ FROM Family
+ WHERE Family.value = @inFamily
+)
+GO
+
+IF OBJECT_ID('GetName', 'P') IS NOT NULL
+ DROP PROCEDURE GetName;
+GO
+CREATE PROCEDURE GetName
+ @inFirst varchar(25),
+ @inMiddle varchar(25),
+ @inLast varchar(25)
+AS
+DECLARE @first_id integer,
+ @middle_id integer,
+ @last_id integer;
+IF @inFirst IS NOT NULL OR @inMiddle IS NOT NULL OR @inLast IS NOT NULL
+BEGIN
+ -- get given and family values
+ EXEC @first_id = GetGiven @inFirst
+ EXEC @middle_id = GetGiven @inMiddle
+ EXEC @last_id = GetFamily @inLast
+
+ INSERT INTO Name (given, middle, family) (
+  SELECT @first_id, @middle_id, @last_id
+  FROM DUAL
+  LEFT JOIN Name AS does_exists ON
+       ((does_exists.given = @first_id) OR (does_exists.given IS NULL AND @first_id IS NULL))
+   AND ((does_exists.middle = @middle_id) OR (does_exists.middle IS NULL AND @middle_id IS NULL))
+   AND ((does_exists.family = @last_id) OR (does_exists.family IS NULL AND @last_id IS NULL))
+  WHERE does_exists.id IS NULL
+ )
+END
+
+RETURN (
+ SELECT TOP 1 id
+ FROM Name
+ WHERE ((Name.given = @first_id) OR (Name.given IS NULL AND @first_id IS NULL))
+    AND ((Name.middle = @middle_id) OR (Name.middle IS NULL AND @middle_id IS NULL))
+    AND ((Name.family = @last_id) OR (Name.family IS NULL AND @last_id IS NULL))
+)
+GO
+
+IF OBJECT_ID('GetIndividualPerson', 'P') IS NOT NULL
+ DROP PROCEDURE GetIndividualPerson;
+GO
+CREATE PROCEDURE GetIndividualPerson
+ @inFirst varchar(25),
+ @inMiddle varchar(25),
+ @inLast varchar(25),
+ @inBirth date, -- Can't be null
+ @inGoesBy varchar(25),
+ @inDeath date
+AS
+DECLARE
+ @name_id integer,
+ @goesBy_id integer,
+ @exists_id integer,
+ @return_id integer;
+-- Check for possible duplicate before inserting Name
+SET @exists_id = (
+ SELECT TOP 1 does_exists.id
+ FROM DUAL -- If first, last and birthday match any existing, consider it a duplicate and refuse to insert new Individual with this function
+ LEFT JOIN Given ON Given.value = @inFirst
+ LEFT JOIN Family ON Family.value = @inLast
+ LEFT JOIN Name ON ((Name.given = Given.id) OR (Name.given IS NULL AND Given.id IS NULL))
+  AND ((Name.family = Family.id) OR (Name.family IS NULL AND Family.id IS NULL))
+ LEFT JOIN Individual AS does_exists ON does_exists.name IN (@name_id, Name.id)
+  AND ((CAST(does_exists.birth AS DATE) = @inBirth) OR (@inBirth IS NULL))
+)
+
+IF @exists_id IS NULL
+BEGIN
+ EXEC @name_id = GetName @inFirst, @inMiddle, @inLast
+ EXEC @goesBy_id = GetGiven @inGoesBy
+
+ IF @name_id IS NOT NULL
+ BEGIN
+  INSERT INTO Individual(name, goesBy, birth, death) VALUES (@name_id, @goesBy_id, @inBirth, @inDeath)
+ END
+
+ SET @return_id = (
+  SELECT TOP 1 id
+  FROM Individual
+  WHERE Individual.name = @name_id
+  AND (CAST(Individual.birth AS DATE) = @inBirth) -- Null birth inserts are not allowd in this function
+  AND ((Individual.goesBy = @goesBy_id) OR (@goesBy_id IS NULL))
+  AND ((CAST(Individual.death AS DATE) = @inDeath) OR (Individual.death IS NULL AND @inDeath IS NULL))
+ )
+END
+ELSE
+BEGIN
+ SET @return_id = @exists_id;
+END
+
+RETURN @return_id;
+GO
+
 IF OBJECT_ID('GetEntityName', 'P') IS NOT NULL
  DROP PROCEDURE GetEntityName;
 GO

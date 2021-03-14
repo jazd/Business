@@ -82,3 +82,55 @@ LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
 WHERE Individual.nameChange IS NULL
 ;
 GO
+
+IF OBJECT_ID('People', 'V') IS NOT NULL
+ DROP VIEW People
+GO
+CREATE VIEW People AS
+SELECT Individual.id AS individual,
+ Name.id AS name,
+ COALESCE(goesBy.value,Given.value,
+ Family.value) AS goesBy,
+ NULL AS birthday,
+ NULL AS in_days,
+ COALESCE(honorific.value,'') +
+  CASE WHEN (honorific.value IS NOT NULL AND Given.value IS NULL AND middle.value IS NULL) THEN ' ' ELSE '' END +
+  COALESCE(CASE WHEN (honorific.value IS NOT NULL) THEN ' ' ELSE '' END + Given.value,'') +
+  COALESCE(CASE WHEN (Given.value IS NOT NULL) THEN ' ' ELSE '' END + middle.value,'') +
+  CASE WHEN (Given.value IS NOT NULL AND middle.value IS NULL) THEN ' ' ELSE '' END +
+  COALESCE(CASE WHEN (middle.value IS NOT NULL) THEN ' ' ELSE '' END  + Family.value,'') +
+  COALESCE(CASE WHEN (Family.value IS NOT NULL) THEN ' ' ELSE '' END + suffix.value,'') +
+  COALESCE(CASE WHEN (suffix.value IS NOT NULL) THEN ' ' ELSE '' END + post.value,'')
+ AS fullName,
+ Individual.prefix AS honorific,
+ Name.given,
+ Name.middle,
+ Name.family,
+ Individual.suffix,
+ Individual.post,
+ honorific.value AS honorificValue,
+ Given.value AS GivenValue,
+ middle.value AS middleValue,
+ Family.value AS FamilyValue,
+ suffix.value AS suffixValue,
+ post.value AS postValue,
+ birth,
+ death,
+ NULL AS aged,
+ Individual.created
+FROM Individual
+JOIN Name ON Name.id = Individual.name
+LEFT JOIN Given ON Given.id = Name.given
+LEFT JOIN Given AS middle ON middle.id = Name.middle
+LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
+LEFT JOIN Family ON Family.id = Name.family
+LEFT JOIN Word AS honorific ON honorific.id = Individual.prefix
+ AND honorific.culture = 1033
+LEFT JOIN Word AS suffix ON suffix.id = Individual.suffix
+ AND suffix.culture = 1033
+LEFT JOIN Word AS post ON post.id = Individual.post
+ AND post.culture = 1033
+WHERE Individual.nameChange IS NULL
+ OR Individual.nameChange > CURRENT_TIMESTAMP
+;
+GO
