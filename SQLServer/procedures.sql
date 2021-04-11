@@ -310,9 +310,18 @@ DECLARE @first_id integer,
 IF @inFirst IS NOT NULL OR @inMiddle IS NOT NULL OR @inLast IS NOT NULL
 BEGIN
  -- get given and family values
- EXEC @first_id = GetGiven @inFirst
- EXEC @middle_id = GetGiven @inMiddle
- EXEC @last_id = GetFamily @inLast
+ IF @inFirst IS NOT NULL
+ BEGIN
+  EXEC @first_id = GetGiven @inFirst
+ END
+ IF @inMiddle IS NOT NULL
+ BEGIN
+  EXEC @middle_id = GetGiven @inMiddle
+ END
+ IF @inLast IS NOT NULL
+ BEGIN
+  EXEC @last_id = GetFamily @inLast
+ END
 
  INSERT INTO Name (given, middle, family) (
   SELECT @first_id, @middle_id, @last_id
@@ -343,7 +352,7 @@ CREATE PROCEDURE GetIndividualPerson
  @inLast varchar(25),
  @inBirth date, -- Can't be null
  @inGoesBy varchar(25),
- @inDeath date
+ @inDeath date = NULL
 AS
 DECLARE
  @name_id integer,
@@ -365,7 +374,10 @@ SET @exists_id = (
 IF @exists_id IS NULL
 BEGIN
  EXEC @name_id = GetName @inFirst, @inMiddle, @inLast
- EXEC @goesBy_id = GetGiven @inGoesBy
+ IF @inGoesBy IS NOT NULL
+ BEGIN
+  EXEC @goesBy_id = GetGiven @inGoesBy
+ END
 
  IF @name_id IS NOT NULL
  BEGIN
