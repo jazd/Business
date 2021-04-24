@@ -62,6 +62,18 @@ FROM Path
 ;
 GO
 
+IF OBJECT_ID('Emails', 'V') IS NOT NULL
+ DROP VIEW Emails
+GO
+CREATE VIEW Emails AS
+SELECT id AS email, username, plus, host,
+ username +
+ COALESCE('+' + plus, '') +
+ '@'+ host AS value
+FROM Email
+;
+GO
+
 IF OBJECT_ID('Entities', 'V') IS NOT NULL
  DROP VIEW Entities
 GO

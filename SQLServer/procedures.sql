@@ -463,3 +463,54 @@ RETURN (
  ) AS Options
 )
 GO
+
+IF OBJECT_ID('GetEmailFragments', 'P') IS NOT NULL
+ DROP PROCEDURE GetEmailFragments
+GO
+CREATE PROCEDURE GetEmailFragments
+ @inUserName varchar(50),
+ @inPlus varchar(50) = NULL,
+ @inHost varchar(50)
+AS
+IF @inUserName IS NOT NULL AND @inHost IS NOT NULL
+BEGIN
+ INSERT INTO Email (username, plus, host) (
+  SELECT TOP 1 @inUserName, @inPlus, @inHost
+  FROM DUAL
+  LEFT JOIN Email AS does_exists ON UPPER(does_exists.username) = UPPER(@inUserName)
+   AND UPPER(does_exists.host) = UPPER(@inHost)
+   AND ((UPPER(does_exists.plus) = UPPER(@inPlus)) OR (does_exists.plus IS NULL AND @inPlus IS NULL))
+  WHERE does_exists.id IS NULL
+ )
+END
+RETURN (
+ SELECT TOP 1 id
+ FROM Email
+ WHERE UPPER(username) = UPPER(@inUserName)
+  AND UPPER(host) = UPPER(@inHost)
+  AND ((UPPER(plus) = UPPER(@inPlus)) OR (plus IS NULL AND @inPlus IS NULL))
+)
+GO
+
+-- Does not support username+code@doman email addresses
+IF OBJECT_ID('GetEmail', 'P') IS NOT NULL
+ DROP PROCEDURE GetEmail
+GO
+CREATE PROCEDURE GetEmail
+ @inEmail varchar(150)
+AS
+DECLARE @username varchar(50);
+DECLARE @plus varchar(50) = null;
+DECLARE @domain varchar(50);
+DECLARE @emailId integer = null;
+
+IF @inEmail IS NOT NULL
+BEGIN
+ SET @username = (LEFT(@inEmail, CHARINDEX('@', @inEmail) - 1));
+ SET @domain = (RIGHT(@inEmail, LEN(@inEmail) - CHARINDEX('@', @inEmail)))
+END
+
+EXEC @emailId = GetEmailFragments @username, @plus, @domain
+
+RETURN @emailId
+GO
