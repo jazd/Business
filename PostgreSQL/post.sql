@@ -4,7 +4,7 @@
 CREATE UNIQUE INDEX word_value ON Word(culture,UPPER(value));
 
 -- Untested
-CREATE UNIQUE INDEX sentence_value ON Sentence(culture,UPPER(value));
+CREATE INDEX sentence_value ON Sentence(culture,UPPER(value));
 CREATE UNIQUE INDEX sentence_value_null ON Sentence(UPPER(value)) WHERE culture IS NULL;
 CREATE UNIQUE INDEX release_version_null ON Release(name) WHERE build IS NULL;
 CREATE UNIQUE INDEX version_null_major_minor_patch ON Version(major,minor,patch) WHERE name IS NULL;

@@ -126,6 +126,7 @@ INSERT INTO Sentence (id,culture,value,length) VALUES (106,1036,'Honoraires prof
 INSERT INTO Sentence (id,culture,value,length) VALUES (106,2058,'Honorarios profesionales',24);
 INSERT INTO Sentence (id,culture,value,length) VALUES (107,1033,'Rent',4);
 INSERT INTO Sentence (id,culture,value,length) VALUES (107,1036,'Louer',5);
+INSERT INTO Sentence (id,culture,value,length) VALUES (107,2058,'Alquiler',8);
 INSERT INTO Sentence (id,culture,value,length) VALUES (108,1033,'Repairs',7);
 INSERT INTO Sentence (id,culture,value,length) VALUES (108,1036,'Réparations',11);
 INSERT INTO Sentence (id,culture,value,length) VALUES (108,2058,'Refacción',9);
