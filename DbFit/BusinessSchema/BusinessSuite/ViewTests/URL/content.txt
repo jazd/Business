@@ -31,6 +31,9 @@ Using Static
 |value|
 |http://www.IBM.com/?NoCRUD|
 
+Invalidate old IndividualPath
+!|Execute|UPDATE IndividualPath SET stop = NOW() WHERE individual = 10 AND type = 10|
+
 Put in a new one with no tracking
 !|Insert|IndividualPath|
 |individual|type|path|
