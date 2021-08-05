@@ -24,6 +24,9 @@ Using Static
 |value|
 |Steve+NoCRUD@Jazd.com|
 
+Invalidate old Individual Addresses
+!|Execute|UPDATE IndividualEmail SET stop = NOW() WHERE individual = 3 AND type = 11|
+
 Put in a new one with no tracking
 !|Insert|IndividualEmail|
 |individual|type|email|
@@ -31,5 +34,5 @@ Put in a new one with no tracking
 
 !|Ordered Query| SELECT value FROM IndividualEmailAddress WHERE individual = 3 AND type = 11|
 |value|
-|Steve+NoCRUD@ADB.Net|
+|Steve+NoCRUD@ADb.Net|
 
