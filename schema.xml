@@ -1504,6 +1504,33 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <views>
  <comments>SQLFairy does not handle XML escape codes.  So need to convert post process.</comments>
+ <view name="I8NWord" fields="id,defaultCulture,clientCulture,resultCulture,value" order="0">
+ <sql>
+SELECT WordDefault.id,
+ WordDefault.culture AS defaultCulture,
+ ClientCulture() AS clientCulture,
+ COALESCE(Word.culture, WordDefault.culture) AS resultCulture,
+ COALESCE(Word.value, WordDefault.value) AS value
+FROM Word AS WordDefault
+LEFT JOIN Word ON Word.id = WordDefault.id
+ AND Word.culture = ClientCulture()
+WHERE WordDefault.culture = 1033
+ </sql>
+ </view>
+ <view name="I8NSentence" fields="id,defaultCulture,clientCulture,resultCulture,value,length" order="0">
+ <sql>
+SELECT SentenceDefault.id,
+ SentenceDefault.culture AS defaultCulture,
+ ClientCulture() AS clientCulture,
+ COALESCE(Sentence.culture, SentenceDefault.culture) AS resultCulture,
+ COALESCE(Sentence.value, SentenceDefault.value) AS value,
+ COALESCE(Sentence.length, SentenceDefault.length) AS length
+FROM Sentence AS SentenceDefault
+LEFT JOIN Sentence ON Sentence.id = SentenceDefault.id
+ AND Sentence.culture = ClientCulture()
+WHERE SentenceDefault.culture = 1033
+ </sql>
+ </view>
  <view name="People" fields="individual,name,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,post,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,postvalue,birth,death,aged,created" order="1">
  <sql>
 SELECT Individual.id AS individual, Name.id AS name,
@@ -1536,12 +1563,9 @@ LEFT JOIN Given ON Given.id = Name.given
 LEFT JOIN Given AS middle ON middle.id = Name.middle
 LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
 LEFT JOIN Family ON Family.id = Name.family
-LEFT JOIN Word AS honorific ON honorific.id = Individual.prefix
- AND honorific.culture = ClientCulture()
-LEFT JOIN Word AS suffix ON suffix.id = Individual.suffix
- AND suffix.culture = ClientCulture()
-LEFT JOIN Word AS post ON post.id = Individual.post
- AND post.culture = ClientCulture()
+LEFT JOIN I8NWord AS honorific ON honorific.id = Individual.prefix
+LEFT JOIN I8NWord AS suffix ON suffix.id = Individual.suffix
+LEFT JOIN I8NWord AS post ON post.id = Individual.post
 WHERE Individual.nameChange IS NULL
  OR Individual.nameChange > NOW()
  </sql>
@@ -1641,15 +1665,12 @@ FROM IndividualPersonEvent
  LEFT JOIN Given AS middle ON middle.id = Name.middle
  LEFT JOIN Given AS goesBy ON goesBy.id = IndividualPersonEvent.goesBy
  LEFT JOIN Family ON Family.id = Name.family
- LEFT JOIN Word AS honorific ON honorific.id = IndividualPersonEvent.honorific
-  AND honorific.culture = ClientCulture()
- LEFT JOIN Word AS suffix ON suffix.id = IndividualPersonEvent.suffix
-  AND suffix.culture = ClientCulture()
- LEFT JOIN Word AS post ON post.id = IndividualPersonEvent.post
-  AND post.culture = ClientCulture()
- LEFT JOIN Word AS born ON born.value = !apos;Born!apos; AND born.culture = ClientCulture() AND birth = event
- LEFT JOIN Word AS death ON death.value = !apos;Died!apos; AND death.culture  = ClientCulture() AND death = event
- LEFT JOIN Word AS change ON change.value = !apos;Changed name!apos; AND change.culture  = ClientCulture()
+ LEFT JOIN I8NWord AS honorific ON honorific.id = IndividualPersonEvent.honorific
+ LEFT JOIN I8NWord AS suffix ON suffix.id = IndividualPersonEvent.suffix
+ LEFT JOIN I8NWord AS post ON post.id = IndividualPersonEvent.post
+ LEFT JOIN I8NWord AS born ON born.value = !apos;Born!apos; AND birth = event
+ LEFT JOIN I8NWord AS death ON death.value = !apos;Died!apos; AND death = event
+ LEFT JOIN I8NWord AS change ON change.value = !apos;Changed name!apos;
  </sql>
  </view>
 
@@ -1681,10 +1702,8 @@ SELECT ListIndividual.id,
 FROM ListIndividual
 JOIN ListIndividualName ON ListIndividualName.ListIndividual = ListIndividual.id
  AND ListIndividualName.optinStyle = 1
-JOIN Word AS Name ON ListIndividualName.name = Name.id
- AND Name.culture = ClientCulture()
-LEFT JOIN Word AS ListSet ON ListIndividualName.listSet = ListSet.id
- AND ListSet.culture = ClientCulture()
+JOIN I8NWord AS Name ON ListIndividualName.name = Name.id
+LEFT JOIN I8NWord AS ListSet ON ListIndividualName.listSet = ListSet.id
 LEFT JOIN Word AS SendField ON SendField.id = ListIndividual.type
  AND SendField.culture IS NULL
 LEFT JOIN ListIndividual AS disable ON disable.individual = ListIndividual.individual
@@ -1820,12 +1839,9 @@ SELECT Address.id AS address,
 FROM Address
 JOIN Postal ON Postal.id = Address.postal
 JOIN Country ON Country.id = Postal.country
-JOIN Word AS City ON City.id = Postal.city
- AND City.culture = ClientCulture()
-JOIN Word AS State ON State.id = Postal.state
- AND State.culture =  ClientCulture()
-LEFT JOIN Word AS StateAbbr ON StateAbbr.id = Postal.stateAbbreviation
- AND StateAbbr. culture =  ClientCulture()
+JOIN I8NWord AS City ON City.id = Postal.city
+JOIN I8NWord AS State ON State.id = Postal.state
+LEFT JOIN I8NWord AS StateAbbr ON StateAbbr.id = Postal.stateAbbreviation
 LEFT JOIN Location AS AddressLocation On AddressLocation.id = Address.location
 LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
 LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
@@ -1833,31 +1849,19 @@ LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
  </view>
  <view name="Versions" fields="version,name,value,major,minor,patch">
   <sql>
-SELECT Version.id AS version, COALESCE(nameLocal.value,name.value) AS name,
- COALESCE(majorLocal.value,major.value) ||
-  COALESCE(!apos;.!apos; || COALESCE(minorLocal.value,minor.value), !apos;!apos;) ||
-  COALESCE(!apos;.!apos; || COALESCE(patchLocal.value,patch.value), !apos;!apos;)
+SELECT Version.id AS version, name.value AS name,
+ major.value ||
+  COALESCE(!apos;.!apos; || minor.value, !apos;!apos;) ||
+  COALESCE(!apos;.!apos; || patch.value, !apos;!apos;)
  AS value,
- COALESCE(majorLocal.value,major.value) AS major,
- COALESCE(minorLocal.value,minor.value) AS minor,
- COALESCE(patchLocal.value,patch.value) AS patch
+ major.value AS major,
+ minor.value AS minor,
+ patch.value AS patch
 FROM Version
-LEFT JOIN Word AS nameLocal ON nameLocal.id = Version.name
- AND nameLocal.culture = ClientCulture()
-LEFT JOIN Word AS name ON name.id = Version.name
- AND name.culture = 1033
-LEFT JOIN Word AS majorLocal ON majorLocal.id = Version.major
- AND majorLocal.culture = ClientCulture()
-LEFT JOIN Word AS major ON major.id = Version.major
- AND major.culture = 1033
-LEFT JOIN Word AS minorLocal ON minorLocal.id = Version.minor
- AND minorLocal.culture = ClientCulture()
-LEFT JOIN Word AS minor ON minor.id = Version.minor
- AND minor.culture = 1033
-LEFT JOIN Word AS patchLocal ON patchLocal.id = Version.patch
- AND patchLocal.culture = ClientCulture()
-LEFT JOIN Word AS patch ON patch.id = Version.patch
- AND patch.culture = 1033
+LEFT JOIN I8NWord AS name ON name.id = Version.name
+LEFT JOIN I8NWord AS major ON major.id = Version.major
+LEFT JOIN I8NWord AS minor ON minor.id = Version.minor
+LEFT JOIN I8NWord AS patch ON patch.id = Version.patch
   </sql>
  </view>
  <view name="ParsedAgentStringShort" fields="agentstring,deviceid,device,osid,os,agentid,agent,deviceversion,osapplicationrelease,agentapplicationrelease">
@@ -1872,14 +1876,14 @@ SELECT AgentString.id AS agentString,
 FROM AgentString
 JOIN AssemblyApplicationRelease AS deviceAgent ON deviceAgent.id = AgentString.agent
 JOIN Part AS device ON device.id = deviceAgent.assembly
-JOIN Sentence AS deviceName ON deviceName.id = device.name AND deviceName.culture = ClientCulture()
+JOIN I8NSentence AS deviceName ON deviceName.id = device.name
 JOIN AssemblyApplicationRelease AS deviceOS ON deviceOS.id = deviceAgent.parent
 JOIN ApplicationRelease AS OSapplicationRelease ON OSapplicationRelease.id = deviceOS.applicationRelease
 JOIN Application AS OS ON OS.id = OSapplicationRelease.application
-JOIN Word AS OSName ON OSName.id = OS.name AND OSName.culture = ClientCulture()
+JOIN I8NWord AS OSName ON OSName.id = OS.name
 JOIN ApplicationRelease AS agentApplicationRelease ON agentApplicationRelease.id = deviceAgent.applicationRelease
 JOIN Application AS Agent On Agent.id = agentApplicationRelease.application
-JOIN Word AS AgentName ON AgentName.id = Agent.name AND AgentName.culture = ClientCulture()
+JOIN I8NWord AS AgentName ON AgentName.id = Agent.name
   </sql>
  </view>
  <view name="ParsedAgentString" fields="agentstring,deviceid,deviceversion,device,deviceersionname,osid,osversion,os,osversionname,agentid,agentversion,agent,agentversionname">
@@ -1922,15 +1926,14 @@ WHERE Session.id = SessionCredential.session
  <view name="Parts" fields="part,parent,name,nameId,version,versionId,serial,created">
   <sql>
 SELECT Part.id AS part, Part.parent,
- Sentence.value AS name, Part.name AS nameId,
+ I8NSentence.value AS name, Part.name AS nameId,
  CASE WHEN (Versions.name IS NOT NULL) THEN Versions.name ELSE !apos;!apos; END ||
  CASE WHEN (Versions.name IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
  CASE WHEN (Versions.value IS NOT NULL) THEN Versions.value ELSE !apos;!apos; END AS version,
  Part.version AS versionId,
  Part.serial, Part.created
 FROM Part
-JOIN Sentence ON Sentence.id = Part.name
- AND Sentence.culture = ClientCulture()
+JOIN I8NSentence ON I8NSentence.id = Part.name
 LEFT JOIN Versions ON Versions.version = Part.version
   </sql>
  </view>
@@ -1959,23 +1962,21 @@ FROM AssemblyPart
 JOIN Parts AS assemblies ON assemblies.part = AssemblyPart.assembly
 JOIN Parts AS parent ON parent.part = assemblies.parent
 JOIN Parts AS parts ON parts.part = AssemblyPart.part
-LEFT JOIN Word AS designator ON designator.id = AssemblyPart.designator
- AND designator.culture = ClientCulture()
+LEFT JOIN I8NWord AS designator ON designator.id = AssemblyPart.designator
   </sql>
  </view>
 
  <view name="Periods" fields="period,name,periodname">
    <sql>
-SELECT PeriodName.period, PeriodName.name, Sentence.value AS periodName
+SELECT PeriodName.period, PeriodName.name, I8NSentence.value AS periodName
 FROM PeriodName
-LEFT JOIN Sentence ON Sentence.id = PeriodName.name
- AND Sentence.culture = ClientCulture()
+LEFT JOIN I8NSentence ON I8NSentence.id = PeriodName.name
    </sql>
  </view>
 
  <view name="PeriodSpans" fields="period,name,periodname,span,exclude,monthdaymonth,day,weekofmonth,dayofweekstart,dayofweekstop,dayofmonth,month,monthyear,daterangestart,daterangestop,timeofdaystart,timeofdaystop">
    <sql>
-SELECT PeriodName.period, PeriodName.name, Sentence.value AS periodName,
+SELECT PeriodName.period, PeriodName.name, I8NSentence.value AS periodName,
  Period.span, Period.exclude,
  MonthDay.month AS MonthDaymonth, MonthDay.day, MonthDay.weekOfMonth,
  DayOfWeek.start AS dayOfWeekStart, DayOfWeek.stop AS dayOfWeekStop, DayOfWeek.dayOfMonth,
@@ -1984,8 +1985,7 @@ SELECT PeriodName.period, PeriodName.name, Sentence.value AS periodName,
  TimeOfDay.start AS timeOfDayStart, TimeOfDay.stop AS timeOfDayStop
 FROM Period
 JOIN PeriodName ON PeriodName.period = Period.id
-JOIN Sentence ON Sentence.id = PeriodName.name
- AND Sentence.culture = ClientCulture()
+JOIN I8NSentence ON I8NSentence.id = PeriodName.name
 LEFT JOIN MonthDay  ON MonthDay.id  = Period.span
 LEFT JOIN DayOfWeek ON DayOfWeek.id = Period.span
 LEFT JOIN Month     ON Month.id     = Period.span
@@ -2066,7 +2066,7 @@ SELECT MAX(id) AS id FROM (
  <view name="Accounts" fields="account,name,type,typeName,individual,individualName,individualAccountType,individualAccountTypeName,credit,debitIncrease,debitDecrease,creditIncrease,creditDecrease" order="900">
   <sql>
 SELECT AccountName.account,
- Sentence.value AS name,
+ I8NSentence.value AS name,
  AccountName.type,
  TypeName.value AS typeName,
  IndividualAccount.individual,
@@ -2084,7 +2084,6 @@ SELECT AccountName.account,
  ELSE
   NULL
  END AS debitDecrease,
-
  CASE WHEN AccountName.credit THEN
   1
  ELSE
@@ -2096,23 +2095,20 @@ SELECT AccountName.account,
   NULL
  END AS creditDecrease
 FROM AccountName
-JOIN Sentence ON Sentence.id = AccountName.name
- AND Sentence.culture = ClientCulture()
-JOIN Word AS TypeName ON TypeName.id = AccountName.type
- AND TypeName.culture = ClientCulture()
+JOIN I8NSentence ON I8NSentence.id = AccountName.name
+JOIN I8NWord AS TypeName ON TypeName.id = AccountName.type
 LEFT JOIN IndividualAccount ON IndividualAccount.account = AccountName.account
  AND IndividualAccount.stop IS NULL
 LEFT JOIN People ON People.individual = IndividualAccount.individual
 LEFT JOIN Entities ON Entities.individual = IndividualAccount.individual
-LEFT JOIN Word AS IndividualAccountType ON IndividualAccountType.id = IndividualAccount.type
- AND IndividualAccountType.culture = ClientCulture()
+LEFT JOIN I8NWord AS IndividualAccountType ON IndividualAccountType.id = IndividualAccount.type
   </sql>
  </view>
 
  <view name="Ledgers" fields="ledger,name,sequence,account,accountname,type,typename,credit,debitincrease,debitdecrease,creditincrease,creditdecrease">
   <sql>
 SELECT LedgerName.ledger,
- Sentence.value AS name,
+ I8NSentence.value AS name,
  LedgerAccount.sequence,
  Accounts.account,
  Accounts.name AS accountName,
@@ -2124,8 +2120,7 @@ SELECT LedgerName.ledger,
  Accounts.creditIncrease,
  Accounts.creditDecrease
 FROM LedgerName
-JOIN Sentence ON Sentence.id = LedgerName.name
- AND Sentence.culture = ClientCulture()
+JOIN I8NSentence ON I8NSentence.id = LedgerName.name
 JOIN LedgerAccount ON LedgerAccount.ledger = LedgerName.ledger
 JOIN Accounts ON Accounts.account = LedgerAccount.account
   </sql>
@@ -2134,17 +2129,16 @@ JOIN Accounts ON Accounts.account = LedgerAccount.account
  <view name="Journals" fields="journal,name">
   <sql>
 SELECT JournalName.journal,
- Sentence.value AS name
+ I8NSentence.value AS name
 FROM JournalName
-JOIN Sentence ON Sentence.id = JournalName.name
- AND Sentence.culture = ClientCulture()
+JOIN I8NSentence ON I8NSentence.id = JournalName.name
   </sql>
  </view>
 
  <view name="Books" fields="book,name,journal,journalname,split,increase,increasename,increasetype,increasecredit,increasedebitincrease,increasedebitdecrease,increasecreditincrease,increasecreditdecrease,decrease,decreasename,decreasetype,decreasecredit,decreasedebitincrease,decreasedebitdecrease,decreasecreditincrease,decreasecreditdecrease">
   <sql>
 SELECT BookName.book,
- Sentence.value AS name,
+ I8NSentence.value AS name,
  BookName.journal,
  Journals.name AS journalName,
  COALESCE(BookAccount.split, 1) AS split,
@@ -2165,8 +2159,7 @@ SELECT BookName.book,
  Decrease.creditIncrease AS decreaseCreditIncrease,
  Decrease.creditDecrease AS decreaseCreditDecrease
 FROM BookName
-JOIN Sentence ON Sentence.id = BookName.name
- AND Sentence.culture = ClientCulture()
+JOIN I8NSentence ON I8NSentence.id = BookName.name
 JOIN Journals ON Journals.journal = BookName.journal
 JOIN BookAccount ON BookAccount.book = BookName.book
 LEFT JOIN Accounts AS Increase ON Increase.account = BookAccount.increase
@@ -2201,20 +2194,15 @@ SELECT JournalEntry.id,
  JournalEntry.created
 FROM JournalEntry
 JOIN AccountName ON AccountName.account = JournalEntry.account
-JOIN Sentence AS AccountNameString ON AccountNameString.id = AccountName.name
- AND AccountNameString.culture = ClientCulture()
-JOIN Word AS AccountTypeName ON AccountTypeName.id = AccountName.type
- AND AccountTypeName.culture = ClientCulture()
+JOIN I8NSentence AS AccountNameString ON AccountNameString.id = AccountName.name
+JOIN I8NWord AS AccountTypeName ON AccountTypeName.id = AccountName.type
 JOIN JournalName ON JournalName.journal = JournalEntry.journal
-JOIN Sentence AS JournalNameString ON JournalNameString.id = JournalName.name
- AND JournalNameString.culture = ClientCulture()
+JOIN I8NSentence AS JournalNameString ON JournalNameString.id = JournalName.name
 LEFT JOIN BookName ON BookName.book = JournalEntry.book
-LEFT JOIN Sentence AS BookNameString ON BookNameString.id = BookName.name
- AND BookNameString.culture = ClientCulture()
+LEFT JOIN I8NSentence AS BookNameString ON BookNameString.id = BookName.name
 LEFT JOIN LedgerJournal ON LedgerJournal.journal = JournalEntry.journal
 LEFT JOIN LedgerName ON LedgerName.ledger = LedgerJournal.ledger
-LEFT JOIN Sentence AS LedgerNameString ON LedgerNameString.id =LedgerName.name
- AND LedgerNameString.culture = ClientCulture()
+LEFT JOIN I8NSentence AS LedgerNameString ON LedgerNameString.id = LedgerName.name
   </sql>
  </view>
 <view name="LedgerBalance" fields="ledger,ledgername,sequence,account,accountname,type,typename,debit,credit">
@@ -2305,11 +2293,9 @@ SELECT Edge.id AS edge,
  stop
 FROM Edge
 JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
-JOIN Sentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
- AND StartVertexNameString.culture = ClientCulture()
+JOIN I8NSentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
 JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
-LEFT JOIN Sentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
- AND StopVertexNameString.culture = ClientCulture()
+LEFT JOIN I8NSentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
   </sql>
  </view>
  <view name="EdgeIndividuals" fields="edge,startname,stopname,startindividual,startindividualname,starttype,stopindividual,stopindividualname,stoptype,hops,entry,direct,exit">
@@ -2332,10 +2318,8 @@ SELECT Edge.id AS edge,
 FROM Edge
 JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
 JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
-LEFT JOIN Sentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
- AND StartVertexNameString.culture = ClientCulture()
-LEFT JOIN Sentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
- AND StopVertexNameString.culture = ClientCulture()
+LEFT JOIN I8NSentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
+LEFT JOIN I8NSentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
 LEFT JOIN IndividualVertex AS StartIndividualVertex ON StartIndividualVertex.vertex = Edge.start
 LEFT JOIN People AS StartPeople ON StartPeople.individual = StartIndividualVertex.individual
 LEFT JOIN Entities AS StartEntities ON StartEntities.individual = StartIndividualVertex.individual
