@@ -13,6 +13,7 @@ Only en-US and es-MX
 |code | name|
 |1033|en-US|
 |2058|es-MX|
+|1036|fr-FR|
 
 Longest Code Insert
 
