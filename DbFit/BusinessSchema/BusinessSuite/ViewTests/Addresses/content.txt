@@ -1,4 +1,9 @@
-!4 Verify Addresses view exists
+Verify Addresses view exists
 !|Query Stats                                              |
 |query                                |row count?|is empty?|
 |SELECT address FROM Addresses LIMIT 1|1         |false    |
+
+Formatted Addresses
+!|Ordered Query| SELECT line1, city, state, zipcode, countrycode FROM Addresses LIMIT 1|
+|line1|city|state|zipcode|countrycode|
+|1 New Orchard Road|Armonk|NY|10504-1716|USA|

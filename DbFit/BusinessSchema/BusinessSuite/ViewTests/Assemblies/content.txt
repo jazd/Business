@@ -1,5 +1,26 @@
-!4 Verify Assemblies view exists
+Verify Assemblies view exists
 Underlying table has no static records
 !|Query Stats                                                |
 |query                                  |row count?|is empty?|
 |SELECT assembly FROM Assemblies LIMIT 1|0         |true     |
+
+!|Insert|Part|
+|name|id?|
+|19|>>rootId|
+
+!|Insert|Part|
+|name|parent|id?|
+|20|<<rootId|>>assemblyId|
+
+!|Insert|Part|
+|name|parent|id?|
+|76|<<assemblyId|>>childId|
+
+!|Insert|AssemblyPart|
+|assembly|part|
+|<<assemblyId|<<childId|
+
+|Set Parameter|assemblyId|<<assemblyId|
+!|Ordered Query| SELECT name, parentname FROM Assemblies WHERE assembly=_:assemblyId::INT|
+|name|parentname|
+|Tea|Lunch|
