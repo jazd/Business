@@ -1,4 +1,4 @@
-!4 Verify IndividualUrl view exists
-!|Query Stats                                                      |
-|query                                        |row count?|is empty?|
-|SELECT individual FROM IndividualUrl LIMIT 1 |1         |false    |
+IndividualUrl IBM
+!|Ordered Query| SELECT value FROM IndividualURL WHERE individual = 10|
+|value|
+|http://www.IBM.com/?NoCRUD|

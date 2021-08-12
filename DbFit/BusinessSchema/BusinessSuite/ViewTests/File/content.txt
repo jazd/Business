@@ -1,4 +1,4 @@
-!4 Verify File view exists
-!|Query Stats                                                |
-|query                                  |row count?|is empty?|
-|SELECT path FROM File LIMIT 1          |1         |false    |
+No file result.  Actaully a URL path
+!|Ordered Query| SELECT value FROM File WHERE path = 10|
+|value|
+|http:///|

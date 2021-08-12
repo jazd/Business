@@ -1,4 +1,4 @@
-!4 Verify IndividualPersonEvent view exists
-!|Query Stats                                                             |
-|query                                               |row count?|is empty?|
-|SELECT individual FROM IndividualPersonEvent LIMIT 1|1         |false    |
+IndividualPersonEvent Robert Anson Heinlein
+!|Ordered Query| SELECT DATE(birth) AS birth, DATE(death) AS death FROM IndividualPersonEvent WHERE individual = 8|
+|birth|death|
+|1907-07-07|1988-05-08|
