@@ -2,3 +2,7 @@
 !|Query Stats                                                   |
 |query                                     |row count?|is empty?|
 |SELECT individual FROM PeopleEvent LIMIT 1|1         |false    |
+
+!|Ordered Query| SELECT goesBy, fullName, DATE(date) AS date, eventname FROM PeopleEvent WHERE individual = 8|
+| goesby |fullname|date|eventname|
+|Robert|Robert Anson Heinlein|1988-05-08|Died|

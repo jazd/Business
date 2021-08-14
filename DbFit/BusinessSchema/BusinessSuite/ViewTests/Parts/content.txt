@@ -3,3 +3,24 @@ Underlying table has no static records
 !|Query Stats                                       |
 |query                         |row count?|is empty?|
 |SELECT part FROM Parts LIMIT 1|0         |true     |
+
+!|Insert|Part|
+|name|id?|
+|19|>>rootId|
+
+!|Insert|Part|
+|name|parent|id?|
+|20|<<rootId|>>assemblyId|
+
+!|Insert|Part|
+|name|parent|id?|
+|76|<<assemblyId|>>childId|
+
+!|Insert|AssemblyPart|
+|assembly|part|
+|<<assemblyId|<<childId|
+
+|Set Parameter|childId|<<childId|
+!|Query|SELECT part,name FROM Parts WHERE part = _:childId::INT|
+|part|name|
+|<<childId|Cash|
