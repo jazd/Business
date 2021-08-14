@@ -1637,12 +1637,14 @@ WHERE Name.id = Individual.name
  <sql>
 SELECT IndividualPersonEvent.individual, IndividualPersonEvent.name,
  COALESCE(goesBy.value,Given.value,Family.value) AS goesBy,
- COALESCE(honorific.value || !apos; !apos;,!apos;!apos;) ||
-  COALESCE(Given.value || !apos; !apos;,!apos;!apos;) ||
-  COALESCE(middle.value || !apos; !apos;,!apos;!apos;) ||
-  COALESCE(Family.value || !apos; !apos;,!apos;!apos;) ||
-  COALESCE(suffix.value || !apos; !apos;,!apos;!apos;) ||
-  COALESCE(post.value || !apos; !apos;,!apos;!apos;)
+ COALESCE(honorific.value,!apos;!apos;) ||
+  CASE WHEN (honorific.value IS NOT NULL AND Given.value IS NULL AND middle.value IS NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
+  COALESCE(CASE WHEN (honorific.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || Given.value,!apos;!apos;) ||
+  COALESCE(CASE WHEN (Given.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || middle.value,!apos;!apos;) ||
+  CASE WHEN (Given.value IS NOT NULL AND middle.value IS NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
+  COALESCE(CASE WHEN (middle.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END  || Family.value,!apos;!apos;) ||
+  COALESCE(CASE WHEN (Family.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || suffix.value,!apos;!apos;) ||
+  COALESCE(CASE WHEN (suffix.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || post.value,!apos;!apos;)
   AS fullName,
  event AS date,
  COALESCE(born.id, death.id, change.id) AS event,
