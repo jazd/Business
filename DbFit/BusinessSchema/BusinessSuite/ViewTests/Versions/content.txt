@@ -3,3 +3,12 @@ Underlying table has no static records
 !|Query Stats                                             |
 |query                               |row count?|is empty?|
 |SELECT version FROM Versions LIMIT 1|0         |true     |
+
+!|Insert|Version|
+|name|major|minor|patch|id?|
+|61003 | 210000 | 210001 | 210003| >>versionId|
+
+|Set Parameter|versionId|<<versionId|
+!|Query|SELECT name, value FROM Versions WHERE version = _:versionId::INT|
+|name|value|
+|Logan|0.1.3|
