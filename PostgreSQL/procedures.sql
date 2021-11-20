@@ -738,7 +738,7 @@ CREATE OR REPLACE FUNCTION SetIndividualEmail (
  inIndividual_id bigint,
  inEmail_id integer,
  inType varchar
-) RETURNS void AS $$
+) RETURNS bigint AS $$
 DECLARE
  type_id integer;
 BEGIN
@@ -755,17 +755,26 @@ BEGIN
    WHERE exists.individual IS NULL
    LIMIT 1
   );
+  -- Be sure to stop any previous emails of this type associated with this individual
+  UPDATE IndividualEmail
+  SET stop = NOW()
+  WHERE individual = inIndividual_id
+   AND email != inEmail_id
+   AND Stop IS NULL
+   AND ((type = type_id) OR (type IS NULL AND type_id IS NULL))
+  ;
  END IF;
+ RETURN inIndividual_id;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION SetIndividualEmail (
  inIndividual_id bigint,
  inEmail_id integer
-) RETURNS void AS $$
+) RETURNS bigint AS $$
 DECLARE
 BEGIN
- PERFORM SetIndividualEmail(inIndividual_id, inEmail_id, NULL);
+ RETURN SetIndividualEmail(inIndividual_id, inEmail_id, NULL);
 END;
 $$ LANGUAGE plpgsql;
 
