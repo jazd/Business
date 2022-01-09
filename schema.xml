@@ -158,8 +158,8 @@
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="parent" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="marquee" data_type="integer" size="" is_nullable="1" order="3" />
- <field name="latitude" data_type="float" size="24" is_nullable="1" order="4" />
- <field name="longitude" data_type="float" size="24" is_nullable="1" order="5" />
+ <field name="latitude" data_type="numeric" size="10,7" is_nullable="1" order="4" />
+ <field name="longitude" data_type="numeric" size="11,7" is_nullable="1" order="5" />
  <field name="accuracy" data_type="integer" size="" is_nullable="1" order="6">
   <comments>From GeoNames.org accuracy of lat/lng from 1=estimated to 6=centroid</comments>
  </field>

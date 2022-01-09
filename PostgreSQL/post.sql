@@ -48,6 +48,7 @@ CREATE UNIQUE INDEX paragraph_id_culture_null ON Paragraph (id) WHERE culture IS
 -- Sequences
 DROP SEQUENCE IF EXISTS span_shared_id_seq;
 CREATE SEQUENCE span_shared_id_seq START WITH 10000;
+DROP SEQUENCE IF EXISTS cargo_id_seq;
 CREATE SEQUENCE cargo_id_seq START WITH 100;
 
 -- Application or user insert on these tables should start at 2000000

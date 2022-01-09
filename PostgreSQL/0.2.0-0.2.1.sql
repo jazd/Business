@@ -5,6 +5,8 @@
 -- GetIndividualEntity(<Entity Name>)
 -- cargo_id_seq
 -- AddCargo() root function
+-- GetPostal return value did not work with Location lat/log incorrect types
+--  Postal entries from Static/GeoNamesUSZipSample.tsv will need to be fixed by hand in existing databases
 
 DROP FUNCTION SetIndividualEmail(bigint,integer);
 DROP FUNCTION SetIndividualEmail(bigint,integer,character varying);
@@ -130,3 +132,38 @@ BEGIN
  RETURN cargo_id;
 END;
 $$ LANGUAGE plpgsql;
+
+
+DROP VIEW ADDRESSES;
+ALTER TABLE Location ALTER COLUMN latitude TYPE NUMERIC(10,7);
+ALTER TABLE Location ALTER COLUMN longitude TYPE NUMERIC(11,7);
+
+--
+-- View: Addresses
+--
+DROP VIEW IF EXISTS Addresses;
+CREATE VIEW Addresses ( address, line1, line2, line3, city, state, zipcode, postalcode, country, countrycode, marquee, location, latitude, longitude ) AS
+SELECT Address.id AS address,
+ line1, line2, line3,
+ City.value AS city,
+ COALESCE(UPPER(StateAbbr.value), State.value) AS state,
+ Postal.code ||
+ CASE WHEN (postalplus IS NOT NULL) THEN '-' ELSE '' END ||
+ Address.postalplus AS zipcode,
+ Postal.code AS postalcode,
+ Country.id AS country,
+ Country.code AS countrycode,
+ COALESCE(AddressLocation.marquee, PostalLocation.marquee, CountryLocation.marquee) AS marquee,
+ COALESCE(AddressLocation.id, PostalLocation.id, CountryLocation.id) AS location,
+ COALESCE(AddressLocation.latitude, PostalLocation.latitude, CountryLocation.latitude) AS latitude,
+ COALESCE(AddressLocation.longitude, PostalLocation.longitude, CountryLocation.longitude) AS longitude
+FROM Address
+JOIN Postal ON Postal.id = Address.postal
+JOIN Country ON Country.id = Postal.country
+JOIN I8NWord AS City ON City.id = Postal.city
+JOIN I8NWord AS State ON State.id = Postal.state
+LEFT JOIN I8NWord AS StateAbbr ON StateAbbr.id = Postal.stateAbbreviation
+LEFT JOIN Location AS AddressLocation On AddressLocation.id = Address.location
+LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
+LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
+;
