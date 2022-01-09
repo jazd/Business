@@ -557,6 +557,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION GetIndividualEntity (
+ inName varchar
+) RETURNS bigint AS $$
+DECLARE
+ entity_name_id integer;
+ individual_id bigint;
+BEGIN
+ entity_name_id := (SELECT GetEntityName(inName));
+ IF entity_name_id IS NOT NULL THEN
+  individual_id := (
+   SELECT id
+   FROM Individual
+   WHERE entity = entity_name_id
+  );
+  IF individual_id IS NULL THEN
+   INSERT INTO Individual (entity) VALUES (entity_name_id) RETURNING id INTO individual_id;
+  END IF;
+ END IF;
+ RETURN individual_id;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION GetEmail (
  inUserName varchar,
  inPlus varchar,
@@ -2411,8 +2433,9 @@ BEGIN
  ;
 
  IF cargo_id IS NULL THEN
-  INSERT INTO Cargo (bill, count, assembly, jobIndividual, journal, entry)
-  SELECT inBill,
+  INSERT INTO Cargo (id, bill, count, assembly, jobIndividual, journal, entry)
+  SELECT nextval('cargo_id_seq'),
+   inBill,
    CASE WHEN inCount = 1 THEN
     NULL -- cargo record itself is a count of one unless overridden
    ELSE
