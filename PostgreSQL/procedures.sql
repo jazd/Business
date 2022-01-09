@@ -2373,16 +2373,28 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION CreateBill (
  inSupplier bigint,
  inConsignee bigint,
- inType varchar
+ inType varchar,
+ inParent integer
 ) RETURNS integer AS $$
 DECLARE
  bill_id integer;
 BEGIN
- INSERT INTO Bill (supplier, consignee, type) VALUES (inSupplier, inConsignee, GetWord(inType)) RETURNING id INTO bill_id;
+ INSERT INTO Bill (supplier, consignee, type, parent) VALUES (inSupplier, inConsignee, GetWord(inType), inParent) RETURNING id INTO bill_id;
 
  RETURN bill_id;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION CreateBill (
+ inSupplier bigint,
+ inConsignee bigint,
+ inType varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN CreateBill (inSupplier, inConsignee, inType, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
 
 -- Can return NULL
 -- Gets the oldest of type
@@ -2415,7 +2427,8 @@ CREATE OR REPLACE FUNCTION AddCargo (
  inCount float,
  inJobIndividual integer,
  inJournal integer,
- inEntry integer
+ inEntry integer,
+ inFromCargo integer
 ) RETURNS integer AS $$
 DECLARE
  cargo_id integer;
@@ -2460,9 +2473,30 @@ BEGIN
   ;
  END IF;
 
+ IF inFromCargo IS NOT NULL THEN
+  -- Create Cargo State records
+  INSERT INTO CargoState (cargo, toCargo, count, journal, entry)
+  VALUES (inFromCargo, cargo_id, inCount, inJournal, inEntry);
+ END IF;
+
  RETURN cargo_id;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION AddCargo (
+ inBill integer,
+ inAssembly integer,
+ inCount float,
+ inJobIndividual integer,
+ inJournal integer,
+ inEntry integer
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN AddCargo (inBill, inAssembly, inCount, inJobIndividual, inJournal, inEntry, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
@@ -2508,7 +2542,8 @@ IF inItem IS NULL THEN
   ),
   Cargo.jobIndividual,
   Cargo.journal,
-  Cargo.entry)
+  Cargo.entry,
+  Cargo.id)
  FROM Cargo
  LEFT JOIN CargoState ON CargoState.cargo = Cargo.id
  WHERE Cargo.bill = inFromBill
@@ -2518,14 +2553,59 @@ IF inItem IS NULL THEN
   Cargo.journal,
   Cargo.entry,
   CargoState.cargo
-;
--- TODO Create CargoState records
+ HAVING SUM(COALESCE(Cargo.count, 1)) - (
+   CASE WHEN CargoState.cargo IS NOT NULL THEN
+    SUM(COALESCE(CargoState.count, 1))
+   ELSE
+    0
+   END
+  ) > 0
+ ;
+ELSE
+ -- Move single item cargo to inToBill
+ -- Allow any count, even if more than inFromBill has
+ PERFORM AddCargo(inToBill,
+  inItem,
+  inCount,
+  Cargo.jobIndividual,
+  Cargo.journal,
+  Cargo.entry,
+  Cargo.id)
+ FROM Cargo
+ WHERE Cargo.bill = inFromBill
+  AND Cargo.assembly = inItem
+ GROUP BY Cargo.id,
+  Cargo.assembly,
+  Cargo.jobIndividual,
+  Cargo.journal,
+  Cargo.entry
+ ;
+END IF;
 
 RETURN inToBill;
-END IF;
 
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION MoveCargoToChild (
+ inFromBill integer,
+ inItem integer,
+ inCount float
+) RETURNS integer AS $$
+DECLARE
+ to_bill integer;
+BEGIN
+ to_bill := (
+  SELECT id
+  FROM Bill
+  WHERE Bill.parent = inFromBill
+  LIMIT 1
+ );
+
+ RETURN MoveCargo(inFromBill, to_bill, inItem, inCount);
+END;
+$$ LANGUAGE plpgsql;
+
 
 -- Schema Mgmt Functions
 --
