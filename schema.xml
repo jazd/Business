@@ -1222,6 +1222,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <constraint name="journalaccount_credit" type="FOREIGN KEY" fields="credit" reference_table="AccountName" reference_fields="account" deferrable="1" />
 </constraints>
 </table>
+
 <comments>TODO reconcile with above</comments>
 <table name="BookAccount" order="901">
 <comments>untested</comments>
@@ -1401,14 +1402,30 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="type" data_type="integer" size="" is_nullable="1" order="4">
    <comments>Wish, Cart, Quote, Order, Invoice, Lading, Payment, Memo, Return</comments>
  </field>
- <field name="source" data_type="integer" is_nullable="1" order="5" />
- <field name="parent" data_type="integer" is_nullable="1" order="6" />
- <field name="sent" data_type="timestamp" is_nullable="1" order="7" />
- <field name="shipper" data_type="bigint" size="20" is_nullable="1" order="8" />
- <field name="received" data_type="timestamp" is_nullable="1" order="9" />
- <field name="carrier" data_type="bigint" size="20" is_nullable="1" order="10" />
- <field name="loaded" data_type="timestamp" is_nullable="1" order="11" />
- <field name="delivered" data_type="timestamp" is_nullable="1" order="12" />
+ <field name="source" data_type="integer" is_nullable="1" order="5">
+   <comments>Generated from source bill</comments>
+ </field>
+ <field name="parent" data_type="integer" is_nullable="1" order="6">
+   <comments>Immediate parent of this child bill</comments>
+ </field>
+ <field name="sent" data_type="timestamp" is_nullable="1" order="7">
+   <comments>All cargo has been sent to shipper</comments>
+ </field>
+ <field name="shipper" data_type="bigint" size="20" is_nullable="1" order="8">
+   <comments>Entity responsible for shipping all cargo in bill</comments>
+ </field>
+ <field name="received" data_type="timestamp" is_nullable="1" order="9">
+   <comments>All cargo has been received by the shipper</comments>
+ </field>
+ <field name="carrier" data_type="bigint" size="20" is_nullable="1" order="10">
+   <comments>Selected carrier for all cargo in bill</comments>
+ </field>
+ <field name="loaded" data_type="timestamp" is_nullable="1" order="11">
+   <comments>All cargo has been loaded on carrier convenience</comments>
+ </field>
+ <field name="delivered" data_type="timestamp" is_nullable="1" order="12">
+   <comments>All cargo has been delivered to consignee</comments>
+ </field>
  <field name="clean" data_type="timestamp" is_nullable="1" order="20">
   <comments>Posted without discrepency between sent and delivered</comments>
  </field>
@@ -1448,7 +1465,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  </field>
  <field name="journal" data_type="integer" size="" is_nullable="1" order="6" />
  <field name="entry" data_type="integer" size="" is_nullable="1" order="7">
-  <comments>Item.amount and Item.cost like field comes from JournalEntry records.</comments>
+  <comments>Item.amount and Item.cost like fields come from JournalEntry records.</comments>
   <comments>Line item total is count x amount. JournalEntry.amount Overrides IndividualAssemblyCustomerPrice.price or JobIndividual.schedule.</comments>
   <comments>Line item total cost. JournalEntry.amount Overrides IndividualAssemblyCost or JobIndividual.schedule</comments>
  </field>
@@ -2334,7 +2351,7 @@ LEFT JOIN Word AS StopType ON StopType.id = StopIndividualVertex.type
  AND StopType.culture IS NULL
   </sql>
  </view>
- <view name="Cargoes">
+ <view name="Cargoes" fields="bill, type, supplier, consignee, cargo, count, assembly">
   <sql>
 SELECT Bill.id AS bill,
  Bill.type,
@@ -2352,6 +2369,49 @@ GROUP BY Bill.id,
  Cargo.id,
  Cargo.assembly
   </sql>
+ </view>
+ <view name="LineItems" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, outstanding">
+   <sql>
+SELECT Cargoes.bill,
+ Type.value AS typeName,
+ Cargoes.type,
+ COALESCE(Supplier.goesBy, Supplier.name) AS SupplierName,
+ Cargoes.supplier,
+ COALESCE(Consignee.goesBy, Consignee.name) AS ConsigneeName,
+ Cargoes.consignee,
+ Cargoes.count,
+ Cargoes.cargo AS line,
+ Parts.name AS item,
+ Parts.part,
+ CASE WHEN CargoState.cargo IS NOT NULL THEN
+  Cargoes.count - SUM(COALESCE(CargoState.count, 1))
+ ELSE
+  Cargoes.count
+ END AS outstanding
+FROM Cargoes
+JOIN I8NWord AS Type ON Type.id = Cargoes.type
+JOIN Entities AS Supplier ON Supplier.individual = Cargoes.supplier
+JOIN Entities AS Consignee ON Consignee.individual = Cargoes.consignee
+JOIN Parts ON Parts.part = Cargoes.assembly
+LEFT JOIN CargoState ON CargoState.cargo = Cargoes.cargo
+GROUP BY
+ Cargoes.bill,
+ Cargoes.type,
+ Type.value,
+ Supplier.goesBy,
+ Supplier.name,
+ Consignee.goesBy,
+ Consignee.name,
+ Cargoes.consignee,
+ Cargoes.count,
+ Cargoes.cargo,
+ Cargoes.supplier,
+ Cargoes.consignee,
+ Cargoes.assembly,
+ Parts.name,
+ Parts.part,
+ CargoState.cargo
+   </sql>
  </view>
 </views>
 <triggers></triggers>
