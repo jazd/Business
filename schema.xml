@@ -834,7 +834,9 @@
 <comments>Tables to define periods of time</comments>
 <table name="Period" order="300">
 <fields>
- <field name="id" data_type="integer" size="" is_nullable="1" is_auto_increment="0" is_primary_key="0" is_foreign_key="1" order="1" />
+ <field name="id" data_type="integer" size="" is_nullable="1" is_auto_increment="0" is_primary_key="0" is_foreign_key="1" order="1">
+   <comments>Not unique.  Use PeriodName.period for the unique Period id.</comments>
+ </field>
  <field name="span" data_type="integer" size="" is_nullable="0" is_foreign_key="1" order="2" />
  <field name="exclude" data_type="boolean" size="" is_nullable="0" default_value="false" order="3" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
@@ -2249,12 +2251,14 @@ GROUP BY Ledgers.ledger,
 </sql>
 </view>
 
-<view name="JournalReport" fields="journal,entry,account,type,debit,credit,rightside,created">
+<view name="JournalReport" fields="journal,entry,account,type,ledger,ledgerName,debit,credit,rightside,created">
 <sql>
 SELECT journal,
  entry,
  accountName AS account,
  typeName AS type,
+ ledger,
+ ledgerName,
  debit,
  credit,
  rightSide,
@@ -2266,6 +2270,8 @@ SELECT NULL AS journal,
  NULL AS entry,
  !apos;Total!apos; AS account,
  NULL AS type,
+ MAX(ledger) AS ledger,
+ MAX(ledgerName) AS ledgerName,
  SUM(debit) AS debit,
  SUM(credit) AS credit,
  NULL AS rightSide,
@@ -2351,6 +2357,30 @@ LEFT JOIN Word AS StopType ON StopType.id = StopIndividualVertex.type
  AND StopType.culture IS NULL
   </sql>
  </view>
+ <view name="AssemblyCurrentPrice" fields="assembly,nameid,supplier,price,created">
+   <sql>
+SELECT Part.id AS assembly,
+ Part.name AS nameId,
+ IndividualAssemblyCustomerPrice.individual AS supplier,
+ IndividualAssemblyCustomerPrice.price,
+ IndividualAssemblyCustomerPrice.created
+FROM Part
+JOIN IndividualAssemblyCustomerPrice ON IndividualAssemblyCustomerPrice.assembly = Part.id
+ AND IndividualAssemblyCustomerPrice.stop IS NULL
+-- Default Prices, no specific supplier
+UNION ALL
+SELECT Part.id AS assembly,
+ Part.name AS nameId,
+ NULL AS supplier,
+ MAX(IndividualAssemblyCustomerPrice.price) AS price,
+ MAX(IndividualAssemblyCustomerPrice.created) AS created
+FROM Part
+LEFT JOIN IndividualAssemblyCustomerPrice ON IndividualAssemblyCustomerPrice.assembly = Part.id
+ AND IndividualAssemblyCustomerPrice.stop IS NULL
+GROUP BY Part.id,
+ Part.name
+   </sql>
+ </view>
  <view name="Cargoes" fields="bill, type, supplier, consignee, cargo, count, assembly">
   <sql>
 SELECT Bill.id AS bill,
@@ -2359,7 +2389,9 @@ SELECT Bill.id AS bill,
  Bill.consignee,
  Cargo.id AS cargo,
  SUM(COALESCE(Cargo.count, 1)) AS count,
- Cargo.assembly
+ Cargo.assembly,
+ Cargo.journal,
+ Cargo.entry
 FROM Bill
 JOIN Cargo ON Cargo.bill = Bill.id
 GROUP BY Bill.id,
@@ -2367,10 +2399,12 @@ GROUP BY Bill.id,
  Bill.supplier,
  Bill.consignee,
  Cargo.id,
- Cargo.assembly
+ Cargo.assembly,
+ Cargo.journal,
+ Cargo.entry
   </sql>
  </view>
- <view name="LineItems" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, outstanding">
+ <view name="LineItems" fields="bill, typename, type, suppliername, supplier,consigneename, consignee, count, line, item,part, currentUnitPrice, unitPrice, totalPrice,	outstanding">
    <sql>
 SELECT Cargoes.bill,
  Type.value AS typeName,
@@ -2383,6 +2417,9 @@ SELECT Cargoes.bill,
  Cargoes.cargo AS line,
  Parts.name AS item,
  Parts.part,
+ COALESCE(SpecificPrice.price, DefaultPrice.price) AS currentUnitPrice,
+ SUM(JournalEntry.amount) / Cargoes.count AS unitPrice,
+ SUM(JournalEntry.amount) AS totalPrice,
  CASE WHEN CargoState.cargo IS NOT NULL THEN
   Cargoes.count - SUM(COALESCE(CargoState.count, 1))
  ELSE
@@ -2393,6 +2430,13 @@ JOIN I8NWord AS Type ON Type.id = Cargoes.type
 JOIN Entities AS Supplier ON Supplier.individual = Cargoes.supplier
 JOIN Entities AS Consignee ON Consignee.individual = Cargoes.consignee
 JOIN Parts ON Parts.part = Cargoes.assembly
+JOIN AssemblyCurrentPrice AS DefaultPrice ON DefaultPrice.assembly = Cargoes.assembly
+ AND DefaultPrice.supplier IS NULL
+LEFT JOIN AssemblyCurrentPrice AS SpecificPrice ON SpecificPrice.assembly = Cargoes.assembly
+ AND SpecificPrice.supplier = Cargoes.supplier
+LEFT JOIN JournalEntry ON JournalEntry.journal = Cargoes.journal
+ AND JournalEntry.entry = Cargoes.entry
+ AND JournalEntry.credit -- Income to bill.supplier
 LEFT JOIN CargoState ON CargoState.cargo = Cargoes.cargo
 GROUP BY
  Cargoes.bill,
@@ -2410,6 +2454,8 @@ GROUP BY
  Cargoes.assembly,
  Parts.name,
  Parts.part,
+ DefaultPrice.price,
+ SpecificPrice.price,
  CargoState.cargo
    </sql>
  </view>
