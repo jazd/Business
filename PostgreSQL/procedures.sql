@@ -570,6 +570,7 @@ BEGIN
    SELECT id
    FROM Individual
    WHERE entity = entity_name_id
+   LIMIT 1
   );
   IF individual_id IS NULL THEN
    INSERT INTO Individual (entity) VALUES (entity_name_id) RETURNING id INTO individual_id;
@@ -1206,6 +1207,7 @@ BEGIN
      AND Part.parent IS NOT NULL
      AND Part.version IS NULL
      AND Part.serial IS NULL
+     LIMIT 1
    );
    IF parent_id IS NULL THEN
     -- Try same part without version or parent (root part)
@@ -1506,6 +1508,7 @@ BEGIN
   WHERE country = countrycode_id
    AND area = inAreaCode
    AND number = inNumber
+  LIMIT 1
  );
 END;
 $$ LANGUAGE plpgsql;
@@ -1779,6 +1782,7 @@ BEGIN
   AND agentString = inAgentString
   AND fromAddress = inIPAddress
   AND ((referring = referringURL) OR (referring IS NULL AND referringURL IS NULL))
+  LIMIT 1
  );
 
  IF existingSession IS NULL THEN
