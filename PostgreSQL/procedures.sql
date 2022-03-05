@@ -547,7 +547,7 @@ BEGIN
   LEFT JOIN Individual AS exists ON exists.entity = entity_name_id
   WHERE exists.id IS NULL
   LIMIT 1
-  ; 
+  ;
  END IF;
  RETURN (
   SELECT id FROM Individual

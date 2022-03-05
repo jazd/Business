@@ -138,14 +138,13 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-DROP VIEW ADDRESSES;
+DROP VIEW IF EXISTS ADDRESSES;
 ALTER TABLE Location ALTER COLUMN latitude TYPE NUMERIC(10,7);
 ALTER TABLE Location ALTER COLUMN longitude TYPE NUMERIC(11,7);
 
 --
 -- View: Addresses
 --
-DROP VIEW IF EXISTS Addresses;
 CREATE VIEW Addresses ( address, line1, line2, line3, city, state, zipcode, postalcode, country, countrycode, marquee, location, latitude, longitude ) AS
 SELECT Address.id AS address,
  line1, line2, line3,
@@ -170,6 +169,123 @@ LEFT JOIN I8NWord AS StateAbbr ON StateAbbr.id = Postal.stateAbbreviation
 LEFT JOIN Location AS AddressLocation On AddressLocation.id = Address.location
 LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
 LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
+;
+
+--
+-- View: LineItems
+--
+DROP VIEW IF EXISTS LineItems;
+CREATE VIEW LineItems ( bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentUnitPrice, unitPrice, totalPrice, outstanding ) AS
+SELECT Cargoes.bill,
+ Type.value AS typeName,
+ Cargoes.type,
+ COALESCE(Supplier.goesBy, Supplier.name) AS SupplierName,
+ Cargoes.supplier,
+ COALESCE(Consignee.goesBy, Consignee.name) AS ConsigneeName,
+ Cargoes.consignee,
+ Cargoes.count,
+ Cargoes.cargo AS line,
+ Parts.name AS item,
+ Parts.part,
+ COALESCE(SpecificPrice.price, DefaultPrice.price) AS currentUnitPrice,
+ SUM(JournalEntry.amount) / Cargoes.count AS unitPrice,
+ SUM(JournalEntry.amount) AS totalPrice,
+ CASE WHEN CargoState.cargo IS NOT NULL THEN
+  Cargoes.count - SUM(COALESCE(CargoState.count, 1))
+ ELSE
+  Cargoes.count
+ END AS outstanding
+FROM Cargoes
+JOIN I8NWord AS Type ON Type.id = Cargoes.type
+JOIN Entities AS Supplier ON Supplier.individual = Cargoes.supplier
+JOIN Entities AS Consignee ON Consignee.individual = Cargoes.consignee
+JOIN Parts ON Parts.part = Cargoes.assembly
+JOIN AssemblyCurrentPrice AS DefaultPrice ON DefaultPrice.assembly = Cargoes.assembly
+ AND DefaultPrice.supplier IS NULL
+LEFT JOIN AssemblyCurrentPrice AS SpecificPrice ON SpecificPrice.assembly = Cargoes.assembly
+ AND SpecificPrice.supplier = Cargoes.supplier
+LEFT JOIN JournalEntry ON JournalEntry.journal = Cargoes.journal
+ AND JournalEntry.entry = Cargoes.entry
+ AND JournalEntry.credit -- Income to bill.supplier
+LEFT JOIN CargoState ON CargoState.cargo = Cargoes.cargo
+GROUP BY
+ Cargoes.bill,
+ Cargoes.type,
+ Type.value,
+ Supplier.goesBy,
+ Supplier.name,
+ Consignee.goesBy,
+ Consignee.name,
+ Cargoes.consignee,
+ Cargoes.count,
+ Cargoes.cargo,
+ Cargoes.supplier,
+ Cargoes.consignee,
+ Cargoes.assembly,
+ Parts.name,
+ Parts.part,
+ DefaultPrice.price,
+ SpecificPrice.price,
+ CargoState.cargo
+;
+
+--
+-- View: JournalReport
+--
+DROP VIEW IF EXISTS JournalReport;
+CREATE VIEW JournalReport ( journal, entry, account, type, ledger, ledgerName, debit, credit, rightside, created ) AS
+SELECT journal,
+ entry,
+ accountName AS account,
+ typeName AS type,
+ ledger,
+ ledgerName,
+ debit,
+ credit,
+ rightSide,
+ created
+FROM JournalEntries
+WHERE posted IS NULL
+UNION ALL
+SELECT NULL AS journal,
+ NULL AS entry,
+ 'Total' AS account,
+ NULL AS type,
+ MAX(ledger) AS ledger,
+ MAX(ledgerName) AS ledgerName,
+ SUM(debit) AS debit,
+ SUM(credit) AS credit,
+ NULL AS rightSide,
+ NULL AS created
+FROM JournalEntries
+WHERE posted IS NULL
+;
+
+--
+-- View: AssemblyCurrentPrice
+--
+DROP VIEW IF EXISTS AssemblyCurrentPrice;
+CREATE VIEW AssemblyCurrentPrice ( assembly, nameid, supplier, price, created ) AS
+SELECT Part.id AS assembly,
+ Part.name AS nameId,
+ IndividualAssemblyCustomerPrice.individual AS supplier,
+ IndividualAssemblyCustomerPrice.price,
+ IndividualAssemblyCustomerPrice.created
+FROM Part
+JOIN IndividualAssemblyCustomerPrice ON IndividualAssemblyCustomerPrice.assembly = Part.id
+ AND IndividualAssemblyCustomerPrice.stop IS NULL
+-- Default Prices, no specific supplier
+UNION ALL
+SELECT Part.id AS assembly,
+ Part.name AS nameId,
+ NULL AS supplier,
+ MAX(IndividualAssemblyCustomerPrice.price) AS price,
+ MAX(IndividualAssemblyCustomerPrice.created) AS created
+FROM Part
+LEFT JOIN IndividualAssemblyCustomerPrice ON IndividualAssemblyCustomerPrice.assembly = Part.id
+ AND IndividualAssemblyCustomerPrice.stop IS NULL
+GROUP BY Part.id,
+ Part.name
 ;
 
 --
@@ -217,6 +333,129 @@ FROM IndividualPersonEvent
  LEFT JOIN I8NWord AS Change ON Change.value = 'Changed name'
 ;
 
+
+CREATE OR REPLACE FUNCTION GetIndividualEntity (
+ inName varchar,
+ inFormed date,
+ inGoesBy varchar,
+ inDissolved date
+) RETURNS bigint AS $$
+DECLARE
+ entity_name_id integer;
+ goesBy_id integer;
+BEGIN
+ entity_name_id := (SELECT GetEntityName(inName));
+ IF entity_name_id IS NOT NULL THEN
+  goesBy_id := (SELECT GetGiven(inGoesBy));
+
+  INSERT INTO Individual (entity, goesBy, birth, death)
+  SELECT entity_name_id, goesBy_id, inFormed, inDissolved
+  FROM DUAL
+  LEFT JOIN Individual AS exists ON exists.entity = entity_name_id
+  WHERE exists.id IS NULL
+  LIMIT 1
+  ;
+ END IF;
+ RETURN (
+  SELECT id FROM Individual
+  WHERE Individual.entity = entity_name_id
+  LIMIT 1
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetPart (
+ inName varchar,
+ inVersion integer
+) RETURNS integer AS $$
+DECLARE name_id integer;
+DECLARE sibling_id integer;
+DECLARE parent_id integer;
+BEGIN
+ IF inName IS NOT NULL AND inVersion IS NOT NULL THEN
+  name_id := (SELECT GetSentence(inName));
+  -- Every non-root part must have a parent
+  -- Does it have a direct sibling with a parent?
+  sibling_id := (SELECT Part.parent
+   FROM Part
+   WHERE Part.name = name_id
+    AND Part.version IS NOT NULL
+    AND Part.serial IS NULL
+   LIMIT 1
+  );
+  IF sibling_id IS NULL THEN
+   -- No siblings, try same part without a version but has a parent
+   parent_id := (SELECT Part.id
+    FROM Part
+    WHERE Part.name = name_id
+     AND Part.parent IS NOT NULL
+     AND Part.version IS NULL
+     AND Part.serial IS NULL
+     LIMIT 1
+   );
+   IF parent_id IS NULL THEN
+    -- Try same part without version or parent (root part)
+    -- If not found it will create it
+    parent_id := (SELECT GetPart(inName));
+   END IF;
+  ELSE
+   -- Use sibling parent
+   parent_id := sibling_id;
+  END IF;
+  -- Insert this part if it is not a duplicate
+  INSERT INTO Part (parent, name, version) (
+   SELECT parent_id, name_id, inVersion
+   FROM Dual
+   LEFT JOIN Part AS exists ON exists.parent = parent_id
+    AND exists.name = name_id
+    AND exists.version = inVersion
+    AND exists.serial IS NULL
+   WHERE exists.id IS NULL
+   LIMIT 1
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Part
+  WHERE name = name_id
+   AND parent = parent_id
+   AND version = inVersion
+   AND serial IS NULL
+  LIMIT 1
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetPhone (
+ inCountryCode varchar,
+ inAreaCode varchar,
+ inNumber varchar
+) RETURNS integer AS $$
+DECLARE
+ countrycode_id integer;
+BEGIN
+ countrycode_id := (SELECT id FROM Country WHERE UPPER(Country.code) = UPPER(inCountryCode));
+ IF countrycode_id IS NOT NULL THEN
+  INSERT INTO Phone (country, area, number) (
+   SELECT countrycode_id, inAreaCode, inNumber
+   FROM Dual
+   LEFT JOIN Phone AS exists ON exists.country = countrycode_id
+    AND exists.area = inAreaCode
+    AND exists.number = inNumber
+   WHERE exists.id IS NULL
+   LIMIT 1
+ );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Phone
+  WHERE country = countrycode_id
+   AND area = inAreaCode
+   AND number = inNumber
+  LIMIT 1
+ );
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION CreateBill (
  inSupplier bigint,
