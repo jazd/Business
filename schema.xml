@@ -1553,38 +1553,38 @@ WHERE SentenceDefault.culture = 1033
  <view name="People" fields="individual,name,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,post,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,postvalue,birth,death,aged,created" order="1">
  <sql>
 SELECT Individual.id AS individual, Name.id AS name,
- COALESCE(goesBy.value,Given.value,Family.value) AS goesBy,
+ COALESCE(GoesBy.value,Given.value,Family.value) AS goesBy,
  birthday(CAST(birth AS date),CAST(NOW() AS date)) AS birthday,
  days_until_birthday(CAST(birth AS date), CAST(NOW() AS date)) AS in_days,
- COALESCE(honorific.value,!apos;!apos;) ||
-  CASE WHEN (honorific.value IS NOT NULL AND Given.value IS NULL AND middle.value IS NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
-  COALESCE(CASE WHEN (honorific.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || Given.value,!apos;!apos;) ||
-  COALESCE(CASE WHEN (Given.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || middle.value,!apos;!apos;) ||
-  CASE WHEN (Given.value IS NOT NULL AND middle.value IS NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
-  COALESCE(CASE WHEN (middle.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END  || Family.value,!apos;!apos;) ||
-  COALESCE(CASE WHEN (Family.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || suffix.value,!apos;!apos;) ||
-  COALESCE(CASE WHEN (suffix.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || post.value,!apos;!apos;)
+ COALESCE(Honorific.value,!apos;!apos;) ||
+  CASE WHEN (Honorific.value IS NOT NULL AND Given.value IS NULL AND Middle.value IS NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
+  COALESCE(CASE WHEN (Honorific.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || Given.value,!apos;!apos;) ||
+  COALESCE(CASE WHEN (Given.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || Middle.value,!apos;!apos;) ||
+  CASE WHEN (Given.value IS NOT NULL AND Middle.value IS NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
+  COALESCE(CASE WHEN (Middle.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END  || Family.value,!apos;!apos;) ||
+  COALESCE(CASE WHEN (Family.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || Suffix.value,!apos;!apos;) ||
+  COALESCE(CASE WHEN (Suffix.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || Post.value,!apos;!apos;)
   AS fullName,
  Individual.prefix AS honorific,
  Name.given, Name.middle, Name.family,
  Individual.suffix,
  Individual.post,
- honorific.value AS honorificValue,
- Given.value AS GivenValue, middle.value AS middleValue, Family.value AS FamilyValue,
- suffix.value AS suffixValue,
- post.value AS postValue,
+ Honorific.value AS honorificValue,
+ Given.value AS givenValue, Middle.value AS middleValue, Family.value AS familyValue,
+ Suffix.value AS suffixValue,
+ Post.value AS postValue,
  birth, death,
  COALESCE(age(death,birth),age(birth)) AS aged,
  Individual.created
 FROM Individual
 JOIN Name ON Name.id = Individual.name
 LEFT JOIN Given ON Given.id = Name.given
-LEFT JOIN Given AS middle ON middle.id = Name.middle
-LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
+LEFT JOIN Given AS Middle ON Middle.id = Name.middle
+LEFT JOIN Given AS GoesBy ON GoesBy.id = Individual.goesBy
 LEFT JOIN Family ON Family.id = Name.family
-LEFT JOIN I8NWord AS honorific ON honorific.id = Individual.prefix
-LEFT JOIN I8NWord AS suffix ON suffix.id = Individual.suffix
-LEFT JOIN I8NWord AS post ON post.id = Individual.post
+LEFT JOIN I8NWord AS Honorific ON Honorific.id = Individual.prefix
+LEFT JOIN I8NWord AS Suffix ON Suffix.id = Individual.suffix
+LEFT JOIN I8NWord AS Post ON Post.id = Individual.post
 WHERE Individual.nameChange IS NULL
  OR Individual.nameChange > NOW()
  </sql>
@@ -1598,30 +1598,30 @@ WHERE Individual.nameChange IS NULL
  <sql>
 SELECT DISTINCT Individual.id AS individual,
  Individual.name,
- COALESCE(future.prefix, Individual.prefix) AS honorific,
- COALESCE(future.suffix, Individual.suffix) AS suffix,
- COALESCE(future.post, Individual.post) AS post,
- COALESCE(future.goesBy, Individual.goesBy) AS goesBy,
+ COALESCE(Future.prefix, Individual.prefix) AS honorific,
+ COALESCE(Future.suffix, Individual.suffix) AS suffix,
+ COALESCE(Future.post, Individual.post) AS post,
+ COALESCE(Future.goesBy, Individual.goesBy) AS goesBy,
  Individual.birth,
  Individual.death,
  CASE WHEN previous.id IS NULL THEN
   -- Check for single event
-  CASE WHEN future.id IS NULL THEN
+  CASE WHEN Future.id IS NULL THEN
    COALESCE(Individual.death,Individual.nameChange,Individual.birth)
   ELSE
    -- Check for individual attribute change only
-   CASE WHEN (future.goesBy != Individual.goesBy)
-     OR (future.goesBY IS NOT NULL AND Individual.goesBy IS NULL)
-     OR (future.goesBY IS NULL AND Individual.goesBy IS NOT NULL)
-     OR (future.prefix != Individual.prefix)
-     OR (future.prefix IS NOT NULL AND Individual.prefix IS NULL)
-     OR (future.prefix IS NULL AND Individual.prefix IS NOT NULL)
-     OR (future.suffix != Individual.suffix)
-     OR (future.suffix IS NOT NULL AND Individual.suffix IS NULL)
-     OR (future.suffix IS NULL AND Individual.suffix IS NOT NULL)
-     OR (future.post != Individual.post)
-     OR (future.post IS NOT NULL AND Individual.post IS NULL)
-     OR (future.post IS NULL AND Individual.post IS NOT NULL)
+   CASE WHEN (Future.goesBy != Individual.goesBy)
+     OR (Future.goesBY IS NOT NULL AND Individual.goesBy IS NULL)
+     OR (Future.goesBY IS NULL AND Individual.goesBy IS NOT NULL)
+     OR (Future.prefix != Individual.prefix)
+     OR (Future.prefix IS NOT NULL AND Individual.prefix IS NULL)
+     OR (Future.prefix IS NULL AND Individual.prefix IS NOT NULL)
+     OR (Future.suffix != Individual.suffix)
+     OR (Future.suffix IS NOT NULL AND Individual.suffix IS NULL)
+     OR (Future.suffix IS NULL AND Individual.suffix IS NOT NULL)
+     OR (Future.post != Individual.post)
+     OR (Future.post IS NOT NULL AND Individual.post IS NULL)
+     OR (Future.post IS NULL AND Individual.post IS NOT NULL)
    THEN
     -- individual attriute change only
     Individual.nameChange
@@ -1630,7 +1630,7 @@ SELECT DISTINCT Individual.id AS individual,
    END
   END
  ELSE
-  CASE WHEN future.id IS NULL THEN
+  CASE WHEN Future.id IS NULL THEN
    COALESCE(Individual.death,previous.nameChange,Individual.nameChange,Individual.birth)
   ELSE
    Individual.nameChange
@@ -1645,9 +1645,9 @@ LEFT JOIN Individual AS previous ON previous.id = Individual.id
   (Individual.death IS NULL AND Individual.nameChange IS NULL
    AND previous.nameChange IS NOT NULL)
  )
-LEFT JOIN Individual AS future ON future.id = Individual.id
- AND COALESCE(future.nameChange,future.birth) !gt;= COALESCE(Individual.nameChange,Individual.death)
- AND future.death IS NULL
+LEFT JOIN Individual AS Future ON Future.id = Individual.id
+ AND COALESCE(Future.nameChange,Future.birth) !gt;= COALESCE(Individual.nameChange,Individual.death)
+ AND Future.death IS NULL
 WHERE Name.id = Individual.name
  </sql>
  </view>
@@ -1656,42 +1656,42 @@ WHERE Name.id = Individual.name
  <sql>
 SELECT IndividualPersonEvent.individual, IndividualPersonEvent.name,
  COALESCE(goesBy.value,Given.value,Family.value) AS goesBy,
- COALESCE(honorific.value,!apos;!apos;) ||
-  CASE WHEN (honorific.value IS NOT NULL AND Given.value IS NULL AND middle.value IS NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
-  COALESCE(CASE WHEN (honorific.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || Given.value,!apos;!apos;) ||
-  COALESCE(CASE WHEN (Given.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || middle.value,!apos;!apos;) ||
-  CASE WHEN (Given.value IS NOT NULL AND middle.value IS NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
-  COALESCE(CASE WHEN (middle.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END  || Family.value,!apos;!apos;) ||
-  COALESCE(CASE WHEN (Family.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || suffix.value,!apos;!apos;) ||
-  COALESCE(CASE WHEN (suffix.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || post.value,!apos;!apos;)
+ COALESCE(Honorific.value,!apos;!apos;) ||
+  CASE WHEN (Honorific.value IS NOT NULL AND Given.value IS NULL AND Middle.value IS NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
+  COALESCE(CASE WHEN (Honorific.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || Given.value,!apos;!apos;) ||
+  COALESCE(CASE WHEN (Given.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || Middle.value,!apos;!apos;) ||
+  CASE WHEN (Given.value IS NOT NULL AND Middle.value IS NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
+  COALESCE(CASE WHEN (Middle.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END  || Family.value,!apos;!apos;) ||
+  COALESCE(CASE WHEN (Family.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || Suffix.value,!apos;!apos;) ||
+  COALESCE(CASE WHEN (Suffix.value IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END || Post.value,!apos;!apos;)
   AS fullName,
  event AS date,
- COALESCE(born.id, death.id, change.id) AS event,
- COALESCE(born.value, death.value, change.value) AS eventName,
+ COALESCE(Born.id, Death.id, Change.id) AS event,
+ COALESCE(Born.value, Death.value, Change.value) AS eventName,
  IndividualPersonEvent.honorific,
  Name.given,
  Name.middle,
  Name.family,
  IndividualPersonEvent.suffix,
  IndividualPersonEvent.post,
- honorific.value AS honorificValue,
- Given.value AS GivenValue,
- middle.value AS middleValue,
- Family.value AS FamilyValue,
- suffix.value AS suffixValue,
- post.value AS postValue
+ Honorific.value AS honorificValue,
+ Given.value AS givenValue,
+ Middle.value AS middleValue,
+ Family.value AS familyValue,
+ Suffix.value AS suffixValue,
+ Post.value AS postValue
 FROM IndividualPersonEvent
  JOIN Name ON Name.id = IndividualPersonEvent.name
  LEFT JOIN Given On Given.id = Name.given
- LEFT JOIN Given AS middle ON middle.id = Name.middle
+ LEFT JOIN Given AS Middle ON Middle.id = Name.middle
  LEFT JOIN Given AS goesBy ON goesBy.id = IndividualPersonEvent.goesBy
  LEFT JOIN Family ON Family.id = Name.family
- LEFT JOIN I8NWord AS honorific ON honorific.id = IndividualPersonEvent.honorific
- LEFT JOIN I8NWord AS suffix ON suffix.id = IndividualPersonEvent.suffix
- LEFT JOIN I8NWord AS post ON post.id = IndividualPersonEvent.post
- LEFT JOIN I8NWord AS born ON born.value = !apos;Born!apos; AND birth = event
- LEFT JOIN I8NWord AS death ON death.value = !apos;Died!apos; AND death = event
- LEFT JOIN I8NWord AS change ON change.value = !apos;Changed name!apos;
+ LEFT JOIN I8NWord AS Honorific ON Honorific.id = IndividualPersonEvent.honorific
+ LEFT JOIN I8NWord AS Suffix ON Suffix.id = IndividualPersonEvent.suffix
+ LEFT JOIN I8NWord AS Post ON Post.id = IndividualPersonEvent.post
+ LEFT JOIN I8NWord AS Born ON Born.value = !apos;born!apos; AND birth = event
+ LEFT JOIN I8NWord AS Death ON Death.value = !apos;died!apos; AND death = event
+ LEFT JOIN I8NWord AS Change ON Change.value = !apos;changed name!apos;
  </sql>
  </view>
 
@@ -1960,30 +1960,30 @@ LEFT JOIN Versions ON Versions.version = Part.version
  </view>
  <view name="Assemblies" fields="assembly, parentName, name, version, versionName, serial">
   <sql>
-SELECT DISTINCT AssemblyPart.assembly, parent.name AS parentName,
- assemblies.name,
- assemblies.versionId AS version, assemblies.version as versionName, assemblies.serial
+SELECT DISTINCT AssemblyPart.assembly, Parent.name AS parentName,
+ Assemblies.name,
+ Assemblies.versionId AS version, Assemblies.version as VersionName, Assemblies.serial
 FROM AssemblyPart
-JOIN Parts AS assemblies ON assemblies.part = AssemblyPart.assembly
-JOIN Parts AS parent ON parent.part = assemblies.parent
+JOIN Parts AS Assemblies ON Assemblies.part = AssemblyPart.assembly
+JOIN Parts AS Parent ON Parent.part = Assemblies.parent
   </sql>
  </view>
  <view name="AssemblyParts" fields="assembly, parentName, assemblyName, assemblyVersion, assemblyVersionName, assemblySerial, quantity, designator, part, partName, version, versionName, serial">
   <sql>
-SELECT AssemblyPart.assembly, parent.name AS parentName,
- assemblies.name AS assemblyName,
- assemblies.versionid AS assemblyVersion, assemblies.version AS assemblyVersionName,
- assemblies.serial AS assemblySerial,
+SELECT AssemblyPart.assembly, Parent.name AS parentName,
+ Assemblies.name AS assemblyName,
+ Assemblies.versionid AS assemblyVersion, Assemblies.version AS assemblyVersionName,
+ Assemblies.serial AS assemblySerial,
  AssemblyPart.quantity,
- designator.value AS designator,
- parts.part, parts.name AS partName,
- parts.versionid AS version, parts.version AS versionName,
- parts.serial
+ Designator.value AS designator,
+ Parts.part, Parts.name AS partName,
+ Parts.versionid AS version, Parts.version AS versionName,
+ Parts.serial
 FROM AssemblyPart
-JOIN Parts AS assemblies ON assemblies.part = AssemblyPart.assembly
-JOIN Parts AS parent ON parent.part = assemblies.parent
-JOIN Parts AS parts ON parts.part = AssemblyPart.part
-LEFT JOIN I8NWord AS designator ON designator.id = AssemblyPart.designator
+JOIN Parts AS Assemblies ON Assemblies.part = AssemblyPart.assembly
+JOIN Parts AS Parent ON Parent.part = Assemblies.parent
+JOIN Parts AS Parts ON parts.part = AssemblyPart.part
+LEFT JOIN I8NWord AS Designator ON Designator.id = AssemblyPart.designator
   </sql>
  </view>
 
@@ -2062,7 +2062,7 @@ SELECT Period.id AS period,
 FROM Period
 JOIN TimeOfDay ON TimeOfDay.id = Period.span
  AND TimeOfDay.start &gt; TimeOfDay.stop
-) AS timeperiod
+) AS TimePeriod
 GROUP BY period
   </sql>
  </view>
