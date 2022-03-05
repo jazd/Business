@@ -172,6 +172,52 @@ LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
 LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
 ;
 
+--
+-- View: PeopleEvent
+--
+DROP VIEW IF EXISTS PeopleEvent;
+CREATE VIEW PeopleEvent ( individual, name, goesby, fullname, date, event, eventname, honorific, given, middle, family, suffix, post, honorificvalue, givenvalue, middlevalue, familyvalue, suffixvalue, postvalue ) AS
+SELECT IndividualPersonEvent.individual, IndividualPersonEvent.name,
+ COALESCE(goesBy.value,Given.value,Family.value) AS goesBy,
+ COALESCE(Honorific.value,'') ||
+  CASE WHEN (Honorific.value IS NOT NULL AND Given.value IS NULL AND Middle.value IS NULL) THEN ' ' ELSE '' END ||
+  COALESCE(CASE WHEN (Honorific.value IS NOT NULL) THEN ' ' ELSE '' END || Given.value,'') ||
+  COALESCE(CASE WHEN (Given.value IS NOT NULL) THEN ' ' ELSE '' END || Middle.value,'') ||
+  CASE WHEN (Given.value IS NOT NULL AND Middle.value IS NULL) THEN ' ' ELSE '' END ||
+  COALESCE(CASE WHEN (Middle.value IS NOT NULL) THEN ' ' ELSE '' END  || Family.value,'') ||
+  COALESCE(CASE WHEN (Family.value IS NOT NULL) THEN ' ' ELSE '' END || Suffix.value,'') ||
+  COALESCE(CASE WHEN (Suffix.value IS NOT NULL) THEN ' ' ELSE '' END || Post.value,'')
+  AS fullName,
+ event AS date,
+ COALESCE(Born.id, Death.id, Change.id) AS event,
+ COALESCE(Born.value, Death.value, Change.value) AS eventName,
+ IndividualPersonEvent.honorific,
+ Name.given,
+ Name.middle,
+ Name.family,
+ IndividualPersonEvent.suffix,
+ IndividualPersonEvent.post,
+ Honorific.value AS honorificValue,
+ Given.value AS givenValue,
+ Middle.value AS middleValue,
+ Family.value AS familyValue,
+ Suffix.value AS suffixValue,
+ Post.value AS postValue
+FROM IndividualPersonEvent
+ JOIN Name ON Name.id = IndividualPersonEvent.name
+ LEFT JOIN Given On Given.id = Name.given
+ LEFT JOIN Given AS Middle ON Middle.id = Name.middle
+ LEFT JOIN Given AS goesBy ON goesBy.id = IndividualPersonEvent.goesBy
+ LEFT JOIN Family ON Family.id = Name.family
+ LEFT JOIN I8NWord AS Honorific ON Honorific.id = IndividualPersonEvent.honorific
+ LEFT JOIN I8NWord AS Suffix ON Suffix.id = IndividualPersonEvent.suffix
+ LEFT JOIN I8NWord AS Post ON Post.id = IndividualPersonEvent.post
+ LEFT JOIN I8NWord AS Born ON Born.value = 'Born' AND birth = event
+ LEFT JOIN I8NWord AS Death ON Death.value = 'Died' AND death = event
+ LEFT JOIN I8NWord AS Change ON Change.value = 'Changed name'
+;
+
+
 CREATE OR REPLACE FUNCTION CreateBill (
  inSupplier bigint,
  inConsignee bigint,

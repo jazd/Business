@@ -1689,9 +1689,9 @@ FROM IndividualPersonEvent
  LEFT JOIN I8NWord AS Honorific ON Honorific.id = IndividualPersonEvent.honorific
  LEFT JOIN I8NWord AS Suffix ON Suffix.id = IndividualPersonEvent.suffix
  LEFT JOIN I8NWord AS Post ON Post.id = IndividualPersonEvent.post
- LEFT JOIN I8NWord AS Born ON Born.value = !apos;born!apos; AND birth = event
- LEFT JOIN I8NWord AS Death ON Death.value = !apos;died!apos; AND death = event
- LEFT JOIN I8NWord AS Change ON Change.value = !apos;changed name!apos;
+ LEFT JOIN I8NWord AS Born ON Born.value = !apos;Born!apos; AND birth = event
+ LEFT JOIN I8NWord AS Death ON Death.value = !apos;Died!apos; AND death = event
+ LEFT JOIN I8NWord AS Change ON Change.value = !apos;Changed name!apos;
  </sql>
  </view>
 
