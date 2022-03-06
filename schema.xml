@@ -1335,9 +1335,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="assembly" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="schedule" data_type="integer" size="" is_nullable="0" order="1" />
  <field name="price" data_type="float" is_nullable="0" order="3" />
- <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
-  <comments>No longer associate this price with assembly schedule</comments>
- </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -2398,12 +2395,13 @@ GROUP BY Part.id,
  Part.name
    </sql>
  </view>
- <view name="Cargoes" fields="bill, type, supplier, consignee, cargo, count, individualJob, assembly, journal, entry">
+ <view name="Cargoes" fields="bill, type, supplier, consignee, created, cargo, count, individualJob, assembly, journal, entry">
   <sql>
 SELECT Bill.id AS bill,
  Bill.type,
  Bill.supplier,
  Bill.consignee,
+ Bill.created,
  Cargo.id AS cargo,
  SUM(COALESCE(Cargo.count, 1)) AS count,
  Cargo.individualJob,
@@ -2416,6 +2414,7 @@ GROUP BY Bill.id,
  Bill.type,
  Bill.supplier,
  Bill.consignee,
+ Bill.created,
  Cargo.id,
  Cargo.individualJob,
  Cargo.assembly,
@@ -2464,7 +2463,6 @@ LEFT JOIN IndividualJob ON IndividualJob.individual = Cargoes.consignee
  AND IndividualJob.stop IS NULL
 LEFT JOIN AssemblySchedulePrice ON AssemblySchedulePrice.assembly = Cargoes.assembly
  AND AssemblySchedulePrice.schedule = IndividualJob.schedule
- AND AssemblySchedulePrice.stop IS NULL
 LEFT JOIN IndividualJob AS FixedIndividualJob ON FixedIndividualJob.id = Cargoes.individualJob
 LEFT JOIN AssemblySchedulePrice AS FixedAssemblySchedulePrice ON FixedAssemblySchedulePrice.assembly = Cargoes.assembly
  AND FixedAssemblySchedulePrice.schedule =  FixedIndividualJob.schedule

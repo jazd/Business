@@ -40,8 +40,6 @@ CREATE TABLE AssemblySchedulePrice (
   assembly integer,
   schedule integer NOT NULL,
   price float NOT NULL,
-  -- No longer associate this price with assembly schedule
-  stop timestamp,
   created timestamp DEFAULT now() NOT NULL
 );
 ALTER TABLE AssemblySchedulePrice ADD CONSTRAINT assemblyschedule_assembly FOREIGN KEY (assembly)
@@ -395,11 +393,12 @@ LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
 -- View: Cargoes
 --
 DROP VIEW IF EXISTS Cargoes CASCADE;
-CREATE VIEW Cargoes ( bill, type, supplier, consignee, cargo, count, individualJob, assembly, journal, entry ) AS
+CREATE VIEW Cargoes ( bill, type, supplier, consignee, created, cargo, count, individualJob, assembly, journal, entry ) AS
 SELECT Bill.id AS bill,
  Bill.type,
  Bill.supplier,
  Bill.consignee,
+ Bill.created,
  Cargo.id AS cargo,
  SUM(COALESCE(Cargo.count, 1)) AS count,
  Cargo.individualJob,
@@ -412,6 +411,7 @@ GROUP BY Bill.id,
  Bill.type,
  Bill.supplier,
  Bill.consignee,
+ Bill.created,
  Cargo.id,
  Cargo.individualJob,
  Cargo.assembly,
@@ -463,7 +463,6 @@ LEFT JOIN IndividualJob ON IndividualJob.individual = Cargoes.consignee
  AND IndividualJob.stop IS NULL
 LEFT JOIN AssemblySchedulePrice ON AssemblySchedulePrice.assembly = Cargoes.assembly
  AND AssemblySchedulePrice.schedule = IndividualJob.schedule
- AND AssemblySchedulePrice.stop IS NULL
 LEFT JOIN IndividualJob AS FixedIndividualJob ON FixedIndividualJob.id = Cargoes.individualJob
 LEFT JOIN AssemblySchedulePrice AS FixedAssemblySchedulePrice ON FixedAssemblySchedulePrice.assembly = Cargoes.assembly
  AND FixedAssemblySchedulePrice.schedule =  FixedIndividualJob.schedule
