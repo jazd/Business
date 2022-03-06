@@ -23,7 +23,7 @@ DAG="Edge VertexName Individual IndividualVertex Sentence"
 
 ACCOUNTING="Word Sentence Individual LedgerName AccountName JournalName BookName IndividualLedger IndividualAccount LedgerAccount LedgerJournal JournalAccount BookAccount Entry JournalEntry AssemblyApplicationRelease Credential"
 
-INVENTORY="Word Sentence Part AssemblyApplicationRelease PeriodName  ScheduleName JobName Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule IndividualJob AssemblySchedulePrice  Bill Cargo CargoState AccountName"
+INVENTORY="Word Sentence Part AssemblyApplicationRelease PeriodName  ScheduleName JobName Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule IndividualJob AssemblyIndividualJobPrice  Bill Cargo CargoState AccountName"
 
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
