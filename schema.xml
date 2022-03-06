@@ -2398,7 +2398,7 @@ GROUP BY Part.id,
  Part.name
    </sql>
  </view>
- <view name="Cargoes" fields="bill, type, supplier, consignee, cargo, count, assembly">
+ <view name="Cargoes" fields="bill, type, supplier, consignee, cargo, count, individualJob, assembly, journal, entry">
   <sql>
 SELECT Bill.id AS bill,
  Bill.type,
@@ -2406,6 +2406,7 @@ SELECT Bill.id AS bill,
  Bill.consignee,
  Cargo.id AS cargo,
  SUM(COALESCE(Cargo.count, 1)) AS count,
+ Cargo.individualJob,
  Cargo.assembly,
  Cargo.journal,
  Cargo.entry
@@ -2416,6 +2417,7 @@ GROUP BY Bill.id,
  Bill.supplier,
  Bill.consignee,
  Cargo.id,
+ Cargo.individualJob,
  Cargo.assembly,
  Cargo.journal,
  Cargo.entry

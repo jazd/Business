@@ -391,6 +391,33 @@ LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
 LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
 ;
 
+--
+-- View: Cargoes
+--
+DROP VIEW IF EXISTS Cargoes CASCADE;
+CREATE VIEW Cargoes ( bill, type, supplier, consignee, cargo, count, individualJob, assembly, journal, entry ) AS
+SELECT Bill.id AS bill,
+ Bill.type,
+ Bill.supplier,
+ Bill.consignee,
+ Cargo.id AS cargo,
+ SUM(COALESCE(Cargo.count, 1)) AS count,
+ Cargo.individualJob,
+ Cargo.assembly,
+ Cargo.journal,
+ Cargo.entry
+FROM Bill
+JOIN Cargo ON Cargo.bill = Bill.id
+GROUP BY Bill.id,
+ Bill.type,
+ Bill.supplier,
+ Bill.consignee,
+ Cargo.id,
+ Cargo.individualJob,
+ Cargo.assembly,
+ Cargo.journal,
+ Cargo.entry
+;
 
 
 --
