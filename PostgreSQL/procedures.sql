@@ -2679,6 +2679,7 @@ BEGIN
   WHERE ((individual = inIndividual) OR (individual IS NULL AND inIndividual IS NULL))
    AND job = inJob
    AND schedule = schedule
+   AND stop IS NULL
   LIMIT 1
  );
  IF individualJob_id IS NULL THEN

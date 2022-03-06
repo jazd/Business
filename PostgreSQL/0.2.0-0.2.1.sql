@@ -33,6 +33,22 @@ CREATE TABLE IndividualJob (
 ALTER TABLE IndividualJob ADD CONSTRAINT individualjob_job FOREIGN KEY (job)
   REFERENCES JobName (job) DEFERRABLE;
 
+--
+-- Table: AssemblySchedulePrice
+--
+CREATE TABLE AssemblySchedulePrice (
+  assembly integer,
+  schedule integer NOT NULL,
+  price float NOT NULL,
+  -- No longer associate this price with assembly schedule
+  stop timestamp,
+  created timestamp DEFAULT now() NOT NULL
+);
+ALTER TABLE AssemblySchedulePrice ADD CONSTRAINT assemblyschedule_assembly FOREIGN KEY (assembly)
+  REFERENCES Part (id) DEFERRABLE;
+ALTER TABLE AssemblySchedulePrice ADD CONSTRAINT assemblyscheduleprice_schedule FOREIGN KEY (schedule)
+  REFERENCES ScheduleName (schedule) DEFERRABLE;
+
 
 --
 -- Table: Cargo

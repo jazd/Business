@@ -1329,6 +1329,23 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
+<table name="AssemblySchedulePrice" order="910">
+<comments>untested</comments>
+<fields>
+ <field name="assembly" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="schedule" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="price" data_type="float" is_nullable="0" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer associate this price with assembly schedule</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="assemblyschedule_assembly" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="assemblyscheduleprice_schedule" type="FOREIGN KEY" fields="schedule" reference_table="ScheduleName" reference_fields="schedule" deferrable="1" />
+</constraints>
+</table>
+
 <table name="Schedule" order="901">
 <comments>untested</comments>
 <fields>
@@ -1468,7 +1485,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="journal" data_type="integer" size="" is_nullable="1" order="6" />
  <field name="entry" data_type="integer" size="" is_nullable="1" order="7">
   <comments>Item.amount and Item.cost like fields come from JournalEntry records.</comments>
-  <comments>Line item total is count x amount. JournalEntry.amount Overrides IndividualAssemblyCustomerPrice.price or IndividualJob.schedule.</comments>
+  <comments>Line item total is count x amount. JournalEntry.amount Overrides IndividualAssemblyCustomerPrice.price or AssemblySchedulePrice.price via IndividualJob.schedule.</comments>
   <comments>Line item total cost. JournalEntry.amount Overrides IndividualAssemblyCost or IndividualJob.schedule</comments>
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
