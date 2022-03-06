@@ -1362,16 +1362,16 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
-<table name="JobIndividual" order="901">
+<table name="IndividualJob" order="901">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="0" order="1">
   <comments>Not unique.  Used to group one or more individuals and/or schedules together for a single corgo record</comments>
  </field>
- <field name="job" data_type="integer" size="" is_nullable="0" order="2" />
- <field name="individual" data_type="bigint" size="20" is_nullable="1" order="3">
+ <field name="individual" data_type="bigint" size="20" is_nullable="1" order="2">
   <comments>NULL if a service fee</comments>
  </field>
+ <field name="job" data_type="integer" size="" is_nullable="0" order="3" />
  <field name="schedule" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="aggregate" data_type="integer" size="" is_nullable="1" order="5">
   <comments>NULL if schedule shown in detail, otherwise group together under this name</comments>
@@ -1384,7 +1384,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <indices>
 </indices>
 <constraints>
- <constraint name="jobindividual_job" type="FOREIGN KEY" fields="job" reference_table="JobName" reference_fields="job" deferrable="1" />
+ <constraint name="individualjob_job" type="FOREIGN KEY" fields="job" reference_table="JobName" reference_fields="job" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="schedule" reference_table="ScheduleName" reference_fields="schedule" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="aggregate" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
@@ -1462,14 +1462,14 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="assembly" data_type="integer" size="" is_nullable="1" order="4">
    <comments>NULL if Job</comments>
  </field>
- <field name="jobIndividual" data_type="integer" size="" is_nullable="1" order="5">
+ <field name="individualJob" data_type="integer" size="" is_nullable="1" order="5">
    <comments>NULL if Assembly</comments>
  </field>
  <field name="journal" data_type="integer" size="" is_nullable="1" order="6" />
  <field name="entry" data_type="integer" size="" is_nullable="1" order="7">
   <comments>Item.amount and Item.cost like fields come from JournalEntry records.</comments>
-  <comments>Line item total is count x amount. JournalEntry.amount Overrides IndividualAssemblyCustomerPrice.price or JobIndividual.schedule.</comments>
-  <comments>Line item total cost. JournalEntry.amount Overrides IndividualAssemblyCost or JobIndividual.schedule</comments>
+  <comments>Line item total is count x amount. JournalEntry.amount Overrides IndividualAssemblyCustomerPrice.price or IndividualJob.schedule.</comments>
+  <comments>Line item total cost. JournalEntry.amount Overrides IndividualAssemblyCost or IndividualJob.schedule</comments>
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
@@ -1478,7 +1478,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <constraints>
  <constraint name="cargo_bill" type="FOREIGN KEY" fields="bill" reference_table="Bill" reference_fields="id" deferrable="1" />
  <constraint name="cargo_assembly" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
- <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="jobIndividual" reference_table="JobIndividual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individualJob" reference_table="IndividualJob" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="journal,entry" reference_table="JournalEntry" reference_fields="journal,entry" deferrable="1" /></comments>
 </constraints>
 </table>

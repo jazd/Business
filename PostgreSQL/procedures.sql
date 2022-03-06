@@ -83,8 +83,8 @@ CREATE OR REPLACE FUNCTION GetSentence (
 DECLARE
 BEGIN
  IF sentence_value IS NOT NULL THEN
-  INSERT INTO Sentence (value, culture) (
-   SELECT sentence_value, Culture.code
+  INSERT INTO Sentence (value, culture, length) (
+   SELECT sentence_value, Culture.code, LENGTH(sentence_value)
    FROM Culture
    LEFT JOIN Sentence AS exists ON UPPER(exists.value) = UPPER(sentence_value)
     AND exists.culture = Culture.code
@@ -2429,7 +2429,7 @@ CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
  inAssembly integer,
  inCount float,
- inJobIndividual integer,
+ inIndividualJob integer,
  inJournal integer,
  inEntry integer,
  inFromCargo integer
@@ -2442,7 +2442,7 @@ BEGIN
  FROM Cargo
  WHERE bill = inBill
   AND assembly = inAssembly
-  AND ((jobIndividual = inJobIndividual) OR (inJobIndividual IS NULL AND jobIndividual IS NULL))
+  AND ((individualJob = inIndividualJob) OR (inIndividualJob IS NULL AND individualJob IS NULL))
   AND ((journal = inJournal) OR (inJournal IS NULL AND journal IS NULL))
   AND ((entry = inEntry) OR (inEntry IS NULL AND entry IS NULL))
  ORDER BY id DESC
@@ -2450,7 +2450,7 @@ BEGIN
  ;
 
  IF cargo_id IS NULL THEN
-  INSERT INTO Cargo (id, bill, count, assembly, jobIndividual, journal, entry)
+  INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
   SELECT nextval('cargo_id_seq'),
    inBill,
    CASE WHEN inCount = 1 THEN
@@ -2459,18 +2459,18 @@ BEGIN
     inCount
    END AS count,
    inAssembly,
-   inJobIndividual,
+   inIndividualJob,
    inJournal,
    inEntry
   FROM DUAL
   RETURNING id INTO cargo_id;
  ELSE
-  INSERT INTO Cargo (id, bill, count, assembly, jobIndividual, journal, entry)
+  INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
   SELECT cargo_id,
    inBill,
    inCount,
    inAssembly,
-   inJobIndividual,
+   inIndividualJob,
    inJournal,
    inEntry
   FROM DUAL
@@ -2491,13 +2491,13 @@ CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
  inAssembly integer,
  inCount float,
- inJobIndividual integer,
+ inIndividualJob integer,
  inJournal integer,
  inEntry integer
 ) RETURNS integer AS $$
 DECLARE
 BEGIN
- RETURN AddCargo (inBill, inAssembly, inCount, inJobIndividual, inJournal, inEntry, NULL);
+ RETURN AddCargo (inBill, inAssembly, inCount, inIndividualJob, inJournal, inEntry, NULL);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -2544,7 +2544,7 @@ IF inItem IS NULL THEN
     0
    END
   ),
-  Cargo.jobIndividual,
+  Cargo.individualJob,
   Cargo.journal,
   Cargo.entry,
   Cargo.id)
@@ -2553,7 +2553,7 @@ IF inItem IS NULL THEN
  WHERE Cargo.bill = inFromBill
  GROUP BY Cargo.id,
   Cargo.assembly,
-  Cargo.jobIndividual,
+  Cargo.individualJob,
   Cargo.journal,
   Cargo.entry,
   CargoState.cargo
@@ -2571,7 +2571,7 @@ ELSE
  PERFORM AddCargo(inToBill,
   inItem,
   inCount,
-  Cargo.jobIndividual,
+  Cargo.individualJob,
   Cargo.journal,
   Cargo.entry,
   Cargo.id)
@@ -2580,7 +2580,7 @@ ELSE
   AND Cargo.assembly = inItem
  GROUP BY Cargo.id,
   Cargo.assembly,
-  Cargo.jobIndividual,
+  Cargo.individualJob,
   Cargo.journal,
   Cargo.entry
  ;
@@ -2607,6 +2607,86 @@ BEGIN
  );
 
  RETURN MoveCargo(inFromBill, to_bill, inItem, inCount);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetSchedule (
+ inScheduleName varchar
+) RETURNS integer AS $$
+DECLARE scheduleName_id integer;
+DECLARE schedule_id integer;
+BEGIN
+ IF inScheduleName IS NOT NULL THEN
+   scheduleName_id := GetSentence(inScheduleName);
+   INSERT INTO ScheduleName (name) (
+    SELECT scheduleName_id
+    FROM DUAL
+    LEFT JOIN ScheduleName AS exists ON exists.name = scheduleName_id
+    WHERE exists.schedule IS NULL
+    LIMIT 1
+   ) RETURNING schedule INTO schedule_id;
+   IF schedule_id IS NULL THEN
+    schedule_id = (
+     SELECT schedule
+     FROM ScheduleName
+     WHERE name = scheduleName_id
+     LIMIT 1
+    );
+   END IF;
+ END IF;
+ RETURN schedule_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetJob (
+ inJobName varchar
+) RETURNS integer AS $$
+DECLARE jobName_id integer;
+DECLARE job_id integer;
+BEGIN
+ IF inJobName IS NOT NULL THEN
+  jobName_id := GetSentence(inJobName);
+  INSERT INTO JobName (name) (
+   SELECT jobName_id
+   FROM DUAL
+   LEFT JOIN JobName AS exists ON exists.name = jobName_id
+   WHERE exists.job IS NULL
+   LIMIT 1
+  ) RETURNING job INTO job_id;
+  IF job_id IS NULL THEN
+   job_id = (
+    SELECT job
+    FROM JobName
+    WHERE name = jobName_id
+    LIMIT 1
+   );
+  END IF;
+ END IF;
+ RETURN job_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetIndividualJobSchedule (
+ inIndividual bigint,
+ inJob integer,
+ inSchedule integer
+) RETURNS integer AS $$
+DECLARE individualJob_id integer;
+BEGIN
+ individualJob_id = (
+  SELECT id
+  FROM IndividualJob
+  WHERE ((individual = inIndividual) OR (individual IS NULL AND inIndividual IS NULL))
+   AND job = inJob
+   AND schedule = schedule
+  LIMIT 1
+ );
+ IF individualJob_id IS NULL THEN
+   INSERT INTO IndividualJob (id, individual, job, schedule)
+   VALUES(nextval('individualjob_id_seq'), inIndividual, inJob, inSchedule)
+   RETURNING id INTO individualJob_id;
+ END IF;
+ RETURN individualJob_id;
 END;
 $$ LANGUAGE plpgsql;
 
