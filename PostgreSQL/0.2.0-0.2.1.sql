@@ -34,18 +34,17 @@ ALTER TABLE IndividualJob ADD CONSTRAINT individualjob_job FOREIGN KEY (job)
   REFERENCES JobName (job) DEFERRABLE;
 
 --
--- Table: AssemblySchedulePrice
+-- Table: AssemblyIndividualJobPrice
 --
-CREATE TABLE AssemblySchedulePrice (
+CREATE TABLE AssemblyIndividualJobPrice (
   assembly integer,
-  schedule integer NOT NULL,
+  individualJob integer NOT NULL,
   price float NOT NULL,
   created timestamp DEFAULT now() NOT NULL
 );
-ALTER TABLE AssemblySchedulePrice ADD CONSTRAINT assemblyschedule_assembly FOREIGN KEY (assembly)
+ALTER TABLE AssemblyIndividualJobPrice ADD CONSTRAINT assemblyschedule_assembly FOREIGN KEY (assembly)
   REFERENCES Part (id) DEFERRABLE;
-ALTER TABLE AssemblySchedulePrice ADD CONSTRAINT assemblyscheduleprice_schedule FOREIGN KEY (schedule)
-  REFERENCES ScheduleName (schedule) DEFERRABLE;
+
 
 
 --
@@ -435,9 +434,9 @@ SELECT Cargoes.bill,
  Cargoes.cargo AS line,
  Parts.name AS item,
  Parts.part,
- COALESCE(SpecificPrice.price, DefaultPrice.price, AssemblySchedulePrice.price) AS currentUnitPrice,
- SUM(COALESCE(JournalEntry.amount, FixedAssemblySchedulePrice.price)) / Cargoes.count AS unitPrice,
- SUM(COALESCE(JournalEntry.amount, FixedAssemblySchedulePrice.price)) AS totalPrice,
+ COALESCE(SpecificPrice.price, DefaultPrice.price, AssemblyIndividualJobPrice.price) AS currentUnitPrice,
+ SUM(COALESCE(JournalEntry.amount, FixedAssemblyIndividualJobPrice.price)) / Cargoes.count AS unitPrice,
+ SUM(COALESCE(JournalEntry.amount, FixedAssemblyIndividualJobPrice.price)) AS totalPrice,
  CASE WHEN CargoState.cargo IS NOT NULL THEN
   Cargoes.count - SUM(COALESCE(CargoState.count, 1))
  ELSE
@@ -461,11 +460,11 @@ LEFT JOIN JournalEntry ON JournalEntry.journal = Cargoes.journal
 LEFT JOIN CargoState ON CargoState.cargo = Cargoes.cargo
 LEFT JOIN IndividualJob ON IndividualJob.individual = Cargoes.consignee
  AND IndividualJob.stop IS NULL
-LEFT JOIN AssemblySchedulePrice ON AssemblySchedulePrice.assembly = Cargoes.assembly
- AND AssemblySchedulePrice.schedule = IndividualJob.schedule
+LEFT JOIN AssemblyIndividualJobPrice ON AssemblyIndividualJobPrice.assembly = Cargoes.assembly
+ AND AssemblyIndividualJobPrice.individualJob = IndividualJob.id
 LEFT JOIN IndividualJob AS FixedIndividualJob ON FixedIndividualJob.id = Cargoes.individualJob
-LEFT JOIN AssemblySchedulePrice AS FixedAssemblySchedulePrice ON FixedAssemblySchedulePrice.assembly = Cargoes.assembly
- AND FixedAssemblySchedulePrice.schedule =  FixedIndividualJob.schedule
+LEFT JOIN AssemblyIndividualJobPrice AS FixedAssemblyIndividualJobPrice ON FixedAssemblyIndividualJobPrice.assembly = Cargoes.assembly
+ AND FixedAssemblyIndividualJobPrice.individualJob =  FixedIndividualJob.id
 GROUP BY
  Cargoes.bill,
  Cargoes.type,
@@ -484,7 +483,7 @@ GROUP BY
  Parts.part,
  DefaultPrice.price,
  SpecificPrice.price,
- AssemblySchedulePrice.price,
+ AssemblyIndividualJobPrice.price,
  CargoState.cargo,
  IndividualJob.id,
  IndividualJob.job,
