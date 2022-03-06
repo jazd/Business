@@ -419,12 +419,11 @@ GROUP BY Bill.id,
  Cargo.entry
 ;
 
-
+DROP VIEW IF EXISTS LineItems;
 --
 -- View: LineItems
 --
-DROP VIEW IF EXISTS LineItems;
-CREATE OR REPLACE VIEW LineItems ( bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentUnitPrice, unitPrice, totalPrice, outstanding ) AS
+CREATE VIEW LineItems ( bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentUnitPrice, unitPrice, totalPrice, outstanding ) AS
 SELECT Cargoes.bill,
  Type.value AS typeName,
  Cargoes.type,
@@ -437,8 +436,8 @@ SELECT Cargoes.bill,
  Parts.name AS item,
  Parts.part,
  COALESCE(SpecificPrice.price, DefaultPrice.price, AssemblySchedulePrice.price) AS currentUnitPrice,
- SUM(JournalEntry.amount) / Cargoes.count AS unitPrice,
- SUM(JournalEntry.amount) AS totalPrice,
+ SUM(COALESCE(JournalEntry.amount, FixedAssemblySchedulePrice.price)) / Cargoes.count AS unitPrice,
+ SUM(COALESCE(JournalEntry.amount, FixedAssemblySchedulePrice.price)) AS totalPrice,
  CASE WHEN CargoState.cargo IS NOT NULL THEN
   Cargoes.count - SUM(COALESCE(CargoState.count, 1))
  ELSE
@@ -464,6 +463,10 @@ LEFT JOIN IndividualJob ON IndividualJob.individual = Cargoes.consignee
  AND IndividualJob.stop IS NULL
 LEFT JOIN AssemblySchedulePrice ON AssemblySchedulePrice.assembly = Cargoes.assembly
  AND AssemblySchedulePrice.schedule = IndividualJob.schedule
+ AND AssemblySchedulePrice.stop IS NULL
+LEFT JOIN IndividualJob AS FixedIndividualJob ON FixedIndividualJob.id = Cargoes.individualJob
+LEFT JOIN AssemblySchedulePrice AS FixedAssemblySchedulePrice ON FixedAssemblySchedulePrice.assembly = Cargoes.assembly
+ AND FixedAssemblySchedulePrice.schedule =  FixedIndividualJob.schedule
 GROUP BY
  Cargoes.bill,
  Cargoes.type,
