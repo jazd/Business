@@ -2528,7 +2528,8 @@ CREATE OR REPLACE FUNCTION MoveCargo (
  inFromBill integer,
  inToBill integer,
  inItem integer,
- inCount float
+ inCount float,
+ inIndividualJob integer
 ) RETURNS integer AS $$
 DECLARE
 BEGIN
@@ -2544,7 +2545,7 @@ IF inItem IS NULL THEN
     0
    END
   ),
-  Cargo.individualJob,
+  COALESCE(inIndividualJob, Cargo.individualJob),
   Cargo.journal,
   Cargo.entry,
   Cargo.id)
@@ -2571,7 +2572,7 @@ ELSE
  PERFORM AddCargo(inToBill,
   inItem,
   inCount,
-  Cargo.individualJob,
+  COALESCE(inIndividualJob, Cargo.individualJob),
   Cargo.journal,
   Cargo.entry,
   Cargo.id)
@@ -2585,16 +2586,27 @@ ELSE
   Cargo.entry
  ;
 END IF;
-
 RETURN inToBill;
-
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION MoveCargo (
+ inFromBill integer,
+ inToBill integer,
+ inItem integer,
+ inCount float
+) RETURNS integer AS $$
+BEGIN
+ RETURN MoveCargo(inFromBill, inToBill, inItem, inCount, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION MoveCargoToChild (
  inFromBill integer,
  inItem integer,
- inCount float
+ inCount float,
+ inIndividualJob integer
 ) RETURNS integer AS $$
 DECLARE
  to_bill integer;
@@ -2606,9 +2618,20 @@ BEGIN
   LIMIT 1
  );
 
- RETURN MoveCargo(inFromBill, to_bill, inItem, inCount);
+ RETURN MoveCargo(inFromBill, to_bill, inItem, inCount, inIndividualJob);
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION MoveCargoToChild (
+ inFromBill integer,
+ inItem integer,
+ inCount float
+) RETURNS integer AS $$
+BEGIN
+ RETURN MoveCargoToChild(inFromBill, inItem, inCount, NULL);
+END
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION GetSchedule (
  inScheduleName varchar

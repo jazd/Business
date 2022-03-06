@@ -2434,14 +2434,17 @@ SELECT Cargoes.bill,
  Cargoes.cargo AS line,
  Parts.name AS item,
  Parts.part,
- COALESCE(SpecificPrice.price, DefaultPrice.price) AS currentUnitPrice,
+ COALESCE(SpecificPrice.price, DefaultPrice.price, AssemblySchedulePrice.price) AS currentUnitPrice,
  SUM(JournalEntry.amount) / Cargoes.count AS unitPrice,
  SUM(JournalEntry.amount) AS totalPrice,
  CASE WHEN CargoState.cargo IS NOT NULL THEN
   Cargoes.count - SUM(COALESCE(CargoState.count, 1))
  ELSE
   Cargoes.count
- END AS outstanding
+ END AS outstanding,
+ IndividualJob.id AS individualJob,
+ IndividualJob.job,
+ IndividualJob.schedule
 FROM Cargoes
 JOIN I8NWord AS Type ON Type.id = Cargoes.type
 JOIN Entities AS Supplier ON Supplier.individual = Cargoes.supplier
@@ -2455,6 +2458,10 @@ LEFT JOIN JournalEntry ON JournalEntry.journal = Cargoes.journal
  AND JournalEntry.entry = Cargoes.entry
  AND JournalEntry.credit -- Income to bill.supplier
 LEFT JOIN CargoState ON CargoState.cargo = Cargoes.cargo
+LEFT JOIN IndividualJob ON IndividualJob.individual = Cargoes.consignee
+ AND IndividualJob.stop IS NULL
+LEFT JOIN AssemblySchedulePrice ON AssemblySchedulePrice.assembly = Cargoes.assembly
+ AND AssemblySchedulePrice.schedule = IndividualJob.schedule
 GROUP BY
  Cargoes.bill,
  Cargoes.type,
@@ -2473,7 +2480,11 @@ GROUP BY
  Parts.part,
  DefaultPrice.price,
  SpecificPrice.price,
- CargoState.cargo
+ AssemblySchedulePrice.price,
+ CargoState.cargo,
+ IndividualJob.id,
+ IndividualJob.job,
+ IndividualJob.schedule
    </sql>
  </view>
 </views>
