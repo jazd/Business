@@ -2395,100 +2395,135 @@ GROUP BY Part.id,
  Part.name
    </sql>
  </view>
- <view name="Cargoes" fields="bill, type, supplier, consignee, created, cargo, count, individualJob, assembly, journal, entry">
-  <sql>
+ <view name="CargoesRaw" fields="bill, type, supplier, consignee, created, cargo, count, individualjob, assembly, journal, entry">
+   <sql>
 SELECT Bill.id AS bill,
  Bill.type,
  Bill.supplier,
  Bill.consignee,
  Bill.created,
  Cargo.id AS cargo,
- SUM(COALESCE(Cargo.count, 1)) AS count,
+ COALESCE(Cargo.count, 1) AS count,
  Cargo.individualJob,
  Cargo.assembly,
  Cargo.journal,
  Cargo.entry
 FROM Bill
 JOIN Cargo ON Cargo.bill = Bill.id
-GROUP BY Bill.id,
- Bill.type,
- Bill.supplier,
- Bill.consignee,
- Bill.created,
- Cargo.id,
- Cargo.individualJob,
- Cargo.assembly,
- Cargo.journal,
- Cargo.entry
+   </sql>
+ </view>
+ <view name="Cargoes" fields="bill, type, supplier, consignee, created, cargo, count, individualJob, assembly, journal, entry">
+  <sql>
+SELECT bill,
+ type,
+ supplier,
+ consignee,
+ created,
+ cargo,
+ SUM(COALESCE(count, 1)) AS count,
+ individualJob,
+ assembly,
+ journal,
+ entry
+FROM CargoesRaw
+GROUP BY bill,
+ type,
+ supplier,
+ consignee,
+ created,
+ cargo,
+ individualJob,
+ assembly,
+ journal,
+ entry
   </sql>
  </view>
- <view name="LineItems" fields="bill, typename, type, suppliername, supplier,consigneename, consignee, count, line, item,part, currentUnitPrice, unitPrice, totalPrice,	outstanding">
+ <view name="LineItemsRaw" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentunitprice, totalprice, individualjob, job, schedule">
    <sql>
-SELECT Cargoes.bill,
+SELECT CargoesRaw.bill,
  Type.value AS typeName,
- Cargoes.type,
- COALESCE(Supplier.goesBy, Supplier.name) AS SupplierName,
- Cargoes.supplier,
- COALESCE(Consignee.goesBy, Consignee.name) AS ConsigneeName,
- Cargoes.consignee,
- Cargoes.count,
- Cargoes.cargo AS line,
+ CargoesRaw.type,
+ COALESCE(Supplier.goesBy, Supplier.name) AS supplierName,
+ CargoesRaw.supplier,
+ COALESCE(Consignee.goesBy, Consignee.name) AS consigneeName,
+ CargoesRaw.consignee,
+ CargoesRaw.count,
+ CargoesRaw.cargo AS line,
  Parts.name AS item,
  Parts.part,
  COALESCE(SpecificPrice.price, DefaultPrice.price, AssemblyIndividualJobPrice.price) AS currentUnitPrice,
- SUM(COALESCE(JournalEntry.amount, FixedAssemblyIndividualJobPrice.price)) / Cargoes.count AS unitPrice,
- SUM(COALESCE(JournalEntry.amount, FixedAssemblyIndividualJobPrice.price)) AS totalPrice,
- CASE WHEN CargoState.cargo IS NOT NULL THEN
-  Cargoes.count - SUM(COALESCE(CargoState.count, 1))
- ELSE
-  Cargoes.count
- END AS outstanding,
+ COALESCE(JournalEntry.amount, FixedAssemblyIndividualJobPrice.price) AS totalPrice,
  IndividualJob.id AS individualJob,
  IndividualJob.job,
  IndividualJob.schedule
-FROM Cargoes
-JOIN I8NWord AS Type ON Type.id = Cargoes.type
-JOIN Entities AS Supplier ON Supplier.individual = Cargoes.supplier
-JOIN Entities AS Consignee ON Consignee.individual = Cargoes.consignee
-JOIN Parts ON Parts.part = Cargoes.assembly
-JOIN AssemblyCurrentPrice AS DefaultPrice ON DefaultPrice.assembly = Cargoes.assembly
+FROM CargoesRaw
+JOIN I8NWord AS Type ON Type.id = CargoesRaw.type
+JOIN Entities AS Supplier ON Supplier.individual = CargoesRaw.supplier
+JOIN Entities AS Consignee ON Consignee.individual = CargoesRaw.consignee
+JOIN Parts ON Parts.part = CargoesRaw.assembly
+JOIN AssemblyCurrentPrice AS DefaultPrice ON DefaultPrice.assembly = CargoesRaw.assembly
  AND DefaultPrice.supplier IS NULL
-LEFT JOIN AssemblyCurrentPrice AS SpecificPrice ON SpecificPrice.assembly = Cargoes.assembly
- AND SpecificPrice.supplier = Cargoes.supplier
-LEFT JOIN JournalEntry ON JournalEntry.journal = Cargoes.journal
- AND JournalEntry.entry = Cargoes.entry
+LEFT JOIN AssemblyCurrentPrice AS SpecificPrice ON SpecificPrice.assembly = CargoesRaw.assembly
+ AND SpecificPrice.supplier = CargoesRaw.supplier
+LEFT JOIN JournalEntry ON JournalEntry.journal = CargoesRaw.journal
+ AND JournalEntry.entry = CargoesRaw.entry
  AND JournalEntry.credit -- Income to bill.supplier
-LEFT JOIN CargoState ON CargoState.cargo = Cargoes.cargo
-LEFT JOIN IndividualJob ON IndividualJob.individual = Cargoes.consignee
+LEFT JOIN IndividualJob ON IndividualJob.individual = CargoesRaw.consignee
  AND IndividualJob.stop IS NULL
-LEFT JOIN AssemblyIndividualJobPrice ON AssemblyIndividualJobPrice.assembly = Cargoes.assembly
+LEFT JOIN AssemblyIndividualJobPrice ON AssemblyIndividualJobPrice.assembly = CargoesRaw.assembly
  AND AssemblyIndividualJobPrice.individualJob = IndividualJob.id
-LEFT JOIN IndividualJob AS FixedIndividualJob ON FixedIndividualJob.id = Cargoes.individualJob
-LEFT JOIN AssemblyIndividualJobPrice AS FixedAssemblyIndividualJobPrice ON FixedAssemblyIndividualJobPrice.assembly = Cargoes.assembly
+LEFT JOIN IndividualJob AS FixedIndividualJob ON FixedIndividualJob.id = CargoesRaw.individualJob
+LEFT JOIN AssemblyIndividualJobPrice AS FixedAssemblyIndividualJobPrice ON FixedAssemblyIndividualJobPrice.assembly = CargoesRaw.assembly
  AND FixedAssemblyIndividualJobPrice.individualJob =  FixedIndividualJob.id
+   </sql>
+ </view>
+ <view name="LineItems" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentUnitPrice, unitPrice, totalPrice, outstanding, individualjob, job, schedule">
+   <sql>
+SELECT bill,
+ typeName,
+ type,
+ supplierName,
+ supplier,
+ consigneeName,
+ consignee,
+ SUM(LineItemsRaw.count) AS count,
+ line,
+ item,
+ part,
+ currentUnitPrice,
+ SUM(totalPrice) / SUM(LineItemsRaw.count) AS unitPrice,
+ SUM(totalPrice) AS totalPrice,
+ CASE WHEN CargoStateSum.cargo IS NOT NULL THEN
+  SUM(LineItemsRaw.count) - CargoStateSum.count
+ ELSE
+  SUM(LineItemsRaw.count)
+ END AS outstanding,
+ individualJob,
+ job,
+ schedule
+FROM LineItemsRaw
+LEFT JOIN (
+ SELECT cargo, SUM(COALESCE(count, 1)) AS count
+ FROM CargoState
+ GROUP BY CargoState.cargo
+) AS CargoStateSum ON CargoStateSum.cargo = line
 GROUP BY
- Cargoes.bill,
- Cargoes.type,
- Type.value,
- Supplier.goesBy,
- Supplier.name,
- Consignee.goesBy,
- Consignee.name,
- Cargoes.consignee,
- Cargoes.count,
- Cargoes.cargo,
- Cargoes.supplier,
- Cargoes.consignee,
- Cargoes.assembly,
- Parts.name,
- Parts.part,
- DefaultPrice.price,
- SpecificPrice.price,
- AssemblyIndividualJobPrice.price,
- CargoState.cargo,
- IndividualJob.id,
- IndividualJob.job,
- IndividualJob.schedule
+ bill,
+ typeName,
+ type,
+ supplierName,
+ supplier,
+ consigneeName,
+ consignee,
+ line,
+ item,
+ part,
+ currentUnitPrice,
+ individualJob,
+ job,
+ schedule,
+ CargoStateSum.cargo,
+ CargoStateSum.count
    </sql>
  </view>
 </views>
