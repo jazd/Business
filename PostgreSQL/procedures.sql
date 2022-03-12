@@ -2239,24 +2239,39 @@ END
 $$ LANGUAGE plpgsql;
 
 
+
 -- Double Entry Accounting functions
+--
+
+-- Drop functions thas use JournalEntryResult
+DROP FUNCTION IF EXISTS Book(varchar, float);
+--
+DROP TYPE IF EXISTS JournalEntryResult;
+CREATE TYPE JournalEntryResult AS (
+ journal INTEGER,
+ entry INTEGER
+);
+
 --
 -- Book single amounts into double entry Journal
 CREATE OR REPLACE FUNCTION Book (
  inBook varchar,
  inAmount FLOAT
-) RETURNS integer AS $$
+) RETURNS JournalEntryResult AS $$
 DECLARE
  book_id integer;
  entry_id integer;
+ journal_id integer;
 BEGIN
- book_id := (
-  SELECT book
-  FROM BookName
-  WHERE BookName.name = GetSentence(inBook)
-  LIMIT 1
- );
+ -- Pickup book and journal to use
+ SELECT book, journal
+ INTO book_id, journal_id
+ FROM BookName
+ WHERE BookName.name = GetSentence(inBook)
+ LIMIT 1
+ ;
 
+ -- Get a new unique entry_id
  INSERT INTO Entry (assemblyApplicationRelease,credential) VALUES (NULL, NULL) RETURNING id INTO entry_id;
 
  INSERT INTO JournalEntry (journal, book, entry,  account, credit, amount)
@@ -2301,7 +2316,7 @@ BEGIN
   AND inAmount * decreaseDebitDecrease IS NOT NULL
  ;
 
- RETURN entry_id;
+ RETURN ROW(journal_id, entry_id);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -2324,6 +2339,7 @@ CREATE OR REPLACE FUNCTION BookBalance (
 DECLARE
  book_id integer;
  entry_id integer;
+ journal_id integer;
 BEGIN
  book_id := (
   SELECT BookName.book
@@ -2332,7 +2348,7 @@ BEGIN
   LIMIT 1
  );
 
- entry_id := Book(inBook, inAmount);
+ SELECT * INTO journal_id, entry_id FROM Book(inBook, inAmount);
 
  RETURN QUERY
   SELECT book_id AS book,
@@ -2631,7 +2647,6 @@ BEGIN
  RETURN MoveCargoToChild(inFromBill, inItem, inCount, NULL);
 END
 $$ LANGUAGE plpgsql;
-
 
 CREATE OR REPLACE FUNCTION GetSchedule (
  inScheduleName varchar
