@@ -8,7 +8,13 @@ INSERT INTO Individual (id, name, birth, nameChange) VALUES (7, 4, '1982-10-28',
 INSERT INTO Individual (id, name, birth) VALUES (7, 5, '1982-10-28');
 INSERT INTO Individual (id, name, birth, death) VALUES (8, 6, '1907-07-07', '1988-05-08');
 INSERT INTO Individual (id, name, prefix, suffix, birth, death) VALUES (9, 7, 105, 153, '1920-01-01', '1949-01-01');
-INSERT INTO Individual (id, entity, goesBy, birth) VALUES (10, 1, 100000, '1911-06-16');
+INSERT INTO Individual (id, entity, goesBy, birth) VALUES (10, 1, 100000, '1911-06-16'); -- IBM
+-- Oracle
+INSERT INTO Individual (id, entity, birth, nameChange) VALUES (1002, 2, '1977-06-16', '1979-01-01');
+INSERT INTO Individual (id, entity, birth, nameChange) VALUES (1002, 3, '1977-06-16', '1983-01-01');
+INSERT INTO Individual (id, entity, birth, nameChange) VALUES (1002, 4, '1977-06-16', '1995-01-01');
+INSERT INTO Individual (id, entity, birth, goesBy) VALUES (1002, 5, '1977-06-16', 100001);
+--
 INSERT INTO Individual (id, name, suffix, birth) VALUES (11, 10, 151, '1950-04-11');
 INSERT INTO Individual (id, name, suffix, post, goesBy, birth) VALUES (12, 10, 152, 160, 26, '1975-08-28');
 INSERT INTO Individual (id, name, suffix, goesBy, birth) VALUES (13, 10, 153, 27, '2009-02-17');

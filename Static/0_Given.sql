@@ -34,3 +34,4 @@ INSERT INTO Given (id,value) VALUES (33,'Jacob');
 INSERT INTO Given (id,value) VALUES (34,'Everett');
 ---
 INSERT INTO Given (id,value) VALUES (100000,'IBM');
+INSERT INTO Given (id,value) VALUES (100001,'Oracle');
