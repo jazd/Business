@@ -2438,7 +2438,7 @@ GROUP BY bill,
  entry
   </sql>
  </view>
- <view name="LineItemsRaw" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentunitprice, totalprice, individualjob, job, schedule">
+ <view name="LineItemsRaw" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentunitprice, unitprice, individualjob, job, schedule">
    <sql>
 SELECT CargoesRaw.bill,
  Type.value AS typeName,
@@ -2452,7 +2452,7 @@ SELECT CargoesRaw.bill,
  Parts.name AS item,
  Parts.part,
  COALESCE(SpecificPrice.price, DefaultPrice.price, AssemblyIndividualJobPrice.price) AS currentUnitPrice,
- COALESCE(JournalEntry.amount, FixedAssemblyIndividualJobPrice.price) AS totalPrice,
+ COALESCE(JournalEntry.amount, FixedAssemblyIndividualJobPrice.price) AS unitPrice,
  IndividualJob.id AS individualJob,
  IndividualJob.job,
  IndividualJob.schedule
@@ -2477,7 +2477,7 @@ LEFT JOIN AssemblyIndividualJobPrice AS FixedAssemblyIndividualJobPrice ON Fixed
  AND FixedAssemblyIndividualJobPrice.individualJob =  FixedIndividualJob.id
    </sql>
  </view>
- <view name="LineItems" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentUnitPrice, unitPrice, totalPrice, outstanding, individualjob, job, schedule">
+ <view name="LineItems" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentUnitPrice, unitprice, totalPrice, outstanding, individualjob, job, schedule">
    <sql>
 SELECT bill,
  typeName,
@@ -2491,8 +2491,8 @@ SELECT bill,
  item,
  part,
  currentUnitPrice,
- SUM(totalPrice) / SUM(LineItemsRaw.count) AS unitPrice,
- SUM(totalPrice) AS totalPrice,
+ unitPrice,
+ SUM(LineItemsRaw.count) * unitPrice AS totalPrice,
  CASE WHEN CargoStateSum.cargo IS NOT NULL THEN
   SUM(LineItemsRaw.count) - CargoStateSum.count
  ELSE
@@ -2519,6 +2519,7 @@ GROUP BY
  item,
  part,
  currentUnitPrice,
+ unitPrice,
  individualJob,
  job,
  schedule,
