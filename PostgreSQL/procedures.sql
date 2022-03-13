@@ -2448,10 +2448,12 @@ CREATE OR REPLACE FUNCTION AddCargo (
  inIndividualJob integer,
  inJournal integer,
  inEntry integer,
- inFromCargo integer
+ inFromCargo integer,
+ inBook varchar
 ) RETURNS integer AS $$
 DECLARE
  cargo_id integer;
+ book_amount float;
 BEGIN
  SELECT INTO cargo_id
   id AS cargo_id
@@ -2465,32 +2467,73 @@ BEGIN
  LIMIT 1
  ;
 
- IF cargo_id IS NULL THEN
-  INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
-  SELECT nextval('cargo_id_seq'),
-   inBill,
-   CASE WHEN inCount = 1 THEN
-    NULL -- cargo record itself is a count of one unless overridden
-   ELSE
-    inCount
-   END AS count,
-   inAssembly,
-   inIndividualJob,
-   inJournal,
-   inEntry
-  FROM DUAL
-  RETURNING id INTO cargo_id;
+ IF inBook IS NULL THEN
+  IF cargo_id IS NULL THEN
+   INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
+   SELECT nextval('cargo_id_seq'),
+    inBill,
+    CASE WHEN inCount = 1 THEN
+     NULL -- cargo record itself is a count of one unless overridden
+    ELSE
+     inCount
+    END AS count,
+    inAssembly,
+    inIndividualJob,
+    inJournal,
+    inEntry
+   FROM DUAL
+   RETURNING id INTO cargo_id;
+  ELSE
+   INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
+   SELECT cargo_id,
+    inBill,
+    inCount,
+    inAssembly,
+    inIndividualJob,
+    inJournal,
+    inEntry
+   FROM DUAL
+   ;
+  END IF;
  ELSE
-  INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
-  SELECT cargo_id,
-   inBill,
-   inCount,
-   inAssembly,
-   inIndividualJob,
-   inJournal,
-   inEntry
-  FROM DUAL
-  ;
+  -- Book the current amount for the cargo
+  book_amount := (
+   SELECT totalPrice
+   FROM LineItems
+   WHERE line = inFromCargo
+    AND ((part = inAssembly) OR (part IS NULL AND inAssembly IS NULL))
+    -- Don't check individualJob since the default in LineItems may be newer
+    -- Use the locked in individualJob from the inFromCargo's inIndividualJob
+    AND totalPrice IS NOT NULL
+   LIMIT 1
+  );
+  IF cargo_id IS NULL THEN
+   INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
+   SELECT nextval('cargo_id_seq'),
+    inBill,
+    CASE WHEN inCount = 1 THEN
+     NULL -- cargo record itself is a count of one unless overridden
+    ELSE
+     inCount
+    END AS count,
+    inAssembly,
+    inIndividualJob,
+    journal,
+    entry
+   FROM Book(inBook, book_amount)
+   RETURNING id INTO cargo_id;
+  ELSE
+   INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
+   SELECT cargo_id,
+    inBill,
+    inCount,
+    inAssembly,
+    inIndividualJob,
+    journal,
+    entry
+   FROM Book(inBook, book_amount)
+   ;
+  END IF;
  END IF;
 
  IF inFromCargo IS NOT NULL THEN
@@ -2509,6 +2552,20 @@ CREATE OR REPLACE FUNCTION AddCargo (
  inCount float,
  inIndividualJob integer,
  inJournal integer,
+ inEntry integer,
+ inFromCargo integer
+) RETURNS integer AS $$
+BEGIN
+ RETURN AddCargo (inBill, inAssembly, inCount, inIndividualJob, inJournal, inEntry, inFromCargo, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION AddCargo (
+ inBill integer,
+ inAssembly integer,
+ inCount float,
+ inIndividualJob integer,
+ inJournal integer,
  inEntry integer
 ) RETURNS integer AS $$
 DECLARE
@@ -2516,7 +2573,6 @@ BEGIN
  RETURN AddCargo (inBill, inAssembly, inCount, inIndividualJob, inJournal, inEntry, NULL);
 END;
 $$ LANGUAGE plpgsql;
-
 
 CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
@@ -2545,66 +2601,85 @@ CREATE OR REPLACE FUNCTION MoveCargo (
  inToBill integer,
  inItem integer,
  inCount float,
- inIndividualJob integer
+ inIndividualJob integer,
+ inBook varchar
 ) RETURNS integer AS $$
 DECLARE
 BEGIN
-IF inItem IS NULL THEN
- -- Move all remaining cargo to inToBill
- -- Use AddCargo
- PERFORM AddCargo(inToBill,
-  Cargo.assembly,
-  SUM(COALESCE(Cargo.count, 1)) - (
-   CASE WHEN CargoState.cargo IS NOT NULL THEN
-    SUM(COALESCE(CargoState.count, 1))
-   ELSE
-    0
-   END
-  ),
-  COALESCE(inIndividualJob, Cargo.individualJob),
-  Cargo.journal,
-  Cargo.entry,
-  Cargo.id)
- FROM Cargo
- LEFT JOIN CargoState ON CargoState.cargo = Cargo.id
- WHERE Cargo.bill = inFromBill
- GROUP BY Cargo.id,
-  Cargo.assembly,
-  Cargo.individualJob,
-  Cargo.journal,
-  Cargo.entry,
-  CargoState.cargo
- HAVING SUM(COALESCE(Cargo.count, 1)) - (
-   CASE WHEN CargoState.cargo IS NOT NULL THEN
-    SUM(COALESCE(CargoState.count, 1))
-   ELSE
-    0
-   END
-  ) > 0
- ;
-ELSE
- -- Move single item cargo to inToBill
- -- Allow any count, even if more than inFromBill has
- PERFORM AddCargo(inToBill,
-  inItem,
-  inCount,
-  COALESCE(inIndividualJob, Cargo.individualJob),
-  Cargo.journal,
-  Cargo.entry,
-  Cargo.id)
- FROM Cargo
- WHERE Cargo.bill = inFromBill
-  AND Cargo.assembly = inItem
- GROUP BY Cargo.id,
-  Cargo.assembly,
-  Cargo.individualJob,
-  Cargo.journal,
-  Cargo.entry
- ;
+IF inToBill IS NOT NULL THEN
+ IF inItem IS NULL THEN
+  -- Move all remaining cargo to inToBill
+  -- Use AddCargo
+  PERFORM AddCargo(inToBill,
+   Cargo.assembly,
+   SUM(COALESCE(Cargo.count, 1)) - (
+    CASE WHEN CargoState.cargo IS NOT NULL THEN
+     SUM(COALESCE(CargoState.count, 1))
+    ELSE
+     0
+    END
+   ),
+   COALESCE(inIndividualJob, Cargo.individualJob),
+   Cargo.journal,
+   Cargo.entry,
+   Cargo.id,
+   inBook)
+  FROM Cargo
+  LEFT JOIN CargoState ON CargoState.cargo = Cargo.id
+  WHERE Cargo.bill = inFromBill
+  GROUP BY Cargo.id,
+   Cargo.assembly,
+   Cargo.individualJob,
+   Cargo.journal,
+   Cargo.entry,
+   CargoState.cargo
+  HAVING SUM(COALESCE(Cargo.count, 1)) - (
+    CASE WHEN CargoState.cargo IS NOT NULL THEN
+     SUM(COALESCE(CargoState.count, 1))
+    ELSE
+     0
+    END
+   ) > 0
+  ;
+ ELSE
+  -- Move single item cargo to inToBill
+  -- Allow any count, even if more than inFromBill has
+  PERFORM AddCargo(inToBill,
+   inItem,
+   inCount,
+   COALESCE(inIndividualJob, Cargo.individualJob),
+   Cargo.journal,
+   Cargo.entry,
+   Cargo.id,
+   inBook)
+  FROM Cargo
+  WHERE Cargo.bill = inFromBill
+   AND Cargo.assembly = inItem
+  GROUP BY Cargo.id,
+   Cargo.assembly,
+   Cargo.individualJob,
+   Cargo.journal,
+   Cargo.entry
+  ;
+ END IF;
 END IF;
 RETURN inToBill;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION MoveCargo (
+ inFromBill integer,
+ inToBill integer,
+ inItem integer,
+ inCount float,
+ inIndividualJob integer
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN MoveCargo(inFromBill, inToBill, inItem, inCount, inIndividualJob, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION MoveCargo (
  inFromBill integer,
@@ -2617,12 +2692,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE OR REPLACE FUNCTION MoveCargoToChild (
  inFromBill integer,
  inItem integer,
  inCount float,
- inIndividualJob integer
+ inIndividualJob integer,
+ inBook varchar
 ) RETURNS integer AS $$
 DECLARE
  to_bill integer;
@@ -2634,7 +2709,20 @@ BEGIN
   LIMIT 1
  );
 
- RETURN MoveCargo(inFromBill, to_bill, inItem, inCount, inIndividualJob);
+ RETURN MoveCargo(inFromBill, to_bill, inItem, inCount, inIndividualJob, inBook);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION MoveCargoToChild (
+ inFromBill integer,
+ inItem integer,
+ inCount float,
+ inIndividualJob integer
+) RETURNS integer AS $$
+DECLARE
+ to_bill integer;
+BEGIN
+ RETURN MoveCargoToChild(inFromBill, inItem, inCount, inIndividualJob, NULL);
 END;
 $$ LANGUAGE plpgsql;
 
