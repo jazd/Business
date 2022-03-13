@@ -1,0 +1,66 @@
+!4 Verify LineItems view exists
+Underlying table has no static records
+
+!|Query Stats                                             |
+|query                                                |row count?|is empty?|
+|SELECT bill FROM LineItems WHERE line < 100 LIMIT 1  |0         |true     |
+
+!|Insert|Bill|
+|supplier|consignee|type|id?|
+|10 | 1002 | 300500| >>billId|
+
+!|Insert|Part|
+|name|id?|
+|19|>>rootId|
+
+!|Insert|Part|
+|name|parent|id?|
+|20|<<rootId|>>assemblyId|
+
+!|Insert|Part|
+|name|parent|id?|
+|76|<<assemblyId|>>childId|
+
+!|Insert|AssemblyPart|
+|assembly|part|
+|<<assemblyId|<<childId|
+
+No default price, but at least one record
+!|Query Stats                                             |
+|query                                                                   |row count?|is empty?|
+|SELECT price FROM AssemblyCurrentPrice WHERE assembly=_:assemblyId::INT |1         |false     |
+
+
+Cargo records < 100 are safe for testing
+!|Insert|Cargo|
+|id|bill|count|assembly|
+|1|<<billId|2|<<assemblyId|
+
+
+Line Items
+!|Ordered Query| SELECT count FROM LineItems WHERE line = 1|
+|count|
+|2|
+
+
+Adjust the cargo line up by count 1
+!|Insert|Cargo|
+|id|bill|count|assembly|
+|1|<<billId|1|<<assemblyId|
+
+
+!|Ordered Query| SELECT count FROM LineItems WHERE line = 1|
+|count|
+|3|
+
+Adjust the cargo line down by count 2
+
+!|Insert|Cargo|
+|id|bill|count|assembly|
+|1|<<billId|-2|<<assemblyId|
+
+!|Ordered Query| SELECT count FROM LineItems WHERE line = 1|
+|count|
+|1|
+
+|Rollback|
