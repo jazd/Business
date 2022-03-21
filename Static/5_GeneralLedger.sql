@@ -52,6 +52,9 @@ INSERT INTO BookName (book, name, journal) VALUES (9,  100, 6); -- Supplies, Pay
 INSERT INTO BookName (book, name, journal) VALUES (10, 125, 6); -- Supply Returns, Payments
 INSERT INTO BookName (book, name, journal) VALUES (11, 121, 7); -- Petty Cash, Petty Cash
 INSERT INTO BookName (book, name, journal) VALUES (12, 128, 7); -- Petty Cash Return, Petty Cash
+INSERT INTO BookName (book, name, journal) VALUES (13, 212, 2); -- AR Sale, Sales
+INSERT INTO BookName (book, name, journal) VALUES (14, 213, 2); -- AR Sale Credit, Sales
+INSERT INTO BookName (book, name, journal) VALUES (15, 214, 2); -- AR Sale Payment, Sales
 
 -- Simple Book Accounts
 -- Must define balanced transactions to be inserted into journals
@@ -77,6 +80,9 @@ INSERT INTO BookAccount (book, increase, decrease) VALUES (9, 106, 100); -- Supp
 INSERT INTO BookAccount (book, increase, decrease) VALUES (10, 100, 106);-- Supply Return: Cash, Supply
 INSERT INTO BookAccount (book, increase, decrease) VALUES (11, 106, 107);-- Petty Cash: Supply, Petty Cash
 INSERT INTO BookAccount (book, increase, decrease) VALUES (12, 107, 106);-- Petty Cash Return: Petty Cash, Supply
+INSERT INTO BookAccount (book, increase, decrease) VALUES (13, 108, 102);-- AR Sale: Receivable, Sales
+INSERT INTO BookAccount (book, increase, decrease) VALUES (14, 102, 108);-- AR Sale Credit: Sales, Receivable
+INSERT INTO BookAccount (book, increase, decrease) VALUES (15, 100, 108);-- AR Payment: Cash, Receivable
 
 -- More Complex Book Accounts
 -- Split amount across acounts

@@ -203,3 +203,7 @@ INSERT INTO Sentence (id,culture,value,length) VALUES (210,2058,'Venta Jane Doe'
 INSERT INTO Sentence (id,culture,value,length) VALUES (211,1033,'Sale John Doe',13);
 INSERT INTO Sentence (id,culture,value,length) VALUES (211,1036,'Vente John Doe',14);
 INSERT INTO Sentence (id,culture,value,length) VALUES (211,2058,'Venta John Doe',14);
+-- Not translated yet
+INSERT INTO Sentence (id,culture,value,length) VALUES (212,1033,'AR Sale',7);
+INSERT INTO Sentence (id,culture,value,length) VALUES (213,1033,'AR Sale Credit',14);
+INSERT INTO Sentence (id,culture,value,length) VALUES (214,1033,'AR Payment',10);
