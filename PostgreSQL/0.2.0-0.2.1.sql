@@ -2,6 +2,7 @@
 --
 -- Return BigInt Individual.id
 -- Update IndividualEmail.stop
+-- GetSentence
 -- GetIndividualEntity(<Entity Name>)
 -- cargo_id_seq
 -- AddCargo() root function
@@ -11,6 +12,10 @@
 -- AddCargo that updates CargoState
 -- MoveCargo that uses CargoState
 -- MoveCargoToChild
+-- GetSchedule
+-- GetJob
+-- GetIndividualJobSchedule
+
 
 DROP TABLE IF EXISTS JobIndividual;
 --
@@ -75,6 +80,33 @@ ALTER TABLE Cargo ADD CONSTRAINT cargo_assembly FOREIGN KEY (assembly)
 ALTER TABLE CargoState ADD CONSTRAINT cargostate_entry FOREIGN KEY (entry)
   REFERENCES Entry (id) DEFERRABLE;
 
+CREATE OR REPLACE FUNCTION GetSentence (
+ sentence_value varchar,
+ culture_name varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ IF sentence_value IS NOT NULL THEN
+  INSERT INTO Sentence (value, culture, length) (
+   SELECT sentence_value, Culture.code, LENGTH(sentence_value)
+   FROM Culture
+   LEFT JOIN Sentence AS exists ON UPPER(exists.value) = UPPER(sentence_value)
+    AND exists.culture = Culture.code
+   WHERE UPPER(Culture.name) = UPPER(culture_name)
+    AND exists.id IS NULL
+   LIMIT 1
+  );
+ END IF;
+ RETURN (
+  SELECT id
+  FROM Sentence
+  JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
+  WHERE UPPER(Sentence.value) = UPPER(sentence_value)
+   AND Sentence.culture = Culture.code
+  LIMIT 1
+ );
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
@@ -83,10 +115,12 @@ CREATE OR REPLACE FUNCTION AddCargo (
  inIndividualJob integer,
  inJournal integer,
  inEntry integer,
- inFromCargo integer
+ inFromCargo integer,
+ inBook varchar
 ) RETURNS integer AS $$
 DECLARE
  cargo_id integer;
+ book_amount float;
 BEGIN
  SELECT INTO cargo_id
   id AS cargo_id
@@ -100,32 +134,73 @@ BEGIN
  LIMIT 1
  ;
 
- IF cargo_id IS NULL THEN
-  INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
-  SELECT nextval('cargo_id_seq'),
-   inBill,
-   CASE WHEN inCount = 1 THEN
-    NULL -- cargo record itself is a count of one unless overridden
-   ELSE
-    inCount
-   END AS count,
-   inAssembly,
-   inIndividualJob,
-   inJournal,
-   inEntry
-  FROM DUAL
-  RETURNING id INTO cargo_id;
+ IF inBook IS NULL THEN
+  IF cargo_id IS NULL THEN
+   INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
+   SELECT nextval('cargo_id_seq'),
+    inBill,
+    CASE WHEN inCount = 1 THEN
+     NULL -- cargo record itself is a count of one unless overridden
+    ELSE
+     inCount
+    END AS count,
+    inAssembly,
+    inIndividualJob,
+    inJournal,
+    inEntry
+   FROM DUAL
+   RETURNING id INTO cargo_id;
+  ELSE
+   INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
+   SELECT cargo_id,
+    inBill,
+    inCount,
+    inAssembly,
+    inIndividualJob,
+    inJournal,
+    inEntry
+   FROM DUAL
+   ;
+  END IF;
  ELSE
-  INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
-  SELECT cargo_id,
-   inBill,
-   inCount,
-   inAssembly,
-   inIndividualJob,
-   inJournal,
-   inEntry
-  FROM DUAL
-  ;
+  -- Book the current amount for the cargo
+  book_amount := (
+   SELECT totalPrice
+   FROM LineItems
+   WHERE line = inFromCargo
+    AND ((part = inAssembly) OR (part IS NULL AND inAssembly IS NULL))
+    -- Don't check individualJob since the default in LineItems may be newer
+    -- Use the locked in individualJob from the inFromCargo's inIndividualJob
+    AND totalPrice IS NOT NULL
+   LIMIT 1
+  );
+  IF cargo_id IS NULL THEN
+   INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
+   SELECT nextval('cargo_id_seq'),
+    inBill,
+    CASE WHEN inCount = 1 THEN
+     NULL -- cargo record itself is a count of one unless overridden
+    ELSE
+     inCount
+    END AS count,
+    inAssembly,
+    inIndividualJob,
+    journal,
+    entry
+   FROM Book(inBook, book_amount)
+   RETURNING id INTO cargo_id;
+  ELSE
+   INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
+   SELECT cargo_id,
+    inBill,
+    inCount,
+    inAssembly,
+    inIndividualJob,
+    journal,
+    entry
+   FROM Book(inBook, book_amount)
+   ;
+  END IF;
  END IF;
 
  IF inFromCargo IS NOT NULL THEN
@@ -144,6 +219,20 @@ CREATE OR REPLACE FUNCTION AddCargo (
  inCount float,
  inIndividualJob integer,
  inJournal integer,
+ inEntry integer,
+ inFromCargo integer
+) RETURNS integer AS $$
+BEGIN
+ RETURN AddCargo (inBill, inAssembly, inCount, inIndividualJob, inJournal, inEntry, inFromCargo, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION AddCargo (
+ inBill integer,
+ inAssembly integer,
+ inCount float,
+ inIndividualJob integer,
+ inJournal integer,
  inEntry integer
 ) RETURNS integer AS $$
 DECLARE
@@ -151,7 +240,6 @@ BEGIN
  RETURN AddCargo (inBill, inAssembly, inCount, inIndividualJob, inJournal, inEntry, NULL);
 END;
 $$ LANGUAGE plpgsql;
-
 
 CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
@@ -175,6 +263,76 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION MoveCargo (
+ inFromBill integer,
+ inToBill integer,
+ inItem integer,
+ inCount float,
+ inIndividualJob integer,
+ inBook varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+IF inToBill IS NOT NULL THEN
+ IF inItem IS NULL THEN
+  -- Move all remaining cargo to inToBill
+  -- Use AddCargo
+  PERFORM AddCargo(inToBill,
+   Cargo.assembly,
+   SUM(COALESCE(Cargo.count, 1)) - (
+    CASE WHEN CargoState.cargo IS NOT NULL THEN
+     SUM(COALESCE(CargoState.count, 1))
+    ELSE
+     0
+    END
+   ),
+   COALESCE(inIndividualJob, Cargo.individualJob),
+   Cargo.journal,
+   Cargo.entry,
+   Cargo.id,
+   inBook)
+  FROM Cargo
+  LEFT JOIN CargoState ON CargoState.cargo = Cargo.id
+  WHERE Cargo.bill = inFromBill
+  GROUP BY Cargo.id,
+   Cargo.assembly,
+   Cargo.individualJob,
+   Cargo.journal,
+   Cargo.entry,
+   CargoState.cargo
+  HAVING SUM(COALESCE(Cargo.count, 1)) - (
+    CASE WHEN CargoState.cargo IS NOT NULL THEN
+     SUM(COALESCE(CargoState.count, 1))
+    ELSE
+     0
+    END
+   ) > 0
+  ;
+ ELSE
+  -- Move single item cargo to inToBill
+  -- Allow any count, even if more than inFromBill has
+  PERFORM AddCargo(inToBill,
+   inItem,
+   inCount,
+   COALESCE(inIndividualJob, Cargo.individualJob),
+   Cargo.journal,
+   Cargo.entry,
+   Cargo.id,
+   inBook)
+  FROM Cargo
+  WHERE Cargo.bill = inFromBill
+   AND Cargo.assembly = inItem
+  GROUP BY Cargo.id,
+   Cargo.assembly,
+   Cargo.individualJob,
+   Cargo.journal,
+   Cargo.entry
+  ;
+ END IF;
+END IF;
+RETURN inToBill;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION MoveCargo (
  inFromBill integer,
@@ -185,62 +343,10 @@ CREATE OR REPLACE FUNCTION MoveCargo (
 ) RETURNS integer AS $$
 DECLARE
 BEGIN
-IF inItem IS NULL THEN
- -- Move all remaining cargo to inToBill
- -- Use AddCargo
- PERFORM AddCargo(inToBill,
-  Cargo.assembly,
-  SUM(COALESCE(Cargo.count, 1)) - (
-   CASE WHEN CargoState.cargo IS NOT NULL THEN
-    SUM(COALESCE(CargoState.count, 1))
-   ELSE
-    0
-   END
-  ),
-  COALESCE(inIndividualJob, Cargo.individualJob),
-  Cargo.journal,
-  Cargo.entry,
-  Cargo.id)
- FROM Cargo
- LEFT JOIN CargoState ON CargoState.cargo = Cargo.id
- WHERE Cargo.bill = inFromBill
- GROUP BY Cargo.id,
-  Cargo.assembly,
-  Cargo.individualJob,
-  Cargo.journal,
-  Cargo.entry,
-  CargoState.cargo
- HAVING SUM(COALESCE(Cargo.count, 1)) - (
-   CASE WHEN CargoState.cargo IS NOT NULL THEN
-    SUM(COALESCE(CargoState.count, 1))
-   ELSE
-    0
-   END
-  ) > 0
- ;
-ELSE
- -- Move single item cargo to inToBill
- -- Allow any count, even if more than inFromBill has
- PERFORM AddCargo(inToBill,
-  inItem,
-  inCount,
-  COALESCE(inIndividualJob, Cargo.individualJob),
-  Cargo.journal,
-  Cargo.entry,
-  Cargo.id)
- FROM Cargo
- WHERE Cargo.bill = inFromBill
-  AND Cargo.assembly = inItem
- GROUP BY Cargo.id,
-  Cargo.assembly,
-  Cargo.individualJob,
-  Cargo.journal,
-  Cargo.entry
- ;
-END IF;
-RETURN inToBill;
+ RETURN MoveCargo(inFromBill, inToBill, inItem, inCount, inIndividualJob, NULL);
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION MoveCargo (
  inFromBill integer,
@@ -253,11 +359,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION MoveCargoToChild(
+CREATE OR REPLACE FUNCTION MoveCargoToChild (
  inFromBill integer,
  inItem integer,
  inCount float,
- inIndividualJob integer
+ inIndividualJob integer,
+ inBook varchar
 ) RETURNS integer AS $$
 DECLARE
  to_bill integer;
@@ -269,7 +376,20 @@ BEGIN
   LIMIT 1
  );
 
- RETURN MoveCargo(inFromBill, to_bill, inItem, inCount, inIndividualJob);
+ RETURN MoveCargo(inFromBill, to_bill, inItem, inCount, inIndividualJob, inBook);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION MoveCargoToChild (
+ inFromBill integer,
+ inItem integer,
+ inCount float,
+ inIndividualJob integer
+) RETURNS integer AS $$
+DECLARE
+ to_bill integer;
+BEGIN
+ RETURN MoveCargoToChild(inFromBill, inItem, inCount, inIndividualJob, NULL);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -281,6 +401,87 @@ CREATE OR REPLACE FUNCTION MoveCargoToChild (
 BEGIN
  RETURN MoveCargoToChild(inFromBill, inItem, inCount, NULL);
 END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetSchedule (
+ inScheduleName varchar
+) RETURNS integer AS $$
+DECLARE scheduleName_id integer;
+DECLARE schedule_id integer;
+BEGIN
+ IF inScheduleName IS NOT NULL THEN
+   scheduleName_id := GetSentence(inScheduleName);
+   INSERT INTO ScheduleName (name) (
+    SELECT scheduleName_id
+    FROM DUAL
+    LEFT JOIN ScheduleName AS exists ON exists.name = scheduleName_id
+    WHERE exists.schedule IS NULL
+    LIMIT 1
+   ) RETURNING schedule INTO schedule_id;
+   IF schedule_id IS NULL THEN
+    schedule_id = (
+     SELECT schedule
+     FROM ScheduleName
+     WHERE name = scheduleName_id
+     LIMIT 1
+    );
+   END IF;
+ END IF;
+ RETURN schedule_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetJob (
+ inJobName varchar
+) RETURNS integer AS $$
+DECLARE jobName_id integer;
+DECLARE job_id integer;
+BEGIN
+ IF inJobName IS NOT NULL THEN
+  jobName_id := GetSentence(inJobName);
+  INSERT INTO JobName (name) (
+   SELECT jobName_id
+   FROM DUAL
+   LEFT JOIN JobName AS exists ON exists.name = jobName_id
+   WHERE exists.job IS NULL
+   LIMIT 1
+  ) RETURNING job INTO job_id;
+  IF job_id IS NULL THEN
+   job_id = (
+    SELECT job
+    FROM JobName
+    WHERE name = jobName_id
+    LIMIT 1
+   );
+  END IF;
+ END IF;
+ RETURN job_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetIndividualJobSchedule (
+ inIndividual bigint,
+ inJob integer,
+ inSchedule integer
+) RETURNS integer AS $$
+DECLARE individualJob_id integer;
+BEGIN
+ individualJob_id = (
+  SELECT id
+  FROM IndividualJob
+  WHERE ((individual = inIndividual) OR (individual IS NULL AND inIndividual IS NULL))
+   AND job = inJob
+   AND schedule = schedule
+   AND stop IS NULL
+  LIMIT 1
+ );
+ IF individualJob_id IS NULL THEN
+   INSERT INTO IndividualJob (id, individual, job, schedule)
+   VALUES(nextval('individualjob_id_seq'), inIndividual, inJob, inSchedule)
+   RETURNING id INTO individualJob_id;
+ END IF;
+ RETURN individualJob_id;
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -761,6 +962,152 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop functions thas use JournalEntryResult
+DROP FUNCTION IF EXISTS Book(varchar, float);
+--
+DROP TYPE IF EXISTS JournalEntryResult;
+CREATE TYPE JournalEntryResult AS (
+ journal INTEGER,
+ entry INTEGER
+);
+
+--
+-- Book single amounts into double entry Journal
+CREATE OR REPLACE FUNCTION Book (
+ inBook varchar,
+ inAmount FLOAT
+) RETURNS JournalEntryResult AS $$
+DECLARE
+ book_id integer;
+ entry_id integer;
+ journal_id integer;
+BEGIN
+ -- Pickup book and journal to use
+ SELECT book, journal
+ INTO book_id, journal_id
+ FROM BookName
+ WHERE BookName.name = GetSentence(inBook)
+ LIMIT 1
+ ;
+
+ -- Get a new unique entry_id
+ INSERT INTO Entry (assemblyApplicationRelease,credential) VALUES (NULL, NULL) RETURNING id INTO entry_id;
+
+ INSERT INTO JournalEntry (journal, book, entry,  account, credit, amount)
+ SELECT journal,
+  book,
+  entry_id AS entry,
+  increase AS account,
+  NOT increaseCredit AS credit,
+  (inAmount * increaseCreditIncrease) * split AS amount
+ FROM Books
+ WHERE Books.book = book_id
+  AND inAmount * increaseCreditIncrease IS NOT NULL
+ UNION ALL
+ SELECT journal,
+  book,
+  entry_id AS entry,
+  increase AS account,
+  increaseCredit AS credit,
+  (inAmount * increaseDebitIncrease) * split AS amount
+ FROM Books
+ WHERE Books.book = book_id
+  AND inAmount * increaseDebitIncrease IS NOT NULL
+ UNION ALL
+ SELECT journal,
+  book,
+  entry_id AS entry,
+  decrease AS account,
+  NOT decreaseCredit AS credit,
+  (inAmount * decreaseCreditDecrease) * split AS amount
+ FROM Books
+ WHERE Books.book = book_id
+  AND inAmount * decreaseCreditDecrease IS NOT NULL
+ UNION ALL
+ SELECT journal,
+  book,
+  entry_id AS entry,
+  decrease AS account,
+  decreaseCredit AS credit,
+  (inAmount * decreaseDebitDecrease) * split AS amount
+ FROM Books
+ WHERE Books.book = book_id
+  AND inAmount * decreaseDebitDecrease IS NOT NULL
+ ;
+
+ RETURN ROW(journal_id, entry_id);
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Book and return new balances
+CREATE OR REPLACE FUNCTION BookBalance (
+ inBook varchar,
+ inAmount FLOAT
+) RETURNS TABLE (
+ book integer,
+ entry integer,
+ account integer,
+ nameId integer,
+ name varchar,
+ rightside boolean,
+ type integer,
+ typeName varchar,
+ debit float,
+ credit float
+) AS $$
+DECLARE
+ book_id integer;
+ entry_id integer;
+ journal_id integer;
+BEGIN
+ book_id := (
+  SELECT BookName.book
+  FROM BookName
+  WHERE BookName.name = GetSentence(inBook)
+  LIMIT 1
+ );
+
+ SELECT * INTO journal_id, entry_id FROM Book(inBook, inAmount);
+
+ RETURN QUERY
+  SELECT book_id AS book,
+   entry_id AS entry,
+   Transactions.account,
+   AccountName.name AS nameId,
+   Sentence.value AS name,
+   AccountName.credit AS rightside,
+   AccountName.type,
+   Word.value AS typeName,
+   SUM(Transactions.debit) AS debit,
+   SUM(transactions.credit) AS credit
+  FROM (
+   SELECT JournalEntry.account,
+    CASE WHEN NOT JournalEntry.credit THEN
+     JournalEntry.amount
+    END AS debit,
+    CASE WHEN JournalEntry.credit THEN
+     JournalEntry.amount
+    END AS credit
+   FROM JournalEntry
+   WHERE JournalEntry.account IN (
+    SELECT DISTINCT JournalEntry.account
+    FROM JournalEntry
+    WHERE JournalEntry.entry = entry_id
+     AND posted IS NULL
+   ) AND JournalEntry.posted IS NULL
+  ) AS Transactions
+  JOIN AccountName ON AccountName.account = Transactions.account
+  JOIN Word ON Word.id = AccountName.type
+   AND Word.culture = 1033
+  JOIN Sentence ON Sentence.id = AccountName.name
+   AND Sentence.culture = 1033
+  GROUP BY Transactions.account, AccountName.name, AccountName.credit, AccountName.type, Word.value, Sentence.value
+  ;
+END;
+$$ LANGUAGE plpgsql;
+
+
 CREATE OR REPLACE FUNCTION CreateBill (
  inSupplier bigint,
  inConsignee bigint,
@@ -785,6 +1132,21 @@ BEGIN
  RETURN CreateBill (inSupplier, inConsignee, inType, NULL);
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- New Static Records
+-- 1_Sentence.sql
+INSERT INTO Sentence (id,culture,value,length) VALUES (212,1033,'AR Sale',7);
+INSERT INTO Sentence (id,culture,value,length) VALUES (213,1033,'AR Sale Credit',14);
+INSERT INTO Sentence (id,culture,value,length) VALUES (214,1033,'AR Payment',10);
+-- 5_GeneralLedger.sql
+INSERT INTO BookName (book, name, journal) VALUES (13, 212, 2); -- AR Sale, Sales
+INSERT INTO BookName (book, name, journal) VALUES (14, 213, 2); -- AR Sale Credit, Sales
+INSERT INTO BookName (book, name, journal) VALUES (15, 214, 2); -- AR Sale Payment, Sales
+--
+INSERT INTO BookAccount (book, increase, decrease) VALUES (13, 108, 102);-- AR Sale: Receivable, Sales
+INSERT INTO BookAccount (book, increase, decrease) VALUES (14, 102, 108);-- AR Sale Credit: Sales, Receivable
+INSERT INTO BookAccount (book, increase, decrease) VALUES (15, 100, 108);-- AR Payment: Cash, Receivable
 
 
 -- New build of Business 0.2.1
