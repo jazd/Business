@@ -1,0 +1,11 @@
+# podman build -t jazd/sqlt-diagram:dev -f Containerfile.sqlt-diagram .
+FROM jazd/sqlt:dev
+# Install Dependencies
+RUN apt-get update
+RUN apt-get install --yes libgd-dev
+RUN cpanm Test::Fork GD GD::Text
+RUN cpanm --force GD::Graph
+
+ADD . /app
+WORKDIR /app
+

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # The MIT License (MIT) Copyright (c) 2014 Stephen A Jazdzewski
 # Filter  SQLFairy XML file for specific tables
 # Arguments <XML file> <table> [...]

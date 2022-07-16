@@ -1,8 +1,23 @@
-#!/bin/sh
+#!/usr/bin/env sh
 # The MIT License (MIT) Copyright (c) 2014-2015 Stephen A Jazdzewski
 # Podman can be used if perl is not installed with Twig
 # e.g.
-# podman run jazd/sqlt:dev perl -I /usr/local/lib/perl5/site_perl/5.36.0 scripts/extractTable.pl schema.xml Version
+# podman run jazd/sqlt:dev perl scripts/extractTable.pl schema.xml Version
+# Generating graphics takes a little more. build jazd/sqlt-diagram:dev for that
+# podman build -t jazd/sqlt-diagram:dev -f Containerfile.sqlt-diagram .
+# e.g.
+# podman run -v $(pwd):/app jazd/sqlt-diagram:dev sqlt-diagram --title "All" --gutter=50 --db=XML -o all.png schema.xml
+
+if [ -f /usr/local/bin/sqlt-diagram ]
+then
+	SQLTDIAGRAM=/usr/local/bin/sqlt-diagram
+	EXTRACTTABLE=scripts/extractTable.pl
+else
+	podman build -t jazd/sqlt:dev -f Containerfile.sqlt .
+	podman build -t jazd/sqlt-diagram:dev -f Containerfile.sqlt-diagram .
+	SQLTDIAGRAM="podman run -v $(pwd):/app jazd/sqlt-diagram:dev sqlt-diagram"
+	EXTRACTTABLE="podman run -v $(pwd):/app jazd/sqlt-diagram:dev scripts/extractTable.pl"
+fi
 
 mkdir -p diagrams
 
@@ -31,41 +46,41 @@ INVENTORY="Word Sentence Part AssemblyApplicationRelease PeriodName  ScheduleNam
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
 
-scripts/extractTable.pl schema.xml.invalid $INDIVIDUAL >./zot.xml
-sqlt-diagram --title "Individual People and Entity Events" $ARGS -c 2 -o diagrams/individual.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $INDIVIDUAL >./zot.xml
+${SQLTDIAGRAM} --title "Individual People and Entity Events" $ARGS -c 2 -o diagrams/individual.png ./zot.xml
 
-scripts/extractTable.pl schema.xml.invalid $LISTS >./zot.xml
-sqlt-diagram --title "Lists of Individual People and Entities" $ARGS -c 2 -o diagrams/lists.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $LISTS >./zot.xml
+${SQLTDIAGRAM} --title "Lists of Individual People and Entities" $ARGS -c 2 -o diagrams/lists.png ./zot.xml
 
-scripts/extractTable.pl schema.xml.invalid $PHONES >./zot.xml
-sqlt-diagram --title "Phones" $ARGS -c 2 -o diagrams/phones.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $PHONES >./zot.xml
+${SQLTDIAGRAM} --title "Phones" $ARGS -c 2 -o diagrams/phones.png ./zot.xml
 
-scripts/extractTable.pl schema.xml.invalid $INDIVIDUAL_EMAIL >./zot.xml
-sqlt-diagram --title "Individual Email" $ARGS -c 2 -o diagrams/individual_email.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $INDIVIDUAL_EMAIL >./zot.xml
+${SQLTDIAGRAM} --title "Individual Email" $ARGS -c 2 -o diagrams/individual_email.png ./zot.xml
 
-scripts/extractTable.pl schema.xml.invalid $INDIVIDUAL_PATH >./zot.xml
-sqlt-diagram --title "Individual URL" $ARGS -c 2 -o diagrams/individual_path.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $INDIVIDUAL_PATH >./zot.xml
+${SQLTDIAGRAM} --title "Individual URL" $ARGS -c 2 -o diagrams/individual_path.png ./zot.xml
 
-scripts/extractTable.pl schema.xml.invalid $ADDRESSES >./zot.xml
-sqlt-diagram --title "Addresses" $ARGS -c 3 -o diagrams/addresses.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $ADDRESSES >./zot.xml
+${SQLTDIAGRAM} --title "Addresses" $ARGS -c 3 -o diagrams/addresses.png ./zot.xml
 
-scripts/extractTable.pl schema.xml.invalid $SESSION >./zot.xml
-sqlt-diagram --title "Session" $ARGS -c 5 -o diagrams/web_session.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $SESSION >./zot.xml
+${SQLTDIAGRAM} --title "Session" $ARGS -c 5 -o diagrams/web_session.png ./zot.xml
 
-scripts/extractTable.pl schema.xml.invalid $ASSEMBLIES >./zot.xml
-sqlt-diagram --title "Assemblies" $ARGS -c 3 -o diagrams/assemblies.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $ASSEMBLIES >./zot.xml
+${SQLTDIAGRAM} --title "Assemblies" $ARGS -c 3 -o diagrams/assemblies.png ./zot.xml
 
-scripts/extractTable.pl schema.xml.invalid $EVENTS >./zot.xml
-sqlt-diagram --title "Events" $ARGS -c 2 -o diagrams/events.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $EVENTS >./zot.xml
+${SQLTDIAGRAM} --title "Events" $ARGS -c 2 -o diagrams/events.png ./zot.xml
 
-scripts/extractTable.pl schema.xml.invalid $ACCOUNTING >./zot.xml
-sqlt-diagram --title "Double Entry Accounting" $ARGS -c 5 -o diagrams/accounting.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $ACCOUNTING >./zot.xml
+${SQLTDIAGRAM} --title "Double Entry Accounting" $ARGS -c 5 -o diagrams/accounting.png ./zot.xml
 
-scripts/extractTable.pl schema.xml.invalid $INVENTORY >./zot.xml
-sqlt-diagram --title "Inventory Movement" $ARGS -c 5 -o diagrams/inventory.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $INVENTORY >./zot.xml
+${SQLTDIAGRAM} --title "Inventory Movement" $ARGS -c 5 -o diagrams/inventory.png ./zot.xml
 
-scripts/extractTable.pl schema.xml.invalid $DAG >./zot.xml
-sqlt-diagram --title "Directed Acyclic Graph" $ARGS -c 3 -o diagrams/dag.png ./zot.xml
+${EXTRACTTABLE} schema.xml.invalid $DAG >./zot.xml
+${SQLTDIAGRAM} --title "Directed Acyclic Graph" $ARGS -c 3 -o diagrams/dag.png ./zot.xml
 
 # Remove temporary files
 rm zot.xml
