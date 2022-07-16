@@ -1,5 +1,8 @@
 #!/bin/sh
 # The MIT License (MIT) Copyright (c) 2014-2015 Stephen A Jazdzewski
+# Podman can be used if perl is not installed with Twig
+# e.g.
+# podman run jazd/sqlt:dev perl -I /usr/local/lib/perl5/site_perl/5.36.0 scripts/extractTable.pl schema.xml Version
 
 mkdir -p diagrams
 

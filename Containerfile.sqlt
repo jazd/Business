@@ -1,0 +1,9 @@
+# podman build -t jazd/sqlt:dev -f Containerfile.sqlt .
+FROM docker.io/library/perl:5.36.0
+
+# Install Dependencies
+RUN cpanm XML::LibXML XML::Twig SQL::Translator
+
+ADD . /app
+WORKDIR /app
+
