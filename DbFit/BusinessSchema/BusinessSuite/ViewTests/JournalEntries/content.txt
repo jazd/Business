@@ -1,0 +1,18 @@
+JournalEntries
+
+Issues with Credit and Debit precision
+Simulate Book('Sale', 21429.980000000003);
+!|Insert|Entry|
+|id|
+|1|
+
+!|Insert|JournalEntry|
+|journal|book|entry|account|credit|amount|
+|2|2|1|100|false| 21429.980000000003|
+|2|2|1|102|true| 21429.980000000003|
+
+Check for correct precision
+!|Ordered Query| SELECT debit, credit FROM JournalEntries WHERE entry = 1 ORDER BY rightside|
+|debit|credit|
+|21429.98||
+||21429.98|

@@ -45,7 +45,9 @@ cd <dbfit install directory>
 ./startFitnesse.sh
 
 http://localhost:8085/BusinessSchema
-Top of a test page
+
+To edit a specific test
+Add something like this to the top of the test page
 !path lib/*.jar
 !|dbfit.PostgresTest|
 !|Connect|localhost|test|dbfit|MyCo|
