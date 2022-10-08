@@ -1,0 +1,7 @@
+[submodule "ua-parser/php"]
+	path = ua-parser/php
+	url = https://github.com/ua-parser/uap-php.git
+[submodule "sql-translator"]
+	path = sql-translator
+	url = https://github.com/jazd/sql-translator.git
+	branch = nuodb
