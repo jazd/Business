@@ -15,8 +15,8 @@ then
 else
 	podman build -t jazd/sqlt:dev -f Containerfile.sqlt .
 	podman build -t jazd/sqlt-diagram:dev -f Containerfile.sqlt-diagram .
-	SQLTDIAGRAM="podman run -v $(pwd):/app jazd/sqlt-diagram:dev sqlt-diagram"
-	EXTRACTTABLE="podman run -v $(pwd):/app jazd/sqlt-diagram:dev scripts/extractTable.pl"
+	SQLTDIAGRAM="podman run -v $(pwd):/app:Z --userns=keep-id jazd/sqlt-diagram:dev sqlt-diagram"
+	EXTRACTTABLE="podman run -v $(pwd):/app:Z --userns=keep-id jazd/sqlt-diagram:dev scripts/extractTable.pl"
 fi
 
 mkdir -p diagrams

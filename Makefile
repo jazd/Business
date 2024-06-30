@@ -10,7 +10,7 @@ SQLTBUILD :=
 
 ifeq (,$(wildcard /usr/local/bin/sqlt))
 	SQLTBUILD := podman build -t jazd/sqlt:dev -f Containerfile.sqlt .
-	SQLT := podman run jazd/sqlt:dev sqlt
+	SQLT := podman run -v $(CURDIR):/app:Z jazd/sqlt:dev sqlt
 endif
 
 PostgreSQLServer = localhost

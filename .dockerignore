@@ -2,3 +2,5 @@
 **/diagrams
 **/sql-translator
 **/ua-parse
+genDiagrams.sh
+Makefile
