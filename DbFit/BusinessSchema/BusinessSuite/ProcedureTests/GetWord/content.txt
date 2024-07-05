@@ -1,0 +1,37 @@
+GetWord
+
+Execute Procedure does not work well with overloaded PostgreSQL function names.
+So only use for the first of the overloaded parameter list.
+
+Static word from Static/0_Word.sql
+!|Execute Procedure|GetWord|
+|word_value|
+|IMS|
+!|Query|SELECT GetWord('IMS')|
+|getword|
+|1|
+
+!|Query|SELECT GetWord('IMS', 'en-US')|
+|getword|
+|1|
+
+New word that is not currenty in the database
+Make sure it comes back as the same id
+!|Query|SELECT GetWord('ZippyZappy', 'en-US')|
+|getword?|
+|>>newwordid|
+!|Query|SELECT GetWord('ZippyZappy', 'en-US')|
+|getword|
+|<<newwordid|
+The default culture is en-US
+!|Query|SELECT GetWord('ZippyZappy')|
+|getword|
+|<<newwordid|
+
+Make sure another culture of the word is different
+!|Ordered Query|SELECT GetWord('ZippyZappy', 'es-MX')|
+|getword?|
+|>>mexwordid|
+!|Query|SELECT _:newwordid::INT = _:mexwordid::INT AS test|
+|test|
+|false|
