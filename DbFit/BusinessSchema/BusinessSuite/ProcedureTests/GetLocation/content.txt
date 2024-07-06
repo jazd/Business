@@ -1,0 +1,15 @@
+GetLocation
+
+Static location from Static/GeoNamesUSZipSample.tsv
+!|Query|SELECT GetLocation(30.4035,-88.8971,NULL)|
+|getlocation|
+|10000|
+
+Newlocation  this is not currently in the database.
+Washington Island
+!|Query|SELECT GetLocation(4.6846449,-160.4209906,1)|
+|getlocation?|
+|>>newlocationid|
+!|Query|SELECT GetLocation(4.6846449,-160.4209906,1)|
+|getlocation|
+|<<newlocationid|

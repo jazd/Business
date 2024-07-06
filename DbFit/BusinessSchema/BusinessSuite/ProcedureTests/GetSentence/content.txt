@@ -1,0 +1,37 @@
+GetSentence
+
+Execute Procedure does not work well with overloaded PostgreSQL function names.
+So only use for the first of the overloaded parameter list.
+
+Static sentence from Static/1_Sentence.sql
+!|Execute Procedure|GetSentence|
+|sentence_value|
+|Thanksgiving Day|
+!|Query|SELECT GetSentence('Thanksgiving Day')|
+|getsentence|
+|4|
+
+!|Query|SELECT GetSentence('Thanksgiving Day', 'en-US')|
+|getsentence|
+|4|
+
+New sentence that is not currenty in the database
+Make sure it comes back as the same id
+!|Query|SELECT GetSentence('Zippy Zappy', 'en-US')|
+|getsentence?|
+|>>newsentenceid|
+!|Query|SELECT GetSentence('Zippy Zappy', 'en-US')|
+|getsentence|
+|<<newsentenceid|
+The default culture is en-US
+!|Query|SELECT GetSentence('Zippy Zappy')|
+|getsentence|
+|<<newsentenceid|
+
+Make sure another culture of the word is different
+!|Ordered Query|SELECT GetSentence('Zippy Zappy', 'es-MX')|
+|getsentence?|
+|>>mexsentenceid|
+!|Query|SELECT _:newsentenceid::INT = _:mexsentenceid::INT AS test|
+|test|
+|false|

@@ -1,0 +1,15 @@
+GetIdentifier
+
+!|Execute Procedure|GetIdentifier|
+|ident_value|
+|some_programming_id|
+
+Be sure the identifier was inserted properly
+!|Query|SELECT id, value FROM Word WHERE value='some_programming_id' AND culture IS NULL|
+|id?|value|
+|>>newidentityid|some_programming_id|
+
+Make sure it comes back as the same id
+!|Query|SELECT GetIdentifier('some_programming_id')|
+|getidentifier|
+|<<newidentityid|

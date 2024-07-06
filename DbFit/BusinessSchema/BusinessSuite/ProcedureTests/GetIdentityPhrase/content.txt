@@ -1,0 +1,15 @@
+GetIdentityPhrase
+
+!|Execute Procedure|GetIdentityPhrase|
+|phrase_value|
+|some programming id|
+
+Be sure the identifier was inserted properly
+!|Query|SELECT id, value FROM Sentence WHERE value='some programming id' AND culture IS NULL|
+|id?|value|
+|>>newidentityid|some programming id|
+
+Make sure it comes back as the same id
+!|Query|SELECT GetIdentityPhrase('some programming id')|
+|getidentityphrase|
+|<<newidentityid|
