@@ -3,6 +3,9 @@
 
 SET search_path TO Business,"$user",public;
 
+-- Clear all advisory locks
+SELECT pg_advisory_unlock_all();
+
 -- Brute force birthday calculation
 CREATE OR REPLACE FUNCTION birthday(birth date, asOf date)
  returns varchar(10)

@@ -231,6 +231,7 @@ BEGIN
   SELECT countrycode_id, zipcode, state_id, statecode_id, county_id, city_id, location_id
   FROM Dual
   LEFT JOIN Postal AS exists ON exists.country = countrycode_id
+   AND ((location = location_id) OR (location IS NULL AND location_id IS NULL))
    AND UPPER(exists.code) = UPPER(zipcode)
   WHERE exists.id IS NULL
   LIMIT 1
@@ -241,6 +242,7 @@ BEGIN
   FROM Postal
   -- Unique on country and code
   WHERE country = countrycode_id
+   AND ((location = location_id) OR (location IS NULL AND location_id IS NULL))
    AND UPPER(Postal.code) = UPPER(zipcode)
   LIMIT 1
  );
@@ -259,9 +261,10 @@ BEGIN
   SELECT Postal.id
   FROM Postal
   JOIN Country ON UPPER(Country.code) = UPPER(countrycode)
+  LEFT JOIN Location ON Location.id = Postal.location
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
-  ORDER BY id DESC
+  ORDER BY Location.accuracy ASC NULLS LAST, Postal.id DESC
   LIMIT 1
  );
 END;
@@ -279,9 +282,10 @@ BEGIN
   SELECT Postal.id
   FROM Postal
   JOIN Country ON UPPER(Country.code) = 'USA'
+  LEFT JOIN Location ON Location.id = Postal.location
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
-  ORDER BY id DESC
+  ORDER BY Location.accuracy ASC NULLS LAST, Postal.id DESC
   LIMIT 1
  );
 END;

@@ -5,11 +5,12 @@ Static location from Static/GeoNamesUSZipSample.tsv
 |getlocation|
 |10000|
 
+Accuracy of lat/lng from from NULL=unknown, 1=estimated to 6=centroid (center of town)
 Newlocation  this is not currently in the database.
 Washington Island
-!|Query|SELECT GetLocation(4.6846449,-160.4209906,1)|
+!|Query|SELECT GetLocation(4.6846449,-160.4209906,6)|
 |getlocation?|
 |>>newlocationid|
-!|Query|SELECT GetLocation(4.6846449,-160.4209906,1)|
+!|Query|SELECT GetLocation(4.6846449,-160.4209906,6)|
 |getlocation|
 |<<newlocationid|

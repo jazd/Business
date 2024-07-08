@@ -16,9 +16,38 @@ Default to USA
 |getpostal|
 |1|
 
+Accuracy of lat/lng from from NULL=unknown, 1=estimated to 6=centroid (center of town)
+Insert a better lat/long for Biloxi (according to Google Maps)
+!|Query|SELECT GetPostal('USA', '39530', 'Biloxi', 'MS', 'Mississippi', 'Harrison', 30.426418, -89.0903964, 6)|
+|getpostal?|
+|>>bestbx|
+
+!|Query|SELECT _:bestbx::INT != 1 AS test|
+|test|
+|true|
+
+Insert a inaccurate location of unknown origin
+!|Query|SELECT GetPostal('USA', '39530', 'Biloxi', 'MS', 'Mississippi', 'Harrison', 30, -88, NULL)|
+|getpostal?|
+|>>worstbx|
+
+!|Query|SELECT _:worstbx::INT != 1 AS test|
+|test|
+|true|
+
+The most accurate Biloxi must be returned
+!|Query|SELECT GetPostal('USA', '39530')|
+|getpostal|
+|<<bestbx|
+
+The most accurate Biloxi must be returned
+!|Query|SELECT GetPostal('39530')|
+|getpostal|
+|<<bestbx|
+
 NewPostal  this is not currently in the database.
 Fort Nelson, British Columbia
-!|Query|SELECT GetPostal('CAN', 'V0C 1R0', 'Fort Nelson', 'BC', 'British Columbia', 'Northern Rockies', 58.8058026, -122.7933469, 1)|
+!|Query|SELECT GetPostal('CAN', 'V0C 1R0', 'Fort Nelson', 'BC', 'British Columbia', 'Northern Rockies', 58.8058026, -122.7933469, 6)|
 |getpostal?|
 |>>fnid|
 
