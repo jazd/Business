@@ -77,6 +77,10 @@ INSERT INTO Word (id,culture,value) VALUES (10005,1033,'Eastern');
 INSERT INTO Word (id,culture,value) VALUES (50000,1033,'USA');
 INSERT INTO Word (id,culture,value) VALUES (50001,1033,'CAN');
 INSERT INTO Word (id,culture,value) VALUES (50002,1033,'MEX');
+--
+INSERT INTO Word (id,culture,value) VALUES (55000,1033,'United States of America');
+INSERT INTO Word (id,culture,value) VALUES (55001,1033,'Canada');
+INSERT INTO Word (id,culture,value) VALUES (55002,1033,'Mexico');
 --- State words
 INSERT INTO Word (id,culture,value) VALUES (60000,1033,'AK');
 INSERT INTO Word (id,culture,value) VALUES (60001,1033,'Mississippi');

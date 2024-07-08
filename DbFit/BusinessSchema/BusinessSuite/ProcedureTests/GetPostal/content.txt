@@ -1,0 +1,30 @@
+GetPostal
+
+Static location from Static/GeoNamesUSZipSample.tsv
+US	39530	Biloxi	Mississippi	MS	Harrison	047			30.4035	-88.8971	
+
+!|Query|SELECT GetPostal('USA', '39530', 'Biloxi', 'MS', 'Mississippi', 'Harrison', 30.4035, -88.8971, NULL)|
+|getpostal|
+|1|
+
+!|Query|SELECT GetPostal('USA', '39530')|
+|getpostal|
+|1|
+
+Default to USA
+!|Query|SELECT GetPostal('39530')|
+|getpostal|
+|1|
+
+NewPostal  this is not currently in the database.
+Fort Nelson, British Columbia
+!|Query|SELECT GetPostal('CAN', 'V0C 1R0', 'Fort Nelson', 'BC', 'British Columbia', 'Northern Rockies', 58.8058026, -122.7933469, 1)|
+|getpostal?|
+|>>fnid|
+
+
+!|Query|SELECT GetPostal('CAN', 'V0C 1R0')|
+|getpostal|
+|<<fnid|
+
+

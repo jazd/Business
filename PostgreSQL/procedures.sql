@@ -261,6 +261,7 @@ BEGIN
   JOIN Country ON UPPER(Country.code) = UPPER(countrycode)
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  ORDER BY id DESC
   LIMIT 1
  );
 END;
@@ -280,6 +281,7 @@ BEGIN
   JOIN Country ON UPPER(Country.code) = 'USA'
   WHERE Postal.country = Country.id
    AND UPPER(Postal.code) = UPPER(zipcode)
+  ORDER BY id DESC
   LIMIT 1
  );
 END;
