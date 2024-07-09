@@ -279,12 +279,11 @@ BEGIN
  -- Do not insert unless we have all the non-nullable fields
  -- Unique on country and code
  RETURN (
+  -- TODO Currently most accurate Postal Code from all countries
   SELECT Postal.id
   FROM Postal
-  JOIN Country ON UPPER(Country.code) = 'USA'
   LEFT JOIN Location ON Location.id = Postal.location
-  WHERE Postal.country = Country.id
-   AND UPPER(Postal.code) = UPPER(zipcode)
+  WHERE UPPER(Postal.code) = UPPER(zipcode)
   ORDER BY Location.accuracy ASC NULLS LAST, Postal.id DESC
   LIMIT 1
  );

@@ -1,0 +1,34 @@
+GetAddress
+
+
+Static address from Static/3_Address.sql
+
+!|Query|SELECT GetAddress('1 New Orchard Road', '10504', '1716', 41.10509638465931, -73.71933460235596, 1)|
+|getaddress|
+|1|
+
+!|Query|SELECT GetAddress('1 New Orchard Road', '10504', '1716')|
+|getaddress|
+|1|
+
+!|Query|SELECT address, line1, city, state, zipcode, countrycode FROM Addresses WHERE address = 1|
+| address |       line1        |  city  | state |  zipcode   | countrycode |
+|       1 | 1 New Orchard Road | Armonk | NY    | 10504-1716 | USA         |
+
+New Address that is not currently in the database
+Procedures default to USA, so be sure to add Postal first. (From GetPostal test)
+!|Query|SELECT GetPostal('CAN', 'V0C 1R0', 'Fort Nelson', 'BC', 'British Columbia', 'Northern Rockies', 58.8058026, -122.7933469, 6)|
+|getpostal?|
+|>>npostid|
+
+Insert Canads LDU in the postalplus position
+!|Query|SELECT GetAddress('5553 Alaska Hwy', 'V0C 1R0', '1R0', 41.10509638465931, -73.71933460235596, 1)|
+|getaddress?|
+|>>naddid|
+
+!|Query|SELECT address, line1, city, state, zipcode, countrycode FROM Addresses WHERE address = _:naddid::INT|
+| address |      line1      |    city     | state |   zipcode   | countrycode|
+|<<naddid | 5553 Alaska Hwy | Fort Nelson | BC    | V0C 1R0-1R0 | CAN        |
+
+
+

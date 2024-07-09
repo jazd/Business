@@ -45,14 +45,17 @@ The most accurate Biloxi must be returned
 |getpostal|
 |<<bestbx|
 
-NewPostal  this is not currently in the database.
+New Postal that is not currently in the database.
 Fort Nelson, British Columbia
 !|Query|SELECT GetPostal('CAN', 'V0C 1R0', 'Fort Nelson', 'BC', 'British Columbia', 'Northern Rockies', 58.8058026, -122.7933469, 6)|
 |getpostal?|
 |>>fnid|
 
-
 !|Query|SELECT GetPostal('CAN', 'V0C 1R0')|
+|getpostal|
+|<<fnid|
+
+!|Query|SELECT GetPostal('V0C 1R0')|
 |getpostal|
 |<<fnid|
 
