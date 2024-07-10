@@ -1,0 +1,11 @@
+GetIndividualEntity
+Also tests GetEntityName
+
+Static Individual Entity from Static/3_Individual.sql
+!|Query|SELECT GetIndividualEntity('International Business Machines, Inc.', '1911-06-16', 'IBM', NULL)|
+| getindividualentity |
+|                  10 |
+
+!|Query|SELECT goesBy, name, DATE(formed) AS formed FROM Entities WHERE individual = 10|
+| goesby |                 name                  |   formed   |
+| IBM    | International Business Machines, Inc. | 1911-06-16 |

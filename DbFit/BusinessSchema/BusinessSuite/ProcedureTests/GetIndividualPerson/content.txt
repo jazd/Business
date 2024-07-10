@@ -1,0 +1,12 @@
+GetIndividualPerson
+Also tests GetName, GetFamily, GetGiven
+
+Static Individual Person from Static/3_Individual.sql
+!|Query|SELECT GetIndividualPerson('Franklin', 'Patrick', 'Herbert', '1920-10-08', 'Frank', '1986-02-11')|
+| getindividualperson |
+|                  16 |
+
+
+!|Query|SELECT goesBy, fullname, birthday, DATE(death) AS death FROM People WHERE individual = 16|
+| goesby |          fullname           | birthday  |   death    |
+| Frank  | Franklin Patrick Herbert Jr | 2024-10-8 | 1986-02-11 |
