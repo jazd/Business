@@ -1,0 +1,22 @@
+GetEmail
+
+
+Static email from Static/3_Email.sql
+!|Query|SELECT GetEmail('Steve', 'NoCRUD', 'Jazd.com')|
+|getemail|
+|1|
+
+New email not already in the database
+!|Query|SELECT GetEmail('Steve@NoCRUD.com')|
+|getemail?|
+|>>snc|
+
+!|Query|SELECT GetEmail('Steve+Info@NoCRUD.com')|
+|getemail?|
+|>>sinc|
+
+!|Ordered Query|SELECT username, plus, host, value FROM EmailAddress WHERE email BETWEEN _:snc::INT AND _:sinc::INT ORDER BY email|
+| username |  plus  |   host     |         value          |
+| Steve    |        | NoCRUD.com | Steve@NoCRUD.com       |
+| Steve    | Info   | NoCRUD.com | Steve+Info@NoCRUD.com  |
+
