@@ -9,25 +9,27 @@ From Static/4_ListIndividual.sql
 
 
 Documentation List examples
-!|Execute|SELECT ListSubscribeEmail('Clothing','Hats','Zippy@ADb.Net')|
+!|Query|SELECT ListSubscribeEmail('Clothing','Hats','Zippy@ADb.Net')|
+|listsubscribeemail?|
+|>>firstsub|
 !|Execute|SELECT ListSubscribeEmail('Clothing','Socks','Zippy@ADb.Net')|
 !|Execute|SELECT ListSubscribeEmail('Job','Clown','Zippy@ADb.Net')|
 !|Execute|SELECT ListSubscribeEmail('Job','Santa','Zippy@ADb.Net')|
 
-!|Ordered Query|SELECT id, listNameValue AS listName, listSetValue AS listSet, send FROM List WHERE individual = GetIndividualEmail('Zippy@ADb.Net') ORDER BY List.id |
-|   id    | listname | listset | send |
-| 2000001 | Clothing | Hats    | to   |
-| 2000002 | Clothing | Socks   | to   |
-| 2000003 | Job      | Clown   | to   |
-| 2000004 | Job      | Santa   | to   |
+!|Ordered Query|SELECT listNameValue AS listName, listSetValue AS listSet, send FROM List WHERE individual = GetIndividualEmail('Zippy@ADb.Net') AND id >= _:firstsub::INT ORDER BY List.id |
+| listname | listset | send |
+| Clothing | Hats    | to   |
+| Clothing | Socks   | to   |
+| Job      | Clown   | to   |
+| Job      | Santa   | to   |
 
 Unsubscribe from a list.
 !|Execute|SELECT ListUnSubscribe('Job', 'Clown',  GetIndividualEmail('Zippy@ADb.Net'))|
-!|Ordered Query|SELECT id, listNameValue AS listName, listSetValue AS listSet, send FROM List WHERE individual = GetIndividualEmail('Zippy@ADb.Net') ORDER BY List.id|
-|   id    | listname | listset | send |
-| 2000001 | Clothing | Hats    | to   |
-| 2000002 | Clothing | Socks   | to   |
-| 2000004 | Job      | Santa   | to   |
+!|Ordered Query|SELECT listNameValue AS listName, listSetValue AS listSet, send FROM List WHERE individual = GetIndividualEmail('Zippy@ADb.Net') AND id >= _:firstsub::INT ORDER BY List.id|
+| listname | listset | send |
+| Clothing | Hats    | to   |
+| Clothing | Socks   | to   |
+| Job      | Santa   | to   |
 
 Unsubscribe from all lists by inserting the individual with id (List id) field set to null.
 !|Execute|INSERT INTO ListIndividual (individual) VALUES (GetIndividualEmail('Zippy@ADb.Net'))|
@@ -39,9 +41,9 @@ Re-subscribe to a list
 !|Execute|SELECT ListSubscribeEmail('Job','Clown','Zippy@ADb.Net') FROM DUAL|
 Set the unList field for the unsubscribe all lists entry.
 !|Execute|UPDATE ListIndividual SET unList = DATE(NOW()) WHERE id IS NULL AND individual = GetIndividualEmail('Zippy@ADb.Net') |
-!|Ordered Query|SELECT id, listNameValue AS listName, listSetValue AS listSet, send FROM List WHERE individual = GetIndividualEmail('Zippy@ADb.Net') ORDER BY List.id |
-|   id    | listname | listset | send |
-| 2000001 | Clothing | Hats    | to   |
-| 2000002 | Clothing | Socks   | to   |
-| 2000003 | Job      | Clown   | to   |
-| 2000004 | Job      | Santa   | to   |
+!|Ordered Query|SELECT listNameValue AS listName, listSetValue AS listSet, send FROM List WHERE individual = GetIndividualEmail('Zippy@ADb.Net') AND id >= _:firstsub::INT ORDER BY List.id |
+| listname | listset | send |
+| Clothing | Hats    | to   |
+| Clothing | Socks   | to   |
+| Job      | Clown   | to   |
+| Job      | Santa   | to   |
