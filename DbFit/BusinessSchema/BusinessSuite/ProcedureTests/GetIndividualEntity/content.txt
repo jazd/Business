@@ -9,3 +9,16 @@ Static Individual Entity from Static/3_Individual.sql
 !|Query|SELECT goesBy, name, DATE(formed) AS formed FROM Entities WHERE individual = 10|
 | goesby |                 name                  |   formed   |
 | IBM    | International Business Machines, Inc. | 1911-06-16 |
+
+
+Change the entity name from International Business Machines, Inc. to International Business Machines Corporation
+
+Mark current name as changed
+!|Execute|UPDATE Individual SET namechange = DATE(transaction_timestamp()) WHERE id = 10 AND namechange IS NULL AND death IS NULL|
+Set new name
+!|Execute|INSERT INTO Individual (id, entity, goesBy, birth) SELECT 10, GetEntityName('International Business Machines Corporation'),  Individual.goesBy,  Individual.birth FROM Individual WHERE id = 10 AND namechange = DATE(transaction_timestamp()) LIMIT 1|
+
+
+!|Query|SELECT goesBy, name FROM Entities WHERE individual = 10|
+|goesBy|name|
+|IBM|International Business Machines Corporation|

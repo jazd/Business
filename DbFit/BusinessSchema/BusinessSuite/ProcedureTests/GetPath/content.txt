@@ -1,0 +1,22 @@
+Path
+
+Path from Static/3_Path.sql
+
+!|Query|SELECT GetPath('http', 0, 'www.IBM.com', NULL, NULL)|
+|getpath|
+|10|
+
+
+!|Query|SELECT value FROM URL WHERE path = 10|
+|        value       |
+| http://www.IBM.com/|
+
+
+New URL
+!|Query|SELECT GetPath('http', 1, 'www.NoCRUD.com', NULL, NULL)|
+|getpath?|
+|>>np|
+
+!|Query|SELECT value FROM URL WHERE path = _:np::INT|
+|        value        |
+| https://www.NoCRUD.com/|
