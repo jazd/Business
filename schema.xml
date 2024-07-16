@@ -1784,7 +1784,6 @@ SELECT id AS path, protocol, host,
  END ||
  COALESCE(get,!apos;!apos;)
  AS value,
- !apos;/!apos; ||
  COALESCE(value,!apos;!apos;) ||
  CASE WHEN value IS NOT NULL
  THEN !apos;/!apos;

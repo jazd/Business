@@ -1,4 +1,4 @@
-Path
+GetPath
 
 Path from Static/3_Path.sql
 
@@ -20,3 +20,17 @@ New URL
 !|Query|SELECT value FROM URL WHERE path = _:np::INT|
 |        value        |
 | https://www.NoCRUD.com/|
+
+GetURL is the same, but hard coded protocol http
+!|Query|SELECT GetURL(0, 'www.IBM.com', NULL, NULL)|
+|geturl|
+|10|
+
+GetFile is the same, but hard coded protocol file, security 0
+!|Query|SELECT GetFile('localhost', 'images/logo', '50x50.png')|
+|getfile?|
+|>>fin|
+
+!|Query|SELECT file FROM File WHERE path = _:fin::INT|
+|        file         |
+|images/logo/50x50.png|
