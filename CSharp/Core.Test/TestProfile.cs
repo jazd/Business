@@ -79,8 +79,6 @@ namespace Business.Core.Test
 			Assert.IsTrue(profile.SQLiteProfile.Active);
 			Assert.IsTrue(profile.SQLiteProfile.Path.EndsWith(System.IO.Path.DirectorySeparatorChar + "business.sqlite3"));
 
-			Assert.IsTrue(profile.NuoDBProfile.Active);
-			Assert.AreEqual("nuodb", profile.NuoDBProfile.Server);
 			Assert.AreEqual("MyCo", profile.NuoDBProfile.Database);
 
 			Assert.IsTrue(profile.PostgreSQLProfile.Active);

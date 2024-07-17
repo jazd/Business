@@ -1,5 +1,4 @@
-﻿using System;
-using NUnit.Framework;
+﻿using Business.Core;
 
 namespace Business.Core.Test
 {

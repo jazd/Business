@@ -1,8 +1,4 @@
-﻿using System;
-using NUnit.Framework;
-using Business.Core;
-
-namespace Business.Core.Test
+﻿namespace Business.Core.Test
 {
 	[TestFixture]
 	public class TestBalanceDB

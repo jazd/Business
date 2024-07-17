@@ -41,8 +41,6 @@ namespace Version
 				databases.Add(new Business.Core.SQLite.Database(profile));
 			if (profile.PostgreSQLProfile.Active)
 				databases.Add(new Business.Core.PostgreSQL.Database(profile));
-			if (profile.NuoDBProfile.Active)
-				databases.Add(new Business.Core.NuoDB.Database(profile));
 			return databases;
 		}
 	}

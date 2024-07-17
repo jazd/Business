@@ -1,7 +1,4 @@
-﻿using NUnit.Framework;
-using System;
-
-namespace Business.Core.Test
+﻿namespace Business.Core.Test
 {
 	[TestFixture]
 	public class TestFakeDBReader

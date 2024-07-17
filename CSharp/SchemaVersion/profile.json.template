@@ -2,12 +2,6 @@
   "SQLite": {
     "Path": "business.sqlite3"
   },
-  "NuoDb": {
-    "Server": "nuodb",
-    "Database": "MyCo",
-    "User": "test",
-    "Password": "secret"
-  },
   "PostgreSQL": {
     "Host": "postgresql",
     "Database": "MyCo",
