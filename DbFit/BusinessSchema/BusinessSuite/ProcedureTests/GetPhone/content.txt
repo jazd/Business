@@ -1,0 +1,16 @@
+GetPhone
+
+Phone from Static/4_Phone.sql
+
+!|Query|SELECT GetPhone('USA', '914', '4991900')|
+|getphone|
+|1       |
+
+New phone number
+!|Query|SELECT GetPhone('USA', '360', '2624214')|
+|getphone?|
+|>>np     |
+
+!|Query|SELECT local FROM Phones WHERE phone = _:np::INT|
+|    local    |
+| 360-262-4214|
