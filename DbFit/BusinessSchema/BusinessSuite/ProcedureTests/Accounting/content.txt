@@ -1,0 +1,32 @@
+Accounting and Book procedure
+
+These tables are empty, no Static entries
+From https://en.wikipedia.org/wiki/Debits_and_credits#Further_examples
+!|Execute|SELECT Book('Rent',      100)|
+!|Execute|SELECT Book('Sale',      50)|
+!|Execute|SELECT Book('Equipment', 5200)|
+!|Execute|SELECT Book('Loan',      11000)|
+!|Execute|SELECT Book('Salary',    5000)|
+!|Execute|SELECT Book('Sale Jane Doe', 1000)|
+!|Execute|SELECT Book('Sale John Doe', 1000)|
+
+General Ledger
+!|Ordered Query|SELECT account, type, CAST(debit AS NUMERIC(19,0)), CAST(credit AS NUMERIC(19,0)) FROM JournalReport WHERE ledger = 1 ORDER BY entry, rightSide, type|
+|       account       |   type    | debit | credit |
+| Rent                | Expense   |   100 |       |
+| Cash                | Asset     |       |    100|
+| Cash                | Asset     |    50 |       |
+| Sales               | Income    |       |     50|
+| Equipment           | Asset     |  5200 |       |
+| Cash                | Asset     |       |   5200|
+| Cash                | Asset     | 11000 |       |
+| Loan                | Liability |       |  11000|
+| Salary              | Expense   |  5000 |       |
+| Cash                | Asset     |       |   5000|
+| Cash                | Asset     |  1000 |       |
+| Sales               | Income    |       |    800|
+| Commissions Payable | Liability |       |    200|
+| Cash                | Asset     |  1000 |       |
+| Sales               | Income    |       |    850|
+| Commissions Payable | Liability |       |    150|
+| Total               |           | 23350 |  23350|

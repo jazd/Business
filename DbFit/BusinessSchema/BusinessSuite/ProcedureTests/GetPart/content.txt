@@ -1,0 +1,13 @@
+GetPart
+
+These tables are empty, no Static entries
+!|Execute|SELECT GetPart('Module')|
+!|Execute|SELECT GetPartWithParent('Arduino Nano', 'v3.x', 'Module', 'Micro Controller')|
+-- Assembly
+!|Execute|SELECT GetPart('PCB')|
+!|Execute|SELECT GetPartWithParentVersion('Alarm', GetVersionName('Demo', '1', '0', '0'), 'PBC', GetVersionName('Demo'))|
+!|Execute|SELECT PutAssemblyPart(GetPart('Alarm', GetVersionName('Demo', '1', '0', '0')), GetPart('Arduino Nano', GetVersionName('v3.x')), 'A1', NULL)|
+
+!|Ordered Query|SELECT assemblyname, assemblyversionname, designator, partname, rtrim(versionname) AS versionname FROM AssemblyParts ORDER BY designator|
+| assemblyname | assemblyversionname | designator |   partname   | versionname |
+| Alarm        | Demo 1.0.0          | A1         | Arduino Nano | v3.x        |
