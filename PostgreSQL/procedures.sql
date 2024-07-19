@@ -1265,6 +1265,113 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION GetPartWithParent (
+ inPartName varchar,
+ inPartVersionName varchar,
+ inParentName varchar,
+ inParentVersionName varchar
+) RETURNS integer AS $$
+DECLARE part_name_id integer;
+DECLARE part_version_name_id integer;
+DECLARE parent_name_id integer;
+DECLARE parent_version_name_id integer;
+DECLARE parent_id integer;
+DECLARE part_id integer;
+BEGIN
+ IF inPartName IS NOT NULL AND inPartVersionName IS NOT NULL AND inParentName IS NOT NULL AND inParentVersionName IS NOT NULL THEN
+  part_name_id := (SELECT GetSentence(inPartName));
+  part_version_name_id := GetVersionName(inPartVersionName);
+  parent_name_id := (SELECT GetSentence(inParentName));
+  parent_version_name_id := GetVersionName(inParentVersionName);
+  -- Find the lowest version name part of parent name
+  parent_id = (
+   SELECT id
+   FROM Part
+   WHERE name = parent_name_id
+    AND version = parent_version_name_id
+    AND serial IS NULL
+   ORDER BY parent ASC -- Non NULLs first
+   LIMIT 1
+  );
+  IF parent_id IS NULL THEN
+   -- Create parent
+   parent_id := (SELECT GetPart(inParentName,inParentVersionName));
+  END IF;
+  PERFORM pg_advisory_lock(parent_id);
+  INSERT INTO Part (parent, name, version) (
+   SELECT parent_id, part_name_id, part_version_name_id
+   FROM Dual
+   LEFT JOIN Part AS exists ON exists.parent = parent_id
+    AND exists.name = part_name_id
+    AND exists.version = part_version_name_id
+    AND serial IS NULL
+   WHERE exists.id IS NULL
+   LIMIT 1
+  );
+  PERFORM pg_advisory_unlock(parent_id);
+  RETURN (
+   SELECT id
+   FROM Part
+   WHERE parent = parent_id
+   AND name = part_name_id
+   AND version = part_version_name_id
+   AND serial IS NULL
+  );
+ END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetPartWithParentVersion (
+ inPartName varchar,
+ inPartVersion_id integer,
+ inParentName varchar,
+ inParentVersion_id integer
+) RETURNS integer AS $$
+DECLARE part_name_id integer;
+DECLARE parent_name_id integer;
+DECLARE parent_id integer;
+DECLARE part_id integer;
+BEGIN
+ IF inPartName IS NOT NULL AND inParentName IS NOT NULL THEN
+  part_name_id := (SELECT GetSentence(inPartName));
+  parent_name_id := (SELECT GetSentence(inParentName));
+  -- Find the lowest version name part of parent name
+  parent_id = (
+   SELECT id
+   FROM Part
+   WHERE name = parent_name_id
+    AND ((version = inParentVersion_id) OR (version IS NULL AND inParentVersion_id IS NULL))
+    AND serial IS NULL
+   ORDER BY parent ASC -- Non NULLs first
+   LIMIT 1
+  );
+  IF parent_id IS NULL THEN
+   -- Create parent
+   parent_id := (SELECT GetPart(inParentName, inParentVersion_id));
+  END IF;
+  PERFORM pg_advisory_lock(parent_id);
+  INSERT INTO Part (parent, name, version) (
+   SELECT parent_id, part_name_id, inPartVersion_id
+   FROM Dual
+   LEFT JOIN Part AS exists ON exists.parent = parent_id
+    AND exists.name = part_name_id
+    AND ((exists.version = inPartVersion_id) OR (exists.version IS NULL AND inPartVersion_id IS NULL))
+    AND serial IS NULL
+   WHERE exists.id IS NULL
+   LIMIT 1
+  );
+  PERFORM pg_advisory_unlock(parent_id);
+  RETURN (
+   SELECT id
+   FROM Part
+   WHERE parent = parent_id
+   AND name = part_name_id
+   AND ((version = inPartVersion_id) OR (version IS NULL AND inPartVersion_id IS NULL))
+   AND serial IS NULL
+  );
+ END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar,
