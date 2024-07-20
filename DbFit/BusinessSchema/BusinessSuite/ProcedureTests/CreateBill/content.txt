@@ -1,0 +1,76 @@
+CreateBill and Inventory Movement
+
+These tables are empty, no Static entries
+Using Static Accounting Tables for Accounts, Ledgers and Bookings
+Static/5_GeneralLedger.sql
+
+Create Pricing Schedule
+
+Setup Default price schedule for Company Consignee.
+!|Execute|SELECT GetIndividualJobSchedule(GetIndividualEntity('Company Consignee'), GetJob('Default'), GetSchedule('Default'))|
+
+Add prices to Schedule
+Create Schedule
+!|Execute|INSERT INTO Schedule (schedule, fromCount, toCount, rate) VALUES  (GetSchedule('Default'), 0, 99, 100), (GetSchedule('Default'), 100, NULL, 80)|
+
+Attach pricing to Schedule
+!|Execute|INSERT INTO AssemblyIndividualJobPrice (assembly, individualJob, price) VALUES (GetPart('Bunny'), GetIndividualJobSchedule(GetIndividualEntity('Company Consignee'), GetJob('Default'), GetSchedule('Default')), 14.99)|
+
+Create Wish List and add Bunny to wish list
+!|Execute|SELECT CreateBill(GetIndividualEntity('Company Supplier'),  GetIndividualEntity('Company Consignee'), 'Wish')|
+!|Execute|SELECT AddCargo(GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Wish'), GetPart('Bunny'), 1)|
+
+Check outstanding in Wish list
+!|Query|SELECT typeName AS type, consigneeName AS consignee, count, item, outstanding FROM LineItems WHERE bill = GetOutstandingBill(GetIndividualEntity('Company Supplier'),  GetIndividualEntity('Company Consignee'), 'Wish')|
+| type |     consignee     | count | item  | outstanding |
+| Wish | Company Consignee |     1.0 | Bunny |           1.0|
+
+Create Shopping Cart
+!|Execute|SELECT CreateBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Cart', GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Wish'))|
+All cargo from wishlist to cart
+!|Execute|SELECT MoveCargoToChild(GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Wish'),  NULL, NULL)|
+
+Check outstanding in wishlist
+!|Query|SELECT typeName AS type, consigneeName AS consignee, count, item, outstanding FROM LineItems WHERE bill = GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Wish')|
+| type |     consignee     | count | item  | outstanding |
+| Wish | Company Consignee |     1.0 | Bunny |           0.0|
+
+Check outstanding in cart
+!|Query|SELECT typeName AS type, consigneeName AS consignee, count, item, outstanding FROM LineItems WHERE bill = GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Cart')|
+| type |     consignee     | count | item  | outstanding |
+| Cart | Company Consignee |     1.0 | Bunny |           1.0|
+
+
+Display price expanded line items for Cart
+
+!|Query|SELECT typeName AS type, consigneeName AS consignee, count, item, currentUnitPrice, outstanding, (currentUnitPrice * outstanding) as lineTotal FROM LineItems WHERE bill = GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Cart')|
+| type |     consignee     | count | item  | currentunitprice | outstanding | linetotal |
+| Cart | Company Consignee |     1.0 | Bunny |            14.99 |           1 |     14.99|
+
+
+Skip Quote and Order
+Create Invoice directly from Cart, so use price schedule for Company Consignee
+!|Execute|SELECT CreateBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Invoice', GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Cart'))|
+Add All cargo to Invoice using price schedule
+!|Execute|SELECT MoveCargoToChild( GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Cart'), NULL, NULL, GetIndividualJobSchedule(GetIndividualEntity('Company Consignee'), GetJob('Default'), GetSchedule('Default')))|
+
+Price expanded line items and actual unitprice for Invoice
+!|Query|SELECT typeName AS type, consigneeName AS consignee, count, item, unitprice, outstanding, (currentUnitPrice * outstanding) as lineTotal FROM LineItems WHERE bill = GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Invoice')|
+|  type   |     consignee     | count | item  | unitprice | outstanding | linetotal |
+| Invoice | Company Consignee |     1 | Bunny |     14.99 |           1 |     14.99|
+
+Pay Invoice on Credit and Create Payment Receipt
+!|Execute|SELECT CreateBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Receipt', GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Invoice'))|
+Move all cargo to Receipt, use AR Payment Book to Book the sail
+!|Execute|SELECT MoveCargoToChild(GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Invoice'), NULL, NULL, NULL, 'AR Payment')|
+
+Price expanded line items for Receipt
+!|Query|SELECT typeName AS type, consigneeName AS consignee, count, item, unitprice, outstanding, (currentUnitPrice * outstanding) as lineTotal FROM LineItems WHERE bill = GetOutstandingBill(GetIndividualEntity('Company Supplier'), GetIndividualEntity('Company Consignee'), 'Receipt')|
+|  type   |     consignee     | count | item  | unitprice | outstanding | linetotal |
+| Receipt | Company Consignee |     1 | Bunny |     14.99 |           1 |     14.99|
+
+Show accounting transactions
+!|Query|SELECT account, credit, amount FROM JournalEntry ORDER BY account, credit|
+| account | credit | amount  |
+|     100 | f      | 14.9900|
+|     108 | true      | 14.9900|
