@@ -2726,6 +2726,7 @@ BEGIN
   END IF;
  ELSE
   -- Book the current amount for the cargo
+  -- Will not book any transactions if book_amount IS NULL
   book_amount := (
    SELECT totalPrice
    FROM LineItems

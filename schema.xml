@@ -1898,6 +1898,35 @@ LEFT JOIN I8NWord AS minor ON minor.id = Version.minor
 LEFT JOIN I8NWord AS patch ON patch.id = Version.patch
   </sql>
  </view>
+ <view name="Applications" fields="application,name,goesby,path">
+   <sql>
+   SELECT Application.id AS application,
+    Name.value AS name,
+    Application.goesBy,
+    Application.path
+   FROM Application
+   JOIN I8NWord AS Name on Name.id = Application.name
+   </sql>
+ </view>
+ <view name="ApplicationReleases" fields="applicationrelease,application,release,name,goesby,applicationpath,versionid,buildid,versionname,buildname">
+   <sql>
+   SELECT ApplicationRelease.id AS applicationRelease,
+    ApplicationRelease.application,
+    ApplicationRelease.release,
+    Applications.name,
+    Applications.goesBy,
+    Applications.path AS applicationPath,
+    Release.version AS versionId,
+    Release.build AS buildId,
+    Versions.value as versionName,
+    Build.value as buildName
+   FROM ApplicationRelease
+   JOIN Applications ON Applications.application = ApplicationRelease.application
+   JOIN Release ON Release.id = ApplicationRelease.release
+   JOIN Versions ON Versions.version = Release.version
+   JOIN I8NWord AS Build ON Build.id = Release.build
+  </sql>
+ </view>
  <view name="ParsedAgentStringShort" fields="agentstring,deviceid,device,osid,os,agentid,agent,deviceversion,osapplicationrelease,agentapplicationrelease">
   <sql>
 SELECT AgentString.id AS agentString,
@@ -1999,7 +2028,30 @@ JOIN Parts AS Parts ON parts.part = AssemblyPart.part
 LEFT JOIN I8NWord AS Designator ON Designator.id = AssemblyPart.designator
   </sql>
  </view>
-
+ <view name="AssemblyApplicationReleases" fields="assemblyapplicationrelease,applicationrelease,assembly,application,release,asseblyparent,assemblyname,assemblyverionid,assemblyversion,serial,applicationid,applicationname,goesby,applicationpath,applicationversionid,applicationversionname,buildname">
+   <sql>
+   SELECT AssemblyApplicationRelease.id AS assemblyApplicationRelease,
+    AssemblyApplicationRelease.applicationRelease,
+    Assembly.part AS assembly,
+    ApplicationReleases.application,
+    ApplicationReleases.release,
+    Assembly.parent AS asseblyParent,
+    Assembly.name AS assemblyName,
+    Assembly.versionId AS assemblyVerionId,
+    Assembly.version AS assemblyVersion,
+    Assembly.serial,
+    ApplicationReleases.application AS applicationId,
+    ApplicationReleases.name AS applicationName,
+    ApplicationReleases.goesBy,
+    ApplicationReleases.applicationPath,
+    ApplicationReleases.versionId AS applicationVersionId,
+    ApplicationReleases.versionName AS applicationVersionName,
+    ApplicationReleases.buildName
+   FROM AssemblyApplicationRelease
+   JOIN Parts AS Assembly ON Assembly.part = AssemblyApplicationRelease.assembly
+   JOIN ApplicationReleases ON ApplicationReleases.applicationrelease = AssemblyApplicationRelease.applicationrelease
+  </sql>
+ </view>
  <view name="Periods" fields="period,name,periodname">
    <sql>
 SELECT PeriodName.period, PeriodName.name, I8NSentence.value AS periodName
@@ -2007,7 +2059,6 @@ FROM PeriodName
 LEFT JOIN I8NSentence ON I8NSentence.id = PeriodName.name
    </sql>
  </view>
-
  <view name="PeriodSpans" fields="period,name,periodname,span,exclude,monthdaymonth,day,weekofmonth,dayofweekstart,dayofweekstop,dayofmonth,month,monthyear,daterangestart,daterangestop,timeofdaystart,timeofdaystop">
    <sql>
 SELECT PeriodName.period, PeriodName.name, I8NSentence.value AS periodName,
@@ -2027,7 +2078,6 @@ LEFT JOIN DateRange ON DateRange.id = Period.span
 LEFT JOIN TimeOfDay ON TimeOfDay.id = Period.span
    </sql>
  </view>
-
  <view name="TimePeriod" fields="period, open">
   <sql>
 SELECT period, bool_AND(open) AS open
@@ -2079,7 +2129,6 @@ JOIN TimeOfDay ON TimeOfDay.id = Period.span
 GROUP BY period
   </sql>
  </view>
-
  <view name="MaxSpan" fields="id">
   <comments>These tables share a unique sequence for their respective id fields.  A unique id value must not exist in more than a single Span table.</comments>
   <sql>
@@ -2096,7 +2145,6 @@ SELECT MAX(id) AS id FROM (
 ) AS MaxSpan
   </sql>
  </view>
-
  <view name="Accounts" fields="account,name,type,typeName,individual,individualName,individualAccountType,individualAccountTypeName,credit,debitIncrease,debitDecrease,creditIncrease,creditDecrease" order="900">
   <sql>
 SELECT AccountName.account,
@@ -2138,7 +2186,6 @@ LEFT JOIN Entities ON Entities.individual = IndividualAccount.individual
 LEFT JOIN I8NWord AS IndividualAccountType ON IndividualAccountType.id = IndividualAccount.type
   </sql>
  </view>
-
  <view name="Ledgers" fields="ledger,name,sequence,account,accountname,type,typename,credit,debitincrease,debitdecrease,creditincrease,creditdecrease">
   <sql>
 SELECT LedgerName.ledger,
@@ -2159,7 +2206,6 @@ JOIN LedgerAccount ON LedgerAccount.ledger = LedgerName.ledger
 JOIN Accounts ON Accounts.account = LedgerAccount.account
   </sql>
  </view>
-
  <view name="Journals" fields="journal,name">
   <sql>
 SELECT JournalName.journal,
@@ -2168,7 +2214,6 @@ FROM JournalName
 JOIN I8NSentence ON I8NSentence.id = JournalName.name
   </sql>
  </view>
-
  <view name="Books" fields="book,name,journal,journalname,split,increase,increasename,increasetype,increasecredit,increasedebitincrease,increasedebitdecrease,increasecreditincrease,increasecreditdecrease,decrease,decreasename,decreasetype,decreasecredit,decreasedebitincrease,decreasedebitdecrease,decreasecreditincrease,decreasecreditdecrease">
   <sql>
 SELECT BookName.book,
@@ -2200,8 +2245,6 @@ LEFT JOIN Accounts AS Increase ON Increase.account = BookAccount.increase
 LEFT JOIN Accounts AS Decrease  ON Decrease.account  = BookAccount.decrease
   </sql>
  </view>
-
-
  <view name="JournalEntries" fields="id,journal,journalname,book,bookname,entry,account,accountname,type,typename,ledger,ledgername,rightside,debit,credit,posted,created">
   <comments>ORDER BY created, entry, rightSide</comments>
   <sql>
@@ -2239,8 +2282,8 @@ LEFT JOIN LedgerName ON LedgerName.ledger = LedgerJournal.ledger
 LEFT JOIN I8NSentence AS LedgerNameString ON LedgerNameString.id = LedgerName.name
   </sql>
  </view>
-<view name="LedgerBalance" fields="ledger,ledgername,sequence,account,accountname,type,typename,debit,credit">
-<sql>
+ <view name="LedgerBalance" fields="ledger,ledgername,sequence,account,accountname,type,typename,debit,credit">
+  <sql>
 SELECT Ledgers.ledger,
  Ledgers.name AS ledgerName,
  Ledgers.sequence,
@@ -2261,11 +2304,11 @@ GROUP BY Ledgers.ledger,
  Ledgers.accountName,
  Ledgers.type,
  Ledgers.typeName
-</sql>
-</view>
+  </sql>
+ </view>
 
-<view name="JournalReport" fields="journal,entry,account,type,ledger,ledgerName,debit,credit,rightside,created">
-<sql>
+ <view name="JournalReport" fields="journal,entry,account,type,ledger,ledgerName,debit,credit,rightside,created">
+  <sql>
 SELECT journal,
  entry,
  accountName AS account,
@@ -2291,11 +2334,11 @@ SELECT NULL AS journal,
  NULL AS created
 FROM JournalEntries
 WHERE posted IS NULL
-</sql>
-</view>
+  </sql>
+ </view>
 
-<view name="LedgerReport" fields="ledger,sequence,ledgername,accountname,typename,debit,credit">
-<sql>
+ <view name="LedgerReport" fields="ledger,sequence,ledgername,accountname,typename,debit,credit">
+  <sql>
 SELECT ledger,
  sequence,
  ledgername,
@@ -2315,9 +2358,8 @@ SELECT ledger,
 FROM LedgerBalance
 GROUP BY ledger,
  ledgerName
-</sql>
-</view>
-
+  </sql>
+ </view>
  <view name="Edges" fields="edge, startName, stopName, hops, entry, direct, exit, start, stop">
   <sql>
 SELECT Edge.id AS edge,
