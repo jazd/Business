@@ -2836,7 +2836,8 @@ CREATE OR REPLACE FUNCTION MoveCargo (
 ) RETURNS integer AS $$
 DECLARE
 BEGIN
-IF inToBill IS NOT NULL THEN
+IF inFromBill IS NOT NULL AND inToBill IS NOT NULL THEN
+ PERFORM pg_advisory_lock(inFromBill);
  IF inItem IS NULL THEN
   -- Move all remaining cargo to inToBill
   -- Use AddCargo
@@ -2892,6 +2893,7 @@ IF inToBill IS NOT NULL THEN
    Cargo.entry
   ;
  END IF;
+ PERFORM pg_advisory_unlock(inFromBill);
 END IF;
 RETURN inToBill;
 END;
