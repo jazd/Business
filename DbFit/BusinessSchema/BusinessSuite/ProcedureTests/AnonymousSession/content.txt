@@ -1,0 +1,13 @@
+GetPath
+
+These tables are empty
+
+A simplified version of Sample/SQL/Session/Client.sql
+
+!|Execute|SELECT AnonymousSession('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36', 'Chrome', '43', '0', '2357', '130', 'Linux', NULL,NULL,NULL,NULL,NULL, 'Other', 0, 'www.ibm.com', NULL,NULL,'107.77.97.52')|
+
+!|Query|SELECT os, agent FROM Sessions ORDER BY token, credential NULLS FIRST, touched|
+|  os   | agent  |
+| Linux | Chrome |
+
+TODO SetSession
