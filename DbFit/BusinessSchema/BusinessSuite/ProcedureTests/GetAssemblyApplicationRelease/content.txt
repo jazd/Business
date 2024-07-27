@@ -1,0 +1,16 @@
+GetPath
+
+These tables are empty
+
+Create an assembly and attach a default embedded software application release to it.
+
+
+!|Execute|SELECT GetPart('PCB')|
+!|Execute|SELECT GetPartWithParentVersion('Alarm', GetVersionName('Demo', '1', '0', '0'), 'PBC', GetVersionName('Demo'))|
+!|Execute|SELECT GetAssemblyApplicationRelease(GetPart('Alarm', GetVersionName('Demo', '1', '0', '0')), GetApplicationRelease(GetApplication('Alarm Embedded'), GetRelease(GetVersion('0','0','3'), '42')))|
+
+
+
+!|Query|SELECT assemblyName, assemblyVersion, applicationName, applicationVersionName, buildName FROM AssemblyApplicationReleases|
+| assemblyname | assemblyversion | applicationname | applicationversionname | buildname |
+| Alarm        | Demo 1.0.0      | Alarm Embedded  | 0.0.3                  | 42|
