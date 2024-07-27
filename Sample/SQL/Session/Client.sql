@@ -1,7 +1,7 @@
 -- Client session example in two steps.
 -- 1)   A client hits the server without a session token, so generate an anonymous session to track it going forward.
--- 1.a) Parse Client(Browser) Agent string.
--- 1.b) Insert the parsed Client Agent string, reffering URL and source IP address into an Anonymous Session.
+-- 1.a) Parse Client(Browser) User-Agent string.
+-- 1.b) Insert the parsed Client Agent string, referring URL and source IP address into an Anonymous Session.
 --      The AgentString table will associate this string to its AssemblyApplicationRelease(agent) id.  As the name implies, the agent is an assembly(device) associated with and ApplicationRelease(os and client)
 -- 2)   Client requests to create a user
 -- 2.a) Assign a session token to the anonymous session
