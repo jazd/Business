@@ -12,29 +12,40 @@ CREATE OR REPLACE FUNCTION GetWord (
  culture_name varchar
 ) RETURNS integer AS $$
 DECLARE
+ word_id integer;
 BEGIN
  IF word_value IS NOT NULL THEN
-  -- Be sure to process any single value one at a time without the need of a transaction or locking Word table
-  PERFORM pg_advisory_lock(hashtext(word_value));
-  INSERT INTO Word (value, culture) (
-   SELECT word_value, Culture.code
-   FROM Culture
-   LEFT JOIN Word AS exists ON UPPER(exists.value) = UPPER(word_value)
-    AND exists.culture = Culture.code
-   WHERE UPPER(Culture.name) = UPPER(culture_name)
-    AND exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(hashtext(word_value));
- END IF;
- RETURN (
-  SELECT id
+  -- Check if exists early
+  SELECT id INTO word_id
   FROM Word
   JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
   WHERE UPPER(Word.value) = UPPER(word_value)
    AND Word.culture = Culture.code
   LIMIT 1
- );
+  ;
+  IF word_id IS NULL THEN
+   -- Be sure to process any single value one at a time without the need of a transaction or locking Word table
+   PERFORM pg_advisory_lock(hashtext(word_value));
+   INSERT INTO Word (value, culture) (
+    SELECT word_value, Culture.code
+    FROM Culture
+    LEFT JOIN Word AS exists ON UPPER(exists.value) = UPPER(word_value)
+     AND exists.culture = Culture.code
+    WHERE UPPER(Culture.name) = UPPER(culture_name)
+     AND exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(hashtext(word_value));
+   SELECT id INTO word_id
+   FROM Word
+   JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
+   WHERE UPPER(Word.value) = UPPER(word_value)
+   AND Word.culture = Culture.code
+   LIMIT 1
+   ;
+  END IF;
+ END IF;
+ RETURN word_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -58,27 +69,35 @@ CREATE OR REPLACE FUNCTION GetIdentifier (
  ident_value varchar
 ) RETURNS integer AS $$
 DECLARE
+ ident_id integer;
 BEGIN
  IF ident_value IS NOT NULL THEN
-  -- Be sure to process any single value one at a time without the need of a transaction or locking Word table
-  PERFORM pg_advisory_lock(hashtext(ident_value));
-  INSERT INTO Word (value, culture) (
-   SELECT ident_value, NULL
-   FROM Dual
-   LEFT JOIN Word AS exists ON UPPER(exists.value) = UPPER(ident_value)
-    AND exists.culture IS NULL
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(hashtext(ident_value));
- END IF;
- RETURN (
-  SELECT id
+  -- Check if exists early
+  SELECT id INTO ident_id
   FROM Word
   WHERE UPPER(Word.value) = UPPER(ident_value)
    AND Word.culture IS NULL
-  LIMIT 1
- );
+  LIMIT 1;
+  IF ident_id IS NULL THEN
+   -- Be sure to process any single value one at a time without the need of a transaction or locking Word table
+   PERFORM pg_advisory_lock(hashtext(ident_value));
+   INSERT INTO Word (value, culture) (
+    SELECT ident_value, NULL
+    FROM Dual
+    LEFT JOIN Word AS exists ON UPPER(exists.value) = UPPER(ident_value)
+     AND exists.culture IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(hashtext(ident_value));
+   SELECT id INTO ident_id
+   FROM Word
+   WHERE UPPER(Word.value) = UPPER(ident_value)
+    AND Word.culture IS NULL
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN ident_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -87,29 +106,37 @@ CREATE OR REPLACE FUNCTION GetSentence (
  culture_name varchar
 ) RETURNS integer AS $$
 DECLARE
+ sentence_id integer;
 BEGIN
  IF sentence_value IS NOT NULL THEN
-  -- Be sure to process any single value one at a time without the need of a transaction or locking Sentence table
-  PERFORM pg_advisory_lock(hashtext(sentence_value));
-  INSERT INTO Sentence (value, culture, length) (
-   SELECT sentence_value, Culture.code, LENGTH(sentence_value)
-   FROM Culture
-   LEFT JOIN Sentence AS exists ON UPPER(exists.value) = UPPER(sentence_value)
-    AND exists.culture = Culture.code
-   WHERE UPPER(Culture.name) = UPPER(culture_name)
-    AND exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(hashtext(sentence_value));
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO sentence_id
   FROM Sentence
   JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
   WHERE UPPER(Sentence.value) = UPPER(sentence_value)
    AND Sentence.culture = Culture.code
-  LIMIT 1
- );
+  LIMIT 1;
+  IF sentence_id IS NULL THEN
+   -- Be sure to process any single value one at a time without the need of a transaction or locking Sentence table
+   PERFORM pg_advisory_lock(hashtext(sentence_value));
+   INSERT INTO Sentence (value, culture, length) (
+    SELECT sentence_value, Culture.code, LENGTH(sentence_value)
+    FROM Culture
+    LEFT JOIN Sentence AS exists ON UPPER(exists.value) = UPPER(sentence_value)
+     AND exists.culture = Culture.code
+    WHERE UPPER(Culture.name) = UPPER(culture_name)
+     AND exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(hashtext(sentence_value));
+   SELECT id INTO sentence_id
+   FROM Sentence
+   JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
+   WHERE UPPER(Sentence.value) = UPPER(sentence_value)
+    AND Sentence.culture = Culture.code
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN sentence_id;
 END;
 $$ LANGUAGE plpgsql;
 
