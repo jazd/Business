@@ -479,26 +479,31 @@ CREATE OR REPLACE FUNCTION GetGiven (
  inGiven varchar
 ) RETURNS integer AS $$
 DECLARE
+ given_id integer;
 BEGIN
  IF inGiven IS NOT NULL THEN
-  -- Be sure to process any single given one at a time without the need of a transaction or locking Given table
-  PERFORM pg_advisory_lock(hashtext(inGiven));
-  INSERT INTO Given (value) (
-   SELECT inGiven
-   FROM DUAL
-   LEFT JOIN Given AS exists ON exists.value = inGiven
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(hashtext(inGiven));
- END IF;
-
- RETURN (
-  SELECT id
+  SELECT id INTO given_id
   FROM Given
   WHERE Given.value = inGiven
-  LIMIT 1
- );
+  LIMIT 1;
+  IF given_id IS NULL THEN
+   -- Be sure to process any single given one at a time without the need of a transaction or locking Given table
+   PERFORM pg_advisory_lock(hashtext(inGiven));
+   INSERT INTO Given (value) (
+    SELECT inGiven
+    FROM DUAL
+    LEFT JOIN Given AS exists ON exists.value = inGiven
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(hashtext(inGiven));
+   SELECT id INTO given_id
+   FROM Given
+   WHERE Given.value = inGiven
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN given_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -506,25 +511,31 @@ CREATE OR REPLACE FUNCTION GetFamily (
  inFamily varchar
 ) RETURNS integer AS $$
 DECLARE
+ family_id integer;
 BEGIN
  IF inFamily IS NOT NULL THEN
-  -- Be sure to process any single family one at a time without the need of a transaction or locking Family table
-  PERFORM pg_advisory_lock(hashtext(inFamily));
-  INSERT INTO Family (value) (
-   SELECT inFamily
-   FROM DUAL
-   LEFT JOIN Family AS exists ON exists.value = inFamily
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(hashtext(inFamily));
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO family_id
   FROM Family
   WHERE Family.value = inFamily
-  LIMIT 1
- ); 
+  LIMIT 1;
+  IF family_id IS NULL THEN
+   -- Be sure to process any single family one at a time without the need of a transaction or locking Family table
+   PERFORM pg_advisory_lock(hashtext(inFamily));
+   INSERT INTO Family (value) (
+    SELECT inFamily
+    FROM DUAL
+    LEFT JOIN Family AS exists ON exists.value = inFamily
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(hashtext(inFamily));
+   SELECT id INTO family_id
+   FROM Family
+   WHERE Family.value = inFamily
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN family_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -537,36 +548,42 @@ DECLARE
  first_id integer;
  middle_id integer;
  last_id integer;
+ name_id integer;
 BEGIN
  IF inFirst IS NOT NULL OR inMiddle IS NOT NULL OR inLast IS NOT NULL THEN
   -- get given and family values
   first_id := (SELECT GetGiven(inFirst));
   middle_id := (SELECT GetGiven(inMiddle));
   last_id := (SELECT GetFamily(inLast));
-
-  -- Be sure to process any single first one at a time without the need of a transaction or locking Name table
-  PERFORM pg_advisory_lock(first_id);
-  INSERT INTO Name (given, middle, family) (
-   SELECT first_id, middle_id, last_id
-   FROM DUAL
-   LEFT JOIN Name AS exists ON
-        ((exists.given = first_id) OR (exists.given IS NULL AND first_id IS NULL))
-    AND ((exists.middle = middle_id) OR (exists.middle IS NULL AND middle_id IS NULL))
-    AND ((exists.family = last_id) OR (exists.family IS NULL AND last_id IS NULL))
-  WHERE exists.id IS NULL
-  LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(first_id);
- END IF;
-
- RETURN (
-  SELECT id
+  SELECT id INTO name_id
   FROM Name
   WHERE ((Name.given = first_id) OR (Name.given IS NULL AND first_id IS NULL))
     AND ((Name.middle = middle_id) OR (Name.middle IS NULL AND middle_id IS NULL))
     AND ((Name.family = last_id) OR (Name.family IS NULL AND last_id IS NULL))
-  LIMIT 1
- );
+  LIMIT 1;
+  IF name_id IS NULL THEN
+   -- Be sure to process any single first one at a time without the need of a transaction or locking Name table
+   PERFORM pg_advisory_lock(first_id);
+   INSERT INTO Name (given, middle, family) (
+    SELECT first_id, middle_id, last_id
+    FROM DUAL
+    LEFT JOIN Name AS exists ON
+         ((exists.given = first_id) OR (exists.given IS NULL AND first_id IS NULL))
+     AND ((exists.middle = middle_id) OR (exists.middle IS NULL AND middle_id IS NULL))
+     AND ((exists.family = last_id) OR (exists.family IS NULL AND last_id IS NULL))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(first_id);
+   SELECT id INTO name_id
+   FROM Name
+   WHERE ((Name.given = first_id) OR (Name.given IS NULL AND first_id IS NULL))
+     AND ((Name.middle = middle_id) OR (Name.middle IS NULL AND middle_id IS NULL))
+     AND ((Name.family = last_id) OR (Name.family IS NULL AND last_id IS NULL))
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN name_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -581,16 +598,11 @@ CREATE OR REPLACE FUNCTION GetIndividualPerson (
 DECLARE
  name_id integer;
  goesBy_id integer;
- exists_id bigint;
- return_id bigint;
  lockID bigint;
+ individual_id bigint;
 BEGIN
  -- Check for possible duplicate before inserting Name
- -- Be sure to process any single birthdate one at a time without the need of a transaction or locking the Individual table
- lockID := extract(epoch FROM inBirth)::bigint;
- PERFORM pg_advisory_lock(lockID);
-
- exists_id := (
+ individual_id := (
    SELECT exists.id
    FROM DUAL -- If first, last and birthday match any existing, consider it a duplicate and refuse to insert new Individual with this function
    LEFT JOIN Given ON Given.value = inFirst
@@ -602,14 +614,19 @@ BEGIN
    LIMIT 1
  );
 
- IF exists_id IS NULL THEN
+ IF individual_id IS NULL THEN
   name_id := (SELECT GetName(inFirst,inMiddle,inLast));
   goesBy_id := (SELECT GetGiven(inGoesBy));
 
-  IF name_id IS NOT NULL THEN
+  IF name_id IS NOT NULL AND inBirth IS NOT NULL THEN
+   -- Be sure to process any single birthdate one at a time without the need of a transaction or locking the Individual table
+   lockID := extract(epoch FROM inBirth)::bigint;
+   PERFORM pg_advisory_lock(lockID);
    INSERT INTO Individual(name, goesBy, birth, death) VALUES (name_id, goesBy_id, inBirth, inDeath);
+   PERFORM pg_advisory_unlock(lockID);
   END IF;
-  return_id := (
+
+  individual_id := (
    SELECT id
    FROM Individual
    WHERE Individual.name = name_id
@@ -618,12 +635,9 @@ BEGIN
    AND ((CAST(Individual.death AS DATE) = inDeath) OR (Individual.death IS NULL AND inDeath IS NULL))
    LIMIT 1
   );
- ELSE
-  return_id := exists_id;
  END IF;
- PERFORM pg_advisory_unlock(lockID);
 
- RETURN return_id;
+ RETURN individual_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -631,25 +645,30 @@ CREATE OR REPLACE FUNCTION GetEntityName (
  inName varchar
 ) RETURNS integer AS $$
 DECLARE
+ entity_id integer;
 BEGIN
  IF inName IS NOT NULL THEN
-  -- Be sure to process any single name one at a time without the need of a transaction or locking the Entity table
-  PERFORM pg_advisory_lock(hashtext(inName));
-  INSERT INTO Entity (name)
-  SELECT inName
-  FROM DUAL
-  LEFT JOIN Entity AS exists ON UPPER(exists.name) = UPPER(inName)
-  WHERE exists.id IS NULL
-  LIMIT 1
-  ;
-  PERFORM pg_advisory_unlock(hashtext(inName));
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO entity_id
   FROM Entity
   WHERE UPPER(Entity.name) = UPPER(inName)
-  LIMIT 1
- );
+  LIMIT 1;
+  IF entity_id IS NULL THEN
+   -- Be sure to process any single name one at a time without the need of a transaction or locking the Entity table
+   PERFORM pg_advisory_lock(hashtext(inName));
+   INSERT INTO Entity (name)
+   SELECT inName
+   FROM DUAL
+   LEFT JOIN Entity AS exists ON UPPER(exists.name) = UPPER(inName)
+   WHERE exists.id IS NULL
+   LIMIT 1;
+   PERFORM pg_advisory_unlock(hashtext(inName));
+   SELECT id INTO entity_id
+   FROM Entity
+   WHERE UPPER(Entity.name) = UPPER(inName)
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN entity_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -662,27 +681,32 @@ CREATE OR REPLACE FUNCTION GetIndividualEntity (
 DECLARE
  entity_name_id integer;
  goesBy_id integer;
+ individual_id bigint;
 BEGIN
  entity_name_id := (SELECT GetEntityName(inName));
  IF entity_name_id IS NOT NULL THEN
   goesBy_id := (SELECT GetGiven(inGoesBy));
-
-  -- Be sure to process any single entity name id one at a time without the need of a transaction or locking Individual table
-  PERFORM pg_advisory_lock(entity_name_id);
-  INSERT INTO Individual (entity, goesBy, birth, death)
-  SELECT entity_name_id, goesBy_id, inFormed, inDissolved
-  FROM DUAL
-  LEFT JOIN Individual AS exists ON exists.entity = entity_name_id
-  WHERE exists.id IS NULL
-  LIMIT 1
-  ;
-  PERFORM pg_advisory_unlock(entity_name_id);
- END IF;
- RETURN (
-  SELECT id FROM Individual
+  SELECT id INTO individual_id
+  FROM Individual
   WHERE Individual.entity = entity_name_id
-  LIMIT 1
- );
+  LIMIT 1;
+  IF individual_id IS NULL THEN
+   -- Be sure to process any single entity name id one at a time without the need of a transaction or locking Individual table
+   PERFORM pg_advisory_lock(entity_name_id);
+   INSERT INTO Individual (entity, goesBy, birth, death)
+   SELECT entity_name_id, goesBy_id, inFormed, inDissolved
+   FROM DUAL
+   LEFT JOIN Individual AS exists ON exists.entity = entity_name_id
+   WHERE exists.id IS NULL
+   LIMIT 1;
+   PERFORM pg_advisory_unlock(entity_name_id);
+   SELECT id INTO individual_id
+   FROM Individual
+   WHERE Individual.entity = entity_name_id
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN individual_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -696,17 +720,15 @@ BEGIN
  entity_name_id := (SELECT GetEntityName(inName));
  IF entity_name_id IS NOT NULL THEN
   -- Be sure to process any single entity name id one at a time without the need of a transaction or locking Individual table
-  PERFORM pg_advisory_lock(entity_name_id);
-  individual_id := (
-   SELECT id
-   FROM Individual
-   WHERE entity = entity_name_id
-   LIMIT 1
-  );
+  SELECT id INTO individual_id
+  FROM Individual
+  WHERE entity = entity_name_id
+  LIMIT 1;
   IF individual_id IS NULL THEN
+   PERFORM pg_advisory_lock(entity_name_id);
    INSERT INTO Individual (entity) VALUES (entity_name_id) RETURNING id INTO individual_id;
+   PERFORM pg_advisory_unlock(entity_name_id);
   END IF;
-  PERFORM pg_advisory_unlock(entity_name_id);
  END IF;
  RETURN individual_id;
 END;
