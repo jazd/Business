@@ -197,28 +197,13 @@ DECLARE
  inLatitude NUMERIC(10,7);
  inLongitude NUMERIC(11,7);
  lockID bigint;
+ location_id integer;
 BEGIN
  inLatitude := lat;
  inLongitude := long;
 
  IF lat IS NOT NULL AND long IS NOT NULL THEN
-  -- Convert latitude numeric(10,7) to a 64 bit integer for lock
-  lockID := (inLatitude * 10000000)::bigint;
-  -- Be sure to process any single latitude one at a time without the need of a transaction or locking the Location table
-  PERFORM pg_advisory_lock(lockID);
-  INSERT INTO Location (latitude, longitude, accuracy) (
-   SELECT inLatitude, inLongitude, accuracy_code
-   FROM Dual
-   LEFT JOIN Location AS exists ON exists.latitude = inLatitude
-    AND exists.longitude = inLongitude
-    AND ((exists.accuracy = accuracy_code) OR (exists.accuracy IS NULL AND accuracy_code IS NULL))
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-   PERFORM pg_advisory_unlock(lockID);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO location_id
   FROM Location
   WHERE parent IS NULL
    AND marquee IS NULL
@@ -228,11 +213,38 @@ BEGIN
    AND level = 1 -- Default level
    AND altitudeabovesealevel IS NULL
    AND area IS NULL
-  LIMIT 1
- );
+  LIMIT 1;
+  IF location_id IS NULL THEN
+   -- Convert latitude numeric(10,7) to a 64 bit integer for lock
+   lockID := (inLatitude * 10000000)::bigint;
+   -- Be sure to process any single latitude one at a time without the need of a transaction or locking the Location table
+   PERFORM pg_advisory_lock(lockID);
+   INSERT INTO Location (latitude, longitude, accuracy) (
+    SELECT inLatitude, inLongitude, accuracy_code
+    FROM Dual
+    LEFT JOIN Location AS exists ON exists.latitude = inLatitude
+     AND exists.longitude = inLongitude
+     AND ((exists.accuracy = accuracy_code) OR (exists.accuracy IS NULL AND accuracy_code IS NULL))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(lockID);
+   SELECT id INTO location_id
+   FROM Location
+   WHERE parent IS NULL
+    AND marquee IS NULL
+    AND longitude = inLongitude
+    AND latitude = inLatitude
+    AND ((accuracy = accuracy_code) OR (accuracy IS NULL AND accuracy_code IS NULL))
+    AND level = 1 -- Default level
+    AND altitudeabovesealevel IS NULL
+    AND area IS NULL
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN location_id;
 END;
 $$ LANGUAGE plpgsql;
-
 
 CREATE OR REPLACE FUNCTION GetPostal (
  countrycode varchar,
@@ -252,6 +264,7 @@ DECLARE
  state_id integer;
  county_id integer;
  location_id integer;
+ postal_id integer;
 BEGIN
  countrycode_id := (SELECT id FROM Country WHERE UPPER(Country.code) = UPPER(countrycode));
  city_id := (SELECT GetWord(city));
@@ -260,26 +273,34 @@ BEGIN
  county_id := GetWord(county);
  location_id := (SELECT GetLocation(lat,long,accuracy));
  -- Be sure to process any single zipcode one at a time without the need of a transaction or locking the Postal table
- PERFORM pg_advisory_lock(hashtext(UPPER(zipcode)));
- INSERT INTO Postal (country, code, state, stateabbreviation, county, city, location) (
-  SELECT countrycode_id, zipcode, state_id, statecode_id, county_id, city_id, location_id
-  FROM Dual
-  LEFT JOIN Postal AS exists ON exists.country = countrycode_id
-   AND ((location = location_id) OR (location IS NULL AND location_id IS NULL))
-   AND UPPER(exists.code) = UPPER(zipcode)
-  WHERE exists.id IS NULL
-  LIMIT 1
- );
- PERFORM pg_advisory_unlock(hashtext(UPPER(zipcode)));
- RETURN (
-  SELECT id
+ SELECT id INTO postal_id
+ FROM Postal
+ -- Unique on country and code
+ WHERE country = countrycode_id
+  AND ((location = location_id) OR (location IS NULL AND location_id IS NULL))
+  AND UPPER(Postal.code) = UPPER(zipcode)
+ LIMIT 1;
+ IF postal_id IS NULL THEN
+  PERFORM pg_advisory_lock(hashtext(UPPER(zipcode)));
+  INSERT INTO Postal (country, code, state, stateabbreviation, county, city, location) (
+   SELECT countrycode_id, zipcode, state_id, statecode_id, county_id, city_id, location_id
+   FROM Dual
+   LEFT JOIN Postal AS exists ON exists.country = countrycode_id
+    AND ((location = location_id) OR (location IS NULL AND location_id IS NULL))
+    AND UPPER(exists.code) = UPPER(zipcode)
+   WHERE exists.id IS NULL
+   LIMIT 1
+  );
+  PERFORM pg_advisory_unlock(hashtext(UPPER(zipcode)));
+  SELECT id INTO postal_id
   FROM Postal
   -- Unique on country and code
   WHERE country = countrycode_id
    AND ((location = location_id) OR (location IS NULL AND location_id IS NULL))
    AND UPPER(Postal.code) = UPPER(zipcode)
-  LIMIT 1
- );
+  LIMIT 1;
+ END IF;
+ RETURN postal_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -336,6 +357,7 @@ CREATE OR REPLACE FUNCTION GetAddress (
 DECLARE
  location_id integer;
  zipcode_id integer;
+ address_id integer;
 BEGIN
   location_id := (SELECT GetLocation(lat,long,inAccuracy));
   zipcode_id := (SELECT GetPostal(zipcode));
@@ -354,25 +376,7 @@ BEGIN
      AND line4 IS NULL
     ;
    END IF;
-   -- Be sure to process any single zipcode id one at a time without the need of a transaction or locking the Address table
-   PERFORM pg_advisory_lock(zipcode_id);
-   INSERT INTO Address (line1, postal, postalplus, location) (
-    SELECT street, zipcode_id, inPostalplus, location_id
-    FROM Dual
-    LEFT JOIN Address AS exists ON exists.postal = zipcode_id
-     AND ((exists.postalplus = inPostalplus) OR (exists.postalplus IS NULL AND inPostalplus IS NULL))
-     AND ((exists.location = location_id) OR (exists.location IS NULL AND location_id IS NULL))
-     AND UPPER(exists.line1) = UPPER(street)
-     AND exists.line2 IS NULL
-     AND exists.line3 IS NULL
-     AND exists.line4 IS NULL
-    WHERE exists.id IS NULL
-    LIMIT 1
-   );
-   PERFORM pg_advisory_unlock(zipcode_id);
-  END IF;
-  RETURN (
-   SELECT id
+   SELECT id INTO address_id
    FROM Address
    WHERE postal = zipcode_id
     AND ((postalplus = inPostalplus) OR (postalplus IS NULL AND inPostalplus IS NULL))
@@ -381,8 +385,37 @@ BEGIN
     AND line2 IS NULL
     AND line3 IS NULL
     AND line4 IS NULL
-   LIMIT 1
-  );
+   LIMIT 1;
+   IF address_id IS NULL THEN
+    -- Be sure to process any single zipcode id one at a time without the need of a transaction or locking the Address table
+    PERFORM pg_advisory_lock(zipcode_id);
+    INSERT INTO Address (line1, postal, postalplus, location) (
+     SELECT street, zipcode_id, inPostalplus, location_id
+     FROM Dual
+     LEFT JOIN Address AS exists ON exists.postal = zipcode_id
+      AND ((exists.postalplus = inPostalplus) OR (exists.postalplus IS NULL AND inPostalplus IS NULL))
+      AND ((exists.location = location_id) OR (exists.location IS NULL AND location_id IS NULL))
+      AND UPPER(exists.line1) = UPPER(street)
+      AND exists.line2 IS NULL
+      AND exists.line3 IS NULL
+      AND exists.line4 IS NULL
+     WHERE exists.id IS NULL
+     LIMIT 1
+    );
+    PERFORM pg_advisory_unlock(zipcode_id);
+    SELECT id INTO address_id
+    FROM Address
+    WHERE postal = zipcode_id
+     AND ((postalplus = inPostalplus) OR (postalplus IS NULL AND inPostalplus IS NULL))
+     AND ((location = location_id) OR (location IS NULL AND location_id IS NULL))
+     AND UPPER(line1) = UPPER(street)
+     AND line2 IS NULL
+     AND line3 IS NULL
+     AND line4 IS NULL
+    LIMIT 1;
+   END IF;
+  END IF;
+  RETURN address_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -394,29 +427,13 @@ CREATE OR REPLACE FUNCTION GetAddress (
 ) RETURNS integer AS $$
 DECLARE
  zipcode_id integer;
+ address_id integer;
 BEGIN
   -- Do not call GetPostal with nulls so that this will return addresses with location information
   zipcode_id := (SELECT GetPostal(zipcode));
 
   IF zipcode_id IS NOT NULL THEN
-   -- Be sure to process any single zipcode id one at a time without the need of a transaction or locking the Address table
-   PERFORM pg_advisory_lock(zipcode_id);
-   INSERT INTO Address (line1, postal, postalplus) (
-    SELECT street, zipcode_id, inPostalplus
-    FROM Dual
-    LEFT JOIN Address AS exists ON exists.postal = zipcode_id
-     AND ((exists.postalplus = inPostalplus) OR (exists.postalplus IS NULL AND inPostalplus IS NULL))
-     AND UPPER(exists.line1) = UPPER(street)
-     AND exists.line2 IS NULL
-     AND exists.line3 IS NULL
-     AND exists.line4 IS NULL
-    WHERE exists.id IS NULL
-    LIMIT 1
-   );
-   PERFORM pg_advisory_unlock(zipcode_id);
-  END IF;
-  RETURN (
-   SELECT id
+   SELECT id INTO address_id
    FROM Address
    WHERE postal = zipcode_id
     AND ((postalplus = inPostalplus) OR (postalplus IS NULL AND inPostalplus IS NULL))
@@ -424,11 +441,39 @@ BEGIN
     AND line2 IS NULL
     AND line3 IS NULL
     AND line4 IS NULL
-   ORDER BY location LIMIT 1 -- pickup a location based address first
-  );
+   ORDER BY location
+   LIMIT 1; -- pickup a location based address first
+   IF address_id IS NULL THEN
+    -- Be sure to process any single zipcode id one at a time without the need of a transaction or locking the Address table
+    PERFORM pg_advisory_lock(zipcode_id);
+    INSERT INTO Address (line1, postal, postalplus) (
+     SELECT street, zipcode_id, inPostalplus
+     FROM Dual
+     LEFT JOIN Address AS exists ON exists.postal = zipcode_id
+      AND ((exists.postalplus = inPostalplus) OR (exists.postalplus IS NULL AND inPostalplus IS NULL))
+      AND UPPER(exists.line1) = UPPER(street)
+      AND exists.line2 IS NULL
+      AND exists.line3 IS NULL
+      AND exists.line4 IS NULL
+     WHERE exists.id IS NULL
+     LIMIT 1
+    );
+    PERFORM pg_advisory_unlock(zipcode_id);
+    SELECT id INTO address_id
+    FROM Address
+    WHERE postal = zipcode_id
+     AND ((postalplus = inPostalplus) OR (postalplus IS NULL AND inPostalplus IS NULL))
+     AND UPPER(line1) = UPPER(street)
+     AND line2 IS NULL
+     AND line3 IS NULL
+     AND line4 IS NULL
+    ORDER BY location
+    LIMIT 1; -- pickup a location based address first
+   END IF;
+  END IF;
+ RETURN address_id;
 END;
 $$ LANGUAGE plpgsql;
-
 
 CREATE OR REPLACE FUNCTION GetGiven (
  inGiven varchar
