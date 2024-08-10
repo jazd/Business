@@ -157,27 +157,34 @@ CREATE OR REPLACE FUNCTION GetIdentityPhrase (
  phrase_value varchar
 ) RETURNS integer AS $$
 DECLARE
+ ident_id integer;
 BEGIN
  IF phrase_value IS NOT NULL THEN
-  -- Be sure to process any single value one at a time without the need of a transaction or locking Sentence table
-  PERFORM pg_advisory_lock(hashtext(phrase_value));
-  INSERT INTO Sentence (value, culture) (
-   SELECT phrase_value, NULL
-   FROM Dual
-   LEFT JOIN Sentence AS exists ON UPPER(exists.value) = UPPER(phrase_value)
-    AND exists.culture IS NULL
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(hashtext(phrase_value));
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO ident_id
   FROM Sentence
   WHERE UPPER(Sentence.value) = UPPER(phrase_value)
    AND Sentence.culture IS NULL
-  LIMIT 1
- );
+  LIMIT 1;
+  IF ident_id IS NULL THEN
+   -- Be sure to process any single value one at a time without the need of a transaction or locking Sentence table
+   PERFORM pg_advisory_lock(hashtext(phrase_value));
+   INSERT INTO Sentence (value, culture) (
+    SELECT phrase_value, NULL
+    FROM Dual
+    LEFT JOIN Sentence AS exists ON UPPER(exists.value) = UPPER(phrase_value)
+     AND exists.culture IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(hashtext(phrase_value));
+   SELECT id INTO ident_id
+   FROM Sentence
+   WHERE UPPER(Sentence.value) = UPPER(phrase_value)
+    AND Sentence.culture IS NULL
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN ident_id;
 END;
 $$ LANGUAGE plpgsql;
 
