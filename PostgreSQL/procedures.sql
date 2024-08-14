@@ -1047,33 +1047,42 @@ DECLARE
  major_id integer;
  minor_id integer;
  patch_id integer;
+ version_id integer;
 BEGIN
  major_id := (SELECT GetWord(inMajor));
  IF major_id IS NOT NULL THEN
   minor_id := (SELECT GetWord(inMinor));
   patch_id := (SELECT GetWord(inPatch));
-  -- Be sure to process any single version one at a time without the need of a transaction or locking Version table
-  PERFORM pg_advisory_lock(major_id);
-  INSERT INTO Version (major, minor, patch) (
-   SELECT major_id, minor_id, patch_id
-   FROM Dual
-   LEFT JOIN Version AS exists ON exists.major = major_id
-    AND ((exists.minor = minor_id) OR (exists.minor IS NULL AND minor_id IS NULL))
-    AND ((exists.patch = patch_id) OR (exists.patch IS NULL AND patch_id IS NULL))
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(major_id);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO version_id
   FROM Version
   WHERE major = major_id
    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
    AND name IS NULL
-  LIMIT 1
- );
+  LIMIT 1;
+  IF version_id IS NULL THEN
+   -- Be sure to process any single version one at a time without the need of a transaction or locking Version table
+   PERFORM pg_advisory_lock(major_id);
+   INSERT INTO Version (major, minor, patch) (
+    SELECT major_id, minor_id, patch_id
+    FROM Dual
+    LEFT JOIN Version AS exists ON exists.major = major_id
+     AND ((exists.minor = minor_id) OR (exists.minor IS NULL AND minor_id IS NULL))
+     AND ((exists.patch = patch_id) OR (exists.patch IS NULL AND patch_id IS NULL))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(major_id);
+   SELECT id INTO version_id
+   FROM Version
+   WHERE major = major_id
+    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
+    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
+    AND name IS NULL
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN version_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1088,35 +1097,44 @@ DECLARE
  major_id integer;
  minor_id integer;
  patch_id integer;
+ version_id integer;
 BEGIN
  IF inName IS NOT NULL THEN
   name_id := (SELECT GetWord(inName));
   major_id := (SELECT GetWord(inMajor));
   minor_id := (SELECT GetWord(inMinor));
   patch_id := (SELECT GetWord(inPatch));
-  -- Be sure to process any single version name one at a time without the need of a transaction or locking Version table
-  PERFORM pg_advisory_lock(name_id);
-  INSERT INTO Version (name, major, minor, patch) (
-   SELECT name_id, major_id, minor_id, patch_id
-   FROM Dual
-   LEFT JOIN Version AS exists ON exists.name = name_id
-    AND ((exists.major = major_id) OR (exists.major IS NULL AND major_id IS NULL))
-    AND ((exists.minor = minor_id) OR (exists.minor IS NULL AND minor_id IS NULL))
-    AND ((exists.patch = patch_id) OR (exists.patch IS NULL AND patch_id IS NULL))
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(name_id);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO version_id
   FROM Version
   WHERE name = name_id
    AND ((major = major_id) OR (major IS NULL AND major_id IS NULL))
    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
-  LIMIT 1
- );
+  LIMIT 1;
+  IF version_id IS NULL THEN
+   -- Be sure to process any single version name one at a time without the need of a transaction or locking Version table
+   PERFORM pg_advisory_lock(name_id);
+   INSERT INTO Version (name, major, minor, patch) (
+    SELECT name_id, major_id, minor_id, patch_id
+    FROM Dual
+    LEFT JOIN Version AS exists ON exists.name = name_id
+     AND ((exists.major = major_id) OR (exists.major IS NULL AND major_id IS NULL))
+     AND ((exists.minor = minor_id) OR (exists.minor IS NULL AND minor_id IS NULL))
+     AND ((exists.patch = patch_id) OR (exists.patch IS NULL AND patch_id IS NULL))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(name_id);
+   SELECT id INTO version_id
+   FROM Version
+   WHERE name = name_id
+    AND ((major = major_id) OR (major IS NULL AND major_id IS NULL))
+    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
+    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN version_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1129,35 +1147,42 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 -- GetRelease(version integer, build char)
 CREATE OR REPLACE FUNCTION GetRelease (
  inVersion integer,
  inBuild varchar
 ) RETURNS integer AS $$
-DECLARE build_id integer;
+DECLARE
+ build_id integer;
+ release_id integer;
 BEGIN
  IF inVersion IS NOT NULL THEN
   build_id := (SELECT GetWord(inBuild));
-  -- Be sure to process any single version build one at a time without the need of a transaction or locking Release table
-  PERFORM pg_advisory_lock(inVersion);
-  INSERT INTO Release (build, version) (
-   SELECT build_id AS build, inVersion AS version
-   FROM Dual
-   LEFT JOIN Release AS exists ON exists.version = inVersion
-    AND ((exists.build = build_id) OR (exists.build IS NULL AND build_id IS NULL)) 
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(inVersion);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO release_id
   FROM Release
   WHERE version = inVersion
    AND ((build = build_id) OR (build IS NULL AND build_id IS NULL))
-  LIMIT 1
- );
+  LIMIT 1;
+  IF release_id IS NULL THEN
+   -- Be sure to process any single version build one at a time without the need of a transaction or locking Release table
+   PERFORM pg_advisory_lock(inVersion);
+   INSERT INTO Release (build, version) (
+    SELECT build_id AS build, inVersion AS version
+    FROM Dual
+    LEFT JOIN Release AS exists ON exists.version = inVersion
+     AND ((exists.build = build_id) OR (exists.build IS NULL AND build_id IS NULL)) 
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inVersion);
+   SELECT id INTO release_id
+   FROM Release
+   WHERE version = inVersion
+    AND ((build = build_id) OR (build IS NULL AND build_id IS NULL))
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN release_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1174,27 +1199,34 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION GetApplication(
  inName varchar
 ) RETURNS integer AS $$
-DECLARE name_ident integer;
+DECLARE
+ name_ident integer;
+ application_id integer;
 BEGIN
  IF inName IS NOT NULL THEN
   name_ident := (SELECT GetWord(inName));
-  -- Be sure to process any single application one at a time without the need of a transaction or locking Application table
-  PERFORM pg_advisory_lock(name_ident);
-  INSERT INTO Application (name) (
-   SELECT name_ident AS name
-   FROM Dual
-   LEFT JOIN Application AS exists ON exists.name = name_ident
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(name_ident);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO application_id
   FROM Application
   WHERE name = name_ident
-  LIMIT 1
- );
+  LIMIT 1;
+  IF application_id IS NULL THEN
+   -- Be sure to process any single application one at a time without the need of a transaction or locking Application table
+   PERFORM pg_advisory_lock(name_ident);
+   INSERT INTO Application (name) (
+    SELECT name_ident AS name
+    FROM Dual
+    LEFT JOIN Application AS exists ON exists.name = name_ident
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(name_ident);
+   SELECT id INTO application_id
+   FROM Application
+   WHERE name = name_ident
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN application_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1203,27 +1235,35 @@ CREATE OR REPLACE FUNCTION GetApplicationRelease (
  inApplication integer,
  inRelease integer
 ) RETURNS integer AS $$
+DECLARE
+ applicationRelease_id integer;
 BEGIN
  IF inApplication IS NOT NULL THEN
-  -- Be sure to process any single application release one at a time without the need of a transaction or locking ApplicationRelease table
-  PERFORM pg_advisory_lock(inApplication);
-  INSERT INTO ApplicationRelease (application, release) (
-   SELECT inApplication AS application, inRelease AS release
-   FROM Dual
-   LEFT JOIN ApplicationRelease AS exists ON exists.application = inApplication
-    AND ((exists.release = inRelease) OR (exists.release IS NULL AND inRelease IS NULL))
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(inApplication);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO applicationRelease_id
   FROM ApplicationRelease
   WHERE application = inApplication
    AND ((release = inRelease) OR (release IS NULL AND inRelease IS NULL))
-  LIMIT 1
- );
+  LIMIT 1;
+  IF applicationRelease_id IS NULL THEN
+   -- Be sure to process any single application release one at a time without the need of a transaction or locking ApplicationRelease table
+   PERFORM pg_advisory_lock(inApplication);
+   INSERT INTO ApplicationRelease (application, release) (
+    SELECT inApplication AS application, inRelease AS release
+    FROM Dual
+    LEFT JOIN ApplicationRelease AS exists ON exists.application = inApplication
+     AND ((exists.release = inRelease) OR (exists.release IS NULL AND inRelease IS NULL))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inApplication);
+   SELECT id INTO applicationRelease_id
+   FROM ApplicationRelease
+   WHERE application = inApplication
+    AND ((release = inRelease) OR (release IS NULL AND inRelease IS NULL))
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN applicationRelease_id;
 END;
 $$ LANGUAGE plpgsql;
 
