@@ -740,29 +740,37 @@ CREATE OR REPLACE FUNCTION GetEmail (
  inHost varchar
 ) RETURNS integer AS $$
 DECLARE
+ email_id integer;
 BEGIN
  IF inUserName IS NOT NULL AND inHost IS NOT NULL THEN
-  -- Be sure to process any single username one at a time without the need of a transaction or locking Email table
-  PERFORM pg_advisory_lock(hashtext(inUserName));
-  INSERT INTO Email (username, plus, host) (
-   SELECT inUserName, inPlus, inHost
-   FROM DUAL
-   LEFT JOIN Email AS exists ON UPPER(exists.username) = UPPER(inUserName)
-    AND UPPER(exists.host) = UPPER(inHost)
-    AND ((UPPER(exists.plus) = UPPER(inPlus)) OR (exists.plus IS NULL AND inPlus IS NULL))
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(hashtext(inUserName));
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO email_id
   FROM Email
   WHERE UPPER(username) = UPPER(inUserName)
    AND UPPER(host) = UPPER(inHost)
    AND ((UPPER(plus) = UPPER(inPlus)) OR (plus IS NULL AND inPlus IS NULL))
-  LIMIT 1
- );
+  LIMIT 1;
+  IF email_id IS NULL THEN
+   -- Be sure to process any single username one at a time without the need of a transaction or locking Email table
+   PERFORM pg_advisory_lock(hashtext(inUserName));
+   INSERT INTO Email (username, plus, host) (
+    SELECT inUserName, inPlus, inHost
+    FROM DUAL
+    LEFT JOIN Email AS exists ON UPPER(exists.username) = UPPER(inUserName)
+     AND UPPER(exists.host) = UPPER(inHost)
+     AND ((UPPER(exists.plus) = UPPER(inPlus)) OR (exists.plus IS NULL AND inPlus IS NULL))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(hashtext(inUserName));
+   SELECT id INTO email_id
+   FROM Email
+   WHERE UPPER(username) = UPPER(inUserName)
+    AND UPPER(host) = UPPER(inHost)
+    AND ((UPPER(plus) = UPPER(inPlus)) OR (plus IS NULL AND inPlus IS NULL))
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN email_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -796,31 +804,35 @@ BEGIN
   -- Get names
   listName_id := (SELECT GetWord(inListName));
   setName_id := (SELECT GetWord(inSetName));
- 
-  -- Insert list name if it does not exist
-  -- Be sure to process any single list name id one at a time without the need of a transaction or locking ListIndividualName table
-  PERFORM pg_advisory_lock(listName_id);
-  INSERT INTO ListIndividualName (name, listSet, optinStyle)
-  SELECT listName_id, setName_id, 1
-  FROM DUAL
-  LEFT JOIN ListIndividualName AS exists ON exists.name = listName_id
-   AND ((exists.listSet = setName_id) OR (exists.listSet IS NULL AND setName_id IS NULL))
-   AND exists.optinStyle = 1
-  WHERE exists.listIndividual IS NULL
-  LIMIT 1
-  ;
-  PERFORM pg_advisory_unlock(listName_id);
- END IF;
-
- -- Get individual list
- RETURN (
-  SELECT listIndividual
+  SELECT listIndividual INTO listIndividual_id
   FROM ListIndividualName
   WHERE name = listName_id
    AND ((listSet = setName_id) OR (listSet IS NULL AND setName_id IS NULL))
    AND optinStyle = 1
-  LIMIT 1
- );
+  LIMIT 1;
+  IF listIndividual_id IS NULL THEN
+   -- Insert list name if it does not exist
+   -- Be sure to process any single list name id one at a time without the need of a transaction or locking ListIndividualName table
+   PERFORM pg_advisory_lock(listName_id);
+   INSERT INTO ListIndividualName (name, listSet, optinStyle)
+   SELECT listName_id, setName_id, 1
+   FROM DUAL
+   LEFT JOIN ListIndividualName AS exists ON exists.name = listName_id
+    AND ((exists.listSet = setName_id) OR (exists.listSet IS NULL AND setName_id IS NULL))
+    AND exists.optinStyle = 1
+   WHERE exists.listIndividual IS NULL
+   LIMIT 1
+   ;
+   PERFORM pg_advisory_unlock(listName_id);
+   SELECT listIndividual INTO listIndividual_id
+   FROM ListIndividualName
+   WHERE name = listName_id
+    AND ((listSet = setName_id) OR (listSet IS NULL AND setName_id IS NULL))
+    AND optinStyle = 1
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN listIndividual_id;
 END;
 $$ LANGUAGE plpgsql;
 
