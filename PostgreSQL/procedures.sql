@@ -1272,33 +1272,43 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION GetPart (
  inName varchar
 ) RETURNS integer AS $$
-DECLARE name_id integer;
+DECLARE
+ name_id integer;
+ part_id integer;
 BEGIN
  IF inName IS NOT NULL THEN
   name_id := (SELECT GetSentence(inName));
-  -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
-  PERFORM pg_advisory_lock(name_id);
-  INSERT INTO Part (name) (
-   SELECT name_id
-   FROM Dual
-   LEFT JOIN Part AS exists ON exists.name = name_id
-    AND exists.parent IS NULL
-    AND exists.version IS NULL
-    AND exists.serial IS NULL
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(name_id);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO part_id
   FROM Part
   WHERE name = name_id
    AND parent IS NULL
    AND version IS NULL
    AND serial IS NULL
-  LIMIT 1
- );
+  LIMIT 1;
+  IF part_id IS NULL THEN
+   -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
+   PERFORM pg_advisory_lock(name_id);
+   INSERT INTO Part (name) (
+    SELECT name_id
+    FROM Dual
+    LEFT JOIN Part AS exists ON exists.name = name_id
+     AND exists.parent IS NULL
+     AND exists.version IS NULL
+     AND exists.serial IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(name_id);
+   SELECT id INTO part_id
+   FROM Part
+   WHERE name = name_id
+    AND parent IS NULL
+    AND version IS NULL
+    AND serial IS NULL
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN part_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1307,32 +1317,42 @@ CREATE OR REPLACE FUNCTION GetPartWithParent (
  inNameId integer,
  inParentId integer
 ) RETURNS integer AS $$
+DECLARE
+ part_id integer;
 BEGIN
  IF inNameId IS NOT NULL AND inParentId IS NOT NULL THEN
   -- Insert if it does not alread exists
-  -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
-  PERFORM pg_advisory_lock(inNameId);
-  INSERT INTO Part (name, parent) (
-   SELECT inNameId, inParentId
-   FROM Dual
-   LEFT JOIN Part AS exists ON exists.name = inNameId
-    AND exists.parent = inParentId
-    AND exists.version IS NULL
-    AND exists.serial IS NULL
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(inNameId);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO part_id
   FROM Part
   WHERE name = inNameId
    AND parent = inParentId
    AND version IS NULL
    AND serial IS NULL
-  LIMIT 1
- );
+  LIMIT 1;
+  IF part_id IS NULL THEN
+   -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
+   PERFORM pg_advisory_lock(inNameId);
+   INSERT INTO Part (name, parent) (
+    SELECT inNameId, inParentId
+    FROM Dual
+    LEFT JOIN Part AS exists ON exists.name = inNameId
+     AND exists.parent = inParentId
+     AND exists.version IS NULL
+     AND exists.serial IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inNameId);
+   SELECT id INTO part_id
+   FROM Part
+   WHERE name = inNameId
+    AND parent = inParentId
+    AND version IS NULL
+    AND serial IS NULL
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN part_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1354,9 +1374,10 @@ CREATE OR REPLACE FUNCTION GetPartWithParent (
  inPartName varchar,
  inParentName varchar
 ) RETURNS integer AS $$
-DECLARE part_name_id integer;
-DECLARE parent_name_id integer;
-DECLARE parent_id integer;
+DECLARE
+ part_name_id integer;
+ parent_name_id integer;
+ parent_id integer;
 BEGIN
  IF inPartName IS NOT NULL AND inParentName IS NOT NULL THEN
   part_name_id := (SELECT GetSentence(inPartName));
@@ -1388,10 +1409,11 @@ CREATE OR REPLACE FUNCTION GetPartWithParent (
  inParentName varchar,
  inParentVersionName varchar
 ) RETURNS integer AS $$
-DECLARE part_name_id integer;
-DECLARE parent_name_id integer;
-DECLARE parent_version_name_id integer;
-DECLARE parent_id integer;
+DECLARE
+ part_name_id integer;
+ parent_name_id integer;
+ parent_version_name_id integer;
+ parent_id integer;
 BEGIN
  IF inPartName IS NOT NULL AND inParentName IS NOT NULL AND inParentVersionName IS NOT NULL THEN
   part_name_id := (SELECT GetSentence(inPartName));
@@ -1424,12 +1446,13 @@ CREATE OR REPLACE FUNCTION GetPartWithParent (
  inParentName varchar,
  inParentVersionName varchar
 ) RETURNS integer AS $$
-DECLARE part_name_id integer;
-DECLARE part_version_name_id integer;
-DECLARE parent_name_id integer;
-DECLARE parent_version_name_id integer;
-DECLARE parent_id integer;
-DECLARE part_id integer;
+DECLARE
+ part_name_id integer;
+ part_version_name_id integer;
+ parent_name_id integer;
+ parent_version_name_id integer;
+ parent_id integer;
+ part_id integer;
 BEGIN
  IF inPartName IS NOT NULL AND inPartVersionName IS NOT NULL AND inParentName IS NOT NULL AND inParentVersionName IS NOT NULL THEN
   part_name_id := (SELECT GetSentence(inPartName));
@@ -1450,27 +1473,36 @@ BEGIN
    -- Create parent
    parent_id := (SELECT GetPart(inParentName,inParentVersionName));
   END IF;
-  PERFORM pg_advisory_lock(parent_id);
-  INSERT INTO Part (parent, name, version) (
-   SELECT parent_id, part_name_id, part_version_name_id
-   FROM Dual
-   LEFT JOIN Part AS exists ON exists.parent = parent_id
-    AND exists.name = part_name_id
-    AND exists.version = part_version_name_id
-    AND serial IS NULL
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(parent_id);
-  RETURN (
-   SELECT id
+  SELECT id INTO part_id
+  FROM Part
+  WHERE parent = parent_id
+   AND name = part_name_id
+   AND version = part_version_name_id
+   AND serial IS NULL
+  LIMIT 1;
+  IF part_id IS NULL THEN
+   PERFORM pg_advisory_lock(parent_id);
+   INSERT INTO Part (parent, name, version) (
+    SELECT parent_id, part_name_id, part_version_name_id
+    FROM Dual
+    LEFT JOIN Part AS exists ON exists.parent = parent_id
+     AND exists.name = part_name_id
+     AND exists.version = part_version_name_id
+     AND serial IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(parent_id);
+   SELECT id INTO part_id
    FROM Part
    WHERE parent = parent_id
    AND name = part_name_id
    AND version = part_version_name_id
    AND serial IS NULL
-  );
+   LIMIT 1;
+  END IF;
  END IF;
+ RETURN part_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1480,10 +1512,11 @@ CREATE OR REPLACE FUNCTION GetPartWithParentVersion (
  inParentName varchar,
  inParentVersion_id integer
 ) RETURNS integer AS $$
-DECLARE part_name_id integer;
-DECLARE parent_name_id integer;
-DECLARE parent_id integer;
-DECLARE part_id integer;
+DECLARE
+ part_name_id integer;
+ parent_name_id integer;
+ parent_id integer;
+ part_id integer;
 BEGIN
  IF inPartName IS NOT NULL AND inParentName IS NOT NULL THEN
   part_name_id := (SELECT GetSentence(inPartName));
@@ -1502,27 +1535,36 @@ BEGIN
    -- Create parent
    parent_id := (SELECT GetPart(inParentName, inParentVersion_id));
   END IF;
-  PERFORM pg_advisory_lock(parent_id);
-  INSERT INTO Part (parent, name, version) (
-   SELECT parent_id, part_name_id, inPartVersion_id
-   FROM Dual
-   LEFT JOIN Part AS exists ON exists.parent = parent_id
-    AND exists.name = part_name_id
-    AND ((exists.version = inPartVersion_id) OR (exists.version IS NULL AND inPartVersion_id IS NULL))
-    AND serial IS NULL
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(parent_id);
-  RETURN (
-   SELECT id
-   FROM Part
-   WHERE parent = parent_id
+  SELECT id INTO part_id
+  FROM Part
+  WHERE parent = parent_id
    AND name = part_name_id
    AND ((version = inPartVersion_id) OR (version IS NULL AND inPartVersion_id IS NULL))
    AND serial IS NULL
-  );
+  LIMIT 1;
+  IF part_id IS NULL THEN
+   PERFORM pg_advisory_lock(parent_id);
+   INSERT INTO Part (parent, name, version) (
+    SELECT parent_id, part_name_id, inPartVersion_id
+    FROM Dual
+    LEFT JOIN Part AS exists ON exists.parent = parent_id
+     AND exists.name = part_name_id
+     AND ((exists.version = inPartVersion_id) OR (exists.version IS NULL AND inPartVersion_id IS NULL))
+     AND serial IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(parent_id);
+   SELECT id INTO part_id
+   FROM Part
+   WHERE parent = parent_id
+    AND name = part_name_id
+    AND ((version = inPartVersion_id) OR (version IS NULL AND inPartVersion_id IS NULL))
+    AND serial IS NULL
+   LIMIT 1;
+  END IF;
  END IF;
+ RETURN part_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1530,9 +1572,11 @@ CREATE OR REPLACE FUNCTION GetPart (
  inName varchar,
  inVersion integer
 ) RETURNS integer AS $$
-DECLARE name_id integer;
-DECLARE sibling_id integer;
-DECLARE parent_id integer;
+DECLARE
+ name_id integer;
+ sibling_id integer;
+ parent_id integer;
+ part_id integer;
 BEGIN
  IF inName IS NOT NULL AND inVersion IS NOT NULL THEN
   name_id := (SELECT GetSentence(inName));
@@ -1565,29 +1609,37 @@ BEGIN
    parent_id := sibling_id;
   END IF;
   -- Insert this part if it is not a duplicate
-  -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
-  PERFORM pg_advisory_lock(parent_id);
-  INSERT INTO Part (parent, name, version) (
-   SELECT parent_id, name_id, inVersion
-   FROM Dual
-   LEFT JOIN Part AS exists ON exists.parent = parent_id
-    AND exists.name = name_id
-    AND exists.version = inVersion
-    AND exists.serial IS NULL
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(parent_id);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO part_id
   FROM Part
   WHERE name = name_id
    AND parent = parent_id
    AND version = inVersion
    AND serial IS NULL
-  LIMIT 1
-  );
+  LIMIT 1;
+  IF part_id IS NULL THEN
+   -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
+   PERFORM pg_advisory_lock(parent_id);
+   INSERT INTO Part (parent, name, version) (
+    SELECT parent_id, name_id, inVersion
+    FROM Dual
+    LEFT JOIN Part AS exists ON exists.parent = parent_id
+     AND exists.name = name_id
+     AND exists.version = inVersion
+     AND exists.serial IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(parent_id);
+   SELECT id INTO part_id
+   FROM Part
+   WHERE name = name_id
+    AND parent = parent_id
+    AND version = inVersion
+    AND serial IS NULL
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN part_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1666,28 +1718,36 @@ CREATE OR REPLACE FUNCTION GetPartbySerial (
  inParent integer,
  inSerial varchar
 ) RETURNS integer AS $$
+DECLARE
+ part_id integer;
 BEGIN
  IF inParent IS NOT NULL THEN
-  -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
-  PERFORM pg_advisory_lock(inParent);
-  INSERT INTO Part (parent, name, version, serial) (
-   SELECT inParent, parent.name, parent.version, inSerial
-   FROM Part AS parent
-   LEFT JOIN Part AS exists ON exists.parent = inParent
-    AND exists.serial = inSerial
-   WHERE parent.id = inParent
-    AND exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(inParent);
- END IF;
- RETURN (
-  SELECT part.id
+  SELECT part.id INTO part_id
   FROM Part
   WHERE Part.parent = inParent
    AND Part.serial = inSerial
-  LIMIT 1
- );
+  LIMIT 1;
+  IF part_id IS NULL THEN
+   -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
+   PERFORM pg_advisory_lock(inParent);
+   INSERT INTO Part (parent, name, version, serial) (
+    SELECT inParent, parent.name, parent.version, inSerial
+    FROM Part AS parent
+    LEFT JOIN Part AS exists ON exists.parent = inParent
+     AND exists.serial = inSerial
+    WHERE parent.id = inParent
+     AND exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inParent);
+   SELECT part.id INTO part_id
+   FROM Part
+   WHERE Part.parent = inParent
+    AND Part.serial = inSerial
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN part_id;
 END;
 $$ LANGUAGE plpgsql;
 
