@@ -38,5 +38,11 @@ INSERT INTO credential (username, password, culture) VALUES ('helmet', 1, 1033);
 SELECT SetSession('BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn', NULL, 1000, 1, 10, '107.77.97.52', NULL) FROM DUAL;
 -- SetSession should be called on every page load to keep session alive and track the client
 
-
-
+SELECT session, token, os, agent, credential, username
+FROM Sessions
+ORDER BY token, credential NULLS FIRST, touched
+;
+-- session |              token               |  os   | agent  | credential | username 
+-----------+----------------------------------+-------+--------+------------+----------
+--       1 | BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn | Linux | Chrome |            | 
+--       1 | BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn | Linux | Chrome |          1 | helmet
