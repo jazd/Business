@@ -1793,8 +1793,9 @@ CREATE OR REPLACE FUNCTION PutAssemblyPart (
  inDesignator varchar,
  inQuantity integer
 ) RETURNS void AS $$
-DECLARE assembly_id integer;
-DECLARE part_id integer;
+DECLARE
+ assembly_id integer;
+ part_id integer;
 BEGIN
  assembly_id := GetPart(inAssemblyName, inAssemblyVersion, inAssemblyMajor, inAssemblyMinor, inAssemblyPatch);
  part_id := GetPart(inPartName, inPartVersion, inPartMajor, inPartMinor, inPartPatch);
@@ -1980,10 +1981,11 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION RandomString (
  inLength integer
 ) RETURNS varchar AS $$
-DECLARE base_chars varchar[] := '{0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}';
-DECLARE base integer := 62;
-DECLARE x integer;
-DECLARE result_string varchar;
+DECLARE
+ base_chars varchar[] := '{0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}';
+ base integer := 62;
+ x integer;
+ result_string varchar;
 BEGIN
  IF inLength > 0 THEN
   result_string := '';
@@ -2013,9 +2015,10 @@ CREATE OR REPLACE FUNCTION GetDeviceOSApplicationRelease (
  inDeviceFamily varchar,
  inDeviceFamilyVersion varchar
 ) RETURNS integer AS $$
-DECLARE deviceName VARCHAR;
-DECLARE deviceId integer;
-DECLARE deviceVersionId integer;
+DECLARE
+ deviceName VARCHAR;
+ deviceId integer;
+ deviceVersionId integer;
 BEGIN
  deviceName := (SELECT COALESCE(inDeviceFamily, 'Unknown'));
  -- User Device Agent SessionCredential.agent field, references AssemblyApplicationRelease.id
@@ -2116,27 +2119,35 @@ CREATE OR REPLACE FUNCTION GetAgentString (
  inAgent integer,
  inString integer
 ) RETURNS integer AS $$
+DECLARE
+ agentstring_id integer;
 BEGIN
  IF inString IS NOT NULL THEN
-  -- Be sure to process any single agent string one at a time without the need of a transaction or locking AgentString table
-  PERFORM pg_advisory_lock(inString);
-  INSERT INTO AgentString (agent,userAgentString) (
-   SELECT inAgent, inString
-   FROM Dual
-   LEFT JOIN AgentString AS exists ON exists.userAgentString = inString
-    AND ((exists.agent = inAgent) OR (exists.agent IS NULL AND inAgent IS NULL))
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(inString);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO agentstring_id
   FROM AgentString
   WHERE userAgentString = inString
    AND ((agent = inAgent) OR (agent IS NULL AND inAgent IS NULL))
-  LIMIT 1
- );
+  LIMIT 1;
+  IF agentstring_id IS NULL THEN
+   -- Be sure to process any single agent string one at a time without the need of a transaction or locking AgentString table
+   PERFORM pg_advisory_lock(inString);
+   INSERT INTO AgentString (agent,userAgentString) (
+    SELECT inAgent, inString
+    FROM Dual
+    LEFT JOIN AgentString AS exists ON exists.userAgentString = inString
+     AND ((exists.agent = inAgent) OR (exists.agent IS NULL AND inAgent IS NULL))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inString);
+   SELECT id INTO agentstring_id
+   FROM AgentString
+   WHERE userAgentString = inString
+    AND ((agent = inAgent) OR (agent IS NULL AND inAgent IS NULL))
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN agentstring_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -2172,10 +2183,11 @@ CREATE OR REPLACE FUNCTION AnonymousSession (
  -- Connection
  inIPAddress inet
 ) RETURNS bigint AS $$
-DECLARE string_id INTEGER;
-DECLARE deviceAgent_id INTEGER;
-DECLARE deviceName VARCHAR;
-DECLARE agentString_id INTEGER;
+DECLARE
+ string_id INTEGER;
+ deviceAgent_id INTEGER;
+ deviceName VARCHAR;
+ agentString_id INTEGER;
 BEGIN
  string_id := (SELECT GetIdentityPhrase(inUAstring));
 
@@ -2234,8 +2246,9 @@ CREATE OR REPLACE FUNCTION AnonymousSession (
  -- Connection
  inIPAddress inet
 ) RETURNS bigint AS $$
-DECLARE existingSession bigint;
-DECLARE referringURL integer;
+DECLARE
+ existingSession bigint;
+ referringURL integer;
 BEGIN
 
  referringURL := GetUrl(inRefSecure,inRefHost,inRefPath,inRefGet);
@@ -2333,11 +2346,12 @@ CREATE OR REPLACE FUNCTION SetSession (
  inLocation integer,
  inStart timestamp
 ) RETURNS bigint AS $$
-DECLARE string_id INTEGER;
-DECLARE deviceAgent_id INTEGER;
-DECLARE deviceName VARCHAR;
-DECLARE agentString_id INTEGER;
-DECLARE referring_id INTEGER;
+DECLARE
+ string_id INTEGER;
+ deviceAgent_id INTEGER;
+ deviceName VARCHAR;
+ agentString_id INTEGER;
+ referring_id INTEGER;
 BEGIN
  string_id := (SELECT GetIdentityPhrase(inUAstring));
 
@@ -2377,8 +2391,9 @@ CREATE OR REPLACE FUNCTION SetSession (
  inLocation integer,
  inStart timestamp
 ) RETURNS bigint AS $$
-DECLARE newSession bigint;
-DECLARE existingSession bigint;
+DECLARE
+ newSession bigint;
+ existingSession bigint;
 BEGIN
  IF inSessionToken IS NOT NULL THEN
   -- Does a session already exist for this token and site application release
@@ -3212,28 +3227,35 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION GetSchedule (
  inScheduleName varchar
 ) RETURNS integer AS $$
-DECLARE scheduleName_id integer;
-DECLARE schedule_id integer;
+DECLARE
+ scheduleName_id integer;
+ schedule_id integer;
 BEGIN
  IF inScheduleName IS NOT NULL THEN
    scheduleName_id := GetSentence(inScheduleName);
-   -- Be sure to process any single schedule one at a time without the need of a transaction or locking ScheduleName table
-   PERFORM pg_advisory_lock(scheduleName_id);
-   INSERT INTO ScheduleName (name) (
-    SELECT scheduleName_id
-    FROM DUAL
-    LEFT JOIN ScheduleName AS exists ON exists.name = scheduleName_id
-    WHERE exists.schedule IS NULL
-    LIMIT 1
-   ) RETURNING schedule INTO schedule_id;
-   PERFORM pg_advisory_unlock(scheduleName_id);
+   SELECT schedule INTO schedule_id
+   FROM ScheduleName
+   WHERE name = scheduleName_id
+   LIMIT 1;
    IF schedule_id IS NULL THEN
-    schedule_id = (
-     SELECT schedule
-     FROM ScheduleName
-     WHERE name = scheduleName_id
+    -- Be sure to process any single schedule one at a time without the need of a transaction or locking ScheduleName table
+    PERFORM pg_advisory_lock(scheduleName_id);
+    INSERT INTO ScheduleName (name) (
+     SELECT scheduleName_id
+     FROM DUAL
+     LEFT JOIN ScheduleName AS exists ON exists.name = scheduleName_id
+     WHERE exists.schedule IS NULL
      LIMIT 1
-    );
+    ) RETURNING schedule INTO schedule_id;
+    PERFORM pg_advisory_unlock(scheduleName_id);
+    IF schedule_id IS NULL THEN
+     schedule_id = (
+      SELECT schedule
+      FROM ScheduleName
+      WHERE name = scheduleName_id
+      LIMIT 1
+     );
+    END IF;
    END IF;
  END IF;
  RETURN schedule_id;
@@ -3243,28 +3265,35 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION GetJob (
  inJobName varchar
 ) RETURNS integer AS $$
-DECLARE jobName_id integer;
-DECLARE job_id integer;
+DECLARE
+ jobName_id integer;
+ job_id integer;
 BEGIN
  IF inJobName IS NOT NULL THEN
   jobName_id := GetSentence(inJobName);
-  -- Be sure to process any single job one at a time without the need of a transaction or locking JobName table
-  PERFORM pg_advisory_lock(jobName_id);
-  INSERT INTO JobName (name) (
-   SELECT jobName_id
-   FROM DUAL
-   LEFT JOIN JobName AS exists ON exists.name = jobName_id
-   WHERE exists.job IS NULL
-   LIMIT 1
-  ) RETURNING job INTO job_id;
-  PERFORM pg_advisory_unlock(jobName_id);
+  SELECT job INTO job_id
+  FROM JobName
+  WHERE name = jobName_id
+  LIMIT 1;
   IF job_id IS NULL THEN
-   job_id = (
-    SELECT job
-    FROM JobName
-    WHERE name = jobName_id
+   -- Be sure to process any single job one at a time without the need of a transaction or locking JobName table
+   PERFORM pg_advisory_lock(jobName_id);
+   INSERT INTO JobName (name) (
+    SELECT jobName_id
+    FROM DUAL
+    LEFT JOIN JobName AS exists ON exists.name = jobName_id
+    WHERE exists.job IS NULL
     LIMIT 1
-   );
+   ) RETURNING job INTO job_id;
+   PERFORM pg_advisory_unlock(jobName_id);
+   IF job_id IS NULL THEN
+    job_id = (
+     SELECT job
+     FROM JobName
+     WHERE name = jobName_id
+     LIMIT 1
+    );
+   END IF;
   END IF;
  END IF;
  RETURN job_id;
