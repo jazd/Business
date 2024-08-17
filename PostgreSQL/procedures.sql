@@ -1807,29 +1807,38 @@ CREATE OR REPLACE FUNCTION GetAssemblyApplicationRelease (
  inApplicationRelease integer,
  inParent integer
 ) RETURNS integer AS $$
+DECLARE
+ assemblyapplicationrelease_id integer;
 BEGIN
  IF inAssembly IS NOT NULL AND inApplicationRelease IS NOT NULL THEN
-  -- Be sure to process any single assmbly application release one at a time without the need of a transaction or locking AssemblyApplicationRelease table
-  PERFORM pg_advisory_lock(inAssembly);
-  INSERT INTO AssemblyApplicationRelease (parent, assembly, applicationRelease) (
-   SELECT inParent AS parent, inAssembly AS assembly, inApplicationRelease AS applicationRelease
-   FROM Dual
-   LEFT JOIN AssemblyApplicationRelease AS exists ON exists.assembly = inAssembly
-    AND exists.applicationRelease = inApplicationRelease
-    AND ((exists.parent = inParent) OR (exists.parent IS NULL AND inParent IS NULL))
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(inAssembly);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO assemblyapplicationrelease_id
   FROM AssemblyApplicationRelease
   WHERE assembly = inAssembly
    AND applicationRelease = inApplicationRelease
    AND ((parent = inParent) OR (parent IS NULL AND inParent IS NULL))
-  LIMIT 1
- );
+  LIMIT 1;
+  -- Be sure to process any single assmbly application release one at a time without the need of a transaction or locking AssemblyApplicationRelease table
+  IF assemblyapplicationrelease_id IS NULL THEN
+   PERFORM pg_advisory_lock(inAssembly);
+   INSERT INTO AssemblyApplicationRelease (parent, assembly, applicationRelease) (
+    SELECT inParent AS parent, inAssembly AS assembly, inApplicationRelease AS applicationRelease
+    FROM Dual
+    LEFT JOIN AssemblyApplicationRelease AS exists ON exists.assembly = inAssembly
+     AND exists.applicationRelease = inApplicationRelease
+     AND ((exists.parent = inParent) OR (exists.parent IS NULL AND inParent IS NULL))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inAssembly);
+   SELECT id INTO assemblyapplicationrelease_id
+   FROM AssemblyApplicationRelease
+   WHERE assembly = inAssembly
+    AND applicationRelease = inApplicationRelease
+    AND ((parent = inParent) OR (parent IS NULL AND inParent IS NULL))
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN assemblyapplicationrelease_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1850,9 +1859,11 @@ CREATE OR REPLACE FUNCTION GetPath (
  inValue varchar,
  inGet varchar
 ) RETURNS integer AS $$
-DECLARE is_secure integer := 0;
+DECLARE
+ is_secure integer := 0;
  lockText varchar;
  lockID bigint;
+ path_id integer;
 BEGIN
  -- host and path can not both be null
  IF inValue IS NOT NULL OR inHost IS NOT NULL THEN
@@ -1862,31 +1873,40 @@ BEGIN
   END IF;
   lockText := COALESCE(inHost, '') || COALESCE(inValue, '');
   lockID := hashtext(lockText);
-  -- Be sure to process any single path one at a time without the need of a transaction or locking Path table
-  PERFORM pg_advisory_lock(lockID);
-  INSERT INTO Path (protocol, secure, host, value, get) (
-   SELECT inProtocol, is_secure, inHost, inValue, inGet
-   FROM Dual
-   LEFT JOIN Path AS exists ON exists.protocol = inProtocol
-    AND exists.secure = is_secure
-    AND ((UPPER(exists.host) = UPPER(inHost)) OR (exists.host IS NULL AND inHost IS NULL))
-    AND ((exists.value = inValue) OR (exists.value IS NULL OR inValue IS NULL))
-    AND ((exists.get = inGet) OR (exists.get IS NULL AND inGet IS NULL))
-   WHERE exists.id IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(lockID);
- END IF;
- RETURN (
-  SELECT id
+  SELECT id INTO path_id
   FROM Path
   WHERE protocol = inProtocol
    AND secure = is_secure
    AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
    AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
    AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
-  LIMIT 1
- );
+  LIMIT 1;
+  IF path_id IS NULL THEN
+   -- Be sure to process any single path one at a time without the need of a transaction or locking Path table
+   PERFORM pg_advisory_lock(lockID);
+   INSERT INTO Path (protocol, secure, host, value, get) (
+    SELECT inProtocol, is_secure, inHost, inValue, inGet
+    FROM Dual
+    LEFT JOIN Path AS exists ON exists.protocol = inProtocol
+     AND exists.secure = is_secure
+     AND ((UPPER(exists.host) = UPPER(inHost)) OR (exists.host IS NULL AND inHost IS NULL))
+     AND ((exists.value = inValue) OR (exists.value IS NULL OR inValue IS NULL))
+     AND ((exists.get = inGet) OR (exists.get IS NULL AND inGet IS NULL))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(lockID);
+   SELECT id INTO path_id
+   FROM Path
+   WHERE protocol = inProtocol
+    AND secure = is_secure
+    AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
+    AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
+    AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN path_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1918,32 +1938,40 @@ CREATE OR REPLACE FUNCTION GetPhone (
 ) RETURNS integer AS $$
 DECLARE
  countrycode_id integer;
+ phone_id integer;
 BEGIN
  IF inNumber IS NOT NULL THEN
   countrycode_id := (SELECT id FROM Country WHERE UPPER(Country.code) = UPPER(inCountryCode));
-  -- Be sure to process any single phone number one at a time without the need of a transaction or locking Phone table
   IF countrycode_id IS NOT NULL THEN
-   PERFORM pg_advisory_lock(hashtext(inNumber));
-   INSERT INTO Phone (country, area, number) (
-    SELECT countrycode_id, inAreaCode, inNumber
-    FROM Dual
-    LEFT JOIN Phone AS exists ON exists.country = countrycode_id
-     AND exists.area = inAreaCode
-     AND exists.number = inNumber
-    WHERE exists.id IS NULL
-    LIMIT 1
-   );
-   PERFORM pg_advisory_unlock(hashtext(inNumber));
+   SELECT id INTO phone_id
+   FROM Phone
+   WHERE country = countrycode_id
+    AND area = inAreaCode
+    AND number = inNumber
+   LIMIT 1;
+   IF phone_id IS NULL THEN
+    -- Be sure to process any single phone number one at a time without the need of a transaction or locking Phone table
+    PERFORM pg_advisory_lock(hashtext(inNumber));
+    INSERT INTO Phone (country, area, number) (
+     SELECT countrycode_id, inAreaCode, inNumber
+     FROM Dual
+     LEFT JOIN Phone AS exists ON exists.country = countrycode_id
+      AND exists.area = inAreaCode
+      AND exists.number = inNumber
+     WHERE exists.id IS NULL
+     LIMIT 1
+    );
+    PERFORM pg_advisory_unlock(hashtext(inNumber));
+    SELECT id INTO phone_id
+    FROM Phone
+    WHERE country = countrycode_id
+     AND area = inAreaCode
+     AND number = inNumber
+    LIMIT 1;
+   END IF;
   END IF;
  END IF;
- RETURN (
-  SELECT id
-  FROM Phone
-  WHERE country = countrycode_id
-   AND area = inAreaCode
-   AND number = inNumber
-  LIMIT 1
- );
+ RETURN phone_id;
 END;
 $$ LANGUAGE plpgsql;
 
