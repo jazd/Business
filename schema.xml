@@ -2028,14 +2028,14 @@ JOIN Parts AS Parts ON parts.part = AssemblyPart.part
 LEFT JOIN I8NWord AS Designator ON Designator.id = AssemblyPart.designator
   </sql>
  </view>
- <view name="AssemblyApplicationReleases" fields="assemblyapplicationrelease,applicationrelease,assembly,application,release,asseblyparent,assemblyname,assemblyverionid,assemblyversion,serial,applicationid,applicationname,goesby,applicationpath,applicationversionid,applicationversionname,buildname">
+ <view name="AssemblyApplicationReleases" fields="assemblyapplicationrelease,applicationrelease,assembly,application,release,assemblyparent,assemblyname,assemblyverionid,assemblyversion,serial,applicationid,applicationname,goesby,applicationpath,applicationversionid,applicationversionname,buildname,created">
    <sql>
    SELECT AssemblyApplicationRelease.id AS assemblyApplicationRelease,
     AssemblyApplicationRelease.applicationRelease,
     Assembly.part AS assembly,
     ApplicationReleases.application,
     ApplicationReleases.release,
-    Assembly.parent AS asseblyParent,
+    Assembly.parent AS assemblyParent,
     Assembly.name AS assemblyName,
     Assembly.versionId AS assemblyVerionId,
     Assembly.version AS assemblyVersion,
@@ -2046,7 +2046,8 @@ LEFT JOIN I8NWord AS Designator ON Designator.id = AssemblyPart.designator
     ApplicationReleases.applicationPath,
     ApplicationReleases.versionId AS applicationVersionId,
     ApplicationReleases.versionName AS applicationVersionName,
-    ApplicationReleases.buildName
+    ApplicationReleases.buildName,
+    AssemblyApplicationRelease.created
    FROM AssemblyApplicationRelease
    JOIN Parts AS Assembly ON Assembly.part = AssemblyApplicationRelease.assembly
    JOIN ApplicationReleases ON ApplicationReleases.applicationrelease = AssemblyApplicationRelease.applicationrelease
