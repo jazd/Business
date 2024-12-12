@@ -1,3 +1,4 @@
 !path lib/*.jar
 !|dbfit.PostgresTest|
+Server, Username, password ,database name
 !|Connect|localhost|test|dbfit|MyCo|

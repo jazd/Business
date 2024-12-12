@@ -587,16 +587,24 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
 CREATE OR REPLACE FUNCTION GetIndividualPerson (
+ inHonorific varchar, -- prefix
  inFirst varchar,
  inMiddle varchar,
  inLast varchar,
+ inSuffix varchar,
+ inPost varchar,
  inBirth date, -- Can't be null
+ inBirthLocation integer,
  inGoesBy varchar,
  inDeath date
 ) RETURNS bigint AS $$
 DECLARE
  name_id integer;
+ prefix_id integer;
+ suffix_id integer;
+ post_id integer;
  goesBy_id integer;
  lockID bigint;
  individual_id bigint;
@@ -616,13 +624,16 @@ BEGIN
 
  IF individual_id IS NULL THEN
   name_id := (SELECT GetName(inFirst,inMiddle,inLast));
+  prefix_id := (SELECT GetWord(inHonorific));
+  suffix_id := (SELECT GetWord(inSuffix));
+  post_id := (SELECT GetWord(inPost));
   goesBy_id := (SELECT GetGiven(inGoesBy));
 
   IF name_id IS NOT NULL AND inBirth IS NOT NULL THEN
    -- Be sure to process any single birthdate one at a time without the need of a transaction or locking the Individual table
    lockID := extract(epoch FROM inBirth)::bigint;
    PERFORM pg_advisory_lock(lockID);
-   INSERT INTO Individual(name, goesBy, birth, death) VALUES (name_id, goesBy_id, inBirth, inDeath);
+   INSERT INTO Individual(name, prefix, suffix, post, goesBy, birth, location, death) VALUES (name_id, prefix_id, suffix_id, post_id, goesBy_id, inBirth, inBirthLocation, inDeath);
    PERFORM pg_advisory_unlock(lockID);
   END IF;
 
@@ -640,6 +651,21 @@ BEGIN
  RETURN individual_id;
 END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION GetIndividualPerson (
+ inFirst varchar,
+ inMiddle varchar,
+ inLast varchar,
+ inBirth date, -- Can't be null
+ inGoesBy varchar,
+ inDeath date
+) RETURNS bigint AS $$
+BEGIN
+ RETURN GetIndividualPerson(NULL, inFirst, inMiddle, inLast, NULL, NULL, inBirth, NULL, inGoesBy, inDeath);
+END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION GetEntityName (
  inName varchar
