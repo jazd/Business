@@ -1,5 +1,6 @@
 -- Application or user inserts on these tables should start well past static values
 DBCC CHECKIDENT ('Word', RESEED, 2000000);
+DBCC CHECKIDENT ('WordPlural', RESEED, 1000);
 DBCC CHECKIDENT ('Name', RESEED, 2000000);
 DBCC CHECKIDENT ('Entity', RESEED, 2000000);
 DBCC CHECKIDENT ('Individual', RESEED, 4000000);

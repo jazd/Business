@@ -5,7 +5,7 @@
 <table name="Culture" order="1">
 <fields>
  <field name="code" data_type="smallint" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="2">
-  <comments>Like 1033 http://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx</comments></field>
+  <comments>Like 1033 https://learn.microsoft.com/en-us/previous-versions/commerce-server/ee799297(v=cs.20) or https://learn.microsoft.com/en-us/openspecs/office_standards/ms-oe376/6c085406-a698-4e12-9d4d-c3b0ee3dbc4a</comments></field>
  <field name="name" data_type="varchar" size="9" is_nullable="0" is_auto_increment="0" is_primary_key="0" order="3">
   <comments>Like en-US</comments></field>
 </fields>
@@ -65,6 +65,29 @@
 </constraints>
 <comments></comments>
 </table>
+
+<table name="WordPlural" order="5">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="culture" data_type="smallint" size="" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
+ <field name="word" data_type="integer" size="" is_nullable="0" order="3">
+   <comments>Singular word</comments>
+ </field>
+ <field name="plural" data_type="integer" size="" is_nullable="1" order="4">
+   <comments>Enumeration NULL:empty, 0:zero, 2:two, 3:few 4:many</comments>
+ </field>
+ <field name="form" data_type="integer" size="" is_nullable="0" order="5">
+   <comments>The word form to use for this plural value</comments>
+ </field>
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="word" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="form" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 
 <comments>DAG https://www.codeproject.com/Articles/22824/A-Model-to-Represent-Directed-Acyclic-Graphs-DAG-o</comments>
 <table name="Edge" order="10">

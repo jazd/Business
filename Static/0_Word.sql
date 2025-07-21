@@ -198,3 +198,12 @@ INSERT INTO Word (id,culture,value) VALUES (70007,2058,'Retenido');
 INSERT INTO Word (id,culture,value) VALUES (70100,1033,'Payroll');
 INSERT INTO Word (id,culture,value) VALUES (70100,1036,'le registre du personnel');
 INSERT INTO Word (id,culture,value) VALUES (70100,2058,'Nómina de sueldos');
+
+-- Plural example words
+INSERT INTO Word (id,culture,value) VALUES (80000,1033,'Cat');
+INSERT INTO Word (id,culture,value) VALUES (80000,1036,'Chat');
+INSERT INTO Word (id,culture,value) VALUES (80000,1045,'Kot');
+INSERT INTO Word (id,culture,value) VALUES (80001,1033,'Cats');
+INSERT INTO Word (id,culture,value) VALUES (80001,1036,'Chats');
+INSERT INTO Word (id,culture,value) VALUES (80001,1045,'Koty');
+INSERT INTO Word (id,culture,value) VALUES (80002,1045,'Kotów');

@@ -55,6 +55,7 @@ CREATE SEQUENCE IF NOT EXISTS individualjob_id_seq START WITH 100;
 -- Application or user insert on these tables should start at 2000000
 -- This leaves room for global constants that are guaranteed to exist
 ALTER SEQUENCE word_id_seq RESTART WITH 2000000;
+ALTER SEQUENCE wordplural_id_seq RESTART WITH 1000;
 ALTER SEQUENCE sentence_id_seq RESTART WITH 2000000;
 ALTER SEQUENCE paragraph_id_seq RESTART WITH 2000000;
 ALTER SEQUENCE name_id_seq RESTART WITH 2000000;
