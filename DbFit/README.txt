@@ -1,6 +1,8 @@
 dbfit http://dbfit.github.io/dbfit/
 
 
+# PostgreSQL host
+
 PostgreSQL database schema test server setup
 	Prior to version 10
 
@@ -37,6 +39,35 @@ You may need to edit <git root>/Business/Makefile PostgreSQLServer host entry.
 
 cd <git root>/Business
 make pgsqldb
+
+# PosgreSQL Container
+
+podman pull docker.io/library/postgres:latest
+podman run -d --name my-postgres \
+  -e POSTGRES_USER=admin \
+  -e POSTGRES_DB=MyCo \
+  -e POSTGRES_PASSWORD=dbfit \
+  -p 5432:5432 \
+  docker.io/library/postgres:latest
+podman logs my-postgres
+PGPASSWORD=dbfit psql -h localhost -U admin MyCo
+
+MyCo=#
+CREATE USER test WITH PASSWORD 'dbfit';
+ALTER ROLE test WITH LOGIN;
+CREATE SCHEMA Business;
+GRANT ALL ON SCHEMA Business TO test;
+ALTER USER test SET search_path TO Business;
+\q
+
+cd <git root>/Business
+PGPASSWORD=dbfit make pgsqldb
+
+PGPASSWORD=dbfit psql -h localhost -U test MyCo
+\dt
+\q
+
+#
 
 You may need to edit the Connect line in <git root>/Business/DbFit/BusinessSchema/PostgreSqlSuite/SetUp/content.txt
 
