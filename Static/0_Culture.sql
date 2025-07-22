@@ -7,3 +7,5 @@ INSERT INTO Culture (code, name) VALUES (1033,'en-US');
 INSERT INTO Culture (code, name) VALUES (2058,'es-MX');
 -- fr-FR	French - France		0x040C
 INSERT INTO Culture (code, name) VALUES (1036,'fr-FR');
+-- pl-PL	Polish
+INSERT INTO Culture (code, name) VALUES (1045,'pl-PL');
