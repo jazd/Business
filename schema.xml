@@ -1573,6 +1573,7 @@ LEFT JOIN Word ON Word.id = WordDefault.id
 WHERE WordDefault.culture = 1033
  </sql>
  </view>
+
  <view name="I8NSentence" fields="id,defaultCulture,clientCulture,resultCulture,value,length" order="0">
  <sql>
 SELECT SentenceDefault.id,
@@ -1587,6 +1588,40 @@ LEFT JOIN Sentence ON Sentence.id = SentenceDefault.id
 WHERE SentenceDefault.culture = 1033
  </sql>
  </view>
+
+ <view name="WordPlurals" fields="word,culture,zero,singular,two,few,many" order="0">
+ <sql>
+SELECT Word.id AS word,
+ Word.culture AS culture,
+ COALESCE(WordFormZero.value, Word.value) AS zero,
+ Word.value AS singular,
+ COALESCE(WordFormTwo.value, WordFormFew.value, WordFormMany.value, Word.value) AS two,
+ COALESCE(WordFormFew.value, WordFormMany.value, WordFormTwo.value, Word.value) AS few,
+ COALESCE(WordFormMany.value, WordFormFew.value, WordFormTwo.value, Word.value) AS many
+FROM Word
+LEFT JOIN WordPlural AS WordPluralZero ON WordPluralZero.word = Word.id
+ AND WordPluralZero.plural = 0
+ AND WordPluralZero.culture = Word.culture
+LEFT JOIN Word AS WordFormZero ON WordFormZero.id = WordPluralZero.form
+ AND WordFormZero.culture = Word.culture
+LEFT JOIN WordPlural AS WordPluralTwo ON WordPluralTwo.word = Word.id
+ AND WordPluralTwo.plural = 2
+ AND WordPluralTwo.culture = Word.culture
+LEFT JOIN Word AS WordFormTwo ON WordFormTwo.id = WordPluralTwo.form
+ AND WordFormTwo.culture = Word.culture
+LEFT JOIN WordPlural AS WordPluralFew ON WordPluralFew.word = Word.id
+ AND WordPluralFew.plural = 3
+ AND WordPluralFew.culture = Word.culture
+LEFT JOIN Word AS WordFormFew ON WordFormFew.id = WordPluralFew.form
+ AND WordFormFew.culture = Word.culture
+LEFT JOIN WordPlural AS WordPluralMany ON WordPluralMany.word = Word.id
+ AND WordPluralMany.plural = 4
+ AND WordPluralMany.culture = Word.culture
+LEFT JOIN Word AS WordFormMany on WordFormMany.id = WordPluralMany.form
+ AND WordFormMany.culture = Word.culture
+ </sql>
+ </view>
+
  <view name="People" fields="individual,name,goesBy,birthday,in_days,fullName,honorific,given,middle,family,suffix,post,honorificvalue,givenvalue,middlevalue,familyvalue,suffixvalue,postvalue,birth,death,aged,created" order="1">
  <sql>
 SELECT Individual.id AS individual, Name.id AS name,
@@ -1746,6 +1781,7 @@ LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
 WHERE Individual.nameChange IS NULL
   </sql>
  </view>
+
  <view name="List" fields="id,individual,listName,listNameValue,listSet,listSetValue,sequence,send,created" order="30">
   <sql>
 SELECT ListIndividual.id,
@@ -1771,6 +1807,7 @@ WHERE disable.individual IS NULL
  AND ListIndividual.unlist IS NULL
   </sql>
  </view>
+
  <view name="EmailAddress" fields="email,username,plus,host,value">
  <sql>
 SELECT id AS email, username, plus, host,
@@ -1780,6 +1817,7 @@ SELECT id AS email, username, plus, host,
 FROM Email
  </sql>
  </view>
+
  <view name="URL" fields="path,protocol,host,value,created">
   <sql>
 SELECT id AS path, protocol, host,
@@ -1795,6 +1833,7 @@ SELECT id AS path, protocol, host,
 FROM Path
   </sql>
  </view>
+
  <view name="File" fields="path,protocol,host,value,file,created">
   <sql>
 SELECT id AS path, protocol, host,
@@ -1818,6 +1857,7 @@ SELECT id AS path, protocol, host,
 FROM Path
   </sql>
  </view>
+
  <view name="IndividualURL" fields="individual,type,path,protocol,host,value,created">
   <sql>
 WITH latest (individual,type,created) AS (
@@ -1847,6 +1887,7 @@ JOIN Individual ON Individual.id = latest.individual
 JOIN Path ON Path.id = IndividualPath.path
   </sql>
  </view>
+
  <view name="IndividualEmailAddress" fields="individual,type,email,username,plus,host,value,created">
   <sql>
 WITH latest (individual,type,created) AS (
@@ -1866,6 +1907,7 @@ JOIN IndividualEmail ON IndividualEmail.individual = latest.individual
 JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email
   </sql>
  </view>
+
  <view name = "Phones" fields="phone,country,location,area,number,idd,ndd,code,local,international" >
   <sql>
 SELECT Phone.id AS phone, Phone.country, Phone.location,
@@ -1877,6 +1919,7 @@ FROM Phone
 JOIN Country ON Country.id = Phone.country
   </sql>
  </view>
+
  <view name="Addresses" fields="address,line1,line2,line3,city,state,zipcode,postalcode,country,countrycode,marquee,location,latitude,longitude">
   <sql>
 SELECT Address.id AS address,
@@ -1904,6 +1947,7 @@ LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
 LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
   </sql>
  </view>
+
  <view name="Versions" fields="version,name,value,major,minor,patch">
   <sql>
 SELECT Version.id AS version, name.value AS name,
@@ -1921,6 +1965,7 @@ LEFT JOIN I8NWord AS minor ON minor.id = Version.minor
 LEFT JOIN I8NWord AS patch ON patch.id = Version.patch
   </sql>
  </view>
+
  <view name="Applications" fields="application,name,goesby,path">
    <sql>
    SELECT Application.id AS application,
@@ -1931,6 +1976,7 @@ LEFT JOIN I8NWord AS patch ON patch.id = Version.patch
    JOIN I8NWord AS Name on Name.id = Application.name
    </sql>
  </view>
+
  <view name="ApplicationReleases" fields="applicationrelease,application,release,name,goesby,applicationpath,versionid,buildid,versionname,buildname">
    <sql>
    SELECT ApplicationRelease.id AS applicationRelease,
@@ -1950,6 +1996,7 @@ LEFT JOIN I8NWord AS patch ON patch.id = Version.patch
    JOIN I8NWord AS Build ON Build.id = Release.build
   </sql>
  </view>
+
  <view name="ParsedAgentStringShort" fields="agentstring,deviceid,device,osid,os,agentid,agent,deviceversion,osapplicationrelease,agentapplicationrelease">
   <sql>
 SELECT AgentString.id AS agentString,
@@ -1972,6 +2019,7 @@ JOIN Application AS Agent On Agent.id = agentApplicationRelease.application
 JOIN I8NWord AS AgentName ON AgentName.id = Agent.name
   </sql>
  </view>
+
  <view name="ParsedAgentString" fields="agentstring,deviceid,deviceversion,device,deviceersionname,osid,osversion,os,osversionname,agentid,agentversion,agent,agentversionname">
   <sql>
 SELECT agentstring,
@@ -1988,6 +2036,7 @@ LEFT JOIN Release AS AgentRelease ON AgentRelease.id = AgentApplicationRelease.r
 LEFT JOIN Versions AS AgentVersion ON AgentVersion.version = AgentRelease.version
   </sql>
  </view>
+
  <view name="Sessions" fields="session,token,siteapplicationrelease,agentstring,deviceid,device,osid,os,agentid,agent,referring,referrringurl,fromaddress,credential,individual,username,email,created,touched">
   <sql>
 SELECT Session.id AS session,
@@ -2009,6 +2058,7 @@ LEFT JOIN URL ON URL.path = SessionCredential.referring
 WHERE Session.id = SessionCredential.session
   </sql>
  </view>
+
  <view name="Parts" fields="part,parent,name,nameId,version,versionId,serial,created">
   <sql>
 SELECT Part.id AS part, Part.parent,
@@ -2023,6 +2073,7 @@ JOIN I8NSentence ON I8NSentence.id = Part.name
 LEFT JOIN Versions ON Versions.version = Part.version
   </sql>
  </view>
+
  <view name="Assemblies" fields="assembly, parentName, name, version, versionName, serial">
   <sql>
 SELECT DISTINCT AssemblyPart.assembly, Parent.name AS parentName,
@@ -2033,6 +2084,7 @@ JOIN Parts AS Assemblies ON Assemblies.part = AssemblyPart.assembly
 JOIN Parts AS Parent ON Parent.part = Assemblies.parent
   </sql>
  </view>
+
  <view name="AssemblyParts" fields="assembly, parentName, assemblyName, assemblyVersion, assemblyVersionName, assemblySerial, quantity, designator, part, partName, version, versionName, serial">
   <sql>
 SELECT AssemblyPart.assembly, Parent.name AS parentName,
@@ -2051,6 +2103,7 @@ JOIN Parts AS Parts ON parts.part = AssemblyPart.part
 LEFT JOIN I8NWord AS Designator ON Designator.id = AssemblyPart.designator
   </sql>
  </view>
+
  <view name="AssemblyApplicationReleases" fields="assemblyapplicationrelease,applicationrelease,assembly,application,release,assemblyparent,assemblyname,assemblyverionid,assemblyversion,serial,applicationid,applicationname,goesby,applicationpath,applicationversionid,applicationversionname,buildname,created">
    <sql>
    SELECT AssemblyApplicationRelease.id AS assemblyApplicationRelease,
@@ -2076,6 +2129,7 @@ LEFT JOIN I8NWord AS Designator ON Designator.id = AssemblyPart.designator
    JOIN ApplicationReleases ON ApplicationReleases.applicationrelease = AssemblyApplicationRelease.applicationrelease
   </sql>
  </view>
+
  <view name="Periods" fields="period,name,periodname">
    <sql>
 SELECT PeriodName.period, PeriodName.name, I8NSentence.value AS periodName
@@ -2083,6 +2137,7 @@ FROM PeriodName
 LEFT JOIN I8NSentence ON I8NSentence.id = PeriodName.name
    </sql>
  </view>
+
  <view name="PeriodSpans" fields="period,name,periodname,span,exclude,monthdaymonth,day,weekofmonth,dayofweekstart,dayofweekstop,dayofmonth,month,monthyear,daterangestart,daterangestop,timeofdaystart,timeofdaystop">
    <sql>
 SELECT PeriodName.period, PeriodName.name, I8NSentence.value AS periodName,
@@ -2102,6 +2157,7 @@ LEFT JOIN DateRange ON DateRange.id = Period.span
 LEFT JOIN TimeOfDay ON TimeOfDay.id = Period.span
    </sql>
  </view>
+
  <view name="TimePeriod" fields="period, open">
   <sql>
 SELECT period, bool_AND(open) AS open
@@ -2153,6 +2209,7 @@ JOIN TimeOfDay ON TimeOfDay.id = Period.span
 GROUP BY period
   </sql>
  </view>
+
  <view name="MaxSpan" fields="id">
   <comments>These tables share a unique sequence for their respective id fields.  A unique id value must not exist in more than a single Span table.</comments>
   <sql>
@@ -2169,6 +2226,7 @@ SELECT MAX(id) AS id FROM (
 ) AS MaxSpan
   </sql>
  </view>
+
  <view name="Accounts" fields="account,name,type,typeName,individual,individualName,individualAccountType,individualAccountTypeName,credit,debitIncrease,debitDecrease,creditIncrease,creditDecrease" order="900">
   <sql>
 SELECT AccountName.account,
@@ -2230,6 +2288,7 @@ JOIN LedgerAccount ON LedgerAccount.ledger = LedgerName.ledger
 JOIN Accounts ON Accounts.account = LedgerAccount.account
   </sql>
  </view>
+
  <view name="Journals" fields="journal,name">
   <sql>
 SELECT JournalName.journal,
@@ -2238,6 +2297,7 @@ FROM JournalName
 JOIN I8NSentence ON I8NSentence.id = JournalName.name
   </sql>
  </view>
+
  <view name="Books" fields="book,name,journal,journalname,split,increase,increasename,increasetype,increasecredit,increasedebitincrease,increasedebitdecrease,increasecreditincrease,increasecreditdecrease,decrease,decreasename,decreasetype,decreasecredit,decreasedebitincrease,decreasedebitdecrease,decreasecreditincrease,decreasecreditdecrease">
   <sql>
 SELECT BookName.book,
@@ -2269,6 +2329,7 @@ LEFT JOIN Accounts AS Increase ON Increase.account = BookAccount.increase
 LEFT JOIN Accounts AS Decrease  ON Decrease.account  = BookAccount.decrease
   </sql>
  </view>
+
  <view name="JournalEntries" fields="id,journal,journalname,book,bookname,entry,account,accountname,type,typename,ledger,ledgername,rightside,debit,credit,posted,created">
   <comments>ORDER BY created, entry, rightSide</comments>
   <sql>
@@ -2306,6 +2367,7 @@ LEFT JOIN LedgerName ON LedgerName.ledger = LedgerJournal.ledger
 LEFT JOIN I8NSentence AS LedgerNameString ON LedgerNameString.id = LedgerName.name
   </sql>
  </view>
+
  <view name="LedgerBalance" fields="ledger,ledgername,sequence,account,accountname,type,typename,debit,credit">
   <sql>
 SELECT Ledgers.ledger,
@@ -2384,6 +2446,7 @@ GROUP BY ledger,
  ledgerName
   </sql>
  </view>
+
  <view name="Edges" fields="edge, startName, stopName, hops, entry, direct, exit, start, stop">
   <sql>
 SELECT Edge.id AS edge,
@@ -2402,6 +2465,7 @@ JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
 LEFT JOIN I8NSentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
   </sql>
  </view>
+
  <view name="EdgeIndividuals" fields="edge,startname,stopname,startindividual,startindividualname,starttype,stopindividual,stopindividualname,stoptype,hops,entry,direct,exit">
   <sql>
 SELECT Edge.id AS edge,
@@ -2436,6 +2500,7 @@ LEFT JOIN Word AS StopType ON StopType.id = StopIndividualVertex.type
  AND StopType.culture IS NULL
   </sql>
  </view>
+
  <view name="AssemblyCurrentPrice" fields="assembly,nameid,supplier,price,created">
    <sql>
 SELECT Part.id AS assembly,
@@ -2460,6 +2525,7 @@ GROUP BY Part.id,
  Part.name
    </sql>
  </view>
+
  <view name="CargoesRaw" fields="bill, type, supplier, consignee, created, cargo, count, individualjob, assembly, journal, entry">
    <sql>
 SELECT Bill.id AS bill,
@@ -2477,6 +2543,7 @@ FROM Bill
 JOIN Cargo ON Cargo.bill = Bill.id
    </sql>
  </view>
+
  <view name="Cargoes" fields="bill, type, supplier, consignee, created, cargo, count, individualJob, assembly, journal, entry">
   <sql>
 SELECT bill,
@@ -2503,6 +2570,7 @@ GROUP BY bill,
  entry
   </sql>
  </view>
+
  <view name="LineItemsRaw" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentunitprice, unitprice, individualjob, job, schedule">
    <sql>
 SELECT CargoesRaw.bill,
@@ -2542,6 +2610,7 @@ LEFT JOIN AssemblyIndividualJobPrice AS FixedAssemblyIndividualJobPrice ON Fixed
  AND FixedAssemblyIndividualJobPrice.individualJob =  FixedIndividualJob.id
    </sql>
  </view>
+
  <view name="LineItems" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentUnitPrice, unitprice, totalPrice, outstanding, individualjob, job, schedule">
    <sql>
 SELECT bill,
