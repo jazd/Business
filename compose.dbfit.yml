@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  pgsql:
+    image: docker.io/postgres:17-bookworm
+    container_name: pgsql
+    environment:
+      POSTGRES_DB: MyCo
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d MyCo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  dbfit:
+    image: docker.io/thinkwhere/dbfit:latest
+    ports:
+      - "8085:8085"
+    volumes:
+     - ./DbFit:/dbfit/FitNesseRoot/DbFit:z
+    depends_on:
+      pgsql:
+        condition: service_healthy
+
