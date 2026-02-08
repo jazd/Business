@@ -2393,9 +2393,10 @@ GROUP BY Ledgers.ledger,
   </sql>
  </view>
 
- <view name="JournalReport" fields="journal,entry,account,type,ledger,ledgerName,debit,credit,rightside,created">
+ <view name="JournalReport" fields="journal,journalName,entry,account,type,ledger,ledgerName,debit,credit,rightside,created">
   <sql>
 SELECT journal,
+ journalName,
  entry,
  accountName AS account,
  typeName AS type,
@@ -2409,6 +2410,7 @@ FROM JournalEntries
 WHERE posted IS NULL
 UNION ALL
 SELECT NULL AS journal,
+ NULL AS journalName,
  NULL AS entry,
  !apos;Total!apos; AS account,
  NULL AS type,

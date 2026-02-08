@@ -23,3 +23,8 @@ Currently **Alpha**, and may change significantly before Beta release.  Use in t
 * Almost no business rules are carried out outside of the database server
 
 The original idea for this schema comes from my earlier Origins/peopleSchema.sql work, a schema I created back in 2002.  Originally source controlled with RCS.
+
+## Prerequisites
+- perl-XML-Twig  (Fedora: `sudo dnf install perl-XML-Twig`)
+## Optional
+- podman (Fedora: `sudo dnf install podman podman-docker podman-compose`)

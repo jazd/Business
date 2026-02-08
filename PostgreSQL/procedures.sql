@@ -2756,6 +2756,8 @@ $$ LANGUAGE plpgsql;
 
 -- Drop functions thas use JournalEntryResult
 DROP FUNCTION IF EXISTS Book(varchar, float);
+DROP FUNCTION IF EXISTS Post(varchar, float, varchar);
+DROP FUNCTION IF EXISTS Post(varchar, float, varchar, timestamp);
 --
 DROP TYPE IF EXISTS JournalEntryResult;
 CREATE TYPE JournalEntryResult AS (
@@ -2895,6 +2897,75 @@ BEGIN
    AND Sentence.culture = 1033
   GROUP BY Transactions.account, AccountName.name, AccountName.credit, AccountName.type, Word.value, Sentence.value
   ;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Post a balanced General Journal entry
+CREATE OR REPLACE FUNCTION Post (
+ inDebitAccount varchar,
+ inAmount FLOAT,
+ inCreditAccount varchar,
+ inDateTime timestamp
+) RETURNS JournalEntryResult AS $$
+DECLARE
+ journal_name varchar;
+ journal_id integer;
+ credit_account_id integer;
+ debit_account_id integer;
+ entry_id integer;
+BEGIN
+ journal_name := 'General';
+
+ IF inDateTime IS NULL THEN
+  inDateTime := CAST(NOW() AS date);
+ END IF;
+
+ SELECT journal
+ INTO journal_id
+ FROM JournalName
+ JOIN Sentence ON Sentence.id = JournalName.name
+ WHERE Sentence.value = journal_name
+ LIMIT 1
+ ;
+
+ SELECT account
+ INTO credit_account_id
+ FROM AccountName
+ JOIN Sentence ON Sentence.id = AccountName.name
+ WHERE Sentence.value = inCreditAccount
+ LIMIT 1
+ ;
+
+ SELECT account
+ INTO debit_account_id
+ FROM AccountName
+ JOIN Sentence ON Sentence.id = AccountName.name
+ WHERE Sentence.value = inDebitAccount
+ LIMIT 1
+ ;
+
+ IF journal_id IS NOT NULL AND credit_account_id IS NOT NULL AND debit_account_id IS NOT NULL THEN
+  -- Get a new unique entry_id
+  INSERT INTO Entry (assemblyApplicationRelease,credential) VALUES (NULL, NULL) RETURNING id INTO entry_id;
+
+  -- Balanced entries
+  INSERT INTO JournalEntry (journal, entry, account, credit, amount, created)
+  VALUES (journal_id, entry_id, credit_account_id, true, inAmount, inDateTime);
+  INSERT INTO JournalEntry (journal, entry, account, credit, amount, created)
+  VALUES (journal_id, entry_id, debit_account_id, false, inAmount, inDateTime);
+ END IF;
+
+ RETURN ROW(journal_id, entry_id);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION Post (
+ inDebitAccount varchar,
+ inAmount FLOAT,
+ inCreditAccount varchar
+) RETURNS JournalEntryResult AS $$
+BEGIN
+ RETURN Post(inCreditAccount, inAmount, inDebitAccount, NULL);
 END;
 $$ LANGUAGE plpgsql;
 
