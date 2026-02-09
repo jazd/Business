@@ -14,6 +14,7 @@ Only en-US and es-MX
 |1033|en-US|
 |2058|es-MX|
 |1036|fr-FR|
+|1045|pl-PL|
 
 Longest Code Insert
 
