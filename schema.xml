@@ -843,6 +843,36 @@
 </constraints>
 </table>
 
+<comments>Tables for Enrollment over Secure Transport RFC 7030 (ESP) support</comments>
+
+<table name="AssemblyPublicKey" order="240"></table>
+
+<table name="AssemblyCertificateSigningRequest" order="240"></table>
+
+<table name="CA" order="240"></table>
+
+<table name="CertificateSigningRequest" order="240"></table>
+<!-- applicationrelease that generated csr -->
+
+<table name="Certificate" order="240">
+ <fields>
+  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ </fields>
+</table>
+<!-- applicationrelease that generated certificate -->
+
+<table name="ESTRequest" order="240"></table>
+
+<table name="AssemblyCertificate" order="240"></table>
+
+<table name="AssemblyCertificateRotation" order="240"></table>
+
+<table name="CAPolicy" order="240"></table>
+
+<table name="CertificatePolicy" order="240"></table>
+
+
+
 <table name="Attribute" order="801">
 <comments>untested</comments>
 <fields>
