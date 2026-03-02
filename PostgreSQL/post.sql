@@ -3,6 +3,16 @@
 -- upper(value) is not allowed in an in-table constraint
 CREATE UNIQUE INDEX word_value ON Word(culture,UPPER(value));
 
+-- Type fixups
+-- timezonetz for certificate tables
+ALTER TABLE AssemblyPublicKey ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
+ALTER TABLE AssemblyCertificateSigningRequest ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
+ALTER TABLE CAPolicy ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
+ALTER TABLE Certificate ALTER COLUMN start TYPE timestamptz USING start AT TIME ZONE 'UTC';
+ALTER TABLE Certificate ALTER COLUMN revoked TYPE timestamptz USING revoked AT TIME ZONE 'UTC';
+ALTER TABLE AssemblyCertificate ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
+
+
 -- Untested
 CREATE INDEX sentence_value ON Sentence(culture,UPPER(value));
 CREATE UNIQUE INDEX sentence_value_null ON Sentence(UPPER(value)) WHERE culture IS NULL;
