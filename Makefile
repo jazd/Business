@@ -86,6 +86,10 @@ schema.sqlite: schema.xml container
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
 	$(SQLT) -f XML-SQLFairy -t SQLite $(DROP_TABLE) $<.excludeSomeViews | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "s/NOW()/CURRENT_TIMESTAMP/g" | sed -e "s/LEFT(number,3)/SUBSTR(number,1,3)/g" | sed -e "s/RIGHT(number,4)/SUBSTR(number,-4)/g" | sed -e "s/bool_AND/MIN/g" | sed -e "s/ClientCulture()/1033/g" | sed -e "/birthday(/d" | sed -e "/age(/d" >> $@
+	sed -E '/^CREATE TABLE Word \(/,/^\);?$$/ { s/^  id integer NOT NULL,$$/  id integer NOT NULL DEFAULT 0,/; }' -i $@
+	sed -E '/^CREATE TABLE Sentence \(/,/^\);?$$/ { s/^  id integer NOT NULL,$$/  id integer NOT NULL DEFAULT 0,/; }' -i $@
+	sed -E '/^CREATE TABLE Paragraph \(/,/^\);?$$/ { s/^  id integer NOT NULL,$$/  id integer NOT NULL DEFAULT 0,/; }' -i $@
+	sed -E '/^CREATE TABLE [A-Za-z0-9_]+ [(]/,/^[[:space:]]*[)];?[[:space:]]*(--.*)?$$/ { s/^[[:space:]]*id[[:space:]]+INTEGER[[:space:]]+PRIMARY[[:space:]]+KEY[[:space:]]+NOT[[:space:]]+NULL[[:space:]]*,?[[:space:]]*(--.*)?$$/  id INTEGER PRIMARY KEY AUTOINCREMENT,/; }' -i $@
 	chmod -w $@
 	rm -f $<.excludeSomeViews
 
@@ -156,6 +160,7 @@ ifeq ($(wildcard business.sqlite3),)
 	# TODO come up with GetPostal replacement
 	# TODO come up with GetSentence and GetAddress replacements
 	cat Static/[23456789]_* | sed -e "/GetSentence */d" | sed -e "/GetAddress */d" | sed -e "s/, false/, 0/g" | sed -e "s/, true/, 1/g" | sqlite3 $@
+	cat SQLite/post.sql | sqlite3 $@
 else
 	@echo SQLite database $@ already exists.
 	@echo Please move or remove it.
