@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 
-# Usage: GetPart.sh <part_name>
+# Usage: GetPart.sh <part_name> [<version_integer>]
 
 source ~/bin/sqlite/common
 
 PART_NAME="${1:-}"
+VERSION_ARG="${2:-}"
 
 if [[ -z "$PART_NAME" ]]; then
  echo ""
  exit 0
 fi
 
-# Get sentence ID (root parts use GetSentence)
+# Get sentence ID for the part name
 name_id=$(~/bin/sqlite/GetSentence "$PART_NAME")
 
 if [[ -z "$name_id" ]]; then
@@ -19,35 +20,114 @@ if [[ -z "$name_id" ]]; then
  exit 0
 fi
 
-# Try to find existing root part
+# No version provided so get/create root part
+if [[ -z "$VERSION_ARG" ]]; then
+
+    part_id=$(sqlite_query_one "
+     SELECT id
+     FROM Part
+     WHERE name = $name_id
+      AND parent IS NULL
+      AND version IS NULL
+      AND serial IS NULL
+     LIMIT 1;
+    ")
+
+    if [[ -n "$part_id" ]]; then
+     echo "$part_id"
+     exit 0
+    fi
+
+    insert_result=$(sqlite_run "
+     INSERT OR IGNORE INTO Part (name)
+     VALUES ($name_id);
+    ")
+
+    part_id=$(sqlite_query_one "
+     SELECT id
+     FROM Part
+     WHERE name = $name_id
+      AND parent IS NULL
+      AND version IS NULL
+      AND serial IS NULL
+     LIMIT 1;
+    ")
+
+    echo "${part_id:-}"
+    exit 0
+fi
+
+# Version provided as integer
+if ! [[ "$VERSION_ARG" =~ ^[0-9]+$ ]]; then
+    echo "Error: second argument must be an integer (version)" >&2
+    exit 1
+fi
+
+version_value="$VERSION_ARG"
+
+# Find suitable parent for this versioned part
+sibling_parent=$(sqlite_query_one "
+ SELECT parent
+ FROM Part
+ WHERE name = $name_id
+  AND version IS NOT NULL
+  AND serial IS NULL
+ LIMIT 1;
+")
+
+if [[ -n "$sibling_parent" ]]; then
+    parent_id="$sibling_parent"
+else
+    # Look for existing non-root, no version, has parent
+    parent_id=$(sqlite_query_one "
+     SELECT id
+     FROM Part
+     WHERE name = $name_id
+      AND parent IS NOT NULL
+      AND version IS NULL
+      AND serial IS NULL
+     LIMIT 1;
+    ")
+
+    # Fallback: get/create root part (this may recurse once)
+    if [[ -z "$parent_id" ]]; then
+        parent_id=$(~/bin/sqlite/GetPart "$PART_NAME")
+        if [[ -z "$parent_id" ]]; then
+            echo "" >&2
+            exit 1
+        fi
+    fi
+fi
+
+# Now look for existing versioned part with this parent + version
 part_id=$(sqlite_query_one "
  SELECT id
  FROM Part
  WHERE name = $name_id
-  AND parent IS NULL
-  AND version IS NULL
+  AND parent = $parent_id
+  AND version = $version_value
   AND serial IS NULL
  LIMIT 1;
 ")
 
 if [[ -n "$part_id" ]]; then
- echo "$part_id"
- exit 0
+    echo "$part_id"
+    exit 0
 fi
 
-# Insert if missing
+# Insert the versioned part
 insert_result=$(sqlite_run "
- INSERT OR IGNORE INTO Part (name)
- VALUES ($name_id);
+ INSERT OR IGNORE INTO Part (parent, name, version)
+ VALUES ($parent_id, $name_id, $version_value);
 ")
 
-# Fetch the id
+# Fetch the newly created/existing id
 part_id=$(sqlite_query_one "
  SELECT id
  FROM Part
  WHERE name = $name_id
-  AND parent IS NULL
-  AND version IS NULL
+  AND parent = $parent_id
+  AND version = $version_value
   AND serial IS NULL
  LIMIT 1;
 ")
