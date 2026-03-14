@@ -1,7 +1,6 @@
 properties
 updateList
 updateDoNotCopyOverList
-DbFit
 FrontPage
 PageFooter
 files
@@ -10,3 +9,4 @@ FitNesseRoot
 content.txt
 properties.xml
 lib
+DbFit/
