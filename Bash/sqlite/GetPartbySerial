@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+# Usage: GetPartbySerial.sh <parent_part_id> <serial_number>
+
+source ~/bin/sqlite/common
+
+PARENT_ID="${1:-}"
+SERIAL="${2:-}"
+
+if [[ -z "$PARENT_ID" || -z "$SERIAL" ]]; then
+ echo ""
+ exit 0
+fi
+
+# Must be integer
+if ! [[ "$PARENT_ID" =~ ^[0-9]+$ ]]; then
+ echo "Error: first argument must be an integer (parent part id)" >&2
+ exit 1
+fi
+
+# Try to find existing serialized part
+part_id=$(sqlite_query_one "
+ SELECT id
+ FROM Part
+ WHERE parent = $PARENT_ID
+  AND serial = '$SERIAL'
+ LIMIT 1;
+")
+
+if [[ -n "$part_id" ]]; then
+ echo "$part_id"
+ exit 0
+fi
+
+# Escape serial for SQL safety
+escaped_serial=$(sql_escape "$SERIAL")
+
+# Insert if missing (copy name & version from parent)
+insert_result=$(sqlite_run "
+ INSERT OR IGNORE INTO Part (parent, name, version, serial)
+ SELECT $PARENT_ID, parent.name, parent.version, '$escaped_serial'
+ FROM Part AS parent
+ WHERE parent.id = $PARENT_ID
+   AND NOT EXISTS (
+     SELECT 1 FROM Part
+     WHERE parent = $PARENT_ID
+       AND serial = '$escaped_serial'
+   )
+ LIMIT 1;
+")
+
+# Fetch the id (now should exist)
+part_id=$(sqlite_query_one "
+ SELECT id
+ FROM Part
+ WHERE parent = $PARENT_ID
+  AND serial = '$escaped_serial'
+ LIMIT 1;
+")
+
+echo "${part_id:-}"
+
