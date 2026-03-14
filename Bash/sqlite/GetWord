@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+# Usage: GetWord.sh <word_value> [<culture>]
+
+source ~/bin/sqlite/common
+
+WORD_VALUE="${1:-}"
+CULTURE="${2:-en-US}"
+
+if [[ -z "$WORD_VALUE" ]]; then
+ echo ""
+ exit 0
+fi
+
+# Normalize to UPPER for comparison
+WORD_UPPER=$(echo "$WORD_VALUE" | tr '[:lower:]' '[:upper:]')
+CULTURE_UPPER=$(echo "$CULTURE" | tr '[:lower:]' '[:upper:]')
+
+# Try to find existing (case-insensitive match)
+word_id=$(sqlite_query_one "
+ SELECT Word.id
+ FROM Word
+ JOIN Culture ON UPPER(Culture.name) = '$CULTURE_UPPER'
+ WHERE UPPER(Word.value) = '$WORD_UPPER'
+  AND Word.culture = Culture.code
+ LIMIT 1;
+")
+
+if [[ -n "$word_id" ]]; then
+ echo "$word_id"
+ exit 0
+fi
+
+escaped_value=$(sql_escape "$WORD_VALUE")
+
+insert_result=$(sqlite_run "
+ INSERT OR IGNORE INTO Word (value, culture)
+ SELECT '$escaped_value', Culture.code
+ FROM Culture
+ WHERE UPPER(Culture.name) = '$CULTURE_UPPER'
+ LIMIT 1;
+")
+
+# Fetch the id
+word_id=$(sqlite_query_one "
+ SELECT Word.id
+ FROM Word
+ JOIN Culture ON UPPER(Culture.name) = '$CULTURE_UPPER'
+ WHERE UPPER(Word.value) = '$WORD_UPPER'
+  AND Word.culture = Culture.code
+ LIMIT 1;
+")
+
+echo "${word_id:-}"

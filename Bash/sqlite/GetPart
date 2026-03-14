@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+# Usage: GetPart.sh <part_name>
+
+source ~/bin/sqlite/common
+
+PART_NAME="${1:-}"
+
+if [[ -z "$PART_NAME" ]]; then
+ echo ""
+ exit 0
+fi
+
+# Get sentence ID (root parts use GetSentence)
+name_id=$(~/bin/sqlite/GetSentence "$PART_NAME")
+
+if [[ -z "$name_id" ]]; then
+ echo ""
+ exit 0
+fi
+
+# Try to find existing root part
+part_id=$(sqlite_query_one "
+ SELECT id
+ FROM Part
+ WHERE name = $name_id
+  AND parent IS NULL
+  AND version IS NULL
+  AND serial IS NULL
+ LIMIT 1;
+")
+
+if [[ -n "$part_id" ]]; then
+ echo "$part_id"
+ exit 0
+fi
+
+# Insert if missing
+insert_result=$(sqlite_run "
+ INSERT OR IGNORE INTO Part (name)
+ VALUES ($name_id);
+")
+
+# Fetch the id
+part_id=$(sqlite_query_one "
+ SELECT id
+ FROM Part
+ WHERE name = $name_id
+  AND parent IS NULL
+  AND version IS NULL
+  AND serial IS NULL
+ LIMIT 1;
+")
+
+echo "${part_id:-}"

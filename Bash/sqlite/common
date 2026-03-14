@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Shared utilities for SQLite business logic
+# ln -s ~/sandbox/Business/Bash/sqlite/ ~/bin/
+
+set -euo pipefail
+
+: "${SQLITE_DB:=$HOME/data/business.sqlite3}"
+
+sqlite_run() {
+ local sql="$1"
+ sqlite3 "$SQLITE_DB" "$sql"
+}
+
+sqlite_query_one() {
+ local sql="$1"
+ sqlite3 "$SQLITE_DB" "$sql" | head -1
+}
+
+# Escape single quotes for SQL literals
+sql_escape() {
+ local s="$1"
+ echo "${s//\'/''}"
+}

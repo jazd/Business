@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+source ~/bin/sqlite/common
+
+NAME="${1:-}"
+MAJOR="${2:-}"
+MINOR="${3:-}"
+PATCH="${4:-}"
+
+if [[ -z "$NAME" ]]; then
+ echo ""
+ exit 0
+fi
+
+# Get word IDs
+name_id=$(~/bin/sqlite/GetWord "$NAME")
+major_id=$( [[ -n "$MAJOR" ]] && ~/bin/sqlite/GetWord "$MAJOR" || echo "" )
+minor_id=$( [[ -n "$MINOR" ]] && ~/bin/sqlite/GetWord "$MINOR" || echo "" )
+patch_id=$( [[ -n "$PATCH" ]] && ~/bin/sqlite/GetWord "$PATCH" || echo "" )
+
+# Build dynamic WHERE conditions for NULL handling
+major_cond="major $( [[ -n "$major_id" ]] && echo "= $major_id" || echo "IS NULL" )"
+minor_cond="minor $( [[ -n "$minor_id" ]] && echo "= $minor_id" || echo "IS NULL" )"
+patch_cond="patch $( [[ -n "$patch_id" ]] && echo "= $patch_id" || echo "IS NULL" )"
+
+# Try to find existing version
+version_id=$(sqlite_query_one "
+ SELECT id
+ FROM Version
+ WHERE name = $name_id
+  AND $major_cond
+  AND $minor_cond
+  AND $patch_cond
+ LIMIT 1;
+")
+
+if [[ -n "$version_id" ]]; then
+ echo "$version_id"
+ exit 0
+fi
+
+insert_result=$(sqlite_run "
+ INSERT OR IGNORE INTO Version (name, major, minor, patch)
+ VALUES ($name_id,
+  ${major_id:-NULL},
+  ${minor_id:-NULL},
+  ${patch_id:-NULL});
+")
+
+# Fetch the id
+version_id=$(sqlite_query_one "
+ SELECT id
+ FROM Version
+ WHERE name = $name_id
+  AND $major_cond
+  AND $minor_cond
+  AND $patch_cond
+ LIMIT 1;
+")
+
+echo "${version_id:-}"

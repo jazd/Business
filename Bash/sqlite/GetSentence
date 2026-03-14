@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+# Usage: GetSentence.sh <sentence_value> [<culture>]
+
+source ~/bin/sqlite/common
+
+SENTENCE_VALUE="${1:-}"
+CULTURE="${2:-en-US}"
+
+if [[ -z "$SENTENCE_VALUE" ]]; then
+ echo ""
+ exit 0
+fi
+
+# Normalize to UPPER for comparison
+SENTENCE_UPPER=$(echo "$SENTENCE_VALUE" | tr '[:lower:]' '[:upper:]')
+CULTURE_UPPER=$(echo "$CULTURE" | tr '[:lower:]' '[:upper:]')
+
+# Try to find existing (case-insensitive match)
+sentence_id=$(sqlite_query_one "
+ SELECT Sentence.id
+ FROM Sentence
+ JOIN Culture ON UPPER(Culture.name) = '$CULTURE_UPPER'
+ WHERE UPPER(Sentence.value) = '$SENTENCE_UPPER'
+  AND Sentence.culture = Culture.code
+ LIMIT 1;
+")
+
+if [[ -n "$sentence_id" ]]; then
+ echo "$sentence_id"
+ exit 0
+fi
+
+escaped_value=$(sql_escape "$SENTENCE_VALUE")
+sentence_length=${#SENTENCE_VALUE}
+
+insert_result=$(sqlite_run "
+ INSERT OR IGNORE INTO Sentence (value, culture, length)
+ SELECT '$escaped_value', Culture.code, $sentence_length
+ FROM Culture
+ WHERE UPPER(Culture.name) = '$CULTURE_UPPER'
+ LIMIT 1;
+")
+
+# Fetch the id
+sentence_id=$(sqlite_query_one "
+ SELECT Sentence.id
+ FROM Sentence
+ JOIN Culture ON UPPER(Culture.name) = '$CULTURE_UPPER'
+ WHERE UPPER(Sentence.value) = '$SENTENCE_UPPER'
+  AND Sentence.culture = Culture.code
+ LIMIT 1;
+")
+
+echo "${sentence_id:-}"
