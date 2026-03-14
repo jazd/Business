@@ -1,0 +1,48 @@
+{
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.defaultFormatter": "mtxr.sqltools",
+  "[sql]": {
+    "editor.defaultFormatter": "mtxr.sqltools",
+    "editor.tabSize": 1,
+    "editor.insertSpaces": true
+  },
+  "sqltools.format": {
+    "language": "sql",
+    "reservedWordCase": "upper",
+    "dataTypeCase": "upper",
+    "identifierCase": "pascal",
+    "objectNameCase": "pascal",
+    "functionNameCase": "pascal",
+    "indent": " ",
+    "linesBetweenQueries": 2,
+    "maxColumnLength": 100,
+    "expandCommaPositions": "after",
+    "expandInLists": true,
+    "expandBetweenConditions": true,
+    "expandAroundOperators": true,
+    "expandSubqueries": false,
+    "denseOperators": false,
+    "newlineBeforeOpenParen": false,
+    "multilineComments": "keep",
+    "keywordPosition": {
+      "SELECT": "sameLine",
+      "FROM": "newLine",
+      "WHERE": "newLine",
+      "JOIN": "newLine",
+      "ON": "sameLineAsJoin",
+      "GROUP BY": "newLine",
+      "HAVING": "newLine",
+      "ORDER BY": "newLine"
+    }
+  },
+  "sqltools.format.indent": " ",
+  "sqltools.format.uppercaseKeywords": true,
+  "sqltools.format.uppercaseDataTypes": true,
+  "beautify.sqlFormatter.uppercase": true,
+  "sqltools.format.multilineInsert": false,
+  "sqltools.format.multilineCreateTable": false,
+}
