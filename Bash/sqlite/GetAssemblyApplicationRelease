@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+# Usage: GetAssemblyApplicationRelease <assembly_id> <application_release_id> [<parent_id>]
+
+source ~/bin/sqlite/common
+
+ASSEMBLY_ID="${1:-}"
+APP_RELEASE_ID="${2:-}"
+PARENT_ID="${3:-}"
+
+if [[ -z "$ASSEMBLY_ID" || -z "$APP_RELEASE_ID" ]]; then
+ echo ""
+ exit 0
+fi
+
+if ! [[ "$ASSEMBLY_ID" =~ ^[0-9]+$ ]]; then
+ echo "Error: assembly_id must be an integer" >&2
+ exit 1
+fi
+
+if ! [[ "$APP_RELEASE_ID" =~ ^[0-9]+$ ]]; then
+ echo "Error: application_release_id must be an integer" >&2
+ exit 1
+fi
+
+# Optional parent_id must be integer or empty
+if [[ -n "$PARENT_ID" ]] && ! [[ "$PARENT_ID" =~ ^[0-9]+$ ]]; then
+ echo "Error: parent_id must be an integer if provided" >&2
+ exit 1
+fi
+
+# Build parent condition for lookups
+parent_cond="parent $( [[ -n "$PARENT_ID" ]] && echo "= $PARENT_ID" || echo "IS NULL" )"
+
+# Try to find existing record
+aar_id=$(sqlite_query_one "
+ SELECT id
+ FROM AssemblyApplicationRelease
+ WHERE assembly = $ASSEMBLY_ID
+  AND applicationRelease = $APP_RELEASE_ID
+  AND $parent_cond
+ LIMIT 1;
+")
+
+if [[ -n "$aar_id" ]]; then
+ echo "$aar_id"
+ exit 0
+fi
+
+# Insert if missing
+insert_result=$(sqlite_run "
+ INSERT OR IGNORE INTO AssemblyApplicationRelease (parent, assembly, applicationRelease)
+ VALUES (${PARENT_ID:-NULL}, $ASSEMBLY_ID, $APP_RELEASE_ID);
+")
+
+# Fetch the id (now guaranteed to exist if inputs valid)
+aar_id=$(sqlite_query_one "
+ SELECT id
+ FROM AssemblyApplicationRelease
+ WHERE assembly = $ASSEMBLY_ID
+  AND applicationRelease = $APP_RELEASE_ID
+  AND $parent_cond
+ LIMIT 1;
+")
+
+echo "${aar_id:-}"

@@ -673,7 +673,7 @@
 </table>
 
 
-<comments>A client device and its operating system. Change to AssemblyApplicationRelease</comments>
+<comments>A client device and its operating system.</comments>
 <table name="AssemblyApplicationRelease" order="140">
 <comments>untested</comments>
 <fields>
