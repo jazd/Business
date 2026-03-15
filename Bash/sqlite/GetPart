@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Usage: GetPart.sh <part_name> [<version_integer>]
+# Usage: GetPart <part_name> [<version>]
 
 source ~/bin/sqlite/common
 
@@ -57,13 +57,18 @@ if [[ -z "$VERSION_ARG" ]]; then
     exit 0
 fi
 
-# Version provided as integer
-if ! [[ "$VERSION_ARG" =~ ^[0-9]+$ ]]; then
-    echo "Error: second argument must be an integer (version)" >&2
-    exit 1
+# Version provided - decide if it's integer (direct id) or string (name)
+if [[ "$VERSION_ARG" =~ ^[0-9]+$ ]]; then
+    # Integer so treat as direct version id
+    version_value="$VERSION_ARG"
+else
+    # String so resolve to version id via GetVersionName
+    version_value=$(~/bin/sqlite/GetVersionName "$VERSION_ARG")
+    if [[ -z "$version_value" ]]; then
+        echo "Error: Could not resolve version name '$VERSION_ARG'" >&2
+        exit 1
+    fi
 fi
-
-version_value="$VERSION_ARG"
 
 # Find suitable parent for this versioned part
 sibling_parent=$(sqlite_query_one "
@@ -89,7 +94,7 @@ else
      LIMIT 1;
     ")
 
-    # Fallback: get/create root part (this may recurse once)
+    # Fallback: get/create root part
     if [[ -z "$parent_id" ]]; then
         parent_id=$(~/bin/sqlite/GetPart "$PART_NAME")
         if [[ -z "$parent_id" ]]; then

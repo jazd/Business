@@ -1,0 +1,54 @@
+ #!/usr/bin/env bash
+
+# Usage: PutAssemblyPart <assembly_id> <part_id> [<designator>] [<quantity>]
+
+source ~/bin/sqlite/common
+
+ASSEMBLY_ID="${1:-}"
+PART_ID="${2:-}"
+DESIGNATOR="${3:-}"
+QUANTITY="${4:-}"
+
+if [[ -z "$ASSEMBLY_ID" || -z "$PART_ID" ]]; then
+    echo "Error: assembly_id and part_id are required" >&2
+    exit 1
+fi
+
+if ! [[ "$ASSEMBLY_ID" =~ ^[0-9]+$ ]]; then
+    echo "Error: assembly_id must be an integer" >&2
+    exit 1
+fi
+
+if ! [[ "$PART_ID" =~ ^[0-9]+$ ]]; then
+    echo "Error: part_id must be an integer" >&2
+    exit 1
+fi
+
+# Validate quantity if provided
+if [[ -n "$QUANTITY" ]] && ! [[ "$QUANTITY" =~ ^[0-9]+$ ]]; then
+    echo "Error: quantity must be an integer if provided" >&2
+    exit 1
+fi
+
+# Resolve designator word id (empty then NULL)
+designator_id=""
+if [[ -n "$DESIGNATOR" ]]; then
+    designator_id=$(~/bin/sqlite/GetWord "$DESIGNATOR")
+    if [[ -z "$designator_id" ]]; then
+        echo "Error: Could not resolve designator '$DESIGNATOR'" >&2
+        exit 1
+    fi
+fi
+
+# Build safe SQL values
+designator_sql="${designator_id:-NULL}"
+quantity_sql="${QUANTITY:-NULL}"
+
+# Insert only if this exact combination doesn't exist
+insert_result=$(sqlite_run "
+ INSERT OR IGNORE INTO AssemblyPart (assembly, part, designator, quantity)
+ VALUES ($ASSEMBLY_ID, $PART_ID, $designator_sql, $quantity_sql);
+")
+
+# Success — no output (void)
+exit 0

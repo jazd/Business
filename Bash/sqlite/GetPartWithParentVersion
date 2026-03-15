@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+# Usage: GetPartWithParentVersion <part_name> <part_version_id> <parent_name> <parent_version_id>
+
+source ~/bin/sqlite/common
+
+PART_NAME="${1:-}"
+PART_VERSION_ID="${2:-}"
+PARENT_NAME="${3:-}"
+PARENT_VERSION_ID="${4:-}"
+
+if [[ -z "$PART_NAME" || -z "$PARENT_NAME" ]]; then
+ echo ""
+ exit 0
+fi
+
+# Resolve name IDs
+part_name_id=$(~/bin/sqlite/GetSentence "$PART_NAME")
+parent_name_id=$(~/bin/sqlite/GetSentence "$PARENT_NAME")
+
+if [[ -z "$part_name_id" || -z "$parent_name_id" ]]; then
+ echo ""
+ exit 0
+fi
+
+# Build version conditions for parent lookup
+parent_version_cond="version $( [[ -n "$PARENT_VERSION_ID" && "$PARENT_VERSION_ID" =~ ^[0-9]+$ ]] && echo "= $PARENT_VERSION_ID" || echo "IS NULL" )"
+
+# Find the "lowest" existing parent part (smallest parent id)
+parent_id=$(sqlite_query_one "
+ SELECT id
+ FROM Part
+ WHERE name = $parent_name_id
+  AND $parent_version_cond
+  AND serial IS NULL
+ ORDER BY parent ASC
+ LIMIT 1;
+")
+
+# If not found, create it
+if [[ -z "$parent_id" ]]; then
+ parent_id=$(~/bin/sqlite/GetPart "$PARENT_NAME" "$PARENT_VERSION_ID")
+ if [[ -z "$parent_id" ]]; then
+  echo ""
+  exit 0
+ fi
+fi
+
+# Build version condition for child lookup/insert
+part_version_cond="version $( [[ -n "$PART_VERSION_ID" && "$PART_VERSION_ID" =~ ^[0-9]+$ ]] && echo "= $PART_VERSION_ID" || echo "IS NULL" )"
+
+# Look for existing child part
+part_id=$(sqlite_query_one "
+ SELECT id
+ FROM Part
+ WHERE parent = $parent_id
+  AND name = $part_name_id
+  AND $part_version_cond
+  AND serial IS NULL
+ LIMIT 1;
+")
+
+if [[ -n "$part_id" ]]; then
+ echo "$part_id"
+ exit 0
+fi
+
+# Insert child if missing
+insert_result=$(sqlite_run "
+ INSERT OR IGNORE INTO Part (parent, name, version)
+ VALUES ($parent_id, $part_name_id, ${PART_VERSION_ID:-NULL});
+")
+
+# Fetch the id
+part_id=$(sqlite_query_one "
+ SELECT id
+ FROM Part
+ WHERE parent = $parent_id
+  AND name = $part_name_id
+  AND $part_version_cond
+  AND serial IS NULL
+ LIMIT 1;
+")
+
+echo "${part_id:-}"

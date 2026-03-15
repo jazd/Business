@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Usage: GetWord.sh <word_value> [<culture>]
+# Usage: GetWord <word_value> [<culture>]
 
 source ~/bin/sqlite/common
 
