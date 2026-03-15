@@ -6,7 +6,14 @@ Virtually [CRUD]( http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) 
 
 Currently **Alpha**, and may change significantly before Beta release.  Use in this state **at your own risk**.
 
-[Documentation](https://github.com/jazd/Business/wiki)
+A couple of the supported SQL Servers:
+
+- [PostgreSQL](https://github.com/jazd/Business/releases/latest/download/schema.pgsql) DDL
+  Will also need [procedures.sql](https://raw.githubusercontent.com/jazd/Business/master/PostgreSQL/procedures.sql), pre.sql and post.sql
+- [MySQL](https://github.com/jazd/Business/releases/latest/download/schema.mysql) DDL
+- [SQLite Database](https://github.com/jazd/Business/releases/latest/download/business.sqlite3) pre-built
+
+[Documentation and Examples](https://github.com/jazd/Business/wiki)
 
 *Features*
 * i18N from the start
@@ -24,7 +31,6 @@ Currently **Alpha**, and may change significantly before Beta release.  Use in t
 
 The original idea for this schema comes from my earlier Origins/peopleSchema.sql work, a schema I created back in 2002.  Originally source controlled with RCS.
 
-## Prerequisites
-- perl-XML-Twig  (Fedora: `sudo dnf install perl-XML-Twig`)
 ## Optional
+- perl-XML-Twig  (Fedora: `sudo dnf install perl-XML-Twig`)
 - podman (Fedora: `sudo dnf install podman podman-docker podman-compose`)
