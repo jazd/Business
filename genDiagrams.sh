@@ -33,7 +33,7 @@ INDIVIDUAL_PATH="Individual IndividualPath Path Word"
 
 SESSION="Session AgentString SessionToken SessionCredential Individual Name Entity IndividualSessionCreated Password Credential Site Part AssemblyApplicationRelease Application Release Path ApplicationRelease SiteApplicationRelease Version Email Location Area Timezone Culture Sentence Word"
 
-ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease ApplicationRelease Version Word Sentence Paragraph"
+ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease ApplicationRelease Version Word Sentence Paragraph PartDescription Path PartPath"
 
 EVENTS="Period DateRange TimeOfDay DayOfWeek MonthDay Month PeriodName Sentence"
 

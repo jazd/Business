@@ -635,8 +635,11 @@
 
 <table name="PartDescription" order="132">
 <fields>
- <field name="part" data_type="integer" size="" is_nullable="1" order="2" />
- <field name="description" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="part" data_type="integer" size="" is_nullable="1" order="1" />
+ <field name="description" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3">
+  <comments>No longer associate this record with part.  Used instead of DELETE.</comments>
+ </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
@@ -644,6 +647,31 @@
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="description" reference_table="Paragraph" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
+
+<table name="PartPath" order="132">
+<comments>datasheet url, datasheet file, specification, footprint etc.</comments>
+<fields>
+ <field name="part" data_type="integer" size="" is_nullable="1" order="1" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="path" data_type="bigint" size="20" is_nullable="1" order="4" />
+ <field name="track" data_type="varchar" size="30" is_nullable="1" order="5">
+  <comments>Added to end of path in the Get section for tracking links to same path</comments>
+ </field>
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="6">
+  <comments>No longer associate this record with part.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="part" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+<indices>
+ <index name="partpath_part_type" type="NORMAL" fields="part,type" />
+</indices>
+</table>
+
 
 <comments>A client device and its operating system. Change to AssemblyApplicationRelease</comments>
 <table name="AssemblyApplicationRelease" order="140">
