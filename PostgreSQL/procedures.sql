@@ -1532,6 +1532,129 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION GetPartWithParentNearest (
+ inPartName varchar,
+ inPartVersionName varchar,
+ inParentName varchar,
+ inParentVersionName varchar
+) RETURNS integer AS $$
+DECLARE
+ part_name_id integer;
+ part_version_name_id integer;
+ parent_name_id integer;
+ parent_version_name_id integer;
+ parent_id integer;
+ part_id integer;
+BEGIN
+ IF inPartName IS NOT NULL AND inPartVersionName IS NOT NULL AND inParentName IS NOT NULL AND inParentVersionName IS NOT NULL THEN
+  part_name_id := (SELECT GetSentence(inPartName));
+  part_version_name_id := GetVersionName(inPartVersionName);
+  parent_name_id := (SELECT GetSentence(inParentName));
+  parent_version_name_id := GetVersionName(inParentVersionName);
+  -- Find the highest version name part of parent name
+  parent_id = (
+   SELECT id
+   FROM Part
+   WHERE name = parent_name_id
+    AND version = parent_version_name_id
+    AND serial IS NULL
+   ORDER BY parent DESC -- Non NULLs first
+   LIMIT 1
+  );
+  IF parent_id IS NULL THEN
+   -- Create parent
+   parent_id := (SELECT GetPart(inParentName,inParentVersionName));
+  END IF;
+  SELECT id INTO part_id
+  FROM Part
+  WHERE parent = parent_id
+   AND name = part_name_id
+   AND version = part_version_name_id
+   AND serial IS NULL
+  LIMIT 1;
+  IF part_id IS NULL THEN
+   PERFORM pg_advisory_lock(parent_id);
+   INSERT INTO Part (parent, name, version) (
+    SELECT parent_id, part_name_id, part_version_name_id
+    FROM Dual
+    LEFT JOIN Part AS exists ON exists.parent = parent_id
+     AND exists.name = part_name_id
+     AND exists.version = part_version_name_id
+     AND serial IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(parent_id);
+   SELECT id INTO part_id
+   FROM Part
+   WHERE parent = parent_id
+   AND name = part_name_id
+   AND version = part_version_name_id
+   AND serial IS NULL
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN part_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Does no Part INSERTs
+CREATE OR REPLACE FUNCTION GetPartWithAncestor (
+ inPartName varchar,
+ inPartVersionName varchar,
+ inAncestorName varchar,
+ inAncestorVersionName varchar
+) RETURNS integer AS $$
+DECLARE
+ part_name_id integer;
+ part_version_name_id integer;
+ ancestor_name_id integer;
+ ancestor_version_name_id integer;
+ ancestor_id integer;
+ parent_id integer;
+ part_id integer;
+BEGIN
+ IF inPartName IS NOT NULL AND inPartVersionName IS NOT NULL AND inAncestorName IS NOT NULL AND inAncestorVersionName IS NOT NULL THEN
+  part_name_id := (SELECT GetSentence(inPartName));
+  part_version_name_id := GetVersionName(inPartVersionName);
+  ancestor_name_id := (SELECT GetSentence(inAncestorName));
+  ancestor_version_name_id := GetVersionName(inAncestorVersionName);
+  -- Find the highest version parent with provided ancestor
+  ancestor_id = (
+   SELECT id
+   FROM Part
+   WHERE name = ancestor_name_id
+    AND version = ancestor_version_name_id
+    AND serial IS NULL
+   ORDER BY id DESC
+   LIMIT 1
+  );
+  IF ancestor_id IS NOT NULL THEN
+   parent_id = (
+    SELECT id
+    FROM Part
+    WHERE parent = ancestor_id
+     AND version IS NOT NULL
+     AND serial IS NULL
+    ORDER BY id DESC
+    LIMIT 1
+   );
+   IF parent_id IS NOT NULL THEN
+    SELECT id INTO part_id
+    FROM Part
+    WHERE parent = parent_id
+     AND name = part_name_id
+     AND version = part_version_name_id
+     AND serial IS NULL
+    LIMIT 1;
+   END IF;
+  END IF;
+ END IF;
+ RETURN part_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
 CREATE OR REPLACE FUNCTION GetPartWithParentVersion (
  inPartName varchar,
  inPartVersion_id integer,
