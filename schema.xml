@@ -2603,7 +2603,7 @@ GROUP BY bill,
   </sql>
  </view>
 
- <view name="LineItemsRaw" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentunitprice, unitprice, individualjob, job, schedule">
+ <view name="LineItemsRaw" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, version, parent, currentunitprice, unitprice, individualjob, job, schedule">
    <sql>
 SELECT CargoesRaw.bill,
  Type.value AS typeName,
@@ -2616,6 +2616,8 @@ SELECT CargoesRaw.bill,
  CargoesRaw.cargo AS line,
  Parts.name AS item,
  Parts.part,
+ Parts.version,
+ Parts.parent,
  COALESCE(SpecificPrice.price, DefaultPrice.price, AssemblyIndividualJobPrice.price) AS currentUnitPrice,
  COALESCE(JournalEntry.amount, FixedAssemblyIndividualJobPrice.price) AS unitPrice,
  IndividualJob.id AS individualJob,
@@ -2643,7 +2645,7 @@ LEFT JOIN AssemblyIndividualJobPrice AS FixedAssemblyIndividualJobPrice ON Fixed
    </sql>
  </view>
 
- <view name="LineItems" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, currentUnitPrice, unitprice, totalPrice, outstanding, individualjob, job, schedule">
+ <view name="LineItems" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, version, parent, currentUnitPrice, unitprice, totalPrice, outstanding, individualjob, job, schedule">
    <sql>
 SELECT bill,
  typeName,
@@ -2656,6 +2658,8 @@ SELECT bill,
  line,
  item,
  part,
+ version,
+ parent,
  currentUnitPrice,
  unitPrice,
  SUM(LineItemsRaw.count) * unitPrice AS totalPrice,
@@ -2684,6 +2688,8 @@ GROUP BY
  line,
  item,
  part,
+ version,
+ parent,
  currentUnitPrice,
  unitPrice,
  individualJob,
