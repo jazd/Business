@@ -2558,9 +2558,11 @@ GROUP BY Part.id,
    </sql>
  </view>
 
- <view name="CargoesRaw" fields="bill, type, supplier, consignee, created, cargo, count, individualjob, assembly, journal, entry">
+ <view name="CargoesRaw" fields="bill, source, parent, type, supplier, consignee, created, cargo, count, individualjob, assembly, journal, entry">
    <sql>
 SELECT Bill.id AS bill,
+ Bill.source,
+ Bill.parent,
  Bill.type,
  Bill.supplier,
  Bill.consignee,
@@ -2603,9 +2605,11 @@ GROUP BY bill,
   </sql>
  </view>
 
- <view name="LineItemsRaw" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, version, parent, currentunitprice, unitprice, individualjob, job, schedule">
+ <view name="LineItemsRaw" fields="bill, billsource, billparent, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, version, parent, currentunitprice, unitprice, individualjob, job, schedule">
    <sql>
 SELECT CargoesRaw.bill,
+ CargoesRaw.source AS billSource,
+ CargoesRaw.parent AS billParent,
  Type.value AS typeName,
  CargoesRaw.type,
  COALESCE(Supplier.goesBy, Supplier.name) AS supplierName,
@@ -2619,7 +2623,7 @@ SELECT CargoesRaw.bill,
  Parts.version,
  Parts.parent,
  COALESCE(SpecificPrice.price, DefaultPrice.price, AssemblyIndividualJobPrice.price) AS currentUnitPrice,
- COALESCE(JournalEntry.amount, FixedAssemblyIndividualJobPrice.price) AS unitPrice,
+ COALESCE(JournalEntry.amount / CargoesRaw.count, FixedAssemblyIndividualJobPrice.price) AS unitPrice,
  IndividualJob.id AS individualJob,
  IndividualJob.job,
  IndividualJob.schedule
@@ -2645,9 +2649,11 @@ LEFT JOIN AssemblyIndividualJobPrice AS FixedAssemblyIndividualJobPrice ON Fixed
    </sql>
  </view>
 
- <view name="LineItems" fields="bill, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, version, parent, currentUnitPrice, unitprice, totalPrice, outstanding, individualjob, job, schedule">
+ <view name="LineItems" fields="bill, billsource, billparent, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, version, parent, currentUnitPrice, unitprice, totalPrice, outstanding, individualjob, job, schedule">
    <sql>
 SELECT bill,
+ billsource,
+ billparent,
  typeName,
  type,
  supplierName,
@@ -2679,6 +2685,8 @@ LEFT JOIN (
 ) AS CargoStateSum ON CargoStateSum.cargo = line
 GROUP BY
  bill,
+ billsource,
+ billparent,
  typeName,
  type,
  supplierName,
