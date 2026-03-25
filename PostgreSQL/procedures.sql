@@ -3266,6 +3266,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
 CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
  inAssembly integer,
@@ -3279,6 +3280,66 @@ BEGIN
  RETURN AddCargo (inBill, inAssembly, inCount, inIndividualJob, inJournal, inEntry, NULL);
 END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION AddCargo (
+ inBill integer,
+ inAssembly integer,
+ inCount float,
+ inUnit float,
+ inIndividualJob integer,
+ inFromCargo integer,
+ inBook varchar
+) RETURNS integer AS $$
+DECLARE
+ cargo_id integer;
+ entry_id integer;
+ journal_id integer;
+BEGIN
+ -- Custom Book entry
+ IF inBook IS NOT NULL AND inUnit IS NOT NULL THEN
+   SELECT * INTO journal_id, entry_id FROM Book(inBook, inUnit * inCount);
+ END IF;
+
+ cargo_id := AddCargo(inBill, inAssembly, inCount, inIndividualJob, journal_id, entry_id, inFromCargo);
+
+ RETURN cargo_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION AddCargoAlternate (
+ inBill integer,
+ inAlternateAssembly integer,
+ inCount float,
+ inUnit float,
+ inIndividualJob integer,
+ inFromCargo integer,
+ inBook varchar
+) RETURNS integer AS $$
+DECLARE
+ cargo_id integer;
+ entry_id integer;
+ journal_id integer;
+BEGIN
+ -- Will create a custom CargoState entry, so inFromCargo is NULL on AddCargo Call
+ -- Will also need to create a custom Booking
+ -- Custom Book entry
+
+ IF inBook IS NOT NULL AND inUnit IS NOT NULL THEN
+   SELECT * INTO journal_id, entry_id FROM Book(inBook, inUnit * inCount);
+ END IF;
+
+ cargo_id := AddCargo(inBill, inAlternateAssembly, inCount, inIndividualJob, journal_id, entry_id);
+
+ -- Custom CargoState entry
+ INSERT INTO CargoState (cargo, toCargo, count, journal, entry)
+ VALUES (inFromCargo, cargo_id, inCount, journal_id, entry_id);
+
+ RETURN cargo_id;
+END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
