@@ -882,6 +882,134 @@
 </constraints>
 </table>
 
+<comments>Tables for Testing Parts and Assemblies</comments>
+<table name="Process" order="850">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="description" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="version" data_type="integer" size="" is_nullable="1" order="4" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="description" reference_table="Paragraph" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="process_version" type="FOREIGN KEY" fields="version" reference_table="Version" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
+<table name="Step" order="850">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="description" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="unit" data_type="integer" size="" is_nullable="1" order="4" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="description" reference_table="Paragraph" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="unit" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="Variance" order="850">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="description" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="nominal" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="lower" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="upper" data_type="integer" size="" is_nullable="1" order="6" />
+ <field name="tolerance" data_type="integer" size="" is_nullable="1" order="7" />
+ <field name="value" data_type="float" size="24" is_nullable="1" order="8" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="description" reference_table="Paragraph" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="tolerance" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="" type="FOREIGN KEY" fields="nominal" reference_table="Attribute" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="lower" reference_table="Attribute" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="upper" reference_table="Attribute" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+</table>
+
+<table name="ProcessStep" order="850">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="process" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="step" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="sequence" data_type="smallint" size="" is_nullable="0" order="4" />
+ <field name="expected" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="variance" data_type="integer" size="" is_nullable="1" order="6" />
+ <field name="marginal" data_type="integer" size="" is_nullable="1" order="7">
+   <comments>Jump to this ProcessStep</comments>
+ </field>
+ <field name="failure" data_type="integer" size="" is_nullable="1" order="8" >
+   <comments>Jump to this ProcessStep</comments>
+ </field>
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="process" reference_table="Process" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="step" reference_table="Step" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="expected" reference_table="Attribute" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="variance" reference_table="Variance" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="marginal" reference_table="ProcessStep" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="failure" reference_table="ProcessStep" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+</table>
+
+<table name="ProcessRun" order="850">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="process" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="assembly" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="tester" data_type="integer" size="" is_nullable="0" order="4" />
+ <field name="supervisor" data_type="bigint" size="20" is_nullable="1" order="5" />
+ <field name="started" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="process" reference_table="Process" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="tester" reference_table="AssemblyApplicationRelease" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="supervisor" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="ProcessRunResult" order="850">
+<comments>untested</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="run" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="processStep" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="result" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="pass" data_type="boolean" size="" is_nullable="1" default_value="false" order="4" />
+ <field name="marginal" data_type="boolean" size="" is_nullable="1" default_value="false" order="5" />
+ <field name="failure" data_type="boolean" size="" is_nullable="1" default_value="false" order="6" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="" type="FOREIGN KEY" fields="run" reference_table="ProcessRun" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="processStep" reference_table="ProcessStep" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="result" reference_table="Attribute" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
+</table>
+
 <comments>Tables to define periods of time</comments>
 <table name="Period" order="300">
 <fields>
@@ -987,6 +1115,9 @@
  <field name="build" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="schema" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="version" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="stop" data_type="timestamp" size="" is_nullable="1" order="4" >
+  <comments>No longer the current schema version.</comments>
+ </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>

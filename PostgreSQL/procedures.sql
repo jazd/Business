@@ -3625,6 +3625,11 @@ BEGIN
  END IF;
  -- Always insert generating a build number
  INSERT INTO SchemaVersion (schema, version) VALUES (schema_id, version_id);
+ -- Be sure this is the only active record
+ UPDATE SchemaVersion SET stop = NOW()
+ WHERE schema = schema_id
+  AND version != version_id
+ ;
  RETURN (SELECT currval(pg_get_serial_sequence('schemaversion','build')));
 END;
 $$ LANGUAGE plpgsql;
