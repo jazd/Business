@@ -2689,6 +2689,31 @@ GROUP BY Part.id,
    </sql>
  </view>
 
+ <view name="Bills" fields="bill,type,date,supplier,supplierName,consignee,consigneeName,source,sourceType,parent,parentType" order="30">
+   <sql>
+SELECT
+ Bill.id AS bill,
+ Type.value AS type,
+ DATE(Bill.created) AS date,
+ Bill.supplier,
+ Supplier.name AS supplierName,
+ Bill.consignee,
+ Consignee.name AS consigneeName,
+ Source.id AS source,
+ SourceType.value AS sourceType,
+ Parent.id AS parent,
+ ParentType.value AS parentType
+FROM Bill
+JOIN I8NWord AS Type ON Type.id = Bill.type
+JOIN Entities AS Supplier ON Supplier.individual = Bill.supplier
+JOIN Entities AS Consignee ON Consignee.individual = Bill.consignee
+LEFT JOIN Bill AS Source ON Source.id = Bill.source
+LEFT JOIN I8NWord AS SourceType ON SourceType.id = Source.type
+LEFT JOIN Bill AS Parent ON Parent.id = Bill.parent
+LEFT JOIN I8NWord AS ParentType ON ParentType.id = Parent.type
+   </sql>
+  </view>
+
  <view name="CargoesRaw" fields="bill, source, parent, type, supplier, consignee, created, cargo, count, individualjob, assembly, journal, entry">
    <sql>
 SELECT Bill.id AS bill,
