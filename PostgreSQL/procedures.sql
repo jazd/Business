@@ -3146,6 +3146,61 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE OR REPLACE FUNCTION GetBillReference (
+  inBill integer,
+  inType varchar,
+  inValue character varying(80),
+  inSequence smallint DEFAULT NULL
+) RETURNS integer AS $$
+DECLARE
+  type_id integer;
+  reference_id integer;
+BEGIN
+ IF inBill IS NULL OR inValue IS NULL OR TRIM(inValue) = '' THEN
+  RETURN NULL;
+ END IF;
+
+ type_id := GetIdentifier(inType);
+
+ -- Check for existing active reference
+ SELECT id INTO reference_id
+ FROM BillReference
+ WHERE bill = inBill
+  AND type = type_id
+  AND value = inValue
+  AND stop IS NULL
+ LIMIT 1;
+
+ IF reference_id IS NULL THEN
+  PERFORM pg_advisory_lock(inBill);
+  INSERT INTO BillReference (bill, type, value, sequence) (
+   SELECT inBill, type_id, inValue, inSequence
+   FROM DUAL
+   LEFT JOIN BillReference AS exists ON exists.bill = inBill
+    AND exists.type = type_id
+    AND exists.value = inValue
+    AND exists.stop IS NULL
+   WHERE exists.id IS NULL
+   LIMIT 1
+  ) RETURNING id INTO reference_id;
+  PERFORM pg_advisory_unlock(inBill);
+ ELSE
+  -- Update sequence if provided and different
+  IF inSequence IS NOT NULL THEN
+   UPDATE BillReference
+   SET sequence = inSequence
+   WHERE id = reference_id
+    AND sequence IS DISTINCT FROM inSequence;
+  END IF;
+ END IF;
+
+ RETURN reference_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
 CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
  inAssembly integer,
