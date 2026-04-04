@@ -1746,7 +1746,7 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 
 <views>
  <comments>SQLFairy does not handle XML escape codes.  So need to convert post process.</comments>
- <view name="I8NWord" fields="id,defaultCulture,clientCulture,resultCulture,value" order="0">
+ <view name="I18NWord" fields="id,defaultCulture,clientCulture,resultCulture,value" order="0">
  <sql>
 SELECT WordDefault.id,
  WordDefault.culture AS defaultCulture,
@@ -1760,7 +1760,7 @@ WHERE WordDefault.culture = 1033
  </sql>
  </view>
 
- <view name="I8NSentence" fields="id,defaultCulture,clientCulture,resultCulture,value,length" order="0">
+ <view name="I18NSentence" fields="id,defaultCulture,clientCulture,resultCulture,value,length" order="0">
  <sql>
 SELECT SentenceDefault.id,
  SentenceDefault.culture AS defaultCulture,
@@ -1840,9 +1840,9 @@ LEFT JOIN Given ON Given.id = Name.given
 LEFT JOIN Given AS Middle ON Middle.id = Name.middle
 LEFT JOIN Given AS GoesBy ON GoesBy.id = Individual.goesBy
 LEFT JOIN Family ON Family.id = Name.family
-LEFT JOIN I8NWord AS Honorific ON Honorific.id = Individual.prefix
-LEFT JOIN I8NWord AS Suffix ON Suffix.id = Individual.suffix
-LEFT JOIN I8NWord AS Post ON Post.id = Individual.post
+LEFT JOIN I18NWord AS Honorific ON Honorific.id = Individual.prefix
+LEFT JOIN I18NWord AS Suffix ON Suffix.id = Individual.suffix
+LEFT JOIN I18NWord AS Post ON Post.id = Individual.post
 WHERE Individual.nameChange IS NULL
  OR Individual.nameChange > NOW()
  </sql>
@@ -1944,12 +1944,12 @@ FROM IndividualPersonEvent
  LEFT JOIN Given AS Middle ON Middle.id = Name.middle
  LEFT JOIN Given AS goesBy ON goesBy.id = IndividualPersonEvent.goesBy
  LEFT JOIN Family ON Family.id = Name.family
- LEFT JOIN I8NWord AS Honorific ON Honorific.id = IndividualPersonEvent.honorific
- LEFT JOIN I8NWord AS Suffix ON Suffix.id = IndividualPersonEvent.suffix
- LEFT JOIN I8NWord AS Post ON Post.id = IndividualPersonEvent.post
- LEFT JOIN I8NWord AS Born ON Born.value = !apos;Born!apos; AND birth = event
- LEFT JOIN I8NWord AS Death ON Death.value = !apos;Died!apos; AND death = event
- LEFT JOIN I8NWord AS Change ON Change.value = !apos;Changed name!apos;
+ LEFT JOIN I18NWord AS Honorific ON Honorific.id = IndividualPersonEvent.honorific
+ LEFT JOIN I18NWord AS Suffix ON Suffix.id = IndividualPersonEvent.suffix
+ LEFT JOIN I18NWord AS Post ON Post.id = IndividualPersonEvent.post
+ LEFT JOIN I18NWord AS Born ON Born.value = !apos;Born!apos; AND birth = event
+ LEFT JOIN I18NWord AS Death ON Death.value = !apos;Died!apos; AND death = event
+ LEFT JOIN I18NWord AS Change ON Change.value = !apos;Changed name!apos;
  </sql>
  </view>
 
@@ -1982,8 +1982,8 @@ SELECT ListIndividual.id,
 FROM ListIndividual
 JOIN ListIndividualName ON ListIndividualName.ListIndividual = ListIndividual.id
  AND ListIndividualName.optinStyle = 1
-JOIN I8NWord AS Name ON ListIndividualName.name = Name.id
-LEFT JOIN I8NWord AS ListSet ON ListIndividualName.listSet = ListSet.id
+JOIN I18NWord AS Name ON ListIndividualName.name = Name.id
+LEFT JOIN I18NWord AS ListSet ON ListIndividualName.listSet = ListSet.id
 LEFT JOIN Word AS SendField ON SendField.id = ListIndividual.type
  AND SendField.culture IS NULL
 LEFT JOIN ListIndividual AS disable ON disable.individual = ListIndividual.individual
@@ -2125,9 +2125,9 @@ SELECT Address.id AS address,
 FROM Address
 JOIN Postal ON Postal.id = Address.postal
 JOIN Country ON Country.id = Postal.country
-JOIN I8NWord AS City ON City.id = Postal.city
-JOIN I8NWord AS State ON State.id = Postal.state
-LEFT JOIN I8NWord AS StateAbbr ON StateAbbr.id = Postal.stateAbbreviation
+JOIN I18NWord AS City ON City.id = Postal.city
+JOIN I18NWord AS State ON State.id = Postal.state
+LEFT JOIN I18NWord AS StateAbbr ON StateAbbr.id = Postal.stateAbbreviation
 LEFT JOIN Location AS AddressLocation On AddressLocation.id = Address.location
 LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
 LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
@@ -2145,10 +2145,10 @@ SELECT Version.id AS version, name.value AS name,
  minor.value AS minor,
  patch.value AS patch
 FROM Version
-LEFT JOIN I8NWord AS name ON name.id = Version.name
-LEFT JOIN I8NWord AS major ON major.id = Version.major
-LEFT JOIN I8NWord AS minor ON minor.id = Version.minor
-LEFT JOIN I8NWord AS patch ON patch.id = Version.patch
+LEFT JOIN I18NWord AS name ON name.id = Version.name
+LEFT JOIN I18NWord AS major ON major.id = Version.major
+LEFT JOIN I18NWord AS minor ON minor.id = Version.minor
+LEFT JOIN I18NWord AS patch ON patch.id = Version.patch
   </sql>
  </view>
 
@@ -2159,7 +2159,7 @@ LEFT JOIN I8NWord AS patch ON patch.id = Version.patch
     Application.goesBy,
     Application.path
    FROM Application
-   JOIN I8NWord AS Name on Name.id = Application.name
+   JOIN I18NWord AS Name on Name.id = Application.name
    </sql>
  </view>
 
@@ -2179,7 +2179,7 @@ LEFT JOIN I8NWord AS patch ON patch.id = Version.patch
    JOIN Applications ON Applications.application = ApplicationRelease.application
    JOIN Release ON Release.id = ApplicationRelease.release
    JOIN Versions ON Versions.version = Release.version
-   JOIN I8NWord AS Build ON Build.id = Release.build
+   JOIN I18NWord AS Build ON Build.id = Release.build
   </sql>
  </view>
 
@@ -2195,14 +2195,14 @@ SELECT AgentString.id AS agentString,
 FROM AgentString
 JOIN AssemblyApplicationRelease AS deviceAgent ON deviceAgent.id = AgentString.agent
 JOIN Part AS device ON device.id = deviceAgent.assembly
-JOIN I8NSentence AS deviceName ON deviceName.id = device.name
+JOIN I18NSentence AS deviceName ON deviceName.id = device.name
 JOIN AssemblyApplicationRelease AS deviceOS ON deviceOS.id = deviceAgent.parent
 JOIN ApplicationRelease AS OSapplicationRelease ON OSapplicationRelease.id = deviceOS.applicationRelease
 JOIN Application AS OS ON OS.id = OSapplicationRelease.application
-JOIN I8NWord AS OSName ON OSName.id = OS.name
+JOIN I18NWord AS OSName ON OSName.id = OS.name
 JOIN ApplicationRelease AS agentApplicationRelease ON agentApplicationRelease.id = deviceAgent.applicationRelease
 JOIN Application AS Agent On Agent.id = agentApplicationRelease.application
-JOIN I8NWord AS AgentName ON AgentName.id = Agent.name
+JOIN I18NWord AS AgentName ON AgentName.id = Agent.name
   </sql>
  </view>
 
@@ -2248,14 +2248,14 @@ WHERE Session.id = SessionCredential.session
  <view name="Parts" fields="part,parent,name,nameId,version,versionId,serial,created">
   <sql>
 SELECT Part.id AS part, Part.parent,
- I8NSentence.value AS name, Part.name AS nameId,
+ I18NSentence.value AS name, Part.name AS nameId,
  CASE WHEN (Versions.name IS NOT NULL) THEN Versions.name ELSE !apos;!apos; END ||
  CASE WHEN (Versions.name IS NOT NULL) THEN !apos; !apos; ELSE !apos;!apos; END ||
  CASE WHEN (Versions.value IS NOT NULL) THEN Versions.value ELSE !apos;!apos; END AS version,
  Part.version AS versionId,
  Part.serial, Part.created
 FROM Part
-JOIN I8NSentence ON I8NSentence.id = Part.name
+JOIN I18NSentence ON I18NSentence.id = Part.name
 LEFT JOIN Versions ON Versions.version = Part.version
   </sql>
  </view>
@@ -2286,7 +2286,7 @@ FROM AssemblyPart
 JOIN Parts AS Assemblies ON Assemblies.part = AssemblyPart.assembly
 JOIN Parts AS Parent ON Parent.part = Assemblies.parent
 JOIN Parts AS Parts ON parts.part = AssemblyPart.part
-LEFT JOIN I8NWord AS Designator ON Designator.id = AssemblyPart.designator
+LEFT JOIN I18NWord AS Designator ON Designator.id = AssemblyPart.designator
   </sql>
  </view>
 
@@ -2318,15 +2318,15 @@ LEFT JOIN I8NWord AS Designator ON Designator.id = AssemblyPart.designator
 
  <view name="Periods" fields="period,name,periodname">
    <sql>
-SELECT PeriodName.period, PeriodName.name, I8NSentence.value AS periodName
+SELECT PeriodName.period, PeriodName.name, I18NSentence.value AS periodName
 FROM PeriodName
-LEFT JOIN I8NSentence ON I8NSentence.id = PeriodName.name
+LEFT JOIN I18NSentence ON I18NSentence.id = PeriodName.name
    </sql>
  </view>
 
  <view name="PeriodSpans" fields="period,name,periodname,span,exclude,monthdaymonth,day,weekofmonth,dayofweekstart,dayofweekstop,dayofmonth,month,monthyear,daterangestart,daterangestop,timeofdaystart,timeofdaystop">
    <sql>
-SELECT PeriodName.period, PeriodName.name, I8NSentence.value AS periodName,
+SELECT PeriodName.period, PeriodName.name, I18NSentence.value AS periodName,
  Period.span, Period.exclude,
  MonthDay.month AS MonthDaymonth, MonthDay.day, MonthDay.weekOfMonth,
  DayOfWeek.start AS dayOfWeekStart, DayOfWeek.stop AS dayOfWeekStop, DayOfWeek.dayOfMonth,
@@ -2335,7 +2335,7 @@ SELECT PeriodName.period, PeriodName.name, I8NSentence.value AS periodName,
  TimeOfDay.start AS timeOfDayStart, TimeOfDay.stop AS timeOfDayStop
 FROM Period
 JOIN PeriodName ON PeriodName.period = Period.id
-JOIN I8NSentence ON I8NSentence.id = PeriodName.name
+JOIN I18NSentence ON I18NSentence.id = PeriodName.name
 LEFT JOIN MonthDay  ON MonthDay.id  = Period.span
 LEFT JOIN DayOfWeek ON DayOfWeek.id = Period.span
 LEFT JOIN Month     ON Month.id     = Period.span
@@ -2416,7 +2416,7 @@ SELECT MAX(id) AS id FROM (
  <view name="Accounts" fields="account,name,type,typeName,individual,individualName,individualAccountType,individualAccountTypeName,credit,debitIncrease,debitDecrease,creditIncrease,creditDecrease" order="900">
   <sql>
 SELECT AccountName.account,
- I8NSentence.value AS name,
+ I18NSentence.value AS name,
  AccountName.type,
  TypeName.value AS typeName,
  IndividualAccount.individual,
@@ -2445,19 +2445,19 @@ SELECT AccountName.account,
   NULL
  END AS creditDecrease
 FROM AccountName
-JOIN I8NSentence ON I8NSentence.id = AccountName.name
-JOIN I8NWord AS TypeName ON TypeName.id = AccountName.type
+JOIN I18NSentence ON I18NSentence.id = AccountName.name
+JOIN I18NWord AS TypeName ON TypeName.id = AccountName.type
 LEFT JOIN IndividualAccount ON IndividualAccount.account = AccountName.account
  AND IndividualAccount.stop IS NULL
 LEFT JOIN People ON People.individual = IndividualAccount.individual
 LEFT JOIN Entities ON Entities.individual = IndividualAccount.individual
-LEFT JOIN I8NWord AS IndividualAccountType ON IndividualAccountType.id = IndividualAccount.type
+LEFT JOIN I18NWord AS IndividualAccountType ON IndividualAccountType.id = IndividualAccount.type
   </sql>
  </view>
  <view name="Ledgers" fields="ledger,name,sequence,account,accountname,type,typename,credit,debitincrease,debitdecrease,creditincrease,creditdecrease">
   <sql>
 SELECT LedgerName.ledger,
- I8NSentence.value AS name,
+ I18NSentence.value AS name,
  LedgerAccount.sequence,
  Accounts.account,
  Accounts.name AS accountName,
@@ -2469,7 +2469,7 @@ SELECT LedgerName.ledger,
  Accounts.creditIncrease,
  Accounts.creditDecrease
 FROM LedgerName
-JOIN I8NSentence ON I8NSentence.id = LedgerName.name
+JOIN I18NSentence ON I18NSentence.id = LedgerName.name
 JOIN LedgerAccount ON LedgerAccount.ledger = LedgerName.ledger
 JOIN Accounts ON Accounts.account = LedgerAccount.account
   </sql>
@@ -2478,16 +2478,16 @@ JOIN Accounts ON Accounts.account = LedgerAccount.account
  <view name="Journals" fields="journal,name">
   <sql>
 SELECT JournalName.journal,
- I8NSentence.value AS name
+ I18NSentence.value AS name
 FROM JournalName
-JOIN I8NSentence ON I8NSentence.id = JournalName.name
+JOIN I18NSentence ON I18NSentence.id = JournalName.name
   </sql>
  </view>
 
  <view name="Books" fields="book,name,journal,journalname,split,increase,increasename,increasetype,increasecredit,increasedebitincrease,increasedebitdecrease,increasecreditincrease,increasecreditdecrease,decrease,decreasename,decreasetype,decreasecredit,decreasedebitincrease,decreasedebitdecrease,decreasecreditincrease,decreasecreditdecrease">
   <sql>
 SELECT BookName.book,
- I8NSentence.value AS name,
+ I18NSentence.value AS name,
  BookName.journal,
  Journals.name AS journalName,
  COALESCE(BookAccount.split, 1) AS split,
@@ -2508,7 +2508,7 @@ SELECT BookName.book,
  Decrease.creditIncrease AS decreaseCreditIncrease,
  Decrease.creditDecrease AS decreaseCreditDecrease
 FROM BookName
-JOIN I8NSentence ON I8NSentence.id = BookName.name
+JOIN I18NSentence ON I18NSentence.id = BookName.name
 JOIN Journals ON Journals.journal = BookName.journal
 JOIN BookAccount ON BookAccount.book = BookName.book
 LEFT JOIN Accounts AS Increase ON Increase.account = BookAccount.increase
@@ -2542,15 +2542,15 @@ SELECT JournalEntry.id,
  JournalEntry.created
 FROM JournalEntry
 JOIN AccountName ON AccountName.account = JournalEntry.account
-JOIN I8NSentence AS AccountNameString ON AccountNameString.id = AccountName.name
-JOIN I8NWord AS AccountTypeName ON AccountTypeName.id = AccountName.type
+JOIN I18NSentence AS AccountNameString ON AccountNameString.id = AccountName.name
+JOIN I18NWord AS AccountTypeName ON AccountTypeName.id = AccountName.type
 JOIN JournalName ON JournalName.journal = JournalEntry.journal
-JOIN I8NSentence AS JournalNameString ON JournalNameString.id = JournalName.name
+JOIN I18NSentence AS JournalNameString ON JournalNameString.id = JournalName.name
 LEFT JOIN BookName ON BookName.book = JournalEntry.book
-LEFT JOIN I8NSentence AS BookNameString ON BookNameString.id = BookName.name
+LEFT JOIN I18NSentence AS BookNameString ON BookNameString.id = BookName.name
 LEFT JOIN LedgerJournal ON LedgerJournal.journal = JournalEntry.journal
 LEFT JOIN LedgerName ON LedgerName.ledger = LedgerJournal.ledger
-LEFT JOIN I8NSentence AS LedgerNameString ON LedgerNameString.id = LedgerName.name
+LEFT JOIN I18NSentence AS LedgerNameString ON LedgerNameString.id = LedgerName.name
   </sql>
  </view>
 
@@ -2648,9 +2648,9 @@ SELECT Edge.id AS edge,
  stop
 FROM Edge
 JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
-JOIN I8NSentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
+JOIN I18NSentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
 JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
-LEFT JOIN I8NSentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
+LEFT JOIN I18NSentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
   </sql>
  </view>
 
@@ -2674,8 +2674,8 @@ SELECT Edge.id AS edge,
 FROM Edge
 JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
 JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
-LEFT JOIN I8NSentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
-LEFT JOIN I8NSentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
+LEFT JOIN I18NSentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
+LEFT JOIN I18NSentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
 LEFT JOIN IndividualVertex AS StartIndividualVertex ON StartIndividualVertex.vertex = Edge.start
 LEFT JOIN People AS StartPeople ON StartPeople.individual = StartIndividualVertex.individual
 LEFT JOIN Entities AS StartEntities ON StartEntities.individual = StartIndividualVertex.individual
@@ -2729,13 +2729,13 @@ SELECT
  Parent.id AS parent,
  ParentType.value AS parentType
 FROM Bill
-JOIN I8NWord AS Type ON Type.id = Bill.type
+JOIN I18NWord AS Type ON Type.id = Bill.type
 JOIN Entities AS Supplier ON Supplier.individual = Bill.supplier
 JOIN Entities AS Consignee ON Consignee.individual = Bill.consignee
 LEFT JOIN Bill AS Source ON Source.id = Bill.source
-LEFT JOIN I8NWord AS SourceType ON SourceType.id = Source.type
+LEFT JOIN I18NWord AS SourceType ON SourceType.id = Source.type
 LEFT JOIN Bill AS Parent ON Parent.id = Bill.parent
-LEFT JOIN I8NWord AS ParentType ON ParentType.id = Parent.type
+LEFT JOIN I18NWord AS ParentType ON ParentType.id = Parent.type
    </sql>
   </view>
 
@@ -2809,7 +2809,7 @@ SELECT CargoesRaw.bill,
  IndividualJob.job,
  IndividualJob.schedule
 FROM CargoesRaw
-JOIN I8NWord AS Type ON Type.id = CargoesRaw.type
+JOIN I18NWord AS Type ON Type.id = CargoesRaw.type
 JOIN Entities AS Supplier ON Supplier.individual = CargoesRaw.supplier
 JOIN Entities AS Consignee ON Consignee.individual = CargoesRaw.consignee
 JOIN Parts ON Parts.part = CargoesRaw.assembly
