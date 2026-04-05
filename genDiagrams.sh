@@ -41,7 +41,9 @@ DAG="Edge VertexName Individual IndividualVertex Sentence"
 
 ACCOUNTING="Word Sentence Individual LedgerName AccountName JournalName BookName IndividualLedger IndividualAccount LedgerAccount LedgerJournal JournalAccount BookAccount Entry JournalEntry AssemblyApplicationRelease Credential"
 
-INVENTORY="Word Sentence Part AssemblyApplicationRelease PeriodName  ScheduleName JobName Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule IndividualJob AssemblyIndividualJobPrice  Bill Cargo CargoState AccountName"
+INVENTORY="Word Sentence Part AssemblyApplicationRelease PeriodName  ScheduleName JobName Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule IndividualJob AssemblyIndividualJobPrice  Bill Cargo CargoState AccountName BillReference"
+
+PROCESSES="Word Sentence Paragraph Attribute Part AssemblyApplicationRelease Individual Version Process Step Variance ProcessStep ProcessRun ProcessRunResult"
 
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
@@ -81,6 +83,9 @@ ${SQLTDIAGRAM} --title "Inventory Movement" $ARGS -c 5 -o diagrams/inventory.png
 
 ${EXTRACTTABLE} schema.xml.invalid $DAG >./zot.xml
 ${SQLTDIAGRAM} --title "Directed Acyclic Graph" $ARGS -c 3 -o diagrams/dag.png ./zot.xml
+
+${EXTRACTTABLE} schema.xml.invalid $PROCESSES >./zot.xml
+${SQLTDIAGRAM} --title "Processes" $ARGS -c 5 -o diagrams/processes.png ./zot.xml
 
 # Remove temporary files
 rm zot.xml
