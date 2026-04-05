@@ -38,6 +38,13 @@ END $$;
 
 SET search_path TO business, public;
 
+-- DROP TABLE IF EXISTS BillReference;
+-- DROP TABLE IF EXISTS ProcessRunResult;
+-- DROP TABLE IF EXISTS ProcessRun;
+-- DROP TABLE IF EXISTS ProcessStep;
+-- DROP TABLE IF EXISTS Variance;
+-- DROP TABLE IF EXISTS Step;
+-- DROP TABLE IF EXISTS Process;
 -- New tables
 --
 -- Table: Process
@@ -121,6 +128,22 @@ CREATE TABLE ProcessRunResult (
   PRIMARY KEY (id)
 );
 
+--
+-- Table: BillReference
+--
+CREATE TABLE BillReference (
+  id serial NOT NULL,
+  bill integer NOT NULL,
+  -- Order, Tracking, TaxID
+  type integer,
+  value character varying(80) NOT NULL,
+  -- Order in a displayed list.
+  sequence smallint,
+  -- No longer associate this bill.
+  stop timestamp,
+  created timestamp DEFAULT now() NOT NULL,
+  PRIMARY KEY (id)
+);
 
 -- New constraints
 ALTER TABLE Process ADD CONSTRAINT process_version FOREIGN KEY (version)
@@ -170,6 +193,9 @@ ALTER TABLE ProcessRunResult ADD FOREIGN KEY (processStep)
 
 ALTER TABLE ProcessRunResult ADD FOREIGN KEY (result)
   REFERENCES Attribute (id) DEFERRABLE;
+
+ALTER TABLE BillReference ADD FOREIGN KEY (bill)
+  REFERENCES Bill (id) DEFERRABLE;
 
 -- Updated and New views
 DROP VIEW IF EXISTS LineItems;
@@ -1041,6 +1067,241 @@ BEGIN
  RETURN (SELECT currval(pg_get_serial_sequence('schemaversion','build')));
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- New or updated procedures
+
+CREATE OR REPLACE FUNCTION GetPartWithParentNearest (
+ inPartName varchar,
+ inPartVersionName varchar,
+ inParentName varchar,
+ inParentVersionName varchar
+) RETURNS integer AS $$
+DECLARE
+ part_name_id integer;
+ part_version_name_id integer;
+ parent_name_id integer;
+ parent_version_name_id integer;
+ parent_id integer;
+ part_id integer;
+BEGIN
+ IF inPartName IS NOT NULL AND inPartVersionName IS NOT NULL AND inParentName IS NOT NULL AND inParentVersionName IS NOT NULL THEN
+  part_name_id := (SELECT GetSentence(inPartName));
+  part_version_name_id := GetVersionName(inPartVersionName);
+  parent_name_id := (SELECT GetSentence(inParentName));
+  parent_version_name_id := GetVersionName(inParentVersionName);
+  -- Find the highest version name part of parent name
+  parent_id = (
+   SELECT id
+   FROM Part
+   WHERE name = parent_name_id
+    AND version = parent_version_name_id
+    AND serial IS NULL
+   ORDER BY parent DESC -- Non NULLs first
+   LIMIT 1
+  );
+  IF parent_id IS NULL THEN
+   -- Create parent
+   parent_id := (SELECT GetPart(inParentName,inParentVersionName));
+  END IF;
+  SELECT id INTO part_id
+  FROM Part
+  WHERE parent = parent_id
+   AND name = part_name_id
+   AND version = part_version_name_id
+   AND serial IS NULL
+  LIMIT 1;
+  IF part_id IS NULL THEN
+   PERFORM pg_advisory_lock(parent_id);
+   INSERT INTO Part (parent, name, version) (
+    SELECT parent_id, part_name_id, part_version_name_id
+    FROM Dual
+    LEFT JOIN Part AS exists ON exists.parent = parent_id
+     AND exists.name = part_name_id
+     AND exists.version = part_version_name_id
+     AND serial IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(parent_id);
+   SELECT id INTO part_id
+   FROM Part
+   WHERE parent = parent_id
+   AND name = part_name_id
+   AND version = part_version_name_id
+   AND serial IS NULL
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN part_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Does no Part INSERTs
+CREATE OR REPLACE FUNCTION GetPartWithAncestor (
+ inPartName varchar,
+ inPartVersionName varchar,
+ inAncestorName varchar,
+ inAncestorVersionName varchar
+) RETURNS integer AS $$
+DECLARE
+ part_name_id integer;
+ part_version_name_id integer;
+ ancestor_name_id integer;
+ ancestor_version_name_id integer;
+ ancestor_id integer;
+ parent_id integer;
+ part_id integer;
+BEGIN
+ IF inPartName IS NOT NULL AND inPartVersionName IS NOT NULL AND inAncestorName IS NOT NULL AND inAncestorVersionName IS NOT NULL THEN
+  part_name_id := (SELECT GetSentence(inPartName));
+  part_version_name_id := GetVersionName(inPartVersionName);
+  ancestor_name_id := (SELECT GetSentence(inAncestorName));
+  ancestor_version_name_id := GetVersionName(inAncestorVersionName);
+  -- Find the highest version parent with provided ancestor
+  ancestor_id = (
+   SELECT id
+   FROM Part
+   WHERE name = ancestor_name_id
+    AND version = ancestor_version_name_id
+    AND serial IS NULL
+   ORDER BY id DESC
+   LIMIT 1
+  );
+  IF ancestor_id IS NOT NULL THEN
+   parent_id = (
+    SELECT id
+    FROM Part
+    WHERE parent = ancestor_id
+     AND version IS NOT NULL
+     AND serial IS NULL
+    ORDER BY id DESC
+    LIMIT 1
+   );
+   IF parent_id IS NOT NULL THEN
+    SELECT id INTO part_id
+    FROM Part
+    WHERE parent = parent_id
+     AND name = part_name_id
+     AND version = part_version_name_id
+     AND serial IS NULL
+    LIMIT 1;
+   END IF;
+  END IF;
+ END IF;
+ RETURN part_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetBillReference (
+  inBill integer,
+  inType varchar,
+  inValue character varying(80),
+  inSequence smallint DEFAULT NULL
+) RETURNS integer AS $$
+DECLARE
+  type_id integer;
+  reference_id integer;
+BEGIN
+ IF inBill IS NULL OR inValue IS NULL OR TRIM(inValue) = '' THEN
+  RETURN NULL;
+ END IF;
+
+ type_id := GetIdentifier(inType);
+
+ -- Check for existing active reference
+ SELECT id INTO reference_id
+ FROM BillReference
+ WHERE bill = inBill
+  AND type = type_id
+  AND value = inValue
+  AND stop IS NULL
+ LIMIT 1;
+
+ IF reference_id IS NULL THEN
+  PERFORM pg_advisory_lock(inBill);
+  INSERT INTO BillReference (bill, type, value, sequence) (
+   SELECT inBill, type_id, inValue, inSequence
+   FROM DUAL
+   LEFT JOIN BillReference AS exists ON exists.bill = inBill
+    AND exists.type = type_id
+    AND exists.value = inValue
+    AND exists.stop IS NULL
+   WHERE exists.id IS NULL
+   LIMIT 1
+  ) RETURNING id INTO reference_id;
+  PERFORM pg_advisory_unlock(inBill);
+ ELSE
+  -- Update sequence if provided and different
+  IF inSequence IS NOT NULL THEN
+   UPDATE BillReference
+   SET sequence = inSequence
+   WHERE id = reference_id
+    AND sequence IS DISTINCT FROM inSequence;
+  END IF;
+ END IF;
+
+ RETURN reference_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION AddCargo (
+ inBill integer,
+ inAssembly integer,
+ inCount float,
+ inUnit float,
+ inIndividualJob integer,
+ inFromCargo integer,
+ inBook varchar
+) RETURNS integer AS $$
+DECLARE
+ cargo_id integer;
+ entry_id integer;
+ journal_id integer;
+BEGIN
+ -- Custom Book entry
+ IF inBook IS NOT NULL AND inUnit IS NOT NULL THEN
+   SELECT * INTO journal_id, entry_id FROM Book(inBook, inUnit * inCount);
+ END IF;
+
+ cargo_id := AddCargo(inBill, inAssembly, inCount, inIndividualJob, journal_id, entry_id, inFromCargo);
+
+ RETURN cargo_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION AddCargoAlternate (
+ inBill integer,
+ inAlternateAssembly integer,
+ inCount float,
+ inUnit float,
+ inIndividualJob integer,
+ inFromCargo integer,
+ inBook varchar
+) RETURNS integer AS $$
+DECLARE
+ cargo_id integer;
+ entry_id integer;
+ journal_id integer;
+BEGIN
+ -- Will create a custom CargoState entry, so inFromCargo is NULL on AddCargo Call
+ -- Will also need to create a custom Booking
+ -- Custom Book entry
+
+ IF inBook IS NOT NULL AND inUnit IS NOT NULL THEN
+   SELECT * INTO journal_id, entry_id FROM Book(inBook, inUnit * inCount);
+ END IF;
+
+ cargo_id := AddCargo(inBill, inAlternateAssembly, inCount, inIndividualJob, journal_id, entry_id);
+
+ -- Custom CargoState entry
+ INSERT INTO CargoState (cargo, toCargo, count, journal, entry)
+ VALUES (inFromCargo, cargo_id, inCount, journal_id, entry_id);
+
+ RETURN cargo_id;
+END;
+$$ LANGUAGE plpgsql;
+
 
 
 SELECT SetSchemaVersion('Business', '0', '2', '8');
