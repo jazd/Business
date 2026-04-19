@@ -890,13 +890,14 @@
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
- <field name="name" data_type="varchar" size="" is_nullable="0" order="2" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
  <field name="owner" data_type="bigint" size="20" is_nullable="1" order="3" />
  <field name="parent" data_type="integer" size="" is_nullable="1" order="4" />
 </fields>
 <constraints>
  <constraint name="ca_parent" type="FOREIGN KEY" fields="parent" reference_table="CA" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="owner" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="ca_name" type="FOREIGN KEY" fields="name" reference_table="Entity" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
@@ -905,7 +906,7 @@
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="ca" data_type="integer" size="" is_nullable="0" order="2" />
- <field name="name" data_type="varchar" size="" is_nullable="1" order="3">
+ <field name="name" data_type="integer" size="" is_nullable="1" order="3">
   <comments>Override CA.name</comments>
  </field>
  <field name="type" data_type="integer" size="" is_nullable="1" order="4" />
@@ -924,6 +925,7 @@
 <constraints>
  <constraint name="capolicy_ca" type="FOREIGN KEY" fields="ca" reference_table="CA" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="capolicy_config" type="FOREIGN KEY" fields="config" reference_table="Path" reference_fields="id" deferrable="1" />
+ <constraint name="capolicy_name" type="FOREIGN KEY" fields="name" reference_table="Entity" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="owner" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <constraint name="capolocy_crl" type="FOREIGN KEY" fields="crl" reference_table="Path" reference_fields="id" deferrable="1" />
