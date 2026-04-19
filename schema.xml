@@ -908,9 +908,8 @@
  </field>
  <field name="config" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="serial" data_type="varchar" is_nullable="1" order="5" />
- <field name="start" data_type="timestamp" size="0" is_nullable="1" order="6"/>
+ <field name="bits" data_type="smallint" is_nullable="1" order="6" />
  <field name="days" data_type="smallint" is_nullable="1" order="7" />
- <field name="bits" data_type="smallint" is_nullable="1" order="8" />
  <field name="crl" data_type="bigint" size="20" is_nullable="1" order="9" />
  <field name="est" data_type="bigint" size="20" is_nullable="1" order="10" />
  <field name="cp" data_type="bigint" size="20" is_nullable="1" order="11" />
@@ -937,20 +936,22 @@
  <field name="caPolicy" data_type="integer" size="" is_nullable="0" order="2" />
  <field name="type" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="individual" data_type="bigint" size="20" is_nullable="1" order="4" />
- <field name="csr" data_type="integer" size="" is_nullable="0" order="5" />
- <field name="c" data_type="varchar" is_nullable="1" order="6" />
- <field name="st" data_type="varchar" is_nullable="1" order="7" />
- <field name="l" data_type="varchar" is_nullable="1" order="8" />
- <field name="o" data_type="varchar" is_nullable="1" order="9" />
- <field name="ou" data_type="varchar" is_nullable="1" order="10" />
- <field name="cn" data_type="varchar" is_nullable="1" order="11" />
- <field name="email" data_type="integer" size="" is_nullable="1" order="12" />
- <field name="serial" data_type="varchar" is_nullable="1" order="13" />
- <field name="pem" data_type="varchar" is_nullable="1" order="14" />
- <field name="der" data_type="varchar" is_nullable="1" order="15" />
- <field name="fingerprint" data_type="varchar" is_nullable="1" order="16" />
- <field name="revoked" data_type="timestamp" size="0" is_nullable="1" order="17" />
- <field name="reason" data_type="integer" size="" is_nullable="1" order="18">
+ <field name="csr" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="start" data_type="timestamp" size="0" is_nullable="1" order="6"/>
+ <field name="days" data_type="smallint" is_nullable="1" order="7" />
+ <field name="c" data_type="varchar" is_nullable="1" order="8" />
+ <field name="st" data_type="varchar" is_nullable="1" order="9" />
+ <field name="l" data_type="varchar" is_nullable="1" order="10" />
+ <field name="o" data_type="varchar" is_nullable="1" order="11" />
+ <field name="ou" data_type="varchar" is_nullable="1" order="12" />
+ <field name="cn" data_type="varchar" is_nullable="1" order="13" />
+ <field name="email" data_type="integer" size="" is_nullable="1" order="14" />
+ <field name="serial" data_type="varchar" is_nullable="1" order="15" />
+ <field name="pem" data_type="varchar" is_nullable="1" order="16" />
+ <field name="der" data_type="varchar" is_nullable="1" order="17" />
+ <field name="fingerprint" data_type="varchar" is_nullable="1" order="18" />
+ <field name="revoked" data_type="timestamp" size="0" is_nullable="1" order="19" />
+ <field name="reason" data_type="integer" size="" is_nullable="1" order="20">
   <comments>RFC 5280 codes</comments>
  </field>
 </fields>
