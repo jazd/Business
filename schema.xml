@@ -847,13 +847,12 @@
 <!-- applicationrelease that generated csr -->
 <!-- applicationrelease that generated certificate -->
 
-
 <table name="AssemblyPublicKey" order="240">
 <comments>untested</comments>
 <fields>
-  <field name="assembly" data_type="integer" size="" is_nullable="0" order="2" />
-  <field name="pem" data_type="varchar" size="" is_nullable="0" order="3" />
-  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="98" />
+ <field name="assembly" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="pem" data_type="varchar" size="" is_nullable="0" order="2" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="98" />
 </fields>
 <constraints>
  <constraint name="assemblypublikkey_assembly" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -863,9 +862,9 @@
 <table name="CertificateSigningRequest" order="240">
 <comments>untested</comments>
 <fields>
-  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
-  <field name="pem" data_type="varchar" size="" is_nullable="0" order="2" />
-  <field name="session" data_type="bigint" size="20" is_nullable="1" is_primary_key="0" is_foreign_key="0" order="3" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="pem" data_type="varchar" size="" is_nullable="0" order="2" />
+ <field name="session" data_type="bigint" size="20" is_nullable="1" is_primary_key="0" is_foreign_key="0" order="3" />
 </fields>
 <constraints>
  <constraint name="certificatesigningrequest_session" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
@@ -875,129 +874,143 @@
 <table name="AssemblyCertificateSigningRequest" order="240">
 <comments>untested</comments>
 <fields>
-  <field name="assembly" data_type="integer" size="" is_nullable="0" order="2" />
-  <field name="csr" data_type="integer" size="" is_nullable="0" order="2" />
-  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="98" />
+ <field name="assembly" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="csr" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="98" />
 </fields>
 <constraints>
-  <constraint name="assemblypublickey_assembly" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
-  <constraint name="assemblypublickey_csr" type="FOREIGN KEY" fields="csr" reference_table="CertificateSigningRequest" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="assemblypublickey_assembly" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="assemblypublickey_csr" type="FOREIGN KEY" fields="csr" reference_table="CertificateSigningRequest" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
 </constraints>
 </table>
 
 <table name="CA" order="240">
 <comments>untested</comments>
 <fields>
-  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
-  <field name="name" data_type="varchar" size="" is_nullable="0" order="2" />
-  <field name="owner" data_type="bigint" size="20" is_nullable="1" order="3" />
-  <field name="parent" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="varchar" size="" is_nullable="0" order="2" />
+ <field name="owner" data_type="bigint" size="20" is_nullable="1" order="3" />
+ <field name="parent" data_type="integer" size="" is_nullable="1" order="4" />
 </fields>
 <constraints>
-  <constraint name="ca_parent" type="FOREIGN KEY" fields="parent" reference_table="CA" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
-  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="owner" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="ca_parent" type="FOREIGN KEY" fields="parent" reference_table="CA" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="owner" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
 <table name="CAPolicy" order="240">
 <comments>untested</comments>
 <fields>
-  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
-  <field name="ca" data_type="integer" size="" is_nullable="0" order="2" />
-  <field name="name" data_type="varchar" size="" is_nullable="1" order="3">
-    <comments>Override CA.name</comments>
-  </field>
-  <field name="config" data_type="integer" size="" is_nullable="1" order="4" />
-  <field name="serial" data_type="varchar" is_nullable="1" order="5" />
-  <field name="start" data_type="timestamp" size="0" is_nullable="1" order="6"/>
-  <field name="days" data_type="smallint" is_nullable="1" order="7" />
-  <field name="bits" data_type="smallint" is_nullable="1" order="8" />
-  <field name="crl" data_type="bigint" size="20" is_nullable="1" order="9" />
-  <field name="est" data_type="bigint" size="20" is_nullable="1" order="10" />
-  <field name="cp" data_type="bigint" size="20" is_nullable="1" order="11" />
-  <field name="cps" data_type="bigint" size="20" is_nullable="1" order="12" />
-  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="98">
-    <comments>No longer associated with CA</comments>
-  </field>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="ca" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="name" data_type="varchar" size="" is_nullable="1" order="3">
+  <comments>Override CA.name</comments>
+ </field>
+ <field name="config" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="serial" data_type="varchar" is_nullable="1" order="5" />
+ <field name="start" data_type="timestamp" size="0" is_nullable="1" order="6"/>
+ <field name="days" data_type="smallint" is_nullable="1" order="7" />
+ <field name="bits" data_type="smallint" is_nullable="1" order="8" />
+ <field name="crl" data_type="bigint" size="20" is_nullable="1" order="9" />
+ <field name="est" data_type="bigint" size="20" is_nullable="1" order="10" />
+ <field name="cp" data_type="bigint" size="20" is_nullable="1" order="11" />
+ <field name="cps" data_type="bigint" size="20" is_nullable="1" order="12" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="98">
+  <comments>No longer associated with CA</comments>
+ </field>
 </fields>
 <constraints>
-  <constraint name="capolicy_ca" type="FOREIGN KEY" fields="ca" reference_table="CA" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
-  <constraint name="capolicy_config" type="FOREIGN KEY" fields="config" reference_table="Path" reference_fields="id" deferrable="1" />
-  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="owner" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
-  <constraint name="capolocy_crl" type="FOREIGN KEY" fields="crl" reference_table="Path" reference_fields="id" deferrable="1" />
-  <constraint name="capolocy_est" type="FOREIGN KEY" fields="est" reference_table="Path" reference_fields="id" deferrable="1" />
-  <constraint name="capolocy_cp" type="FOREIGN KEY" fields="cp" reference_table="Path" reference_fields="id" deferrable="1" />
-  <constraint name="capolocy_cps" type="FOREIGN KEY" fields="cps" reference_table="Path" reference_fields="id" deferrable="1" />
+ <constraint name="capolicy_ca" type="FOREIGN KEY" fields="ca" reference_table="CA" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="capolicy_config" type="FOREIGN KEY" fields="config" reference_table="Path" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="owner" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="capolocy_crl" type="FOREIGN KEY" fields="crl" reference_table="Path" reference_fields="id" deferrable="1" />
+ <constraint name="capolocy_est" type="FOREIGN KEY" fields="est" reference_table="Path" reference_fields="id" deferrable="1" />
+ <constraint name="capolocy_cp" type="FOREIGN KEY" fields="cp" reference_table="Path" reference_fields="id" deferrable="1" />
+ <constraint name="capolocy_cps" type="FOREIGN KEY" fields="cps" reference_table="Path" reference_fields="id" deferrable="1" />
 </constraints>
 </table>
 
 <table name="Certificate" order="240">
 <comments>untested</comments>
 <fields>
-  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
-  <field name="caPolicy" data_type="integer" size="" is_nullable="0" order="2" />
-  <field name="type" data_type="integer" size="" is_nullable="1" order="3" />
-  <field name="individual" data_type="bigint" size="20" is_nullable="1" order="4" />
-  <field name="csr" data_type="integer" size="" is_nullable="0" order="2" />
-
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="caPolicy" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="1" order="4" />
+ <field name="csr" data_type="integer" size="" is_nullable="0" order="5" />
+ <field name="c" data_type="varchar" is_nullable="1" order="6" />
+ <field name="st" data_type="varchar" is_nullable="1" order="7" />
+ <field name="l" data_type="varchar" is_nullable="1" order="8" />
+ <field name="o" data_type="varchar" is_nullable="1" order="9" />
+ <field name="ou" data_type="varchar" is_nullable="1" order="10" />
+ <field name="cn" data_type="varchar" is_nullable="1" order="11" />
+ <field name="email" data_type="integer" size="" is_nullable="1" order="12" />
+ <field name="serial" data_type="varchar" is_nullable="1" order="13" />
+ <field name="pem" data_type="varchar" is_nullable="1" order="14" />
+ <field name="der" data_type="varchar" is_nullable="1" order="15" />
+ <field name="fingerprint" data_type="varchar" is_nullable="1" order="16" />
+ <field name="revoked" data_type="timestamp" size="0" is_nullable="1" order="17" />
+ <field name="reason" data_type="integer" size="" is_nullable="1" order="18">
+  <comments>RFC 5280 codes</comments>
+ </field>
 </fields>
-id
-caPolicy
-type
-entity (issued to/for)
-csr (CertificateSigningRequest)
-c
-st
-l
-o
-ou
-cn
-email
-serial
-pem
-der
-sha256 (fingerprint)
-revoked
-reason (RFC 5280 codes)
 <constraints>
-  <constraint name="certificate_capolicy" type="FOREIGN KEY" fields="caPolicy" reference_table="CAPolicy" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="certificate_capolicy" type="FOREIGN KEY" fields="caPolicy" reference_table="CAPolicy" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
  <constraint name="certificate_csr" type="FOREIGN KEY" fields="csr" reference_table="CertificateSigningRequest" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="" type="FOREIGN KEY" fields="email" reference_table="Email" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="reason" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
 </table>
 
 <!-- replaces isCA bool -->
 <table name="CACertificate" order="240">
+<fields>
+ <field name="ca" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="certificate" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="98">
+  <comments>No longer associated with CA</comments>
+ </field>
+</fields>
+<constraints>
+ <constraint name="cacertificate_ca" type="FOREIGN KEY" fields="ca" reference_table="CA" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="cacertificate_certificate" type="FOREIGN KEY" fields="certificate" reference_table="Certificate" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+</constraints>
 </table>
 
 <table name="AssemblyCertificate" order="240">
-  <fields>
-     <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="98" />
-  </fields>
-assembly
-certificate
-stop
-reason
+<fields>
+ <field name="assembly" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="certificate" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="3" />
+ <field name="reason" data_type="integer" size="" is_nullable="1" order="4" />
+</fields>
+<constraints>
+ <constraint name="assemblycertificate_assembly" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="assemblycertificate_certificate" type="FOREIGN KEY" fields="certificate" reference_table="Certificate" reference_fields="id" on_delete="" on_update="" match_type="" expression="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="reason" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
 </table>
 
 <table name="ESTRequest" order="240">
 <comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="session" data_type="bigint" size="20" is_nullable="1" is_primary_key="0" is_foreign_key="0" order="2" />
+ <field name="operation" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="certificate" data_type="integer" size="" is_nullable="0" order="4" />
+ <field name="csr" data_type="integer" size="" is_nullable="0" order="5" />
+ <field name="issued" data_type="integer" size="" is_nullable="0" order="6" />
 </fields>
-id
-sesson
-operation
-certificate
-csr
-issued (certificate)
+<constraints>
+ <constraint name="estrequest_session" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="operation" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <constraint name="estrequest_certificate" type="FOREIGN KEY" fields="certificate" reference_table="Certificate" reference_fields="id" on_delete="" on_update="" match_type="" expression="" deferrable="1" />
+ <constraint name="estrequest_csr" type="FOREIGN KEY" fields="csr" reference_table="CertificateSigningRequest" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="estrequest_issued" type="FOREIGN KEY" fields="issued" reference_table="Certificate" reference_fields="id" on_delete="" on_update="" match_type="" expression="" deferrable="1" />
+</constraints>
 </table>
-
-<!-- -->
-
-
-
 
 <table name="Attribute" order="801">
 <comments>untested</comments>
