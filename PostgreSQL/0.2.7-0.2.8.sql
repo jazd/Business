@@ -329,16 +329,16 @@ ALTER TABLE ProcessRunResult ADD FOREIGN KEY (result)
 ALTER TABLE BillReference ADD FOREIGN KEY (bill)
   REFERENCES Bill (id) DEFERRABLE;
 
-ALTER TABLE AssemblyPublicKey ADD CONSTRAINT assemblypublikkey_assembly FOREIGN KEY (assembly)
+ALTER TABLE AssemblyPublicKey ADD CONSTRAINT assemblypublickey_assembly FOREIGN KEY (assembly)
   REFERENCES Part (id) DEFERRABLE;
 
 ALTER TABLE CertificateSigningRequest ADD CONSTRAINT certificatesigningrequest_session FOREIGN KEY (session)
   REFERENCES Session (id) DEFERRABLE;
 
-ALTER TABLE AssemblyCertificateSigningRequest ADD CONSTRAINT assemblypublickey_assembly FOREIGN KEY (assembly)
+ALTER TABLE AssemblyCertificateSigningRequest ADD CONSTRAINT assemblycertificatesigningrequest_assembly FOREIGN KEY (assembly)
   REFERENCES Part (id) DEFERRABLE;
 
-ALTER TABLE AssemblyCertificateSigningRequest ADD CONSTRAINT assemblypublickey_csr FOREIGN KEY (csr)
+ALTER TABLE AssemblyCertificateSigningRequest ADD CONSTRAINT assemblycertificatesigningrequest_csr FOREIGN KEY (csr)
   REFERENCES CertificateSigningRequest (id) DEFERRABLE;
 
 ALTER TABLE CA ADD CONSTRAINT ca_parent FOREIGN KEY (parent)
@@ -356,19 +356,19 @@ ALTER TABLE CAPolicy ADD CONSTRAINT capolicy_config FOREIGN KEY (config)
 ALTER TABLE CAPolicy ADD CONSTRAINT capolicy_name FOREIGN KEY (name)
   REFERENCES Entity (id) DEFERRABLE;
 
-ALTER TABLE CAPolicy ADD CONSTRAINT capolocy_crl FOREIGN KEY (crl)
+ALTER TABLE CAPolicy ADD CONSTRAINT capolicy_crl FOREIGN KEY (crl)
   REFERENCES Path (id) DEFERRABLE;
 
-ALTER TABLE CAPolicy ADD CONSTRAINT capolocy_est FOREIGN KEY (est)
+ALTER TABLE CAPolicy ADD CONSTRAINT capolicy_est FOREIGN KEY (est)
   REFERENCES Path (id) DEFERRABLE;
 
-ALTER TABLE CAPolicy ADD CONSTRAINT capolocy_ocsp FOREIGN KEY (ocsp)
+ALTER TABLE CAPolicy ADD CONSTRAINT capolicy_ocsp FOREIGN KEY (ocsp)
   REFERENCES Path (id) DEFERRABLE;
 
-ALTER TABLE CAPolicy ADD CONSTRAINT capolocy_cp FOREIGN KEY (cp)
+ALTER TABLE CAPolicy ADD CONSTRAINT capolicy_cp FOREIGN KEY (cp)
   REFERENCES Path (id) DEFERRABLE;
 
-ALTER TABLE CAPolicy ADD CONSTRAINT capolocy_cps FOREIGN KEY (cps)
+ALTER TABLE CAPolicy ADD CONSTRAINT capolicy_cps FOREIGN KEY (cps)
   REFERENCES Path (id) DEFERRABLE;
 
 ALTER TABLE Certificate ADD CONSTRAINT certificate_capolicy FOREIGN KEY (caPolicy)
@@ -403,7 +403,6 @@ ALTER TABLE ESTRequest ADD CONSTRAINT estrequest_csr FOREIGN KEY (csr)
 
 ALTER TABLE ESTRequest ADD CONSTRAINT estrequest_issued FOREIGN KEY (issued)
   REFERENCES Certificate (id) DEFERRABLE;
-
 
 -- Updated and New views
 DROP VIEW IF EXISTS CAs;
