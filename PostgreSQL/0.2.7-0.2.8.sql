@@ -45,6 +45,15 @@ SET search_path TO business, public;
 -- DROP TABLE IF EXISTS Variance;
 -- DROP TABLE IF EXISTS Step;
 -- DROP TABLE IF EXISTS Process;
+-- DROP TABLE IF EXISTS ESTRequest;
+-- DROP TABLE IF EXISTS AssemblyCertificate;
+-- DROP TABLE IF EXISTS CACertificate;
+-- DROP TABLE IF EXISTS Certificate;
+-- DROP TABLE IF EXISTS CAPolicy;
+-- DROP TABLE IF EXISTS CA;
+-- DROP TABLE IF EXISTS AssemblyCertificateSigningRequest;
+-- DROP TABLE IF EXISTS CertificateSigningRequest;
+-- DROP TABLE IF EXISTS AssemblyPublicKey;
 -- New tables
 --
 -- Table: Process
@@ -145,6 +154,129 @@ CREATE TABLE BillReference (
   PRIMARY KEY (id)
 );
 
+--
+-- Table: AssemblyPublicKey
+--
+CREATE TABLE AssemblyPublicKey (
+  assembly integer NOT NULL,
+  pem character varying NOT NULL,
+  stop timestamp
+);
+
+--
+-- Table: CertificateSigningRequest
+--
+CREATE TABLE CertificateSigningRequest (
+  id serial NOT NULL,
+  pem character varying NOT NULL,
+  individual bigint,
+  session bigint,
+  PRIMARY KEY (id)
+);
+
+--
+-- Table: AssemblyCertificateSigningRequest
+--
+CREATE TABLE AssemblyCertificateSigningRequest (
+  assembly integer NOT NULL,
+  csr integer NOT NULL,
+  stop timestamp
+);
+
+--
+-- Table: CA
+--
+CREATE TABLE CA (
+  id serial NOT NULL,
+  name integer NOT NULL,
+  owner bigint,
+  parent integer,
+  PRIMARY KEY (id)
+);
+
+--
+-- Table: CAPolicy
+--
+CREATE TABLE CAPolicy (
+  id serial NOT NULL,
+  ca integer NOT NULL,
+  -- Override CA.name
+  name integer,
+  type integer,
+  config integer,
+  serial character varying,
+  bits smallint,
+  days smallint,
+  crl bigint,
+  est bigint,
+  ocsp bigint,
+  cp bigint,
+  cps bigint,
+  -- No longer associated with CA
+  stop timestamp,
+  PRIMARY KEY (id)
+);
+
+--
+-- Table: Certificate
+--
+CREATE TABLE Certificate (
+  id serial NOT NULL,
+  caPolicy integer NOT NULL,
+  type integer,
+  individual bigint,
+  csr integer,
+  start timestamp,
+  days smallint,
+  c character varying,
+  st character varying,
+  l character varying,
+  o character varying,
+  ou character varying,
+  cn character varying,
+  email integer,
+  serial character varying,
+  pem character varying,
+  fingerprint character varying,
+  revoked timestamp,
+  -- RFC 5280 codes
+  reason integer,
+  PRIMARY KEY (id)
+);
+
+--
+-- Table: CACertificate
+--
+CREATE TABLE CACertificate (
+  ca integer NOT NULL,
+  certificate integer NOT NULL,
+  -- No longer associated with CA
+  stop timestamp
+);
+
+--
+-- Table: AssemblyCertificate
+--
+CREATE TABLE AssemblyCertificate (
+  assembly integer NOT NULL,
+  certificate integer NOT NULL,
+  stop timestamp,
+  reason integer
+);
+
+--
+-- Table: ESTRequest
+--
+CREATE TABLE ESTRequest (
+  id serial NOT NULL,
+  session bigint,
+  operation integer,
+  certificate integer NOT NULL,
+  csr integer NOT NULL,
+  issued integer NOT NULL,
+  PRIMARY KEY (id)
+);
+
 -- New constraints
 ALTER TABLE Process ADD CONSTRAINT process_version FOREIGN KEY (version)
   REFERENCES Version (id) DEFERRABLE;
@@ -197,7 +329,85 @@ ALTER TABLE ProcessRunResult ADD FOREIGN KEY (result)
 ALTER TABLE BillReference ADD FOREIGN KEY (bill)
   REFERENCES Bill (id) DEFERRABLE;
 
+ALTER TABLE AssemblyPublicKey ADD CONSTRAINT assemblypublikkey_assembly FOREIGN KEY (assembly)
+  REFERENCES Part (id) DEFERRABLE;
+
+ALTER TABLE CertificateSigningRequest ADD CONSTRAINT certificatesigningrequest_session FOREIGN KEY (session)
+  REFERENCES Session (id) DEFERRABLE;
+
+ALTER TABLE AssemblyCertificateSigningRequest ADD CONSTRAINT assemblypublickey_assembly FOREIGN KEY (assembly)
+  REFERENCES Part (id) DEFERRABLE;
+
+ALTER TABLE AssemblyCertificateSigningRequest ADD CONSTRAINT assemblypublickey_csr FOREIGN KEY (csr)
+  REFERENCES CertificateSigningRequest (id) DEFERRABLE;
+
+ALTER TABLE CA ADD CONSTRAINT ca_parent FOREIGN KEY (parent)
+  REFERENCES CA (id) DEFERRABLE;
+
+ALTER TABLE CA ADD CONSTRAINT ca_name FOREIGN KEY (name)
+  REFERENCES Entity (id) DEFERRABLE;
+
+ALTER TABLE CAPolicy ADD CONSTRAINT capolicy_ca FOREIGN KEY (ca)
+  REFERENCES CA (id) DEFERRABLE;
+
+ALTER TABLE CAPolicy ADD CONSTRAINT capolicy_config FOREIGN KEY (config)
+  REFERENCES Path (id) DEFERRABLE;
+
+ALTER TABLE CAPolicy ADD CONSTRAINT capolicy_name FOREIGN KEY (name)
+  REFERENCES Entity (id) DEFERRABLE;
+
+ALTER TABLE CAPolicy ADD CONSTRAINT capolocy_crl FOREIGN KEY (crl)
+  REFERENCES Path (id) DEFERRABLE;
+
+ALTER TABLE CAPolicy ADD CONSTRAINT capolocy_est FOREIGN KEY (est)
+  REFERENCES Path (id) DEFERRABLE;
+
+ALTER TABLE CAPolicy ADD CONSTRAINT capolocy_ocsp FOREIGN KEY (ocsp)
+  REFERENCES Path (id) DEFERRABLE;
+
+ALTER TABLE CAPolicy ADD CONSTRAINT capolocy_cp FOREIGN KEY (cp)
+  REFERENCES Path (id) DEFERRABLE;
+
+ALTER TABLE CAPolicy ADD CONSTRAINT capolocy_cps FOREIGN KEY (cps)
+  REFERENCES Path (id) DEFERRABLE;
+
+ALTER TABLE Certificate ADD CONSTRAINT certificate_capolicy FOREIGN KEY (caPolicy)
+  REFERENCES CAPolicy (id) DEFERRABLE;
+
+ALTER TABLE Certificate ADD CONSTRAINT certificate_csr FOREIGN KEY (csr)
+  REFERENCES CertificateSigningRequest (id) DEFERRABLE;
+
+ALTER TABLE Certificate ADD FOREIGN KEY (email)
+  REFERENCES Email (id) DEFERRABLE;
+
+ALTER TABLE CACertificate ADD CONSTRAINT cacertificate_ca FOREIGN KEY (ca)
+  REFERENCES CA (id) DEFERRABLE;
+
+ALTER TABLE CACertificate ADD CONSTRAINT cacertificate_certificate FOREIGN KEY (certificate)
+  REFERENCES Certificate (id) DEFERRABLE;
+
+ALTER TABLE AssemblyCertificate ADD CONSTRAINT assemblycertificate_assembly FOREIGN KEY (assembly)
+  REFERENCES Part (id) DEFERRABLE;
+
+ALTER TABLE AssemblyCertificate ADD CONSTRAINT assemblycertificate_certificate FOREIGN KEY (certificate)
+  REFERENCES Certificate (id) DEFERRABLE;
+
+ALTER TABLE ESTRequest ADD CONSTRAINT estrequest_session FOREIGN KEY (session)
+  REFERENCES Session (id) DEFERRABLE;
+
+ALTER TABLE ESTRequest ADD CONSTRAINT estrequest_certificate FOREIGN KEY (certificate)
+  REFERENCES Certificate (id) DEFERRABLE;
+
+ALTER TABLE ESTRequest ADD CONSTRAINT estrequest_csr FOREIGN KEY (csr)
+  REFERENCES CertificateSigningRequest (id) DEFERRABLE;
+
+ALTER TABLE ESTRequest ADD CONSTRAINT estrequest_issued FOREIGN KEY (issued)
+  REFERENCES Certificate (id) DEFERRABLE;
+
+
 -- Updated and New views
+DROP VIEW IF EXISTS CAs;
+DROP VIEW IF EXISTS Certificates;
 DROP VIEW IF EXISTS LineItems;
 DROP VIEW IF EXISTS LineItemsRaw;
 DROP VIEW IF EXISTS Bills;
@@ -1040,6 +1250,42 @@ GROUP BY
  CargoStateSum.cargo,
  CargoStateSum.count
 ;
+
+--
+-- View: CAs
+--
+CREATE VIEW CAs ( id, parent, name, owner ) AS
+SELECT CA.id,
+CA.parent,
+Entity.name,
+COALESCE(Entities.name, People.fullname) AS owner
+FROM CA
+JOIN Entity ON Entity.id = CA.name
+LEFT JOIN Entities ON Entities.individual = CA.owner
+LEFT JOIN People ON People.individual = CA.owner
+;
+
+--
+-- View: Certificates
+--
+CREATE VIEW Certificates ( id, type, isca, ca, parent, start, days, stop, cn, serial ) AS
+SELECT Certificate.id,
+ Type.value AS type,
+ (CACertificate.ca IS NOT NULL) AS isca,
+ CAPolicy.ca,
+ CA.parent,
+ start,
+ Certificate.days,
+ Start + Certificate.days * INTERVAL '1 day' AS stop,
+ cn,
+ Certificate.serial
+FROM Certificate
+JOIN I18NWord AS Type ON Type.id = Certificate.type
+JOIN CAPolicy ON CAPolicy.id = Certificate.CAPolicy
+JOIN CA ON CA.id = CAPolicy.ca
+LEFT JOIN CACertificate ON CACertificate.certificate = Certificate.id   
+;
+
 
 -- New procedures
 
