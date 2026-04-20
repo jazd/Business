@@ -3065,6 +3065,37 @@ GROUP BY
  CargoStateSum.count
    </sql>
  </view>
+ <view name="CAs" fields="id, parent, name, owner">
+   <sql>
+SELECT CA.id,
+CA.parent,
+Entity.name,
+COALESCE(Entities.name, People.fullname) AS owner
+FROM CA
+JOIN Entity ON Entity.id = CA.name
+LEFT JOIN Entities ON Entities.individual = CA.owner
+LEFT JOIN People ON People.individual = CA.owner
+   </sql>
+ </view>
+ <view name="Certificates" fields="id, type, isca, ca, parent, start, days, stop, cn, serial">
+   <sql>
+SELECT Certificate.id,
+ Type.value AS type,
+ (CACertificate.ca IS NOT NULL) AS isca,
+ CAPolicy.ca,
+ CA.parent,
+ start,
+ Certificate.days,
+ Start + Certificate.days * INTERVAL !apos;1 day!apos; AS stop,
+ cn,
+ Certificate.serial
+FROM Certificate
+JOIN I18NWord AS Type ON Type.id = Certificate.type
+JOIN CAPolicy ON CAPolicy.id = Certificate.CAPolicy
+JOIN CA ON CA.id = CAPolicy.ca
+LEFT JOIN CACertificate ON CACertificate.certificate = Certificate.id
+   </sql>
+ </view>
 </views>
 <triggers></triggers>
 <procedures></procedures>
