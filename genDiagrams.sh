@@ -45,6 +45,8 @@ INVENTORY="Word Sentence Part AssemblyApplicationRelease PeriodName  ScheduleNam
 
 PROCESSES="Word Sentence Paragraph Attribute Part AssemblyApplicationRelease Individual Version Process Step Variance ProcessStep ProcessRun ProcessRunResult"
 
+EST="Session AssemblyPublicKey Part CertificateSigningRequest Individual AssemblyCertificateSigningRequest CA Entity CAPolicy Path Word Certificate Email CACertificate AssemblyCertificate ESTRequest"
+
 # Include invalid refrences for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
 
@@ -86,6 +88,9 @@ ${SQLTDIAGRAM} --title "Directed Acyclic Graph" $ARGS -c 3 -o diagrams/dag.png .
 
 ${EXTRACTTABLE} schema.xml.invalid $PROCESSES >./zot.xml
 ${SQLTDIAGRAM} --title "Processes" $ARGS -c 5 -o diagrams/processes.png ./zot.xml
+
+${EXTRACTTABLE} schema.xml.invalid $EST >./zot.xml
+${SQLTDIAGRAM} --title "Processes" $ARGS -c 5 -o diagrams/est.png ./zot.xml
 
 # Remove temporary files
 rm zot.xml
