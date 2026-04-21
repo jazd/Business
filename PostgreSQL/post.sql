@@ -8,10 +8,29 @@ CREATE UNIQUE INDEX word_value ON Word(culture,UPPER(value));
 ALTER TABLE AssemblyPublicKey ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
 ALTER TABLE AssemblyCertificateSigningRequest ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
 ALTER TABLE CAPolicy ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
-ALTER TABLE Certificate ALTER COLUMN start TYPE timestamptz USING start AT TIME ZONE 'UTC';
-ALTER TABLE Certificate ALTER COLUMN revoked TYPE timestamptz USING revoked AT TIME ZONE 'UTC';
 ALTER TABLE AssemblyCertificate ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
 
+-- The VIEW Certificates uses Certificate.start and Certificate.revoked, so need to drop and re-create it to change column types
+BEGIN;
+DO $$
+DECLARE
+  view_def text;
+BEGIN
+  -- Capture the exact SELECT definition of the view
+  SELECT pg_get_viewdef('certificates'::regclass, true)
+    INTO view_def;
+
+  -- Drop the dependent view so the column is no longer locked for modification
+  DROP VIEW IF EXISTS Certificates;
+
+  -- Change the column types
+  ALTER TABLE Certificate ALTER COLUMN start TYPE timestamptz USING start AT TIME ZONE 'UTC';
+  ALTER TABLE Certificate ALTER COLUMN revoked TYPE timestamptz USING revoked AT TIME ZONE 'UTC';
+
+  -- Recreate the view exactly as it was before
+  EXECUTE 'CREATE VIEW certificates AS ' || view_def;
+END $$;
+COMMIT;
 
 -- Untested
 CREATE INDEX sentence_value ON Sentence(culture,UPPER(value));

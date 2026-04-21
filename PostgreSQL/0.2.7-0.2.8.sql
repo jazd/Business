@@ -277,6 +277,15 @@ CREATE TABLE ESTRequest (
   PRIMARY KEY (id)
 );
 
+-- Type fixups
+-- timezonetz for certificate tables
+ALTER TABLE AssemblyPublicKey ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
+ALTER TABLE AssemblyCertificateSigningRequest ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
+ALTER TABLE CAPolicy ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
+ALTER TABLE Certificate ALTER COLUMN start TYPE timestamptz USING start AT TIME ZONE 'UTC';
+ALTER TABLE Certificate ALTER COLUMN revoked TYPE timestamptz USING revoked AT TIME ZONE 'UTC';
+ALTER TABLE AssemblyCertificate ALTER COLUMN stop TYPE timestamptz USING stop AT TIME ZONE 'UTC';
+
 -- New constraints
 ALTER TABLE Process ADD CONSTRAINT process_version FOREIGN KEY (version)
   REFERENCES Version (id) DEFERRABLE;
