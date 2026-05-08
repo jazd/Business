@@ -16,7 +16,7 @@ BEGIN
 
  SET search_path TO business, public;
 
- -- Check to be sure crrrent schema version is 0.2.7
+ -- Check to be sure current schema version is 0.2.7
  IF NOT EXISTS (
   SELECT true
   FROM schemaversion
