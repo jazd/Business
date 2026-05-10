@@ -1,36 +1,42 @@
 Business
 ========
-Business SQL Database schema
 
-Virtually [CRUD]( http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) free database schema with minimum business logic included.
+**Open Source Business SQL Database Schema**
 
-Currently **Alpha**, and may change significantly before Beta release.  Use in this state **at your own risk**.
+Created with SQLFairy sqlt from an XML file as the source. It targets PostgreSQL, MySQL, SQLite and others.
 
-A couple of the supported SQL Servers:
+A virtually [CRUD]( http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) free database schema with minimum business logic included.
 
+Tested with DbFit at dbfit.github.com/dbfit
+
+This schema keeps a full history of all changes. Instead of editing or deleting old records, the design adds new records. This approach preserves every past state of the data.
+
+**Current status:** Alpha. The design may change significantly before the Beta release. Use in this state at your own risk.
+
+A couple of the supported SQL servers:
 - [PostgreSQL](https://github.com/jazd/Business/releases/latest/download/schema.pgsql) DDL
-  - Will also need [procedures.sql](https://raw.githubusercontent.com/jazd/Business/master/PostgreSQL/procedures.sql), pre.sql and post.sql
+  - You will also need procedures.sql, pre.sql and post.sql
 - [MySQL](https://github.com/jazd/Business/releases/latest/download/schema.mysql) DDL
-- [SQLite Database](https://github.com/jazd/Business/releases/latest/download/business.sqlite3) pre-built
+- [SQLite database](https://github.com/jazd/Business/releases/latest/download/business.sqlite3) (pre-built)
 
-[Documentation and Examples](https://github.com/jazd/Business/wiki)
+[Documentation and examples](https://github.com/jazd/Business/wiki): https://github.com/jazd/Business/wiki
 
-*Features*
-* i18N from the start
-* Extensive Test coverage
+**Features**
+* i18n support from the start
+* Extensive test coverage
 * Highly [normalized](http://en.wikipedia.org/wiki/Database_normalization)
-* Common Views are included
+* Common VIEWs are included
 * Records are almost never DELETEd
-* Fields are almost never UPDATEd, and when they are, they have started out NULL
-* Foreign Key fields tend to be the same name as the table they reference
+* Fields are almost never UPDATEd. When they are, they start out as NULL
+* Foreign key fields tend to use the same name as the table they reference
 * Field and table names are full words
-* Procedures that always check for duplicates before insert
-* Linking tables names are almost always composed of the [CamelCase](http://en.wikipedia.org/wiki/CamelCase) linked table names
+* Procedures always check for duplicates before insert
+* Linking table names are almost always composed of the [CamelCase](http://en.wikipedia.org/wiki/CamelCase) names of the linked tables
 * Queries read well
 * Almost no business rules are carried out outside of the database server
 
-The original idea for this schema comes from my earlier Origins/peopleSchema.sql work, a schema I created back in 2002.  Originally source controlled with RCS.
+The original idea for this schema comes from my earlier Origins/peopleSchema.sql work. I created that schema back in 2002. It was originally source controlled with RCS.
 
-## Optional
-- perl-XML-Twig  (Fedora: `sudo dnf install perl-XML-Twig`)
+Optional
+- perl-XML-Twig (Fedora: `sudo dnf install perl-XML-Twig`)
 - podman (Fedora: `sudo dnf install podman podman-docker podman-compose`)
