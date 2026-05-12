@@ -1,6 +1,6 @@
 .SUFFIXES:
 
-.SUFFIXES: .pgsql .mysql .sqlite .db2
+.SUFFIXES: .pgsql .mysql .sqlite .db2 .sqlserver .oracle .sybase
 
 .DEFAULT:
 	@echo "Unknown target $@, try:  make help"
@@ -44,7 +44,7 @@ else
 DROP_TABLE = --add-drop-table
 endif
 
-TARGETS = schema.pgsql schema.mysql schema.sqlite schema.db2
+TARGETS = schema.pgsql schema.mysql schema.sqlite schema.db2 schema.sqlserver schema.oracle schema.sybase
 
 all: $(TARGETS)
 
@@ -52,6 +52,9 @@ pgsql: schema.pgsql
 mysql: schema.mysql
 sqlite: schema.sqlite
 db2: schema.db2
+mssql: schema.sqlserver
+oracle: schema.oracle
+sybase: schema.sybase
 
 schema.pgsql: schema.xml container
 	@echo Creating PostgreSQL file $@
@@ -107,6 +110,19 @@ schema.sqlserver: schema.xml container
 	$(SQLT) -f XML-SQLFairy -t SQLServer $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "s/\[exit\]/ZexitZ/g" | sed -e "s/\[schema\]/ZschemaZ/g" | tr -d [] | sed -e "s/ZexitZ/\[exit\]/g" | sed -e "s/ZschemaZ/\[schema\]/g" | sed -e "s/NOW()/GETUTCDATE()/g" | sed -e "s/timestamp/datetime/g" | sed -e "s/false/'false'/g" | sed -e "s/datetime WITHOUT TIME ZONE/datetime2(6)/g" | sed -e "s/time WITHOUT TIME ZONE/time/g" | sed -e "s/interval/decimal(4,2)/g" | sed -e "s/bytea/varbinary/g" | sed -e "s/inet/varchar/g" | sed -e "s/boolean/bit/g" >> $@
 	chmod -w $@
 
+schema.oracle: schema.xml container
+	@echo Creating Oracle file $@
+	if [[ -e $@ ]]; then chmod +w $@; fi
+	sed 's/^/-- /' LICENSE.txt > $@
+	$(SQLT) -f XML-SQLFairy -t Oracle $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
+	chmod -w $@
+
+schema.sybase: schema.xml container
+	@echo Creating Sybase file $@
+	if [[ -e $@ ]]; then chmod +w $@; fi
+	sed 's/^/-- /' LICENSE.txt > $@
+	$(SQLT) -f XML-SQLFairy -t Sybase $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
+	chmod -w $@
 
 clean:
 	@echo Removing target files $(TARGETS)
