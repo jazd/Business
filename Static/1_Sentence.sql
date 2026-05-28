@@ -207,3 +207,12 @@ INSERT INTO Sentence (id,culture,value,length) VALUES (211,2058,'Venta John Doe'
 INSERT INTO Sentence (id,culture,value,length) VALUES (212,1033,'AR Sale',7);
 INSERT INTO Sentence (id,culture,value,length) VALUES (213,1033,'AR Sale Credit',14);
 INSERT INTO Sentence (id,culture,value,length) VALUES (214,1033,'AR Payment',10);
+INSERT INTO Sentence (id,culture,value,length) VALUES (215,1033,'Checking',8);
+INSERT INTO Sentence (id,culture,value,length) VALUES (216,1033,'Savings',7);
+INSERT INTO Sentence (id,culture,value,length) VALUES (217,1033,'Food Bank',9);
+INSERT INTO Sentence (id,culture,value,length) VALUES (218,1033,'Humane Society',24);
+INSERT INTO Sentence (id,culture,value,length) VALUES (219,1033,'Fisher House Foundation',23);
+INSERT INTO Sentence (id,culture,value,length) VALUES (220,1033,'Donations',9);
+INSERT INTO Sentence (id,culture,value,length) VALUES (221,1033,'Charity',7);
+INSERT INTO Sentence (id,culture,value,length) VALUES (222,1033,'AP Donation',11);
+INSERT INTO Sentence (id,culture,value,length) VALUES (223,1033,'Donation Payment',16);

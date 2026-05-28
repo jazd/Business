@@ -59,12 +59,12 @@ UPDATE sqlite_sequence SET seq = 100 WHERE name = 'TimeOfDay';
 UPDATE sqlite_sequence SET seq = 100 WHERE name = 'DayOfWeek';
 UPDATE sqlite_sequence SET seq = 100 WHERE name = 'MonthDay';
 UPDATE sqlite_sequence SET seq = 100 WHERE name = 'Month';
--- PeriodName
+UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'PeriodName';
 UPDATE sqlite_sequence SET seq = 100 WHERE name = 'Attribute';
--- LedgerName
--- JournalName
--- BookName
--- AccountName
+UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'LedgerName';
+UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'JournalName';
+UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'BookName';
+UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'AccountName';
 UPDATE sqlite_sequence SET seq = 100 WHERE name = 'Entry';
 UPDATE sqlite_sequence SET seq = 1000 WHERE name = 'JournalEntry';
 UPDATE sqlite_sequence SET seq = 1000 WHERE name = 'Bill';
