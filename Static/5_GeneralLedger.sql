@@ -67,6 +67,14 @@ INSERT INTO AccountName (account, name, type, credit) VALUES (105, 81,  70004, f
 INSERT INTO AccountName (account, name, type, credit) VALUES (106, 100, 70004, false); -- Supply
 INSERT INTO AccountName (account, name, type, credit) VALUES (107, 121, 70000, false); -- Petty Cash
 INSERT INTO AccountName (account, name, type, credit) VALUES (108, 90,  70000, false); -- Receivable
+-- Sub Accounts
+INSERT INTO AccountName (account, name, type, credit) VALUES (110, 215, 70000, false); -- Checking
+INSERT INTO AccountName (account, name, type, credit) VALUES (111, 216, 70000, false); -- Savings
+INSERT INTO AccountName (account, name, type, credit) VALUES (210, 217, 70001, true);  -- Food Bank
+INSERT INTO AccountName (account, name, type, credit) VALUES (211, 218, 70001, true);  -- Humane Society
+INSERT INTO AccountName (account, name, type, credit) VALUES (212, 219, 70001, true);  -- Fisher House Foundation
+INSERT INTO AccountName (account, name, type, credit) VALUES (700, 220, 70004, false); -- Donations
+--
 --
 INSERT INTO BookAccount (book, increase, decrease) VALUES (1, 101, 100); -- Rent Payment: Rent, Cash
 INSERT INTO BookAccount (book, increase, decrease) VALUES (2, 100, 102); -- Sale: Cash, Sales
@@ -100,3 +108,18 @@ INSERT INTO BookAccount (book, increase, decrease, split) VALUES (20, NULL, 200,
 INSERT INTO BookAccount (book, increase, decrease, split) VALUES (21, 100,  NULL, NULL); -- Commision Sale: Cash 100%
 INSERT INTO BookAccount (book, increase, decrease, split) VALUES (21, NULL, 102,  .85);  -- Comission Sale: Sales 85%
 INSERT INTO BookAccount (book, increase, decrease, split) VALUES (21, NULL, 200,  .15);  -- Comission Sale: Comission 15%
+-- Charity Books
+INSERT INTO JournalName (journal, name) VALUES (10, 221); -- Charity
+INSERT INTO LedgerJournal (ledger, journal) VALUES (1, 10);
+INSERT INTO BookName (book, name, journal) VALUES (22, 222, 10); -- AP Donation
+INSERT INTO BookName (book, name, journal) VALUES (23, 223, 10); -- Donation Payment
+-- Book Donations Payable
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (22, 700, NULL, NULL); -- Donation Expense: 100%
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (22, NULL, 210, .50);  -- Food Bank: 50%
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (22, NULL, 211, .10);  -- Humane Society: 10%
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (22, NULL, 212, .40);  -- Fisher House: 40%
+-- Book Donations Paid
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (23, NULL, 110, NULL); -- Checking 100%
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (23, 210, NULL, .50);  -- Donation Food Bank: 50%
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (23, 211, NULL, .10);  -- Donation Humane Society: 10%
+INSERT INTO BookAccount (book, increase, decrease, split) VALUES (23, 212, NULL, .40);  -- Donation Fisher House: 40%
