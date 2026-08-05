@@ -1350,7 +1350,7 @@ BEGIN
     SELECT build_id AS build, inVersion AS version
     FROM Dual
     LEFT JOIN Release AS exists ON exists.version = inVersion
-     AND ((exists.build = build_id) OR (exists.build IS NULL AND build_id IS NULL)) 
+     AND ((exists.build = build_id) OR (exists.build IS NULL AND build_id IS NULL))
     WHERE exists.id IS NULL
     LIMIT 1
    );

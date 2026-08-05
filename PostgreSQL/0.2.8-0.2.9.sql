@@ -70,10 +70,23 @@ INSERT INTO BookAccount (book, increase, decrease, split) VALUES (23, 211, NULL,
 INSERT INTO BookAccount (book, increase, decrease, split) VALUES (23, 212, NULL, .40);  -- Donation Fisher House: 40%
 
 
+-- Drop all views so money column types can be altered (views depend on some of them)
+DO $$
+DECLARE
+ r RECORD;
+BEGIN
+ FOR r IN
+  SELECT quote_ident(schemaname) AS s, quote_ident(viewname) AS v
+  FROM pg_views
+  WHERE schemaname = 'business'
+ LOOP
+  EXECUTE 'DROP VIEW IF EXISTS ' || r.s || '.' || r.v || ' CASCADE';
+ END LOOP;
+END $$;
+
 -- ---------------------------------------------------------------------------
 -- 0.2.9: Money / amounts as numeric(19,4) (was float)
--- Matches JournalEntry.amount; source of truth is schema.xml via SQLFairy
--- count / fromCount / toCount / rate stay float (procedure overload / quantity semantics)
+-- count / fromCount / toCount / rate stay float
 -- ---------------------------------------------------------------------------
 ALTER TABLE AccountName ALTER COLUMN amount TYPE numeric(19,4) USING amount::numeric(19,4);
 ALTER TABLE JournalAccount ALTER COLUMN amount TYPE numeric(19,4) USING amount::numeric(19,4);
@@ -91,8 +104,6 @@ ALTER TABLE AssemblyIndividualJobPrice ALTER COLUMN price TYPE numeric(19,4) USI
 
 -- ---------------------------------------------------------------------------
 -- 0.2.9: GetWord / Get* concurrency + advisory-lock leak safety
--- word_value_null supports GetIdentifier ON CONFLICT
--- sentence_value stays non-unique (shared translation strings across Sentence ids)
 -- ---------------------------------------------------------------------------
 CREATE UNIQUE INDEX IF NOT EXISTS word_value_null ON Word(UPPER(value)) WHERE culture IS NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS sentence_value_null ON Sentence(UPPER(value)) WHERE culture IS NULL;
@@ -1445,7 +1456,7 @@ BEGIN
     SELECT build_id AS build, inVersion AS version
     FROM Dual
     LEFT JOIN Release AS exists ON exists.version = inVersion
-     AND ((exists.build = build_id) OR (exists.build IS NULL AND build_id IS NULL)) 
+     AND ((exists.build = build_id) OR (exists.build IS NULL AND build_id IS NULL))
     WHERE exists.id IS NULL
     LIMIT 1
    );
@@ -3235,7 +3246,7 @@ DROP FUNCTION IF EXISTS Post(varchar, numeric, varchar);
 DROP FUNCTION IF EXISTS Post(varchar, float, varchar, timestamp);
 DROP FUNCTION IF EXISTS Post(varchar, numeric, varchar, timestamp);
 --
-DROP TYPE IF EXISTS JournalEntryResult;
+DROP TYPE IF EXISTS JournalEntryResult CASCADE;
 CREATE TYPE JournalEntryResult AS (
  journal INTEGER,
  entry INTEGER
@@ -4065,6 +4076,1183 @@ BEGIN
  RETURN (SELECT currval(pg_get_serial_sequence('schemaversion','build')));
 END;
 $$ LANGUAGE plpgsql;
+
+-- ---------------------------------------------------------------------------
+-- Recreate views (dropped above for money ALTERs); from current schema.pgsql
+-- ---------------------------------------------------------------------------
+SET search_path TO business, public;
+
+CREATE VIEW I18NWord ( id, defaultCulture, clientCulture, resultCulture, value ) AS
+
+SELECT WordDefault.id,
+ WordDefault.culture AS defaultCulture,
+ ClientCulture() AS clientCulture,
+ COALESCE(Word.culture, WordDefault.culture) AS resultCulture,
+ COALESCE(Word.value, WordDefault.value) AS value
+FROM Word AS WordDefault
+LEFT JOIN Word ON Word.id = WordDefault.id
+ AND Word.culture = ClientCulture()
+WHERE WordDefault.culture = 1033
+
+;
+
+CREATE VIEW I18NSentence ( id, defaultCulture, clientCulture, resultCulture, value, length ) AS
+
+SELECT SentenceDefault.id,
+ SentenceDefault.culture AS defaultCulture,
+ ClientCulture() AS clientCulture,
+ COALESCE(Sentence.culture, SentenceDefault.culture) AS resultCulture,
+ COALESCE(Sentence.value, SentenceDefault.value) AS value,
+ COALESCE(Sentence.length, SentenceDefault.length) AS length
+FROM Sentence AS SentenceDefault
+LEFT JOIN Sentence ON Sentence.id = SentenceDefault.id
+ AND Sentence.culture = ClientCulture()
+WHERE SentenceDefault.culture = 1033
+
+;
+
+CREATE VIEW WordPlurals ( word, culture, zero, singular, two, few, many ) AS
+
+SELECT Word.id AS word,
+ Word.culture AS culture,
+ COALESCE(WordFormZero.value, Word.value) AS zero,
+ Word.value AS singular,
+ COALESCE(WordFormTwo.value, WordFormFew.value, WordFormMany.value, Word.value) AS two,
+ COALESCE(WordFormFew.value, WordFormMany.value, WordFormTwo.value, Word.value) AS few,
+ COALESCE(WordFormMany.value, WordFormFew.value, WordFormTwo.value, Word.value) AS many
+FROM Word
+LEFT JOIN WordPlural AS WordPluralZero ON WordPluralZero.word = Word.id
+ AND WordPluralZero.plural = 0
+ AND WordPluralZero.culture = Word.culture
+LEFT JOIN Word AS WordFormZero ON WordFormZero.id = WordPluralZero.form
+ AND WordFormZero.culture = Word.culture
+LEFT JOIN WordPlural AS WordPluralTwo ON WordPluralTwo.word = Word.id
+ AND WordPluralTwo.plural = 2
+ AND WordPluralTwo.culture = Word.culture
+LEFT JOIN Word AS WordFormTwo ON WordFormTwo.id = WordPluralTwo.form
+ AND WordFormTwo.culture = Word.culture
+LEFT JOIN WordPlural AS WordPluralFew ON WordPluralFew.word = Word.id
+ AND WordPluralFew.plural = 3
+ AND WordPluralFew.culture = Word.culture
+LEFT JOIN Word AS WordFormFew ON WordFormFew.id = WordPluralFew.form
+ AND WordFormFew.culture = Word.culture
+LEFT JOIN WordPlural AS WordPluralMany ON WordPluralMany.word = Word.id
+ AND WordPluralMany.plural = 4
+ AND WordPluralMany.culture = Word.culture
+LEFT JOIN Word AS WordFormMany on WordFormMany.id = WordPluralMany.form
+ AND WordFormMany.culture = Word.culture
+
+;
+
+CREATE VIEW People ( individual, name, goesBy, birthday, in_days, fullName, honorific, given, middle, family, suffix, post, honorificvalue, givenvalue, middlevalue, familyvalue, suffixvalue, postvalue, birth, death, aged, created ) AS
+
+SELECT Individual.id AS individual, Name.id AS name,
+ COALESCE(GoesBy.value,Given.value,Family.value) AS goesBy,
+ birthday(CAST(birth AS date),CAST(NOW() AS date)) AS birthday,
+ days_until_birthday(CAST(birth AS date), CAST(NOW() AS date)) AS in_days,
+ COALESCE(Honorific.value,'') ||
+  CASE WHEN (Honorific.value IS NOT NULL AND Given.value IS NULL AND Middle.value IS NULL) THEN ' ' ELSE '' END ||
+  COALESCE(CASE WHEN (Honorific.value IS NOT NULL) THEN ' ' ELSE '' END || Given.value,'') ||
+  COALESCE(CASE WHEN (Given.value IS NOT NULL) THEN ' ' ELSE '' END || Middle.value,'') ||
+  CASE WHEN (Given.value IS NOT NULL AND Middle.value IS NULL) THEN ' ' ELSE '' END ||
+  COALESCE(CASE WHEN (Middle.value IS NOT NULL) THEN ' ' ELSE '' END  || Family.value,'') ||
+  COALESCE(CASE WHEN (Family.value IS NOT NULL) THEN ' ' ELSE '' END || Suffix.value,'') ||
+  COALESCE(CASE WHEN (Suffix.value IS NOT NULL) THEN ' ' ELSE '' END || Post.value,'')
+  AS fullName,
+ Individual.prefix AS honorific,
+ Name.given, Name.middle, Name.family,
+ Individual.suffix,
+ Individual.post,
+ Honorific.value AS honorificValue,
+ Given.value AS givenValue, Middle.value AS middleValue, Family.value AS familyValue,
+ Suffix.value AS suffixValue,
+ Post.value AS postValue,
+ birth, death,
+ COALESCE(age(death,birth),age(birth)) AS aged,
+ Individual.created
+FROM Individual
+JOIN Name ON Name.id = Individual.name
+LEFT JOIN Given ON Given.id = Name.given
+LEFT JOIN Given AS Middle ON Middle.id = Name.middle
+LEFT JOIN Given AS GoesBy ON GoesBy.id = Individual.goesBy
+LEFT JOIN Family ON Family.id = Name.family
+LEFT JOIN I18NWord AS Honorific ON Honorific.id = Individual.prefix
+LEFT JOIN I18NWord AS Suffix ON Suffix.id = Individual.suffix
+LEFT JOIN I18NWord AS Post ON Post.id = Individual.post
+WHERE Individual.nameChange IS NULL
+ OR Individual.nameChange > NOW()
+
+;
+
+CREATE VIEW IndividualPersonEvent ( individual, name, honorific, suffix, post, goesby, birth, death, event ) AS
+
+SELECT DISTINCT Individual.id AS individual,
+ Individual.name,
+ COALESCE(Future.prefix, Individual.prefix) AS honorific,
+ COALESCE(Future.suffix, Individual.suffix) AS suffix,
+ COALESCE(Future.post, Individual.post) AS post,
+ COALESCE(Future.goesBy, Individual.goesBy) AS goesBy,
+ Individual.birth,
+ Individual.death,
+ CASE WHEN previous.id IS NULL THEN
+  -- Check for single event
+  CASE WHEN Future.id IS NULL THEN
+   COALESCE(Individual.death,Individual.nameChange,Individual.birth)
+  ELSE
+   -- Check for individual attribute change only
+   CASE WHEN (Future.goesBy != Individual.goesBy)
+     OR (Future.goesBY IS NOT NULL AND Individual.goesBy IS NULL)
+     OR (Future.goesBY IS NULL AND Individual.goesBy IS NOT NULL)
+     OR (Future.prefix != Individual.prefix)
+     OR (Future.prefix IS NOT NULL AND Individual.prefix IS NULL)
+     OR (Future.prefix IS NULL AND Individual.prefix IS NOT NULL)
+     OR (Future.suffix != Individual.suffix)
+     OR (Future.suffix IS NOT NULL AND Individual.suffix IS NULL)
+     OR (Future.suffix IS NULL AND Individual.suffix IS NOT NULL)
+     OR (Future.post != Individual.post)
+     OR (Future.post IS NOT NULL AND Individual.post IS NULL)
+     OR (Future.post IS NULL AND Individual.post IS NOT NULL)
+   THEN
+    -- individual attriute change only
+    Individual.nameChange
+   ELSE
+    Individual.birth
+   END
+  END
+ ELSE
+  CASE WHEN Future.id IS NULL THEN
+   COALESCE(Individual.death,previous.nameChange,Individual.nameChange,Individual.birth)
+  ELSE
+   Individual.nameChange
+  END
+ END AS event
+FROM Individual
+CROSS JOIN Name
+LEFT JOIN Individual AS previous ON previous.id = Individual.id
+ AND (
+  (COALESCE(previous.nameChange,previous.death) < COALESCE(Individual.nameChange,Individual.death))
+  OR
+  (Individual.death IS NULL AND Individual.nameChange IS NULL
+   AND previous.nameChange IS NOT NULL)
+ )
+LEFT JOIN Individual AS Future ON Future.id = Individual.id
+ AND COALESCE(Future.nameChange,Future.birth) >= COALESCE(Individual.nameChange,Individual.death)
+ AND Future.death IS NULL
+WHERE Name.id = Individual.name
+
+;
+
+CREATE VIEW PeopleEvent ( individual, name, goesby, fullname, date, event, eventname, honorific, given, middle, family, suffix, post, honorificvalue, givenvalue, middlevalue, familyvalue, suffixvalue, postvalue ) AS
+
+SELECT IndividualPersonEvent.individual, IndividualPersonEvent.name,
+ COALESCE(goesBy.value,Given.value,Family.value) AS goesBy,
+ COALESCE(Honorific.value,'') ||
+  CASE WHEN (Honorific.value IS NOT NULL AND Given.value IS NULL AND Middle.value IS NULL) THEN ' ' ELSE '' END ||
+  COALESCE(CASE WHEN (Honorific.value IS NOT NULL) THEN ' ' ELSE '' END || Given.value,'') ||
+  COALESCE(CASE WHEN (Given.value IS NOT NULL) THEN ' ' ELSE '' END || Middle.value,'') ||
+  CASE WHEN (Given.value IS NOT NULL AND Middle.value IS NULL) THEN ' ' ELSE '' END ||
+  COALESCE(CASE WHEN (Middle.value IS NOT NULL) THEN ' ' ELSE '' END  || Family.value,'') ||
+  COALESCE(CASE WHEN (Family.value IS NOT NULL) THEN ' ' ELSE '' END || Suffix.value,'') ||
+  COALESCE(CASE WHEN (Suffix.value IS NOT NULL) THEN ' ' ELSE '' END || Post.value,'')
+  AS fullName,
+ event AS date,
+ COALESCE(Born.id, Death.id, Change.id) AS event,
+ COALESCE(Born.value, Death.value, Change.value) AS eventName,
+ IndividualPersonEvent.honorific,
+ Name.given,
+ Name.middle,
+ Name.family,
+ IndividualPersonEvent.suffix,
+ IndividualPersonEvent.post,
+ Honorific.value AS honorificValue,
+ Given.value AS givenValue,
+ Middle.value AS middleValue,
+ Family.value AS familyValue,
+ Suffix.value AS suffixValue,
+ Post.value AS postValue
+FROM IndividualPersonEvent
+ JOIN Name ON Name.id = IndividualPersonEvent.name
+ LEFT JOIN Given On Given.id = Name.given
+ LEFT JOIN Given AS Middle ON Middle.id = Name.middle
+ LEFT JOIN Given AS goesBy ON goesBy.id = IndividualPersonEvent.goesBy
+ LEFT JOIN Family ON Family.id = Name.family
+ LEFT JOIN I18NWord AS Honorific ON Honorific.id = IndividualPersonEvent.honorific
+ LEFT JOIN I18NWord AS Suffix ON Suffix.id = IndividualPersonEvent.suffix
+ LEFT JOIN I18NWord AS Post ON Post.id = IndividualPersonEvent.post
+ LEFT JOIN I18NWord AS Born ON Born.value = 'Born' AND birth = event
+ LEFT JOIN I18NWord AS Death ON Death.value = 'Died' AND death = event
+ LEFT JOIN I18NWord AS Change ON Change.value = 'Changed name'
+
+;
+
+CREATE VIEW Entities ( individual, entity, goesBy, name, formed, location, dissolved, aged, created ) AS
+
+SELECT Individual.id AS individual, Individual.entity, goesBy.value AS goesBy,
+ Entity.name, Individual.birth AS formed,
+ Individual.location,
+ Individual.death AS dissolved,
+ COALESCE(age(death,birth),age(birth)) AS aged,
+ Individual.created
+FROM Individual
+JOIN Entity ON Entity.id = Individual.entity
+LEFT JOIN Given AS goesBy ON goesBy.id = Individual.goesBy
+WHERE Individual.nameChange IS NULL
+
+;
+
+CREATE VIEW List ( id, individual, listName, listNameValue, listSet, listSetValue, sequence, send, created ) AS
+
+SELECT ListIndividual.id,
+ ListIndividual.individual,
+ ListIndividualName.name AS listName,
+ Name.value AS listNameValue,
+ ListIndividualName.listSet,
+ ListSet.value AS listSetValue,
+ ListIndividualName.sequence,
+ CASE WHEN SendField.value IS NULL THEN 'to' ELSE SendField.value END AS send,
+ ListIndividual.created
+FROM ListIndividual
+JOIN ListIndividualName ON ListIndividualName.ListIndividual = ListIndividual.id
+ AND ListIndividualName.optinStyle = 1
+JOIN I18NWord AS Name ON ListIndividualName.name = Name.id
+LEFT JOIN I18NWord AS ListSet ON ListIndividualName.listSet = ListSet.id
+LEFT JOIN Word AS SendField ON SendField.id = ListIndividual.type
+ AND SendField.culture IS NULL
+LEFT JOIN ListIndividual AS disable ON disable.individual = ListIndividual.individual
+ AND disable.id IS NULL
+ AND disable.unlist IS NULL
+WHERE disable.individual IS NULL
+ AND ListIndividual.unlist IS NULL
+
+;
+
+CREATE VIEW EmailAddress ( email, username, plus, host, value ) AS
+
+SELECT id AS email, username, plus, host,
+ username ||
+ COALESCE('+' || plus, '') ||
+ '@' || host AS value
+FROM Email
+
+;
+
+CREATE VIEW URL ( path, protocol, host, value, created ) AS
+
+SELECT id AS path, protocol, host,
+ protocol ||
+ CASE WHEN secure = 1 THEN 's' ELSE '' END ||
+ '://' || host || '/' ||
+ COALESCE(value,'') ||
+ CASE WHEN get IS NULL
+ THEN ''
+ ELSE '?' || get
+ END AS value,
+ created
+FROM Path
+
+;
+
+CREATE VIEW File ( path, protocol, host, value, file, created ) AS
+
+SELECT id AS path, protocol, host,
+ protocol ||
+ ':///' ||
+ COALESCE(value,'') ||
+ CASE WHEN value IS NOT NULL
+ THEN '/'
+ ELSE ''
+ END ||
+ COALESCE(get,'')
+ AS value,
+ COALESCE(value,'') ||
+ CASE WHEN value IS NOT NULL
+ THEN '/'
+ ELSE ''
+ END ||
+ COALESCE(get,'')
+ AS file,
+ created
+FROM Path
+
+;
+
+CREATE VIEW IndividualURL ( individual, type, path, protocol, host, value, created ) AS
+
+WITH latest (individual,type,created) AS (
+ SELECT individual, type, MAX(created) AS created
+ FROM IndividualPath
+ WHERE IndividualPath.stop IS NULL
+ GROUP BY individual, type
+)
+SELECT latest.individual, latest.type, Path.id AS path, Path.protocol, Path.host,
+ Path.protocol ||
+ CASE WHEN secure = 1 THEN 's' ELSE '' END ||
+ '://' || host || '/' ||
+ COALESCE(Path.value,'') ||
+ CASE WHEN COALESCE(Path.get,IndividualPath.track) IS NULL
+ THEN ''
+ ELSE '?' ||
+ COALESCE(Path.get,'') ||
+ COALESCE(CASE WHEN (Path.get IS NOT NULL AND IndividualPath.track IS NOT  NULL) THEN '&' ELSE '' END ||  IndividualPath.track, '')
+ END AS value,
+ latest.created
+FROM latest
+JOIN IndividualPath ON IndividualPath.individual = latest.individual
+ AND IndividualPath.type = latest.type
+ AND IndividualPath.created = latest.created
+JOIN Individual ON Individual.id = latest.individual
+ AND Individual.nameChange IS NULL
+JOIN Path ON Path.id = IndividualPath.path
+
+;
+
+CREATE VIEW IndividualEmailAddress ( individual, type, email, username, plus, host, value, created ) AS
+
+WITH latest (individual,type,created) AS (
+ SELECT individual, type, MAX(created) AS created
+ FROM IndividualEmail
+ WHERE IndividualEmail.stop IS NULL
+ GROUP BY individual, type
+)
+SELECT latest.individual, latest.type, IndividualEmail.email, EmailAddress.username,
+ EmailAddress.plus, EmailAddress.host, EmailAddress.value, latest.created
+FROM latest
+JOIN Individual ON Individual.id = latest.individual
+ AND Individual.nameChange IS NULL
+JOIN IndividualEmail ON IndividualEmail.individual = latest.individual
+ AND IndividualEmail.type = latest.type
+ AND IndividualEmail.created = latest.created
+JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email
+
+;
+
+CREATE VIEW Phones ( phone, country, location, area, number, idd, ndd, code, local, international ) AS
+
+SELECT Phone.id AS phone, Phone.country, Phone.location,
+ Phone.area, Phone.number, Country.idd, Country.ndd,
+ Country.code,
+ Phone.area || '-' || LEFT(number,3) || '-' || RIGHT(number,4) AS local,
+ Country.idd || '-' || Country.ndd || '-' ||   Phone.area || '-' || LEFT(number,3) || '-' || RIGHT(number,4)AS international
+FROM Phone
+JOIN Country ON Country.id = Phone.country
+
+;
+
+CREATE VIEW Addresses ( address, line1, line2, line3, city, state, zipcode, postalcode, country, countrycode, marquee, location, latitude, longitude ) AS
+
+SELECT Address.id AS address,
+ line1, line2, line3,
+ City.value AS city,
+ COALESCE(UPPER(StateAbbr.value), State.value) AS state,
+ Postal.code ||
+ CASE WHEN (postalplus IS NOT NULL) THEN '-' ELSE '' END ||
+ Address.postalplus AS zipcode,
+ Postal.code AS postalcode,
+ Country.id AS country,
+ Country.code AS countrycode,
+ COALESCE(AddressLocation.marquee, PostalLocation.marquee, CountryLocation.marquee) AS marquee,
+ COALESCE(AddressLocation.id, PostalLocation.id, CountryLocation.id) AS location,
+ COALESCE(AddressLocation.latitude, PostalLocation.latitude, CountryLocation.latitude) AS latitude,
+ COALESCE(AddressLocation.longitude, PostalLocation.longitude, CountryLocation.longitude) AS longitude
+FROM Address
+JOIN Postal ON Postal.id = Address.postal
+JOIN Country ON Country.id = Postal.country
+JOIN I18NWord AS City ON City.id = Postal.city
+JOIN I18NWord AS State ON State.id = Postal.state
+LEFT JOIN I18NWord AS StateAbbr ON StateAbbr.id = Postal.stateAbbreviation
+LEFT JOIN Location AS AddressLocation On AddressLocation.id = Address.location
+LEFT JOIN Location AS PostalLocation ON PostalLocation.id = Postal.location
+LEFT JOIN Location AS CountryLocation ON CountryLocation.id = Country.location
+
+;
+
+CREATE VIEW Versions ( version, name, value, major, minor, patch ) AS
+
+SELECT Version.id AS version, name.value AS name,
+ major.value ||
+  COALESCE('.' || minor.value, '') ||
+  COALESCE('.' || patch.value, '')
+ AS value,
+ major.value AS major,
+ minor.value AS minor,
+ patch.value AS patch
+FROM Version
+LEFT JOIN I18NWord AS name ON name.id = Version.name
+LEFT JOIN I18NWord AS major ON major.id = Version.major
+LEFT JOIN I18NWord AS minor ON minor.id = Version.minor
+LEFT JOIN I18NWord AS patch ON patch.id = Version.patch
+
+;
+
+CREATE VIEW Applications ( application, name, goesby, path ) AS
+
+   SELECT Application.id AS application,
+    Name.value AS name,
+    Application.goesBy,
+    Application.path
+   FROM Application
+   JOIN I18NWord AS Name on Name.id = Application.name
+
+;
+
+CREATE VIEW ApplicationReleases ( applicationrelease, application, release, name, goesby, applicationpath, versionid, buildid, versionname, buildname ) AS
+
+   SELECT ApplicationRelease.id AS applicationRelease,
+    ApplicationRelease.application,
+    ApplicationRelease.release,
+    Applications.name,
+    Applications.goesBy,
+    Applications.path AS applicationPath,
+    Release.version AS versionId,
+    Release.build AS buildId,
+    Versions.value as versionName,
+    Build.value as buildName
+   FROM ApplicationRelease
+   JOIN Applications ON Applications.application = ApplicationRelease.application
+   JOIN Release ON Release.id = ApplicationRelease.release
+   JOIN Versions ON Versions.version = Release.version
+   JOIN I18NWord AS Build ON Build.id = Release.build
+
+;
+
+CREATE VIEW ParsedAgentStringShort ( agentstring, deviceid, device, osid, os, agentid, agent, deviceversion, osapplicationrelease, agentapplicationrelease ) AS
+
+SELECT AgentString.id AS agentString,
+ device.id AS deviceid, deviceName.value AS device,
+ OS.id AS osid, OSName.value AS OS,
+ Agent.id AS agentid, AgentName.value AS agent,
+ device.version AS deviceversion,
+ deviceOS.applicationrelease AS osApplicationRelease,
+ agentApplicationRelease.id AS agentApplicationRelease
+FROM AgentString
+JOIN AssemblyApplicationRelease AS deviceAgent ON deviceAgent.id = AgentString.agent
+JOIN Part AS device ON device.id = deviceAgent.assembly
+JOIN I18NSentence AS deviceName ON deviceName.id = device.name
+JOIN AssemblyApplicationRelease AS deviceOS ON deviceOS.id = deviceAgent.parent
+JOIN ApplicationRelease AS OSapplicationRelease ON OSapplicationRelease.id = deviceOS.applicationRelease
+JOIN Application AS OS ON OS.id = OSapplicationRelease.application
+JOIN I18NWord AS OSName ON OSName.id = OS.name
+JOIN ApplicationRelease AS agentApplicationRelease ON agentApplicationRelease.id = deviceAgent.applicationRelease
+JOIN Application AS Agent On Agent.id = agentApplicationRelease.application
+JOIN I18NWord AS AgentName ON AgentName.id = Agent.name
+
+;
+
+CREATE VIEW ParsedAgentString ( agentstring, deviceid, deviceversion, device, deviceersionname, osid, osversion, os, osversionname, agentid, agentversion, agent, agentversionname ) AS
+
+SELECT agentstring,
+ deviceid, deviceversion, device, deviceversionname.value as deviceersionname,
+ osid, OSRelease.version AS osversion, os, OSVersion.value AS osversionname,
+ agentid, AgentVersion.version AS agentversion, agent, AgentVersion.value agentversionname
+FROM ParsedAgentStringShort
+JOIN ApplicationRelease AS OSApplicatonRelease ON OSApplicatonRelease.id = osapplicationrelease
+JOIN ApplicationRelease AS AgentApplicationRelease ON AgentApplicationRelease.id = agentApplicationRelease
+LEFT JOIN Versions AS deviceversionname ON deviceversionname.version = deviceversion
+LEFT JOIN Release AS OSRelease ON OSRelease.id = OSApplicatonRelease.release
+LEFT JOIN Versions AS OSVersion ON OSVersion.version = OSRelease.version
+LEFT JOIN Release AS AgentRelease ON AgentRelease.id = AgentApplicationRelease.release
+LEFT JOIN Versions AS AgentVersion ON AgentVersion.version = AgentRelease.version
+
+;
+
+CREATE VIEW Sessions ( session, token, siteapplicationrelease, agentstring, deviceid, device, osid, os, agentid, agent, referring, referrringurl, fromaddress, credential, individual, username, email, created, touched ) AS
+
+SELECT Session.id AS session,
+ SessionToken.token, SessionToken.siteapplicationrelease,
+ SessionCredential.agentstring,
+ deviceid, ParsedAgentStringShort.device, osid, ParsedAgentStringShort.os, agentid, ParsedAgentStringShort.agent,
+ SessionCredential.referring, URL.value AS referrringURL,
+ SessionCredential.fromaddress,
+ SessionCredential.credential, Credential.individual,  Credential.username,
+ EmailAddress.value AS email,
+ COALESCE(SessionToken.created, Session.created) AS created, Session.touched
+FROM Session
+CROSS JOIN SessionCredential
+LEFT JOIN SessionToken ON SessionToken.session = Session.id
+LEFT JOIN ParsedAgentStringShort ON ParsedAgentStringShort.agentstring = SessionCredential.agentstring
+LEFT JOIN Credential ON Credential.id = SessionCredential.credential
+LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email
+LEFT JOIN URL ON URL.path = SessionCredential.referring
+WHERE Session.id = SessionCredential.session
+
+;
+
+CREATE VIEW Parts ( part, parent, name, nameId, version, versionId, serial, created ) AS
+
+SELECT Part.id AS part, Part.parent,
+ I18NSentence.value AS name, Part.name AS nameId,
+ CASE WHEN (Versions.name IS NOT NULL) THEN Versions.name ELSE '' END ||
+ CASE WHEN (Versions.name IS NOT NULL) THEN ' ' ELSE '' END ||
+ CASE WHEN (Versions.value IS NOT NULL) THEN Versions.value ELSE '' END AS version,
+ Part.version AS versionId,
+ Part.serial, Part.created
+FROM Part
+JOIN I18NSentence ON I18NSentence.id = Part.name
+LEFT JOIN Versions ON Versions.version = Part.version
+
+;
+
+CREATE VIEW Assemblies ( assembly, parentName, name, version, versionName, serial ) AS
+
+SELECT DISTINCT AssemblyPart.assembly, Parent.name AS parentName,
+ Assemblies.name,
+ Assemblies.versionId AS version, Assemblies.version as VersionName, Assemblies.serial
+FROM AssemblyPart
+JOIN Parts AS Assemblies ON Assemblies.part = AssemblyPart.assembly
+JOIN Parts AS Parent ON Parent.part = Assemblies.parent
+
+;
+
+CREATE VIEW AssemblyParts ( assembly, parentName, assemblyName, assemblyVersion, assemblyVersionName, assemblySerial, quantity, designator, part, partName, version, versionName, serial ) AS
+
+SELECT AssemblyPart.assembly, Parent.name AS parentName,
+ Assemblies.name AS assemblyName,
+ Assemblies.versionid AS assemblyVersion, Assemblies.version AS assemblyVersionName,
+ Assemblies.serial AS assemblySerial,
+ AssemblyPart.quantity,
+ Designator.value AS designator,
+ Parts.part, Parts.name AS partName,
+ Parts.versionid AS version, Parts.version AS versionName,
+ Parts.serial
+FROM AssemblyPart
+JOIN Parts AS Assemblies ON Assemblies.part = AssemblyPart.assembly
+JOIN Parts AS Parent ON Parent.part = Assemblies.parent
+JOIN Parts AS Parts ON parts.part = AssemblyPart.part
+LEFT JOIN I18NWord AS Designator ON Designator.id = AssemblyPart.designator
+
+;
+
+CREATE VIEW AssemblyApplicationReleases ( assemblyapplicationrelease, applicationrelease, assembly, application, release, assemblyparent, assemblyname, assemblyverionid, assemblyversion, serial, applicationid, applicationname, goesby, applicationpath, applicationversionid, applicationversionname, buildname, created ) AS
+
+   SELECT AssemblyApplicationRelease.id AS assemblyApplicationRelease,
+    AssemblyApplicationRelease.applicationRelease,
+    Assembly.part AS assembly,
+    ApplicationReleases.application,
+    ApplicationReleases.release,
+    Assembly.parent AS assemblyParent,
+    Assembly.name AS assemblyName,
+    Assembly.versionId AS assemblyVerionId,
+    Assembly.version AS assemblyVersion,
+    Assembly.serial,
+    ApplicationReleases.application AS applicationId,
+    ApplicationReleases.name AS applicationName,
+    ApplicationReleases.goesBy,
+    ApplicationReleases.applicationPath,
+    ApplicationReleases.versionId AS applicationVersionId,
+    ApplicationReleases.versionName AS applicationVersionName,
+    ApplicationReleases.buildName,
+    AssemblyApplicationRelease.created
+   FROM AssemblyApplicationRelease
+   JOIN Parts AS Assembly ON Assembly.part = AssemblyApplicationRelease.assembly
+   JOIN ApplicationReleases ON ApplicationReleases.applicationrelease = AssemblyApplicationRelease.applicationrelease
+
+;
+
+CREATE VIEW Periods ( period, name, periodname ) AS
+
+SELECT PeriodName.period, PeriodName.name, I18NSentence.value AS periodName
+FROM PeriodName
+LEFT JOIN I18NSentence ON I18NSentence.id = PeriodName.name
+
+;
+
+CREATE VIEW PeriodSpans ( period, name, periodname, span, exclude, monthdaymonth, day, weekofmonth, dayofweekstart, dayofweekstop, dayofmonth, month, monthyear, daterangestart, daterangestop, timeofdaystart, timeofdaystop ) AS
+
+SELECT PeriodName.period, PeriodName.name, I18NSentence.value AS periodName,
+ Period.span, Period.exclude,
+ MonthDay.month AS MonthDaymonth, MonthDay.day, MonthDay.weekOfMonth,
+ DayOfWeek.start AS dayOfWeekStart, DayOfWeek.stop AS dayOfWeekStop, DayOfWeek.dayOfMonth,
+ Month.month, Month.year AS monthYear,
+ DateRange.start AS dateRangeStart, DateRange.stop AS dateRangeStop,
+ TimeOfDay.start AS timeOfDayStart, TimeOfDay.stop AS timeOfDayStop
+FROM Period
+JOIN PeriodName ON PeriodName.period = Period.id
+JOIN I18NSentence ON I18NSentence.id = PeriodName.name
+LEFT JOIN MonthDay  ON MonthDay.id  = Period.span
+LEFT JOIN DayOfWeek ON DayOfWeek.id = Period.span
+LEFT JOIN Month     ON Month.id     = Period.span
+LEFT JOIN DateRange ON DateRange.id = Period.span
+LEFT JOIN TimeOfDay ON TimeOfDay.id = Period.span
+
+;
+
+CREATE VIEW TimePeriod ( period, open ) AS
+
+SELECT period, bool_AND(open) AS open
+FROM (
+SELECT Period.id AS period,
+ CAST(ClientNow() AS date) > make_date(CAST(extract(year FROM ClientNow()) AS integer),MonthDay.month, MonthDay.day) -1 AND
+ CAST(ClientNow() AS date) <= make_date(CAST(extract(year FROM ClientNow()) AS integer),MonthDay.month, MonthDay.day) AS open
+FROM Period
+JOIN MonthDay ON MonthDay.id = Period.span
+ AND MonthDay.weekOfMonth IS NULL
+UNION
+SELECT Period.id AS period,
+ Month.month = extract(month FROM ClientNow())
+FROM Period
+JOIN Month ON Month.id = Period.span
+ AND Month.year IS NULL
+UNION
+SELECT Period.id AS period,
+ CAST(ClientNow() AS date) = (
+  make_date(CAST(extract(year FROM ClientNow()) AS integer),CAST(extract(month FROM ClientNow()) AS integer), 1) + 7 * (DayOfWeek.start - 1) +
+  CAST((7 + DayOfWeek.dayOfMonth - (dayofweek(
+    make_date(CAST(extract(year FROM ClientNow()) AS integer),CAST(extract(month FROM ClientNow()) AS integer), 1) + 7 * (DayOfWeek.start - 1)
+   ) -1)
+  ) AS integer) %7
+ )
+FROM Period
+JOIN DayOfWeek ON DayOfWeek.id = Period.span
+ AND DayOfWeek.stop IS NULL
+ AND DayOfWeek.dayOfMonth > 0
+UNION
+SELECT Period.id AS period,
+ CAST(ClientNow() AS time) >= start
+  AND CAST(ClientNow() AS time) < stop
+FROM Period
+JOIN TimeOfDay ON TimeOfDay.id = Period.span
+ AND TimeOfDay.start < TimeOfDay.stop
+UNION
+SELECT Period.id AS period,
+ (CAST(ClientNow() AS time) >= start
+   AND CAST(ClientNow() AS time) <= '23:59:59'
+ ) OR (
+  CAST(ClientNow() AS time) < stop
+   AND CAST(ClientNow() AS time) >= '00:00:00'
+ )
+FROM Period
+JOIN TimeOfDay ON TimeOfDay.id = Period.span
+ AND TimeOfDay.start > TimeOfDay.stop
+) AS TimePeriod
+GROUP BY period
+
+;
+
+CREATE VIEW MaxSpan ( id ) AS
+
+SELECT MAX(id) AS id FROM (
+ SELECT coalesce(MAX(id), 0) AS id FROM DateRange
+ UNION
+ SELECT COALESCE(MAX(id), 0) AS id FROM TimeOfDay
+ UNION
+ SELECT COALESCE(MAX(id), 0) AS id FROM DayOfWeek
+ UNION
+ SELECT COALESCE(MAX(id), 0) AS id FROM MonthDay
+ UNION
+ SELECT COALESCE(MAX(id), 0) AS id FROM Month
+) AS MaxSpan
+
+;
+
+CREATE VIEW Accounts ( account, name, type, typeName, individual, individualName, individualAccountType, individualAccountTypeName, credit, debitIncrease, debitDecrease, creditIncrease, creditDecrease ) AS
+
+SELECT AccountName.account,
+ I18NSentence.value AS name,
+ AccountName.type,
+ TypeName.value AS typeName,
+ IndividualAccount.individual,
+ COALESCE(People.fullname, Entities.name) AS individualName,
+ IndividualAccount.type AS individualAccountType,
+ IndividualAccountType.value AS individualAccountTypeName,
+ AccountName.credit,
+ CASE WHEN NOT AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS debitIncrease,
+ CASE WHEN AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS debitDecrease,
+ CASE WHEN AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS creditIncrease,
+ CASE WHEN NOT AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS creditDecrease
+FROM AccountName
+JOIN I18NSentence ON I18NSentence.id = AccountName.name
+JOIN I18NWord AS TypeName ON TypeName.id = AccountName.type
+LEFT JOIN IndividualAccount ON IndividualAccount.account = AccountName.account
+ AND IndividualAccount.stop IS NULL
+LEFT JOIN People ON People.individual = IndividualAccount.individual
+LEFT JOIN Entities ON Entities.individual = IndividualAccount.individual
+LEFT JOIN I18NWord AS IndividualAccountType ON IndividualAccountType.id = IndividualAccount.type
+
+;
+
+CREATE VIEW Ledgers ( ledger, name, sequence, account, accountname, type, typename, credit, debitincrease, debitdecrease, creditincrease, creditdecrease ) AS
+
+SELECT LedgerName.ledger,
+ I18NSentence.value AS name,
+ LedgerAccount.sequence,
+ Accounts.account,
+ Accounts.name AS accountName,
+ Accounts.type,
+ Accounts.typeName,
+ Accounts.credit,
+ Accounts.debitIncrease,
+ Accounts.debitDecrease,
+ Accounts.creditIncrease,
+ Accounts.creditDecrease
+FROM LedgerName
+JOIN I18NSentence ON I18NSentence.id = LedgerName.name
+JOIN LedgerAccount ON LedgerAccount.ledger = LedgerName.ledger
+JOIN Accounts ON Accounts.account = LedgerAccount.account
+
+;
+
+CREATE VIEW Journals ( journal, name ) AS
+
+SELECT JournalName.journal,
+ I18NSentence.value AS name
+FROM JournalName
+JOIN I18NSentence ON I18NSentence.id = JournalName.name
+
+;
+
+CREATE VIEW Books ( book, name, journal, journalname, split, increase, increasename, increasetype, increasecredit, increasedebitincrease, increasedebitdecrease, increasecreditincrease, increasecreditdecrease, decrease, decreasename, decreasetype, decreasecredit, decreasedebitincrease, decreasedebitdecrease, decreasecreditincrease, decreasecreditdecrease ) AS
+
+SELECT BookName.book,
+ I18NSentence.value AS name,
+ BookName.journal,
+ Journals.name AS journalName,
+ COALESCE(BookAccount.split, 1) AS split,
+ BookAccount.increase,
+ Increase.name AS increaseName,
+ Increase.type AS increaseType,
+ Increase.credit AS increaseCredit,
+ Increase.debitIncrease  AS increaseDebitIncrease,
+ Increase.debitDecrease  AS increaseDebitDecrease,
+ Increase.creditIncrease AS increaseCreditIncrease,
+ Increase.creditDecrease  AS increaseCreditDecrease,
+ BookAccount.decrease,
+ Decrease.name AS decreaseName,
+ Decrease.type AS decreaseType,
+ Decrease.credit AS decreaseCredit,
+ Decrease.debitIncrease  AS decreaseDebitIncrease,
+ Decrease.debitDecrease  AS decreaseDebitDecrease,
+ Decrease.creditIncrease AS decreaseCreditIncrease,
+ Decrease.creditDecrease AS decreaseCreditDecrease
+FROM BookName
+JOIN I18NSentence ON I18NSentence.id = BookName.name
+JOIN Journals ON Journals.journal = BookName.journal
+JOIN BookAccount ON BookAccount.book = BookName.book
+LEFT JOIN Accounts AS Increase ON Increase.account = BookAccount.increase
+LEFT JOIN Accounts AS Decrease  ON Decrease.account  = BookAccount.decrease
+
+;
+
+CREATE VIEW JournalEntries ( id, journal, journalname, book, bookname, entry, account, accountname, type, typename, ledger, ledgername, rightside, debit, credit, posted, created ) AS
+
+SELECT JournalEntry.id,
+ JournalEntry.journal,
+ JournalNameString.value AS journalName,
+ JournalEntry.book,
+ BookNameString.value AS bookName,
+ JournalEntry.entry,
+ JournalEntry.account,
+ AccountNameString.value AS accountName,
+ AccountName.type,
+ AccountTypeName.value AS typeName,
+ LedgerJournal.ledger,
+ LedgerNameString.value AS ledgerName,
+ JournalEntry.credit AS rightSide,
+ CASE WHEN NOT JournalEntry.credit THEN
+  JournalEntry.amount
+ END AS debit,
+ CASE WHEN JournalEntry.credit THEN
+  JournalEntry.amount
+ END AS credit,
+ JournalEntry.posted,
+ JournalEntry.created
+FROM JournalEntry
+JOIN AccountName ON AccountName.account = JournalEntry.account
+JOIN I18NSentence AS AccountNameString ON AccountNameString.id = AccountName.name
+JOIN I18NWord AS AccountTypeName ON AccountTypeName.id = AccountName.type
+JOIN JournalName ON JournalName.journal = JournalEntry.journal
+JOIN I18NSentence AS JournalNameString ON JournalNameString.id = JournalName.name
+LEFT JOIN BookName ON BookName.book = JournalEntry.book
+LEFT JOIN I18NSentence AS BookNameString ON BookNameString.id = BookName.name
+LEFT JOIN LedgerJournal ON LedgerJournal.journal = JournalEntry.journal
+LEFT JOIN LedgerName ON LedgerName.ledger = LedgerJournal.ledger
+LEFT JOIN I18NSentence AS LedgerNameString ON LedgerNameString.id = LedgerName.name
+
+;
+
+CREATE VIEW LedgerBalance ( ledger, ledgername, sequence, account, accountname, type, typename, debit, credit ) AS
+
+SELECT Ledgers.ledger,
+ Ledgers.name AS ledgerName,
+ Ledgers.sequence,
+ Ledgers.account,
+ Ledgers.accountName,
+ Ledgers.type,
+ Ledgers.typeName,
+ SUM(JournalEntries.debit) AS debit,
+ SUM(JournalEntries.credit) AS credit
+FROM JournalEntries
+JOIN Ledgers ON Ledgers.ledger = JournalEntries.ledger
+ AND Ledgers.type = JournalEntries.type
+WHERE JournalEntries.posted IS NULL
+GROUP BY Ledgers.ledger,
+ Ledgers.name,
+ Ledgers.sequence,
+ Ledgers.account,
+ Ledgers.accountName,
+ Ledgers.type,
+ Ledgers.typeName
+
+;
+
+CREATE VIEW JournalReport ( journal, journalName, entry, account, type, ledger, ledgerName, debit, credit, rightside, created ) AS
+
+SELECT journal,
+ journalName,
+ entry,
+ accountName AS account,
+ typeName AS type,
+ ledger,
+ ledgerName,
+ debit,
+ credit,
+ rightSide,
+ created
+FROM JournalEntries
+WHERE posted IS NULL
+UNION ALL
+SELECT NULL AS journal,
+ NULL AS journalName,
+ NULL AS entry,
+ 'Total' AS account,
+ NULL AS type,
+ MAX(ledger) AS ledger,
+ MAX(ledgerName) AS ledgerName,
+ SUM(debit) AS debit,
+ SUM(credit) AS credit,
+ NULL AS rightSide,
+ NULL AS created
+FROM JournalEntries
+WHERE posted IS NULL
+
+;
+
+CREATE VIEW LedgerReport ( ledger, sequence, ledgername, accountname, typename, debit, credit ) AS
+
+SELECT ledger,
+ sequence,
+ ledgername,
+ accountname,
+ typename,
+ debit,
+ credit
+FROM LedgerBalance
+UNION ALL
+SELECT ledger,
+ NULL AS sequence,
+ ledgerName,
+ 'Total' AS accountName,
+ NULL AS typeName,
+ SUM(debit) AS debit,
+ SUM(credit) AS credit
+FROM LedgerBalance
+GROUP BY ledger,
+ ledgerName
+
+;
+
+CREATE VIEW Edges ( edge, startName, stopName, hops, entry, direct, exit, start, stop ) AS
+
+SELECT Edge.id AS edge,
+ StartVertexNameString.value AS startName,
+ StopVertexNameString.value AS stopName,
+ hops,
+ entry,
+ direct,
+ exit,
+ start,
+ stop
+FROM Edge
+JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
+JOIN I18NSentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
+JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
+LEFT JOIN I18NSentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
+
+;
+
+CREATE VIEW EdgeIndividuals ( edge, startname, stopname, startindividual, startindividualname, starttype, stopindividual, stopindividualname, stoptype, hops, entry, direct, exit ) AS
+
+SELECT Edge.id AS edge,
+ StartVertexNameString.value AS startName,
+ StopVertexNameString.value AS stopName,
+ StartIndividualVertex.individual AS startIndividual,
+ StartType.value AS startType,
+ COALESCE(StartPeople.fullname, StartEntities.name) AS startIndividualName,
+ StopIndividualVertex.individual AS stopIndividual,
+ COALESCE(StopPeople.fullname, StopEntities.name) AS stopIndividualName,
+ StopType.value AS stopType,
+ hops,
+ entry,
+ direct,
+ exit,
+ start,
+ Edge.stop
+FROM Edge
+JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
+JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
+LEFT JOIN I18NSentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
+LEFT JOIN I18NSentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
+LEFT JOIN IndividualVertex AS StartIndividualVertex ON StartIndividualVertex.vertex = Edge.start
+LEFT JOIN People AS StartPeople ON StartPeople.individual = StartIndividualVertex.individual
+LEFT JOIN Entities AS StartEntities ON StartEntities.individual = StartIndividualVertex.individual
+LEFT JOIN Word AS StartType ON StartType.id = StartIndividualVertex.type
+ AND StartType.culture IS NULL
+LEFT JOIN IndividualVertex AS StopIndividualVertex ON StopIndividualVertex.vertex = Edge.stop
+LEFT JOIN People AS StopPeople ON StopPeople.individual = StopIndividualVertex.individual
+LEFT JOIN Entities AS StopEntities ON StopEntities.individual = StopIndividualVertex.individual
+LEFT JOIN Word AS StopType ON StopType.id = StopIndividualVertex.type
+ AND StopType.culture IS NULL
+
+;
+
+CREATE VIEW AssemblyCurrentPrice ( assembly, nameid, supplier, price, created ) AS
+
+SELECT Part.id AS assembly,
+ Part.name AS nameId,
+ IndividualAssemblyCustomerPrice.individual AS supplier,
+ IndividualAssemblyCustomerPrice.price,
+ IndividualAssemblyCustomerPrice.created
+FROM Part
+JOIN IndividualAssemblyCustomerPrice ON IndividualAssemblyCustomerPrice.assembly = Part.id
+ AND IndividualAssemblyCustomerPrice.stop IS NULL
+-- Default Prices, no specific supplier
+UNION ALL
+SELECT Part.id AS assembly,
+ Part.name AS nameId,
+ NULL AS supplier,
+ MAX(IndividualAssemblyCustomerPrice.price) AS price,
+ MAX(IndividualAssemblyCustomerPrice.created) AS created
+FROM Part
+LEFT JOIN IndividualAssemblyCustomerPrice ON IndividualAssemblyCustomerPrice.assembly = Part.id
+ AND IndividualAssemblyCustomerPrice.stop IS NULL
+GROUP BY Part.id,
+ Part.name
+
+;
+
+CREATE VIEW Bills ( bill, type, date, supplier, supplierName, consignee, consigneeName, source, sourceType, parent, parentType ) AS
+
+SELECT
+ Bill.id AS bill,
+ Type.value AS type,
+ DATE(Bill.created) AS date,
+ Bill.supplier,
+ Supplier.name AS supplierName,
+ Bill.consignee,
+ Consignee.name AS consigneeName,
+ Source.id AS source,
+ SourceType.value AS sourceType,
+ Parent.id AS parent,
+ ParentType.value AS parentType
+FROM Bill
+JOIN I18NWord AS Type ON Type.id = Bill.type
+JOIN Entities AS Supplier ON Supplier.individual = Bill.supplier
+JOIN Entities AS Consignee ON Consignee.individual = Bill.consignee
+LEFT JOIN Bill AS Source ON Source.id = Bill.source
+LEFT JOIN I18NWord AS SourceType ON SourceType.id = Source.type
+LEFT JOIN Bill AS Parent ON Parent.id = Bill.parent
+LEFT JOIN I18NWord AS ParentType ON ParentType.id = Parent.type
+
+;
+
+CREATE VIEW CargoesRaw ( bill, source, parent, type, supplier, consignee, created, cargo, count, individualjob, assembly, journal, entry ) AS
+
+SELECT Bill.id AS bill,
+ Bill.source,
+ Bill.parent,
+ Bill.type,
+ Bill.supplier,
+ Bill.consignee,
+ Bill.created,
+ Cargo.id AS cargo,
+ COALESCE(Cargo.count, 1) AS count,
+ Cargo.individualJob,
+ Cargo.assembly,
+ Cargo.journal,
+ Cargo.entry
+FROM Bill
+JOIN Cargo ON Cargo.bill = Bill.id
+
+;
+
+CREATE VIEW Cargoes ( bill, type, supplier, consignee, created, cargo, count, individualJob, assembly, journal, entry ) AS
+
+SELECT bill,
+ type,
+ supplier,
+ consignee,
+ created,
+ cargo,
+ SUM(COALESCE(count, 1)) AS count,
+ individualJob,
+ assembly,
+ journal,
+ entry
+FROM CargoesRaw
+GROUP BY bill,
+ type,
+ supplier,
+ consignee,
+ created,
+ cargo,
+ individualJob,
+ assembly,
+ journal,
+ entry
+
+;
+
+CREATE VIEW LineItemsRaw ( bill, billsource, billparent, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, version, parent, currentunitprice, unitprice, individualjob, job, schedule ) AS
+
+SELECT CargoesRaw.bill,
+ CargoesRaw.source AS billSource,
+ CargoesRaw.parent AS billParent,
+ Type.value AS typeName,
+ CargoesRaw.type,
+ COALESCE(Supplier.goesBy, Supplier.name) AS supplierName,
+ CargoesRaw.supplier,
+ COALESCE(Consignee.goesBy, Consignee.name) AS consigneeName,
+ CargoesRaw.consignee,
+ CargoesRaw.count,
+ CargoesRaw.cargo AS line,
+ Parts.name AS item,
+ Parts.part,
+ Parts.version,
+ Parts.parent,
+ COALESCE(SpecificPrice.price, DefaultPrice.price, AssemblyIndividualJobPrice.price) AS currentUnitPrice,
+ COALESCE(JournalEntry.amount / CargoesRaw.count, FixedAssemblyIndividualJobPrice.price) AS unitPrice,
+ IndividualJob.id AS individualJob,
+ IndividualJob.job,
+ IndividualJob.schedule
+FROM CargoesRaw
+JOIN I18NWord AS Type ON Type.id = CargoesRaw.type
+JOIN Entities AS Supplier ON Supplier.individual = CargoesRaw.supplier
+JOIN Entities AS Consignee ON Consignee.individual = CargoesRaw.consignee
+JOIN Parts ON Parts.part = CargoesRaw.assembly
+JOIN AssemblyCurrentPrice AS DefaultPrice ON DefaultPrice.assembly = CargoesRaw.assembly
+ AND DefaultPrice.supplier IS NULL
+LEFT JOIN AssemblyCurrentPrice AS SpecificPrice ON SpecificPrice.assembly = CargoesRaw.assembly
+ AND SpecificPrice.supplier = CargoesRaw.supplier
+LEFT JOIN JournalEntry ON JournalEntry.journal = CargoesRaw.journal
+ AND JournalEntry.entry = CargoesRaw.entry
+ AND JournalEntry.credit -- Income to bill.supplier
+LEFT JOIN IndividualJob ON IndividualJob.individual = CargoesRaw.consignee
+ AND IndividualJob.stop IS NULL
+LEFT JOIN AssemblyIndividualJobPrice ON AssemblyIndividualJobPrice.assembly = CargoesRaw.assembly
+ AND AssemblyIndividualJobPrice.individualJob = IndividualJob.id
+LEFT JOIN IndividualJob AS FixedIndividualJob ON FixedIndividualJob.id = CargoesRaw.individualJob
+LEFT JOIN AssemblyIndividualJobPrice AS FixedAssemblyIndividualJobPrice ON FixedAssemblyIndividualJobPrice.assembly = CargoesRaw.assembly
+ AND FixedAssemblyIndividualJobPrice.individualJob =  FixedIndividualJob.id
+
+;
+
+CREATE VIEW LineItems ( bill, billsource, billparent, typename, type, suppliername, supplier, consigneename, consignee, count, line, item, part, version, parent, currentUnitPrice, unitprice, totalPrice, outstanding, individualjob, job, schedule ) AS
+
+SELECT bill,
+ billsource,
+ billparent,
+ typeName,
+ type,
+ supplierName,
+ supplier,
+ consigneeName,
+ consignee,
+ SUM(LineItemsRaw.count) AS count,
+ line,
+ item,
+ part,
+ version,
+ parent,
+ currentUnitPrice,
+ unitPrice,
+ SUM(LineItemsRaw.count) * unitPrice AS totalPrice,
+ CASE WHEN CargoStateSum.cargo IS NOT NULL THEN
+  SUM(LineItemsRaw.count) - CargoStateSum.count
+ ELSE
+  SUM(LineItemsRaw.count)
+ END AS outstanding,
+ individualJob,
+ job,
+ schedule
+FROM LineItemsRaw
+LEFT JOIN (
+ SELECT cargo, SUM(COALESCE(count, 1)) AS count
+ FROM CargoState
+ GROUP BY CargoState.cargo
+) AS CargoStateSum ON CargoStateSum.cargo = line
+GROUP BY
+ bill,
+ billsource,
+ billparent,
+ typeName,
+ type,
+ supplierName,
+ supplier,
+ consigneeName,
+ consignee,
+ line,
+ item,
+ part,
+ version,
+ parent,
+ currentUnitPrice,
+ unitPrice,
+ individualJob,
+ job,
+ schedule,
+ CargoStateSum.cargo,
+ CargoStateSum.count
+
+;
+
+CREATE VIEW CAs ( id, parent, name, owner ) AS
+
+SELECT CA.id,
+CA.parent,
+Entity.name,
+COALESCE(Entities.name, People.fullname) AS owner
+FROM CA
+JOIN Entity ON Entity.id = CA.name
+LEFT JOIN Entities ON Entities.individual = CA.owner
+LEFT JOIN People ON People.individual = CA.owner
+
+;
+
+CREATE VIEW Certificates ( id, type, isca, ca, parent, start, days, stop, cn, serial ) AS
+
+SELECT Certificate.id,
+ Type.value AS type,
+ (CACertificate.ca IS NOT NULL) AS isca,
+ CAPolicy.ca,
+ CA.parent,
+ start,
+ Certificate.days,
+ Start + Certificate.days * INTERVAL '1 day' AS stop,
+ cn,
+ Certificate.serial
+FROM Certificate
+JOIN I18NWord AS Type ON Type.id = Certificate.type
+JOIN CAPolicy ON CAPolicy.id = Certificate.CAPolicy
+JOIN CA ON CA.id = CAPolicy.ca
+LEFT JOIN CACertificate ON CACertificate.certificate = Certificate.id
+
+;
+
 
 -- Mark schema upgraded to 0.2.9
 SELECT SetSchemaVersion('Business', '0', '2', '9');
