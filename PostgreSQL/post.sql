@@ -32,9 +32,12 @@ BEGIN
 END $$;
 COMMIT;
 
--- Untested
-CREATE INDEX sentence_value ON Sentence(culture,UPPER(value));
+-- Case-insensitive uniqueness for cultured sentences (GetSentence concurrency)
+DROP INDEX IF EXISTS sentence_value;
+CREATE UNIQUE INDEX sentence_value ON Sentence(culture,UPPER(value)) WHERE culture IS NOT NULL;
 CREATE UNIQUE INDEX sentence_value_null ON Sentence(UPPER(value)) WHERE culture IS NULL;
+-- Identifiers: Word.culture IS NULL (GetIdentifier concurrency)
+CREATE UNIQUE INDEX word_value_null ON Word(UPPER(value)) WHERE culture IS NULL;
 CREATE UNIQUE INDEX release_version_null ON Release(name) WHERE build IS NULL;
 CREATE UNIQUE INDEX version_null_major_minor_patch ON Version(major,minor,patch) WHERE name IS NULL;
 CREATE UNIQUE INDEX version_name_major_minor_null ON Version(name,major,minor) WHERE patch IS NULL;
