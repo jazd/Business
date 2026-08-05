@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-# Usage: GetPartbySerial.sh <parent_part_id> <serial_number>
+# Usage: GetPartbySerial <parent_part_id> <serial_number>
+# Returns: part_id of the serialized part (parent + serial)
+#          Creates it if it does not exist by copying name/version from parent
+# serial_number is required (non-empty).
 
 source ~/bin/sqlite/common
 
@@ -18,12 +21,14 @@ if ! [[ "$PARENT_ID" =~ ^[0-9]+$ ]]; then
  exit 1
 fi
 
+escaped_serial=$(sql_escape "$SERIAL")
+
 # Try to find existing serialized part
 part_id=$(sqlite_query_one "
  SELECT id
  FROM Part
  WHERE parent = $PARENT_ID
-  AND serial = '$SERIAL'
+  AND serial = '$escaped_serial'
  LIMIT 1;
 ")
 
@@ -32,11 +37,8 @@ if [[ -n "$part_id" ]]; then
  exit 0
 fi
 
-# Escape serial for SQL safety
-escaped_serial=$(sql_escape "$SERIAL")
-
 # Insert if missing (copy name & version from parent)
-insert_result=$(sqlite_run "
+sqlite_run "
  INSERT OR IGNORE INTO Part (parent, name, version, serial)
  SELECT $PARENT_ID, parent.name, parent.version, '$escaped_serial'
  FROM Part AS parent
@@ -47,7 +49,7 @@ insert_result=$(sqlite_run "
        AND serial = '$escaped_serial'
    )
  LIMIT 1;
-")
+" >/dev/null
 
 # Fetch the id (now should exist)
 part_id=$(sqlite_query_one "
@@ -59,4 +61,3 @@ part_id=$(sqlite_query_one "
 ")
 
 echo "${part_id:-}"
-

@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+# Usage: PutAssemblyPublicKey <assembly_id> <pem>
+# Soft-stops prior active keys for assembly, then inserts pem.
+# PEM may be a literal or @/path/to/file
+
+source ~/bin/sqlite/common
+
+ASSEMBLY_ID="${1:-}"
+PEM_ARG="${2:-}"
+
+if [[ -z "$ASSEMBLY_ID" || -z "$PEM_ARG" ]]; then
+  echo "Error: assembly_id and pem are required" >&2
+  exit 1
+fi
+
+if ! [[ "$ASSEMBLY_ID" =~ ^[0-9]+$ ]]; then
+  echo "Error: assembly_id must be an integer" >&2
+  exit 1
+fi
+
+if [[ "$PEM_ARG" == @* ]]; then
+  pem_file="${PEM_ARG:1}"
+  if [[ ! -f "$pem_file" ]]; then
+    echo "Error: PEM file not found: $pem_file" >&2
+    exit 1
+  fi
+  PEM=$(cat "$pem_file")
+else
+  PEM="$PEM_ARG"
+fi
+
+escaped_pem=$(sql_escape "$PEM")
+
+sqlite_run "
+ UPDATE AssemblyPublicKey
+ SET stop = datetime('now')
+ WHERE assembly = $ASSEMBLY_ID
+  AND stop IS NULL;
+" >/dev/null
+
+sqlite_run "
+ INSERT INTO AssemblyPublicKey (assembly, pem)
+ VALUES ($ASSEMBLY_ID, '$escaped_pem');
+" >/dev/null
+
+exit 0

@@ -1,4 +1,4 @@
- #!/usr/bin/env bash
+#!/usr/bin/env bash
 
 # Usage: PutAssemblyPart <assembly_id> <part_id> [<designator>] [<quantity>]
 
@@ -45,10 +45,10 @@ designator_sql="${designator_id:-NULL}"
 quantity_sql="${QUANTITY:-NULL}"
 
 # Insert only if this exact combination doesn't exist
-insert_result=$(sqlite_run "
+sqlite_run "
  INSERT OR IGNORE INTO AssemblyPart (assembly, part, designator, quantity)
  VALUES ($ASSEMBLY_ID, $PART_ID, $designator_sql, $quantity_sql);
-")
+" >/dev/null
 
 # Success — no output (void)
 exit 0

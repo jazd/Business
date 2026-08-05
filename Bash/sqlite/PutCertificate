@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+
+# Usage:
+#   PutCertificate <caPolicy> <type> <individual> <csr> <start> <days> \
+#                  <o> <ou> <cn> <email_id> <serial> <pem>
+# type: Word value e.g. Client
+# start: SQLite datetime text e.g. 2026-07-23 or 2026-07-23 00:00:00
+# pem: literal or @/path/to/file
+# Returns: certificate id
+
+source ~/bin/sqlite/common
+
+CAPOLICY="${1:-}"
+TYPE="${2:-}"
+INDIVIDUAL="${3:-}"
+CSR="${4:-}"
+START="${5:-}"
+DAYS="${6:-}"
+O="${7:-}"
+OU="${8:-}"
+CN="${9:-}"
+EMAIL="${10:-}"
+SERIAL="${11:-}"
+PEM_ARG="${12:-}"
+
+if [[ -z "$CAPOLICY" || -z "$PEM_ARG" ]]; then
+  echo ""
+  exit 0
+fi
+
+if ! [[ "$CAPOLICY" =~ ^[0-9]+$ ]]; then
+  echo "Error: caPolicy must be an integer" >&2
+  exit 1
+fi
+
+if [[ -n "$INDIVIDUAL" ]] && ! [[ "$INDIVIDUAL" =~ ^[0-9]+$ ]]; then
+  echo "Error: individual must be an integer" >&2
+  exit 1
+fi
+
+if [[ -n "$CSR" ]] && ! [[ "$CSR" =~ ^[0-9]+$ ]]; then
+  echo "Error: csr must be an integer" >&2
+  exit 1
+fi
+
+if [[ -n "$DAYS" ]] && ! [[ "$DAYS" =~ ^[0-9]+$ ]]; then
+  echo "Error: days must be an integer" >&2
+  exit 1
+fi
+
+if [[ -n "$EMAIL" ]] && ! [[ "$EMAIL" =~ ^[0-9]+$ ]]; then
+  echo "Error: email must be an integer id" >&2
+  exit 1
+fi
+
+if [[ "$PEM_ARG" == @* ]]; then
+  pem_file="${PEM_ARG:1}"
+  if [[ ! -f "$pem_file" ]]; then
+    echo "Error: PEM file not found: $pem_file" >&2
+    exit 1
+  fi
+  PEM=$(cat "$pem_file")
+else
+  PEM="$PEM_ARG"
+fi
+
+type_id=""
+if [[ -n "$TYPE" ]]; then
+  type_id=$(~/bin/sqlite/GetWord "$TYPE")
+  if [[ -z "$type_id" ]]; then
+    echo "Error: Could not resolve type '$TYPE'" >&2
+    exit 1
+  fi
+fi
+
+type_sql="${type_id:-NULL}"
+individual_sql="${INDIVIDUAL:-NULL}"
+csr_sql="${CSR:-NULL}"
+days_sql="${DAYS:-NULL}"
+email_sql="${EMAIL:-NULL}"
+
+if [[ -z "$START" ]]; then
+  start_sql="NULL"
+else
+  start_sql="'$(sql_escape "$START")'"
+fi
+
+o_sql="NULL"; [[ -n "$O" ]] && o_sql="'$(sql_escape "$O")'"
+ou_sql="NULL"; [[ -n "$OU" ]] && ou_sql="'$(sql_escape "$OU")'"
+cn_sql="NULL"; [[ -n "$CN" ]] && cn_sql="'$(sql_escape "$CN")'"
+serial_sql="NULL"; [[ -n "$SERIAL" ]] && serial_sql="'$(sql_escape "$SERIAL")'"
+pem_sql="'$(sql_escape "$PEM")'"
+
+# Insert + last_insert_rowid in one sqlite3 connection
+cert_id=$(sqlite3 "$SQLITE_DB" "
+ INSERT INTO Certificate (
+  caPolicy, type, individual, csr, start, days,
+  o, ou, cn, email, serial, pem
+ ) VALUES (
+  $CAPOLICY, $type_sql, $individual_sql, $csr_sql, $start_sql, $days_sql,
+  $o_sql, $ou_sql, $cn_sql, $email_sql, $serial_sql, $pem_sql
+ );
+ SELECT last_insert_rowid();
+")
+
+echo "${cert_id:-}"
