@@ -3134,8 +3134,11 @@ $$ LANGUAGE plpgsql;
 
 -- Drop functions thas use JournalEntryResult
 DROP FUNCTION IF EXISTS Book(varchar, float);
+DROP FUNCTION IF EXISTS Book(varchar, numeric);
 DROP FUNCTION IF EXISTS Post(varchar, float, varchar);
+DROP FUNCTION IF EXISTS Post(varchar, numeric, varchar);
 DROP FUNCTION IF EXISTS Post(varchar, float, varchar, timestamp);
+DROP FUNCTION IF EXISTS Post(varchar, numeric, varchar, timestamp);
 --
 DROP TYPE IF EXISTS JournalEntryResult;
 CREATE TYPE JournalEntryResult AS (
@@ -3147,7 +3150,7 @@ CREATE TYPE JournalEntryResult AS (
 -- Book single amounts into double entry Journal
 CREATE OR REPLACE FUNCTION Book (
  inBook varchar,
- inAmount FLOAT
+ inAmount numeric
 ) RETURNS JournalEntryResult AS $$
 DECLARE
  book_id integer;
@@ -3214,7 +3217,7 @@ $$ LANGUAGE plpgsql;
 -- Book and return new balances
 CREATE OR REPLACE FUNCTION BookBalance (
  inBook varchar,
- inAmount FLOAT
+ inAmount numeric
 ) RETURNS TABLE (
  book integer,
  entry integer,
@@ -3224,8 +3227,8 @@ CREATE OR REPLACE FUNCTION BookBalance (
  rightside boolean,
  type integer,
  typeName varchar,
- debit float,
- credit float
+ debit numeric,
+ credit numeric
 ) AS $$
 DECLARE
  book_id integer;
@@ -3281,7 +3284,7 @@ $$ LANGUAGE plpgsql;
 -- Post a balanced General Journal entry
 CREATE OR REPLACE FUNCTION Post (
  inDebitAccount varchar,
- inAmount FLOAT,
+ inAmount numeric,
  inCreditAccount varchar,
  inDateTime timestamp
 ) RETURNS JournalEntryResult AS $$
@@ -3339,7 +3342,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION Post (
  inDebitAccount varchar,
- inAmount FLOAT,
+ inAmount numeric,
  inCreditAccount varchar
 ) RETURNS JournalEntryResult AS $$
 BEGIN
@@ -3474,7 +3477,7 @@ CREATE OR REPLACE FUNCTION AddCargo (
 ) RETURNS integer AS $$
 DECLARE
  cargo_id integer;
- book_amount float;
+ book_amount numeric;
 BEGIN
  SELECT INTO cargo_id
   id AS cargo_id
@@ -3602,7 +3605,7 @@ CREATE OR REPLACE FUNCTION AddCargo (
  inBill integer,
  inAssembly integer,
  inCount float,
- inUnit float,
+ inUnit numeric,
  inIndividualJob integer,
  inFromCargo integer,
  inBook varchar
@@ -3628,7 +3631,7 @@ CREATE OR REPLACE FUNCTION AddCargoAlternate (
  inBill integer,
  inAlternateAssembly integer,
  inCount float,
- inUnit float,
+ inUnit numeric,
  inIndividualJob integer,
  inFromCargo integer,
  inBook varchar
