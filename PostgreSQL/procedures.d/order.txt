@@ -5,6 +5,7 @@
 40-contacts.sql	9 functions/types	Contacts — Email Phone Path (diagrams: individual_email, phones, individual_path)
 50-lists.sql	8 functions/types	Lists (diagram: lists)
 60-software.sql	26 functions/types	Software / Parts / Assemblies (diagrams: software, assemblies)
+65-est.sql	5 functions/types	EST / certificates — public key, CSR, Certificate (diagram: est)
 70-session.sql	12 functions/types	Web Session / Agent (diagram: web_session)
 80-dag.sql	10 functions/types	DAG edges / vertices (diagram: dag)
 90-accounting.sql	4 functions/types	Double-entry Book / Post (diagram: accounting)

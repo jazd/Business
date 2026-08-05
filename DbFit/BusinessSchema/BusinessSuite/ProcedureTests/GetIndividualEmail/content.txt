@@ -1,0 +1,26 @@
+GetIndividualEmail
+
+Returns the Individual linked to an email (creates individual + association if needed).
+Static: IndividualEmail links individual 3 to Email id 1 (Steve+NoCRUD@Jazd.com shape).
+
+!|Query|SELECT GetIndividualEmail('Steve+NoCRUD@Jazd.com')|
+|getindividualemail|
+|3|
+
+Same email again is stable
+!|Query|SELECT GetIndividualEmail('Steve+NoCRUD@Jazd.com')|
+|getindividualemail|
+|3|
+
+New email gets a new individual (not one of the static low ids)
+!|Query|SELECT GetIndividualEmail('ZippyBringUp@example.test')|
+|getindividualemail?|
+|>>newind|
+
+!|Query|SELECT GetIndividualEmail('ZippyBringUp@example.test')|
+|getindividualemail|
+|<<newind|
+
+!|Query|SELECT _:newind::BIGINT > 13 AS after_static|
+|after_static|
+|true|

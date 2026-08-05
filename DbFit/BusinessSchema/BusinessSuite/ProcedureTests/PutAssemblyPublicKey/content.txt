@@ -1,0 +1,34 @@
+PutAssemblyPublicKey
+
+Soft-stops any active public key for the assembly, then inserts a new PEM.
+
+Assembly from existing Part helpers
+!|Query|SELECT GetPartbySerial(GetPart('ESP32-S3-WROOM'), 'TEST-MACS-001')|
+|getpartbyserial?|
+|>>asm|
+
+First key
+!|Execute|SELECT PutAssemblyPublicKey(_:asm::INT, '-----BEGIN PUBLIC KEY-----TESTKEY1-----END PUBLIC KEY-----')|
+
+!|Query|SELECT COUNT(*) AS n FROM AssemblyPublicKey WHERE assembly = _:asm::INT AND stop IS NULL|
+|n|
+|1|
+
+!|Query|SELECT pem FROM AssemblyPublicKey WHERE assembly = _:asm::INT AND stop IS NULL|
+|pem|
+|-----BEGIN PUBLIC KEY-----TESTKEY1-----END PUBLIC KEY-----|
+
+Replace key (prior row stopped)
+!|Execute|SELECT PutAssemblyPublicKey(_:asm::INT, '-----BEGIN PUBLIC KEY-----TESTKEY2-----END PUBLIC KEY-----')|
+
+!|Query|SELECT COUNT(*) AS active FROM AssemblyPublicKey WHERE assembly = _:asm::INT AND stop IS NULL|
+|active|
+|1|
+
+!|Query|SELECT COUNT(*) AS stopped FROM AssemblyPublicKey WHERE assembly = _:asm::INT AND stop IS NOT NULL|
+|stopped|
+|1|
+
+!|Query|SELECT pem FROM AssemblyPublicKey WHERE assembly = _:asm::INT AND stop IS NULL|
+|pem|
+|-----BEGIN PUBLIC KEY-----TESTKEY2-----END PUBLIC KEY-----|

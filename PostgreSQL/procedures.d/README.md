@@ -43,11 +43,14 @@ From repo root:
 | 40-contacts | individual_email, phones, individual_path |
 | 50-lists | lists |
 | 60-software | software, assemblies |
+| 65-est | est (PutAssemblyPublicKey, CSR, Certificate) |
 | 70-session | web_session |
 | 80-dag | dag |
 | 90-accounting | accounting |
 | 95-inventory | inventory |
 | 99-schema | SchemaVersion |
 
-Events/periods are mostly views + static data; EST/cert and Process tables are
-schema/static-first today (few dedicated Get* procedures yet).
+Events/periods are mostly views + static data. EST write helpers live in
+`65-est.sql` (PutAssemblyPublicKey, PutCertificateSigningRequest,
+PutAssemblyCertificateSigningRequest, PutCertificate). Process tables remain
+schema/static-first.
