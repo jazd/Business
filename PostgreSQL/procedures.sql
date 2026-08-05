@@ -7,12 +7,14 @@ SET search_path TO Business,"$user",public;
 
 -- Return the Id of a culture based word
 -- It is inserted if it does not already exist
+-- Concurrent safe: advisory lock + ON CONFLICT on word_value (culture, UPPER(value)); lock always released
 CREATE OR REPLACE FUNCTION GetWord (
  word_value varchar,
  culture_name varchar
 ) RETURNS integer AS $$
 DECLARE
  word_id integer;
+ lock_key bigint;
 BEGIN
  IF word_value IS NOT NULL THEN
   -- Check if exists early
@@ -24,23 +26,26 @@ BEGIN
   LIMIT 1
   ;
   IF word_id IS NULL THEN
-   -- Be sure to process any single value one at a time without the need of a transaction or locking Word table
-   PERFORM pg_advisory_lock(hashtext(word_value));
-   INSERT INTO Word (value, culture) (
+   lock_key := hashtext(word_value);
+   -- Serialize concurrent inserts for the same text; always release the lock
+   PERFORM pg_advisory_lock(lock_key);
+   BEGIN
+    INSERT INTO Word (value, culture)
     SELECT word_value, Culture.code
     FROM Culture
-    LEFT JOIN Word AS exists ON UPPER(exists.value) = UPPER(word_value)
-     AND exists.culture = Culture.code
     WHERE UPPER(Culture.name) = UPPER(culture_name)
-     AND exists.id IS NULL
-    LIMIT 1
-   );
-   PERFORM pg_advisory_unlock(hashtext(word_value));
+    ON CONFLICT (culture, (UPPER(value))) DO NOTHING;
+    PERFORM pg_advisory_unlock(lock_key);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(lock_key);
+     RAISE;
+   END;
    SELECT id INTO word_id
    FROM Word
    JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
    WHERE UPPER(Word.value) = UPPER(word_value)
-   AND Word.culture = Culture.code
+    AND Word.culture = Culture.code
    LIMIT 1
    ;
   END IF;
@@ -65,11 +70,13 @@ $$ LANGUAGE plpgsql;
 -- Identifiers are normally by convention en-US based names used in programming and protocols
 -- Return the Id of an identifier
 -- It is inserted if it does not already exist
+-- Concurrent safe: advisory lock + ON CONFLICT on word_value_null (UPPER(value) WHERE culture IS NULL)
 CREATE OR REPLACE FUNCTION GetIdentifier (
  ident_value varchar
 ) RETURNS integer AS $$
 DECLARE
  ident_id integer;
+ lock_key bigint;
 BEGIN
  IF ident_value IS NOT NULL THEN
   -- Check if exists early
@@ -79,17 +86,18 @@ BEGIN
    AND Word.culture IS NULL
   LIMIT 1;
   IF ident_id IS NULL THEN
-   -- Be sure to process any single value one at a time without the need of a transaction or locking Word table
-   PERFORM pg_advisory_lock(hashtext(ident_value));
-   INSERT INTO Word (value, culture) (
-    SELECT ident_value, NULL
-    FROM Dual
-    LEFT JOIN Word AS exists ON UPPER(exists.value) = UPPER(ident_value)
-     AND exists.culture IS NULL
-    WHERE exists.id IS NULL
-    LIMIT 1
-   );
-   PERFORM pg_advisory_unlock(hashtext(ident_value));
+   lock_key := hashtext(ident_value);
+   PERFORM pg_advisory_lock(lock_key);
+   BEGIN
+    INSERT INTO Word (value, culture)
+    VALUES (ident_value, NULL)
+    ON CONFLICT ((UPPER(value))) WHERE culture IS NULL DO NOTHING;
+    PERFORM pg_advisory_unlock(lock_key);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(lock_key);
+     RAISE;
+   END;
    SELECT id INTO ident_id
    FROM Word
    WHERE UPPER(Word.value) = UPPER(ident_value)
@@ -101,12 +109,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Concurrent safe: advisory lock + ON CONFLICT on sentence_value (culture, UPPER(value)) WHERE culture IS NOT NULL
 CREATE OR REPLACE FUNCTION GetSentence (
  sentence_value varchar,
  culture_name varchar
 ) RETURNS integer AS $$
 DECLARE
  sentence_id integer;
+ lock_key bigint;
 BEGIN
  IF sentence_value IS NOT NULL THEN
   SELECT id INTO sentence_id
@@ -116,18 +126,20 @@ BEGIN
    AND Sentence.culture = Culture.code
   LIMIT 1;
   IF sentence_id IS NULL THEN
-   -- Be sure to process any single value one at a time without the need of a transaction or locking Sentence table
-   PERFORM pg_advisory_lock(hashtext(sentence_value));
-   INSERT INTO Sentence (value, culture, length) (
+   lock_key := hashtext(sentence_value);
+   PERFORM pg_advisory_lock(lock_key);
+   BEGIN
+    INSERT INTO Sentence (value, culture, length)
     SELECT sentence_value, Culture.code, LENGTH(sentence_value)
     FROM Culture
-    LEFT JOIN Sentence AS exists ON UPPER(exists.value) = UPPER(sentence_value)
-     AND exists.culture = Culture.code
     WHERE UPPER(Culture.name) = UPPER(culture_name)
-     AND exists.id IS NULL
-    LIMIT 1
-   );
-   PERFORM pg_advisory_unlock(hashtext(sentence_value));
+    ON CONFLICT (culture, (UPPER(value))) WHERE culture IS NOT NULL DO NOTHING;
+    PERFORM pg_advisory_unlock(lock_key);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(lock_key);
+     RAISE;
+   END;
    SELECT id INTO sentence_id
    FROM Sentence
    JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
@@ -153,11 +165,13 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Concurrent safe: advisory lock + ON CONFLICT on sentence_value_null (UPPER(value) WHERE culture IS NULL)
 CREATE OR REPLACE FUNCTION GetIdentityPhrase (
  phrase_value varchar
 ) RETURNS integer AS $$
 DECLARE
  ident_id integer;
+ lock_key bigint;
 BEGIN
  IF phrase_value IS NOT NULL THEN
   SELECT id INTO ident_id
@@ -166,17 +180,18 @@ BEGIN
    AND Sentence.culture IS NULL
   LIMIT 1;
   IF ident_id IS NULL THEN
-   -- Be sure to process any single value one at a time without the need of a transaction or locking Sentence table
-   PERFORM pg_advisory_lock(hashtext(phrase_value));
-   INSERT INTO Sentence (value, culture) (
-    SELECT phrase_value, NULL
-    FROM Dual
-    LEFT JOIN Sentence AS exists ON UPPER(exists.value) = UPPER(phrase_value)
-     AND exists.culture IS NULL
-    WHERE exists.id IS NULL
-    LIMIT 1
-   );
-   PERFORM pg_advisory_unlock(hashtext(phrase_value));
+   lock_key := hashtext(phrase_value);
+   PERFORM pg_advisory_lock(lock_key);
+   BEGIN
+    INSERT INTO Sentence (value, culture)
+    VALUES (phrase_value, NULL)
+    ON CONFLICT ((UPPER(value))) WHERE culture IS NULL DO NOTHING;
+    PERFORM pg_advisory_unlock(lock_key);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(lock_key);
+     RAISE;
+   END;
    SELECT id INTO ident_id
    FROM Sentence
    WHERE UPPER(Sentence.value) = UPPER(phrase_value)
@@ -219,6 +234,7 @@ BEGIN
    lockID := (inLatitude * 10000000)::bigint;
    -- Be sure to process any single latitude one at a time without the need of a transaction or locking the Location table
    PERFORM pg_advisory_lock(lockID);
+   BEGIN
    INSERT INTO Location (latitude, longitude, accuracy) (
     SELECT inLatitude, inLongitude, accuracy_code
     FROM Dual
@@ -229,6 +245,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(lockID);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(lockID);
+     RAISE;
+   END;
    SELECT id INTO location_id
    FROM Location
    WHERE parent IS NULL
@@ -282,6 +303,7 @@ BEGIN
  LIMIT 1;
  IF postal_id IS NULL THEN
   PERFORM pg_advisory_lock(hashtext(UPPER(zipcode)));
+  BEGIN
   INSERT INTO Postal (country, code, state, stateabbreviation, county, city, location) (
    SELECT countrycode_id, zipcode, state_id, statecode_id, county_id, city_id, location_id
    FROM Dual
@@ -292,6 +314,11 @@ BEGIN
    LIMIT 1
   );
   PERFORM pg_advisory_unlock(hashtext(UPPER(zipcode)));
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(hashtext(UPPER(zipcode)));
+    RAISE;
+  END;
   SELECT id INTO postal_id
   FROM Postal
   -- Unique on country and code
@@ -389,6 +416,7 @@ BEGIN
    IF address_id IS NULL THEN
     -- Be sure to process any single zipcode id one at a time without the need of a transaction or locking the Address table
     PERFORM pg_advisory_lock(zipcode_id);
+    BEGIN
     INSERT INTO Address (line1, postal, postalplus, location) (
      SELECT street, zipcode_id, inPostalplus, location_id
      FROM Dual
@@ -403,6 +431,11 @@ BEGIN
      LIMIT 1
     );
     PERFORM pg_advisory_unlock(zipcode_id);
+    EXCEPTION
+     WHEN OTHERS THEN
+      PERFORM pg_advisory_unlock(zipcode_id);
+      RAISE;
+    END;
     SELECT id INTO address_id
     FROM Address
     WHERE postal = zipcode_id
@@ -446,6 +479,7 @@ BEGIN
    IF address_id IS NULL THEN
     -- Be sure to process any single zipcode id one at a time without the need of a transaction or locking the Address table
     PERFORM pg_advisory_lock(zipcode_id);
+    BEGIN
     INSERT INTO Address (line1, postal, postalplus) (
      SELECT street, zipcode_id, inPostalplus
      FROM Dual
@@ -459,6 +493,11 @@ BEGIN
      LIMIT 1
     );
     PERFORM pg_advisory_unlock(zipcode_id);
+    EXCEPTION
+     WHEN OTHERS THEN
+      PERFORM pg_advisory_unlock(zipcode_id);
+      RAISE;
+    END;
     SELECT id INTO address_id
     FROM Address
     WHERE postal = zipcode_id
@@ -489,6 +528,7 @@ BEGIN
   IF given_id IS NULL THEN
    -- Be sure to process any single given one at a time without the need of a transaction or locking Given table
    PERFORM pg_advisory_lock(hashtext(inGiven));
+   BEGIN
    INSERT INTO Given (value) (
     SELECT inGiven
     FROM DUAL
@@ -497,6 +537,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(hashtext(inGiven));
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(hashtext(inGiven));
+     RAISE;
+   END;
    SELECT id INTO given_id
    FROM Given
    WHERE Given.value = inGiven
@@ -521,6 +566,7 @@ BEGIN
   IF family_id IS NULL THEN
    -- Be sure to process any single family one at a time without the need of a transaction or locking Family table
    PERFORM pg_advisory_lock(hashtext(inFamily));
+   BEGIN
    INSERT INTO Family (value) (
     SELECT inFamily
     FROM DUAL
@@ -529,6 +575,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(hashtext(inFamily));
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(hashtext(inFamily));
+     RAISE;
+   END;
    SELECT id INTO family_id
    FROM Family
    WHERE Family.value = inFamily
@@ -564,6 +615,7 @@ BEGIN
   IF name_id IS NULL THEN
    -- Be sure to process any single first one at a time without the need of a transaction or locking Name table
    PERFORM pg_advisory_lock(first_id);
+   BEGIN
    INSERT INTO Name (given, middle, family) (
     SELECT first_id, middle_id, last_id
     FROM DUAL
@@ -575,6 +627,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(first_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(first_id);
+     RAISE;
+   END;
    SELECT id INTO name_id
    FROM Name
    WHERE ((Name.given = first_id) OR (Name.given IS NULL AND first_id IS NULL))
@@ -633,8 +690,14 @@ BEGIN
    -- Be sure to process any single birthdate one at a time without the need of a transaction or locking the Individual table
    lockID := extract(epoch FROM inBirth)::bigint;
    PERFORM pg_advisory_lock(lockID);
+   BEGIN
    INSERT INTO Individual(name, prefix, suffix, post, goesBy, birth, location, death) VALUES (name_id, prefix_id, suffix_id, post_id, goesBy_id, inBirth, inBirthLocation, inDeath);
    PERFORM pg_advisory_unlock(lockID);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(lockID);
+     RAISE;
+   END;
   END IF;
 
   individual_id := (
@@ -681,6 +744,7 @@ BEGIN
   IF entity_id IS NULL THEN
    -- Be sure to process any single name one at a time without the need of a transaction or locking the Entity table
    PERFORM pg_advisory_lock(hashtext(inName));
+   BEGIN
    INSERT INTO Entity (name)
    SELECT inName
    FROM DUAL
@@ -688,6 +752,11 @@ BEGIN
    WHERE exists.id IS NULL
    LIMIT 1;
    PERFORM pg_advisory_unlock(hashtext(inName));
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(hashtext(inName));
+     RAISE;
+   END;
    SELECT id INTO entity_id
    FROM Entity
    WHERE UPPER(Entity.name) = UPPER(inName)
@@ -719,6 +788,7 @@ BEGIN
   IF individual_id IS NULL THEN
    -- Be sure to process any single entity name id one at a time without the need of a transaction or locking Individual table
    PERFORM pg_advisory_lock(entity_name_id);
+   BEGIN
    INSERT INTO Individual (entity, goesBy, birth, death)
    SELECT entity_name_id, goesBy_id, inFormed, inDissolved
    FROM DUAL
@@ -726,6 +796,11 @@ BEGIN
    WHERE exists.id IS NULL
    LIMIT 1;
    PERFORM pg_advisory_unlock(entity_name_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(entity_name_id);
+     RAISE;
+   END;
    SELECT id INTO individual_id
    FROM Individual
    WHERE Individual.entity = entity_name_id
@@ -752,8 +827,14 @@ BEGIN
   LIMIT 1;
   IF individual_id IS NULL THEN
    PERFORM pg_advisory_lock(entity_name_id);
+   BEGIN
    INSERT INTO Individual (entity) VALUES (entity_name_id) RETURNING id INTO individual_id;
    PERFORM pg_advisory_unlock(entity_name_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(entity_name_id);
+     RAISE;
+   END;
   END IF;
  END IF;
  RETURN individual_id;
@@ -778,6 +859,7 @@ BEGIN
   IF email_id IS NULL THEN
    -- Be sure to process any single username one at a time without the need of a transaction or locking Email table
    PERFORM pg_advisory_lock(hashtext(inUserName));
+   BEGIN
    INSERT INTO Email (username, plus, host) (
     SELECT inUserName, inPlus, inHost
     FROM DUAL
@@ -788,6 +870,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(hashtext(inUserName));
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(hashtext(inUserName));
+     RAISE;
+   END;
    SELECT id INTO email_id
    FROM Email
    WHERE UPPER(username) = UPPER(inUserName)
@@ -840,6 +927,7 @@ BEGIN
    -- Insert list name if it does not exist
    -- Be sure to process any single list name id one at a time without the need of a transaction or locking ListIndividualName table
    PERFORM pg_advisory_lock(listName_id);
+   BEGIN
    INSERT INTO ListIndividualName (name, listSet, optinStyle)
    SELECT listName_id, setName_id, 1
    FROM DUAL
@@ -850,6 +938,11 @@ BEGIN
    LIMIT 1
    ;
    PERFORM pg_advisory_unlock(listName_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(listName_id);
+     RAISE;
+   END;
    SELECT listIndividual INTO listIndividual_id
    FROM ListIndividualName
    WHERE name = listName_id
@@ -879,6 +972,7 @@ BEGIN
   -- Insert individual into list
   -- Be sure to process any single list individual id one at a time without the need of a transaction or locking ListIndividual table
   PERFORM pg_advisory_lock(listIndividual_id);
+  BEGIN
   INSERT INTO ListIndividual (id, individual, type)
   SELECT listIndividual_id AS id, inIndividual AS individual, sendField_id AS type
   FROM DUAL
@@ -889,6 +983,11 @@ BEGIN
   LIMIT 1
   ;
   PERFORM pg_advisory_unlock(listIndividual_id);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(listIndividual_id);
+    RAISE;
+  END;
  END IF;
 
  RETURN listIndividual_id;
@@ -971,6 +1070,7 @@ BEGIN
   type_id := (SELECT GetWord(inType));
   -- Be sure to process any single individual email one at a time without the need of a transaction or locking IndividualEmail table
   PERFORM pg_advisory_lock(inIndividual_id);
+  BEGIN
   INSERT INTO IndividualEmail (individual, email, type) (
    SELECT inIndividual_id, inEmail_id, type_id
    FROM DUAL
@@ -982,6 +1082,11 @@ BEGIN
    LIMIT 1
   );
   PERFORM pg_advisory_unlock(inIndividual_id);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inIndividual_id);
+    RAISE;
+  END;
   -- Be sure to stop any previous emails of this type associated with this individual
   UPDATE IndividualEmail
   SET stop = NOW()
@@ -1089,6 +1194,7 @@ BEGIN
   IF version_id IS NULL THEN
    -- Be sure to process any single version one at a time without the need of a transaction or locking Version table
    PERFORM pg_advisory_lock(major_id);
+   BEGIN
    INSERT INTO Version (major, minor, patch) (
     SELECT major_id, minor_id, patch_id
     FROM Dual
@@ -1099,6 +1205,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(major_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(major_id);
+     RAISE;
+   END;
    SELECT id INTO version_id
    FROM Version
    WHERE major = major_id
@@ -1140,6 +1251,7 @@ BEGIN
   IF version_id IS NULL THEN
    -- Be sure to process any single version name one at a time without the need of a transaction or locking Version table
    PERFORM pg_advisory_lock(name_id);
+   BEGIN
    INSERT INTO Version (name, major, minor, patch) (
     SELECT name_id, major_id, minor_id, patch_id
     FROM Dual
@@ -1151,6 +1263,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(name_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(name_id);
+     RAISE;
+   END;
    SELECT id INTO version_id
    FROM Version
    WHERE name = name_id
@@ -1192,6 +1309,7 @@ BEGIN
   IF release_id IS NULL THEN
    -- Be sure to process any single version build one at a time without the need of a transaction or locking Release table
    PERFORM pg_advisory_lock(inVersion);
+   BEGIN
    INSERT INTO Release (build, version) (
     SELECT build_id AS build, inVersion AS version
     FROM Dual
@@ -1201,6 +1319,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(inVersion);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(inVersion);
+     RAISE;
+   END;
    SELECT id INTO release_id
    FROM Release
    WHERE version = inVersion
@@ -1238,6 +1361,7 @@ BEGIN
   IF application_id IS NULL THEN
    -- Be sure to process any single application one at a time without the need of a transaction or locking Application table
    PERFORM pg_advisory_lock(name_ident);
+   BEGIN
    INSERT INTO Application (name) (
     SELECT name_ident AS name
     FROM Dual
@@ -1246,6 +1370,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(name_ident);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(name_ident);
+     RAISE;
+   END;
    SELECT id INTO application_id
    FROM Application
    WHERE name = name_ident
@@ -1273,6 +1402,7 @@ BEGIN
   IF applicationRelease_id IS NULL THEN
    -- Be sure to process any single application release one at a time without the need of a transaction or locking ApplicationRelease table
    PERFORM pg_advisory_lock(inApplication);
+   BEGIN
    INSERT INTO ApplicationRelease (application, release) (
     SELECT inApplication AS application, inRelease AS release
     FROM Dual
@@ -1282,6 +1412,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(inApplication);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(inApplication);
+     RAISE;
+   END;
    SELECT id INTO applicationRelease_id
    FROM ApplicationRelease
    WHERE application = inApplication
@@ -1314,6 +1449,7 @@ BEGIN
   IF part_id IS NULL THEN
    -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
    PERFORM pg_advisory_lock(name_id);
+   BEGIN
    INSERT INTO Part (name) (
     SELECT name_id
     FROM Dual
@@ -1325,6 +1461,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(name_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(name_id);
+     RAISE;
+   END;
    SELECT id INTO part_id
    FROM Part
    WHERE name = name_id
@@ -1358,6 +1499,7 @@ BEGIN
   IF part_id IS NULL THEN
    -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
    PERFORM pg_advisory_lock(inNameId);
+   BEGIN
    INSERT INTO Part (name, parent) (
     SELECT inNameId, inParentId
     FROM Dual
@@ -1369,6 +1511,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(inNameId);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(inNameId);
+     RAISE;
+   END;
    SELECT id INTO part_id
    FROM Part
    WHERE name = inNameId
@@ -1508,6 +1655,7 @@ BEGIN
   LIMIT 1;
   IF part_id IS NULL THEN
    PERFORM pg_advisory_lock(parent_id);
+   BEGIN
    INSERT INTO Part (parent, name, version) (
     SELECT parent_id, part_name_id, part_version_name_id
     FROM Dual
@@ -1519,6 +1667,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(parent_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(parent_id);
+     RAISE;
+   END;
    SELECT id INTO part_id
    FROM Part
    WHERE parent = parent_id
@@ -1574,6 +1727,7 @@ BEGIN
   LIMIT 1;
   IF part_id IS NULL THEN
    PERFORM pg_advisory_lock(parent_id);
+   BEGIN
    INSERT INTO Part (parent, name, version) (
     SELECT parent_id, part_name_id, part_version_name_id
     FROM Dual
@@ -1585,6 +1739,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(parent_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(parent_id);
+     RAISE;
+   END;
    SELECT id INTO part_id
    FROM Part
    WHERE parent = parent_id
@@ -1693,6 +1852,7 @@ BEGIN
   LIMIT 1;
   IF part_id IS NULL THEN
    PERFORM pg_advisory_lock(parent_id);
+   BEGIN
    INSERT INTO Part (parent, name, version) (
     SELECT parent_id, part_name_id, inPartVersion_id
     FROM Dual
@@ -1704,6 +1864,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(parent_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(parent_id);
+     RAISE;
+   END;
    SELECT id INTO part_id
    FROM Part
    WHERE parent = parent_id
@@ -1768,6 +1933,7 @@ BEGIN
   IF part_id IS NULL THEN
    -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
    PERFORM pg_advisory_lock(parent_id);
+   BEGIN
    INSERT INTO Part (parent, name, version) (
     SELECT parent_id, name_id, inVersion
     FROM Dual
@@ -1779,6 +1945,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(parent_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(parent_id);
+     RAISE;
+   END;
    SELECT id INTO part_id
    FROM Part
    WHERE name = name_id
@@ -1879,6 +2050,7 @@ BEGIN
   IF part_id IS NULL THEN
    -- Be sure to process any single part one at a time without the need of a transaction or locking Part table
    PERFORM pg_advisory_lock(inParent);
+   BEGIN
    INSERT INTO Part (parent, name, version, serial) (
     SELECT inParent, parent.name, parent.version, inSerial
     FROM Part AS parent
@@ -1889,6 +2061,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(inParent);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(inParent);
+     RAISE;
+   END;
    SELECT part.id INTO part_id
    FROM Part
    WHERE Part.parent = inParent
@@ -1913,6 +2090,7 @@ BEGIN
   designator_id := GetWord(inDesignator);
   -- Be sure to process any single assembly one at a time without the need of a transaction or locking AssemblyPart table
   PERFORM pg_advisory_lock(inAssembly);
+  BEGIN
   INSERT INTO AssemblyPart (assembly, part, designator, quantity) (
    SELECT inAssembly, inPart, designator_id, inQuantity
    FROM Dual
@@ -1924,6 +2102,11 @@ BEGIN
    LIMIT 1
   );
   PERFORM pg_advisory_unlock(inAssembly);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inAssembly);
+    RAISE;
+  END;
  END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -1970,6 +2153,7 @@ BEGIN
   -- Be sure to process any single assmbly application release one at a time without the need of a transaction or locking AssemblyApplicationRelease table
   IF assemblyapplicationrelease_id IS NULL THEN
    PERFORM pg_advisory_lock(inAssembly);
+   BEGIN
    INSERT INTO AssemblyApplicationRelease (parent, assembly, applicationRelease) (
     SELECT inParent AS parent, inAssembly AS assembly, inApplicationRelease AS applicationRelease
     FROM Dual
@@ -1980,6 +2164,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(inAssembly);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(inAssembly);
+     RAISE;
+   END;
    SELECT id INTO assemblyapplicationrelease_id
    FROM AssemblyApplicationRelease
    WHERE assembly = inAssembly
@@ -2034,6 +2223,7 @@ BEGIN
   IF path_id IS NULL THEN
    -- Be sure to process any single path one at a time without the need of a transaction or locking Path table
    PERFORM pg_advisory_lock(lockID);
+   BEGIN
    INSERT INTO Path (protocol, secure, host, value, get) (
     SELECT inProtocol, is_secure, inHost, inValue, inGet
     FROM Dual
@@ -2046,6 +2236,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(lockID);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(lockID);
+     RAISE;
+   END;
    SELECT id INTO path_id
    FROM Path
    WHERE protocol = inProtocol
@@ -2102,6 +2297,7 @@ BEGIN
    IF phone_id IS NULL THEN
     -- Be sure to process any single phone number one at a time without the need of a transaction or locking Phone table
     PERFORM pg_advisory_lock(hashtext(inNumber));
+    BEGIN
     INSERT INTO Phone (country, area, number) (
      SELECT countrycode_id, inAreaCode, inNumber
      FROM Dual
@@ -2112,6 +2308,11 @@ BEGIN
      LIMIT 1
     );
     PERFORM pg_advisory_unlock(hashtext(inNumber));
+    EXCEPTION
+     WHEN OTHERS THEN
+      PERFORM pg_advisory_unlock(hashtext(inNumber));
+      RAISE;
+    END;
     SELECT id INTO phone_id
     FROM Phone
     WHERE country = countrycode_id
@@ -2280,6 +2481,7 @@ BEGIN
   IF agentstring_id IS NULL THEN
    -- Be sure to process any single agent string one at a time without the need of a transaction or locking AgentString table
    PERFORM pg_advisory_lock(inString);
+   BEGIN
    INSERT INTO AgentString (agent,userAgentString) (
     SELECT inAgent, inString
     FROM Dual
@@ -2289,6 +2491,11 @@ BEGIN
     LIMIT 1
    );
    PERFORM pg_advisory_unlock(inString);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(inString);
+     RAISE;
+   END;
    SELECT id INTO agentstring_id
    FROM AgentString
    WHERE userAgentString = inString
@@ -2559,17 +2766,24 @@ BEGIN
 
   IF existingSession IS NULL THEN
    PERFORM pg_advisory_lock(hashtext(inSessionToken));
+   BEGIN
    INSERT INTO Session (lock) VALUES (0) RETURNING id INTO existingSession;
    INSERT INTO SessionToken (session,token,siteApplicationRelease,created) (
     SELECT existingSession, inSessionToken, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created
    );
    PERFORM pg_advisory_unlock(hashtext(inSessionToken));
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(hashtext(inSessionToken));
+     RAISE;
+   END;
   ELSE
    UPDATE Session SET touched = NOW() WHERE id = existingSession;
   END IF;
 
   -- Be sure to process any single session credential one at a time without the need of a transaction or locking SessionCredential table
   PERFORM pg_advisory_lock(existingSession);
+  BEGIN
   INSERT INTO SessionCredential (session, agentString, credential, referring, fromAddress, location) (
    SELECT existingSession, inAgentString, inCredential, inReferring, inIPAddress, inLocation
    FROM Dual
@@ -2583,6 +2797,11 @@ BEGIN
    LIMIT 1
   );
   PERFORM pg_advisory_unlock(existingSession);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(existingSession);
+    RAISE;
+  END;
 
  END IF;
  RETURN existingSession;
@@ -3174,6 +3393,7 @@ BEGIN
 
  IF reference_id IS NULL THEN
   PERFORM pg_advisory_lock(inBill);
+  BEGIN
   INSERT INTO BillReference (bill, type, value, sequence) (
    SELECT inBill, type_id, inValue, inSequence
    FROM DUAL
@@ -3185,6 +3405,11 @@ BEGIN
    LIMIT 1
   ) RETURNING id INTO reference_id;
   PERFORM pg_advisory_unlock(inBill);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inBill);
+    RAISE;
+  END;
  ELSE
   -- Update sequence if provided and different
   IF inSequence IS NOT NULL THEN
@@ -3430,6 +3655,7 @@ DECLARE
 BEGIN
 IF inFromBill IS NOT NULL AND inToBill IS NOT NULL THEN
  PERFORM pg_advisory_lock(inFromBill);
+ BEGIN
  IF inItem IS NULL THEN
   -- Move all remaining cargo to inToBill
   -- Use AddCargo
@@ -3486,6 +3712,11 @@ IF inFromBill IS NOT NULL AND inToBill IS NOT NULL THEN
   ;
  END IF;
  PERFORM pg_advisory_unlock(inFromBill);
+ EXCEPTION
+  WHEN OTHERS THEN
+   PERFORM pg_advisory_unlock(inFromBill);
+   RAISE;
+ END;
 END IF;
 RETURN inToBill;
 END;
@@ -3576,6 +3807,7 @@ BEGIN
    IF schedule_id IS NULL THEN
     -- Be sure to process any single schedule one at a time without the need of a transaction or locking ScheduleName table
     PERFORM pg_advisory_lock(scheduleName_id);
+    BEGIN
     INSERT INTO ScheduleName (name) (
      SELECT scheduleName_id
      FROM DUAL
@@ -3584,6 +3816,11 @@ BEGIN
      LIMIT 1
     ) RETURNING schedule INTO schedule_id;
     PERFORM pg_advisory_unlock(scheduleName_id);
+    EXCEPTION
+     WHEN OTHERS THEN
+      PERFORM pg_advisory_unlock(scheduleName_id);
+      RAISE;
+    END;
     IF schedule_id IS NULL THEN
      schedule_id = (
       SELECT schedule
@@ -3614,6 +3851,7 @@ BEGIN
   IF job_id IS NULL THEN
    -- Be sure to process any single job one at a time without the need of a transaction or locking JobName table
    PERFORM pg_advisory_lock(jobName_id);
+   BEGIN
    INSERT INTO JobName (name) (
     SELECT jobName_id
     FROM DUAL
@@ -3622,6 +3860,11 @@ BEGIN
     LIMIT 1
    ) RETURNING job INTO job_id;
    PERFORM pg_advisory_unlock(jobName_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(jobName_id);
+     RAISE;
+   END;
    IF job_id IS NULL THEN
     job_id = (
      SELECT job
