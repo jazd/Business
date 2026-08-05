@@ -1,0 +1,90 @@
+I18N Accounting VIEWs (JournalReport / LedgerReport)
+From Business.wiki Examples.md # Accounting — Using I18N feature for Accounting VIEWs
+
+Existing ProcedureTests.Accounting covers en-US JournalReport after Book.
+This page injects es-MX and fr-FR via ClientCulture / inject_culture and checks both reports.
+
+Stable order: entry, rightSide, credit (NULLS FIRST), account — commission split lines match wiki (payable before sales).
+Entry ids are not asserted (serial continues across suite).
+
+Self-contained: clear journal, book full series, inject culture, assert, reset culture.
+
+!|Execute|DELETE FROM JournalEntry|
+
+!|Execute|SELECT Book('Rent',      100)|
+!|Execute|SELECT Book('Sale',      50)|
+!|Execute|SELECT Book('Equipment', 5200)|
+!|Execute|SELECT Book('Loan',      11000)|
+!|Execute|SELECT Book('Salary',    5000)|
+!|Execute|SELECT Book('Sale Jane Doe', 1000)|
+!|Execute|SELECT Book('Sale John Doe', 1000)|
+
+Create inject_culture temp table if needed
+!|Execute|SELECT ClientCulture()|
+
+es-MX
+!|Execute|DELETE FROM inject_culture|
+!|Execute|INSERT INTO inject_culture VALUES (2058)|
+
+!|Ordered Query|SELECT account, type, CAST(debit AS NUMERIC(19,0)) AS debit, CAST(credit AS NUMERIC(19,0)) AS credit FROM JournalReport ORDER BY entry NULLS LAST, rightSide NULLS LAST, credit NULLS FIRST, account|
+|      account       |        type         | debit | credit |
+| Alquiler           | las expensas        |   100 |        |
+| Dinero en efectivo | la posesión capital |       |    100 |
+| Dinero en efectivo | la posesión capital |    50 |        |
+| Ventas             | Ingresos            |       |     50 |
+| Equipo             | la posesión capital |  5200 |        |
+| Dinero en efectivo | la posesión capital |       |   5200 |
+| Dinero en efectivo | la posesión capital | 11000 |        |
+| el empréstito      | la obligación       |       |  11000 |
+| Salario            | las expensas        |  5000 |        |
+| Dinero en efectivo | la posesión capital |       |   5000 |
+| Dinero en efectivo | la posesión capital |  1000 |        |
+| Comisiones a pagar | la obligación       |       |    200 |
+| Ventas             | Ingresos            |       |    800 |
+| Dinero en efectivo | la posesión capital |  1000 |        |
+| Comisiones a pagar | la obligación       |       |    150 |
+| Ventas             | Ingresos            |       |    850 |
+| Total              |                     | 23350 |  23350 |
+
+!|Ordered Query|SELECT ledgerName AS ledger, accountName AS account, CAST(debit AS NUMERIC(19,0)) AS debit, CAST(credit AS NUMERIC(19,0)) AS credit FROM LedgerReport ORDER BY ledger, sequence|
+| ledger  |       account       | debit | credit |
+| General | la posesión capital | 18250 |  10300 |
+| General | la obligación       |       |  11350 |
+| General | Ingreso             |       |   1700 |
+| General | las expensas        |  5100 |        |
+| General | Total               | 23350 |  23350 |
+
+fr-FR
+!|Execute|DELETE FROM inject_culture|
+!|Execute|INSERT INTO inject_culture VALUES (1036)|
+
+!|Ordered Query|SELECT account, type, CAST(debit AS NUMERIC(19,0)) AS debit, CAST(credit AS NUMERIC(19,0)) AS credit FROM JournalReport ORDER BY entry NULLS LAST, rightSide NULLS LAST, credit NULLS FIRST, account|
+|       account       |    type    | debit | credit |
+| Louer               | Dépenses   |   100 |        |
+| encaisser           | le capital |       |    100 |
+| encaisser           | le capital |    50 |        |
+| Ventes              | Revenu     |       |     50 |
+| Équipement          | le capital |  5200 |        |
+| encaisser           | le capital |       |   5200 |
+| encaisser           | le capital | 11000 |        |
+| la dette            | les dettes |       |  11000 |
+| le salaire          | Dépenses   |  5000 |        |
+| encaisser           | le capital |       |   5000 |
+| encaisser           | le capital |  1000 |        |
+| Commissions à payer | les dettes |       |    200 |
+| Ventes              | Revenu     |       |    800 |
+| encaisser           | le capital |  1000 |        |
+| Commissions à payer | les dettes |       |    150 |
+| Ventes              | Revenu     |       |    850 |
+| Total               |            | 23350 |  23350 |
+
+!|Ordered Query|SELECT ledgerName AS ledger, accountName AS account, CAST(debit AS NUMERIC(19,0)) AS debit, CAST(credit AS NUMERIC(19,0)) AS credit FROM LedgerReport ORDER BY ledger, sequence|
+| ledger  |  account   | debit | credit |
+| Général | le capital | 18250 |  10300 |
+| Général | les dettes |       |  11350 |
+| Général | Revenu     |       |   1700 |
+| Général | Dépenses   |  5100 |        |
+| Général | Total      | 23350 |  23350 |
+
+Reset culture so later suite pages stay en-US
+!|Execute|DELETE FROM inject_culture|

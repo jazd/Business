@@ -69,8 +69,9 @@ Price expanded line items for Receipt
 |  type   |     consignee     | count | item  | unitprice | outstanding | linetotal |
 | Receipt | Company Consignee |     1 | Bunny |     14.99 |           1 |     14.99|
 
-Show accounting transactions
-!|Query|SELECT account, credit, amount FROM JournalEntry ORDER BY account, credit|
+Show accounting transactions for this AR Payment only
+(other ProcedureTests Book/Post rows may already exist in JournalEntry)
+!|Query|SELECT account, credit, amount FROM JournalEntry WHERE book = (SELECT BookName.book FROM BookName JOIN Sentence ON Sentence.id = BookName.name AND Sentence.culture = 1033 WHERE Sentence.value = 'AR Payment' LIMIT 1) ORDER BY account, credit|
 | account | credit | amount  |
 |     100 | f      | 14.9900|
 |     108 | true      | 14.9900|

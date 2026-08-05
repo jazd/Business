@@ -1,2 +1,6 @@
 !1 Test suite PostreSQL
+
+FitServer reads !path from suite/ancestors (not only SetUp). Expand jars for dbfit fixtures.
+!path lib/*.jar
+
 !contents -R2 -g -p -f -h
