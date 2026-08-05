@@ -2,6 +2,10 @@ Accounting and Book procedure
 
 These tables are empty, no Static entries
 From https://en.wikipedia.org/wiki/Debits_and_credits#Further_examples
+
+Clear journal so a dirty MyCo (prior suite / manual Book) cannot pollute totals.
+!|Execute|DELETE FROM JournalEntry|
+
 !|Execute|SELECT Book('Rent',      100)|
 !|Execute|SELECT Book('Sale',      50)|
 !|Execute|SELECT Book('Equipment', 5200)|

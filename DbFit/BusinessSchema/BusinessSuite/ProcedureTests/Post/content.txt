@@ -1,0 +1,20 @@
+Post to General Journal
+From Business.wiki Examples.md # Accounting — Post to General Journal
+Matches Grokipedia Cash account ledger (running balance format).
+
+Post(<Debit Account>, <Amount>, <Credit Account>, <Date>)
+
+Clear General Journal rows only (Book uses other journals; Post uses journal 1).
+!|Execute|DELETE FROM JournalEntry WHERE journal = 1|
+
+!|Execute|SELECT Post('Cash',     10000, 'Capital', '2024-01-01'::timestamp)|
+!|Execute|SELECT Post('Equipment', 2000, 'Cash',    '2024-01-05'::timestamp)|
+!|Execute|SELECT Post('Cash',       500, 'Sales',   '2024-01-10'::timestamp)|
+
+Cash account ledger (running balance)
+!|Ordered Query|WITH cash_lines AS ( SELECT to_char(Entry.created, 'Mon FMDD') AS date, Sentence.value AS details, CASE WHEN Entry.credit = false THEN Entry.amount::NUMERIC(19,0) ELSE NULL END AS debit, CASE WHEN Entry.credit = true THEN Entry.amount::NUMERIC(19,0) ELSE NULL END AS credit, ROW_NUMBER() OVER (ORDER BY Entry.created, Entry.entry) AS sequence FROM JournalEntry AS Entry JOIN JournalEntry AS Contra ON Contra.journal = Entry.journal AND Contra.entry = Entry.entry AND Contra.credit != Entry.credit AND Contra.id != Entry.id JOIN AccountName ON AccountName.account = Contra.account JOIN Sentence ON Sentence.id = AccountName.name AND Sentence.culture = 1033 WHERE Entry.journal = 1 AND Entry.account = 100 ), running AS ( SELECT date, details, debit, credit, sequence, SUM(COALESCE(debit, 0) - COALESCE(credit, 0)) OVER (ORDER BY sequence ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS balance FROM cash_lines ), detail_rows AS ( SELECT date, details, debit, credit, balance::NUMERIC(19,0) AS balance, sequence, 1 AS sort_group FROM running ), totals AS ( SELECT NULL::text AS date, 'Total' AS details, SUM(debit)::NUMERIC(19,0) AS debit, SUM(credit)::NUMERIC(19,0) AS credit, NULL::NUMERIC(19,0) AS balance, NULL::bigint AS sequence, 2 AS sort_group FROM detail_rows ) SELECT date, details, debit, credit, balance FROM ( SELECT * FROM detail_rows UNION ALL SELECT * FROM totals ) AS report ORDER BY sort_group, sequence|
+|  date  |  details  | debit | credit | balance |
+| Jan 1  | Equity    | 10000 |        |   10000 |
+| Jan 5  | Equipment |       |   2000 |    8000 |
+| Jan 10 | Sales     |   500 |        |    8500 |
+|        | Total     | 10500 |   2000 |         |

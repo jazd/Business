@@ -1,0 +1,38 @@
+LedgerReport after Book
+From Business.wiki Examples.md # Accounting
+
+Existing ProcedureTests.Accounting covers Book + JournalReport (full series).
+This page covers LedgerReport after simple books and after commission books.
+
+Self-contained: clear journal rows so suite order (e.g. CreateBill) cannot pollute totals.
+
+!|Execute|DELETE FROM JournalEntry|
+
+Simple Book Entries (Wikipedia Debits and Credits further examples)
+!|Execute|SELECT Book('Rent',      100)|
+!|Execute|SELECT Book('Sale',      50)|
+!|Execute|SELECT Book('Equipment', 5200)|
+!|Execute|SELECT Book('Loan',      11000)|
+!|Execute|SELECT Book('Salary',    5000)|
+
+Ledger Balances after simple books
+!|Ordered Query|SELECT ledgerName AS ledger, accountName AS account, CAST(debit AS NUMERIC(19,0)) AS debit, CAST(credit AS NUMERIC(19,0)) AS credit FROM LedgerReport ORDER BY ledger, sequence|
+| ledger  |  account  | debit | credit |
+| General | Asset     | 16250 |  10300|
+| General | Liability |       |  11000|
+| General | Income    |       |     50|
+| General | Expenses  |  5100 |       |
+| General | Total     | 21350 |  21350|
+
+More Complex Book Entries (commission sales)
+!|Execute|SELECT Book('Sale Jane Doe', 1000)|
+!|Execute|SELECT Book('Sale John Doe', 1000)|
+
+Ledger Balances after complex books
+!|Ordered Query|SELECT ledgerName AS ledger, accountName AS account, CAST(debit AS NUMERIC(19,0)) AS debit, CAST(credit AS NUMERIC(19,0)) AS credit FROM LedgerReport ORDER BY ledger, sequence|
+| ledger  |  account  | debit | credit |
+| General | Asset     | 18250 |  10300|
+| General | Liability |       |  11350|
+| General | Income    |       |   1700|
+| General | Expenses  |  5100 |       |
+| General | Total     | 23350 |  23350|
