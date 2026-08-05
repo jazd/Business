@@ -109,7 +109,7 @@ INSERT INTO BookAccount (book, increase, decrease, split) VALUES (21, 100,  NULL
 INSERT INTO BookAccount (book, increase, decrease, split) VALUES (21, NULL, 102,  .85);  -- Comission Sale: Sales 85%
 INSERT INTO BookAccount (book, increase, decrease, split) VALUES (21, NULL, 200,  .15);  -- Comission Sale: Comission 15%
 -- Charity Books
-INSERT INTO JournalName (journal, name) VALUES (10, 221); -- Charity
+INSERT INTO JournalName (journal, name) VALUES (10, 95); -- Charity (Sentence id 95)
 INSERT INTO LedgerJournal (ledger, journal) VALUES (1, 10);
 INSERT INTO BookName (book, name, journal) VALUES (22, 222, 10); -- AP Donation
 INSERT INTO BookName (book, name, journal) VALUES (23, 223, 10); -- Donation Payment
