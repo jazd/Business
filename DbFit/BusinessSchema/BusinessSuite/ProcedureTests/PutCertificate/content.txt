@@ -1,0 +1,43 @@
+PutCertificate (client cert shape used in device provision notes)
+
+Seed a minimal CA + CAPolicy (not present in Business Static).
+!|Execute|INSERT INTO CA (name) SELECT GetEntityName('FitNesse Test Issuing CA') WHERE NOT EXISTS (SELECT 1 FROM CA WHERE name = GetEntityName('FitNesse Test Issuing CA'))|
+
+!|Query|SELECT id FROM CA WHERE name = GetEntityName('FitNesse Test Issuing CA') ORDER BY id DESC LIMIT 1|
+|id?|
+|>>ca|
+
+!|Execute|INSERT INTO CAPolicy (ca, type) SELECT _:ca::INT, GetWord('Issuing') WHERE NOT EXISTS (SELECT 1 FROM CAPolicy WHERE ca = _:ca::INT AND stop IS NULL)|
+
+!|Query|SELECT id FROM CAPolicy WHERE ca = _:ca::INT AND stop IS NULL ORDER BY id DESC LIMIT 1|
+|id?|
+|>>capolicy|
+
+Assembly, individual, CSR
+!|Query|SELECT GetPartbySerial(GetPart('ESP32-S3-WROOM'), 'TEST-CERT-ASM-001')|
+|getpartbyserial?|
+|>>asm|
+
+!|Query|SELECT GetIndividualEmail('Steve+NoCRUD@Jazd.com')|
+|getindividualemail|
+|3|
+
+!|Query|SELECT PutCertificateSigningRequest('-----BEGIN CERTIFICATE REQUEST-----TESTCERTCSR-----END CERTIFICATE REQUEST-----', 3)|
+|putcertificatesigningrequest?|
+|>>csr|
+
+!|Execute|SELECT PutAssemblyCertificateSigningRequest(_:asm::INT, _:csr::INT)|
+
+Email id for cert (CA@ADb.Net style three-arg GetEmail)
+!|Query|SELECT GetEmail('CA', NULL, 'ADb.Net')|
+|getemail?|
+|>>caemail|
+
+Issue client certificate
+!|Query|SELECT PutCertificate(_:capolicy::INT, 'Client', 3::BIGINT, _:csr::INT, TIMESTAMP '2026-01-15', 1825, 'NoAPIIOT.com', 'Devices', 'TEST-CERT-ASM-001', _:caemail::INT, 'FITNESSE-SERIAL-1', '-----BEGIN CERTIFICATE-----TESTCERT-----END CERTIFICATE-----')|
+|putcertificate?|
+|>>cert|
+
+!|Query|SELECT caPolicy, (type = GetWord('Client')) AS isclient, individual, csr, days, o, ou, cn, email, serial, pem FROM Certificate WHERE id = _:cert::INT|
+|capolicy|isclient|individual|csr|days|o|ou|cn|email|serial|pem|
+|<<capolicy|true|3|<<csr|1825|NoAPIIOT.com|Devices|TEST-CERT-ASM-001|<<caemail|FITNESSE-SERIAL-1|-----BEGIN CERTIFICATE-----TESTCERT-----END CERTIFICATE-----|

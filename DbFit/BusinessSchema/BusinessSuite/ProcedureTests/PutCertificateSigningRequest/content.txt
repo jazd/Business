@@ -1,0 +1,46 @@
+PutCertificateSigningRequest and PutAssemblyCertificateSigningRequest
+
+Minimal CA / CAPolicy for FK on certificates is not required for CSR tables.
+
+!|Query|SELECT GetPartbySerial(GetPart('ESP32-S3-WROOM'), 'TEST-CSR-ASM-001')|
+|getpartbyserial?|
+|>>asm|
+
+!|Query|SELECT GetIndividualEmail('Steve+NoCRUD@Jazd.com')|
+|getindividualemail|
+|3|
+
+Insert CSR
+!|Query|SELECT PutCertificateSigningRequest('-----BEGIN CERTIFICATE REQUEST-----TESTCSR1-----END CERTIFICATE REQUEST-----', 3)|
+|putcertificatesigningrequest?|
+|>>csr|
+
+!|Query|SELECT pem, individual FROM CertificateSigningRequest WHERE id = _:csr::INT|
+|pem|individual|
+|-----BEGIN CERTIFICATE REQUEST-----TESTCSR1-----END CERTIFICATE REQUEST-----|3|
+
+Link assembly to CSR
+!|Execute|SELECT PutAssemblyCertificateSigningRequest(_:asm::INT, _:csr::INT)|
+
+!|Query|SELECT COUNT(*) AS n FROM AssemblyCertificateSigningRequest WHERE assembly = _:asm::INT AND stop IS NULL|
+|n|
+|1|
+
+!|Query|SELECT csr FROM AssemblyCertificateSigningRequest WHERE assembly = _:asm::INT AND stop IS NULL|
+|csr|
+|<<csr|
+
+Second CSR link soft-stops the first association
+!|Query|SELECT PutCertificateSigningRequest('-----BEGIN CERTIFICATE REQUEST-----TESTCSR2-----END CERTIFICATE REQUEST-----', 3)|
+|putcertificatesigningrequest?|
+|>>csr2|
+
+!|Execute|SELECT PutAssemblyCertificateSigningRequest(_:asm::INT, _:csr2::INT)|
+
+!|Query|SELECT COUNT(*) AS active FROM AssemblyCertificateSigningRequest WHERE assembly = _:asm::INT AND stop IS NULL|
+|active|
+|1|
+
+!|Query|SELECT csr FROM AssemblyCertificateSigningRequest WHERE assembly = _:asm::INT AND stop IS NULL|
+|csr|
+|<<csr2|
