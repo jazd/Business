@@ -1,4 +1,85 @@
--- Update from 0.2.8 to 0.2.9
+-- =============================================================================
+-- Business schema upgrade: 0.2.8 -> 0.2.9 (PostgreSQL)
+-- =============================================================================
+--
+-- Changes since git tag 0.2.8. Script body upgrades an existing 0.2.8 database.
+-- Fresh installs: make pgsqldb (pre + schema + procedures + post + Static).
+--
+-- PRECONDITIONS
+--   * Schema "business" exists
+--   * Active SchemaVersion is Business 0.2.8 (stop IS NULL)
+--   * Role can ALTER tables, DROP/CREATE views and functions
+--   * Backup recommended for production
+--
+-- HOW TO RUN
+--   psql -h <host> -U <user> -d <db> -v ON_ERROR_STOP=1 \
+--     -f PostgreSQL/0.2.8-0.2.9.sql
+--
+-- ---------------------------------------------------------------------------
+-- Applied by this script (existing 0.2.8 database)
+-- ---------------------------------------------------------------------------
+--
+-- 1) Charity / AP donation accounting (also in Static/ for fresh installs)
+--    * Sentences 215-220, 222-223 (en-US): Checking, Savings, Food Bank,
+--      Humane Society, Fisher House Foundation, Donations, AP Donation,
+--      Donation Payment. Journal label "Charity" uses existing Sentence 95.
+--    * Accounts 110, 111, 210-212, 700; Journal 10; books 22-23 with splits
+--      (expense 100%; payables 50/10/40; payment from Checking).
+--
+-- 2) Money columns: float -> numeric(19,4) (schema.xml + ALTER here)
+--    * AccountName.amount; JournalAccount.amount/split; BookAccount.amount/
+--      split; IndividualAssemblyCost.cost; IndividualAssemblyCustomerPrice
+--      .price; Schedule fromAmount/toAmount/rateCost/price/cost;
+--      AssemblyIndividualJobPrice.price.
+--    * JournalEntry.amount was already numeric(19,4) at 0.2.8.
+--    * Still float (by design): Cargo.count, CargoState.count,
+--      Schedule.fromCount/toCount/rate; Attribute.float; Variance.value.
+--    * All business views dropped, then recreated after type changes (~47).
+--
+-- 3) Word/Sentence concurrency and indexes (post.sql + procedures)
+--    * word_value_null UNIQUE on Word(UPPER(value)) WHERE culture IS NULL.
+--    * sentence_value remains non-unique for cultured rows (shared
+--      translations, e.g. Alquiler for Rent and Rental); sentence_value_null
+--      for identity phrases.
+--    * GetWord / GetIdentifier / GetSentence / GetIdentityPhrase: re-check
+--      under advisory lock; ON CONFLICT where unique indexes apply; every
+--      advisory lock path releases on EXCEPTION WHEN OTHERS.
+--    * Full CREATE OR REPLACE of the PostgreSQL procedure set (Book/Post
+--      take numeric amounts; JournalEntryResult recreated with CASCADE).
+--
+-- 4) Schema version
+--    * SetSchemaVersion('Business', '0', '2', '9') — stops 0.2.8, activates
+--      0.2.9.
+--
+-- ---------------------------------------------------------------------------
+-- Other release package changes (since tag 0.2.8)
+-- ---------------------------------------------------------------------------
+--
+-- 5) NuoDB removed (deprecated)
+--    * Removed NuoDB/ tree, schema.nuodb target, Core.NuoDB, profile hooks,
+--      and Makefile NuoDB paths.
+--
+-- 6) Build / packaging
+--    * Makefile: oracle and sybase schema targets; NuoDB targets removed.
+--    * README.md: Alpha status, history/NoCRUD wording, feature list cleanup.
+--
+-- 7) SQLite post.sql sequence starts
+--    * PeriodName, LedgerName, JournalName, BookName, AccountName now set
+--      sqlite_sequence high-water marks (incomplete at 0.2.8).
+--
+-- 8) Diagrams (genDiagrams.sh + regenerated PNGs)
+--    * Addresses/Phones include IndividualAddress/Phone and AddressAttribute.
+--    * Session includes IndividualApplicationCreated; Assemblies includes
+--      Application.
+--    * New diagrams/i18n.png and diagrams/software.png.
+--    * EST diagram title: "EST Certificates and CA".
+--
+-- TESTING
+--   * make pgsqldb + BusinessSchema.PostgreSqlSuite (~24 intentional
+--     exceptions on XcepteionRequired).
+--   * Validate on a copy of production 0.2.8 data before cutover.
+--
+-- =============================================================================
 \set ON_ERROR_STOP on
 
 DO $$
