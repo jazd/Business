@@ -43,22 +43,6 @@ namespace Business.Core.Profile
 		}
 		PostgreSQL postgresqlprofile;
 
-		public NuoDB NuoDBProfile {
-			get {
-				if (nuodbprofile == null) {
-					var tokens = JSON["NuoDb"];
-					if (tokens != null) {
-						nuodbprofile = tokens.ToObject<NuoDB>();
-						nuodbprofile.Active = true;
-					} else {
-						nuodbprofile = new NuoDB();
-					}
-				}
-				return nuodbprofile;
-			}
-		}
-		NuoDB nuodbprofile;
-
 		public virtual string ProfileBasePath {
 			get {
 				return GetBasePath();
@@ -95,15 +79,6 @@ namespace Business.Core.Profile
 	{
 		public Boolean Active { get; set; } = true;
 		public string Path { get; set; }
-	}
-
-	public class NuoDB
-	{
-		public Boolean Active { get; set; } = false;
-		public string Server { get; set; } = "nuodb";
-		public string Database { get; set; } = "MyCo";
-		public string User { get; set; } = "test";
-		public string Password { get; set; } = "secret";
 	}
 
 	public class PostgreSQL

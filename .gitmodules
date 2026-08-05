@@ -4,4 +4,4 @@
 [submodule "sql-translator"]
 	path = sql-translator
 	url = https://github.com/jazd/sql-translator.git
-	branch = nuodb
+	branch = master
