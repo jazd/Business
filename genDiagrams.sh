@@ -25,15 +25,23 @@ ARGS="--gutter=50 --db=XML"
 
 INDIVIDUAL="Given Family Name Individual Entity Word"
 LISTS="Individual ListIndividual ListIndividualName Word"
-ADDRESSES="Address Postal Country Location Area Timezone Sentence Word Culture"
-PHONES="Phone Country Location Area Timezone Culture Word Sentence"
+# Addresses + individual link + optional attributes (USPS-style fields, etc.)
+ADDRESSES="Individual IndividualAddress Address AddressAttribute Postal Country Location Area Timezone Sentence Word Culture"
+# Phones + individual link table
+PHONES="Individual IndividualPhone Phone Country Location Area Timezone Culture Word Sentence"
 
 INDIVIDUAL_EMAIL="Individual IndividualEmail Email Word"
 INDIVIDUAL_PATH="Individual IndividualPath Path Word"
 
-SESSION="Session AgentString SessionToken SessionCredential Individual Name Entity IndividualSessionCreated Password Credential Site Part AssemblyApplicationRelease Application Release Path ApplicationRelease SiteApplicationRelease Version Email Location Area Timezone Culture Sentence Word"
+# i18n core (identifiers use culture IS NULL on Word/Sentence; plurals via WordPlural)
+I18N="Culture Word WordPlural Sentence Paragraph"
 
-ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease ApplicationRelease Version Word Sentence Paragraph PartDescription Path PartPath"
+# Application / release / site / firmware-style assembly binding (less crowded than Session)
+SOFTWARE="Application Version Release ApplicationRelease Site SiteApplicationRelease AssemblyApplicationRelease Part Word Sentence"
+
+SESSION="Session AgentString SessionToken SessionCredential Individual Name Entity IndividualSessionCreated IndividualApplicationCreated Password Credential Site Part AssemblyApplicationRelease Application Release Path ApplicationRelease SiteApplicationRelease Version Email Location Area Timezone Culture Sentence Word"
+
+ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease Application ApplicationRelease Version Word Sentence Paragraph Path PartPath"
 
 EVENTS="Period DateRange TimeOfDay DayOfWeek MonthDay Month PeriodName Sentence"
 
@@ -41,13 +49,13 @@ DAG="Edge VertexName Individual IndividualVertex Sentence"
 
 ACCOUNTING="Word Sentence Individual LedgerName AccountName JournalName BookName IndividualLedger IndividualAccount LedgerAccount LedgerJournal JournalAccount BookAccount Entry JournalEntry AssemblyApplicationRelease Credential"
 
-INVENTORY="Word Sentence Part AssemblyApplicationRelease PeriodName  ScheduleName JobName Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule IndividualJob AssemblyIndividualJobPrice  Bill Cargo CargoState AccountName BillReference"
+INVENTORY="Word Sentence Part AssemblyApplicationRelease PeriodName ScheduleName JobName Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule IndividualJob AssemblyIndividualJobPrice Bill Cargo CargoState AccountName BillReference"
 
 PROCESSES="Word Sentence Paragraph Attribute Part AssemblyApplicationRelease Individual Version Process Step Variance ProcessStep ProcessRun ProcessRunResult"
 
 EST="Session AssemblyPublicKey Part CertificateSigningRequest Individual AssemblyCertificateSigningRequest CA Entity CAPolicy Path Word Certificate Email CACertificate AssemblyCertificate ESTRequest"
 
-# Include invalid refrences for display purposes only
+# Include invalid references for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
 
 ${EXTRACTTABLE} schema.xml.invalid $INDIVIDUAL >./zot.xml
@@ -67,6 +75,12 @@ ${SQLTDIAGRAM} --title "Individual URL" $ARGS -c 2 -o diagrams/individual_path.p
 
 ${EXTRACTTABLE} schema.xml.invalid $ADDRESSES >./zot.xml
 ${SQLTDIAGRAM} --title "Addresses" $ARGS -c 3 -o diagrams/addresses.png ./zot.xml
+
+${EXTRACTTABLE} schema.xml.invalid $I18N >./zot.xml
+${SQLTDIAGRAM} --title "Internationalization Word Sentence Plural" $ARGS -c 2 -o diagrams/i18n.png ./zot.xml
+
+${EXTRACTTABLE} schema.xml.invalid $SOFTWARE >./zot.xml
+${SQLTDIAGRAM} --title "Application Release and Site" $ARGS -c 3 -o diagrams/software.png ./zot.xml
 
 ${EXTRACTTABLE} schema.xml.invalid $SESSION >./zot.xml
 ${SQLTDIAGRAM} --title "Session" $ARGS -c 5 -o diagrams/web_session.png ./zot.xml
@@ -90,8 +104,8 @@ ${EXTRACTTABLE} schema.xml.invalid $PROCESSES >./zot.xml
 ${SQLTDIAGRAM} --title "Processes" $ARGS -c 5 -o diagrams/processes.png ./zot.xml
 
 ${EXTRACTTABLE} schema.xml.invalid $EST >./zot.xml
-${SQLTDIAGRAM} --title "Processes" $ARGS -c 5 -o diagrams/est.png ./zot.xml
+${SQLTDIAGRAM} --title "EST Certificates and CA" $ARGS -c 5 -o diagrams/est.png ./zot.xml
 
 # Remove temporary files
-rm zot.xml
-rm schema.xml.invalid
+rm -f zot.xml
+rm -f schema.xml.invalid
