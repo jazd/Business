@@ -109,8 +109,15 @@ touch-xml:
 container: Containerfile.sqlt
 	$(SQLTBUILD)
 
+# PL/pgSQL sources live in PostgreSQL/procedures.d/ (ordered 00-99); assemble into procedures.sql
+.PHONY: procedures
+procedures: PostgreSQL/procedures.sql
+
+PostgreSQL/procedures.sql: $(wildcard PostgreSQL/procedures.d/*.sql) scripts/assemble-pg-procedures.sh
+	./scripts/assemble-pg-procedures.sh
+
 pgsqldb: export DROP_TABLE = --add-drop-table
-pgsqldb: touch-xml schema.pgsql
+pgsqldb: touch-xml schema.pgsql PostgreSQL/procedures.sql
 	@echo Creating new PostgreSQL database with $@
 	cat PostgreSQL/pre.sql schema.pgsql PostgreSQL/procedures.sql PostgreSQL/post.sql | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true
 	cat Static/[01]_* | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null

@@ -16,6 +16,8 @@ schema.oracle
 schema.sqlserver
 schema.sybase
 business.sqlite3
+# Assembled from PostgreSQL/procedures.d/ (see scripts/assemble-pg-procedures.sh)
+PostgreSQL/procedures.sql
 # OS Files
 .DS_Store
 # Temporary files

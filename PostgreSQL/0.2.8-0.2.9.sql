@@ -108,12 +108,16 @@ ALTER TABLE AssemblyIndividualJobPrice ALTER COLUMN price TYPE numeric(19,4) USI
 CREATE UNIQUE INDEX IF NOT EXISTS word_value_null ON Word(UPPER(value)) WHERE culture IS NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS sentence_value_null ON Sentence(UPPER(value)) WHERE culture IS NULL;
 
--- Full procedure refresh (CREATE OR REPLACE). Source of truth: PostgreSQL/procedures.sql
+-- Full procedure refresh from assembled PostgreSQL/procedures.sql (procedures.d sources)
 SET search_path TO business, public;
 
 -- Return the Id of a culture based word
 -- It is inserted if it does not already exist
 -- Concurrent safe: re-check under lock + ON CONFLICT on word_value; lock always released
+
+-- I18N — Word / Sentence / Identifier (diagram: i18n)
+-- Assembled in lexicographic order of this directory; see README.md
+
 CREATE OR REPLACE FUNCTION GetWord (
  word_value varchar,
  culture_name varchar
@@ -344,6 +348,10 @@ BEGIN
  RETURN ident_id;
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- Geo / Addresses — Location Postal Address (diagram: addresses)
+-- Assembled in lexicographic order of this directory; see README.md
 
 CREATE OR REPLACE FUNCTION GetLocation (
  lat float,
@@ -655,6 +663,10 @@ BEGIN
  RETURN address_id;
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- Individual / Entity / Name (diagram: individual)
+-- Assembled in lexicographic order of this directory; see README.md
 
 CREATE OR REPLACE FUNCTION GetGiven (
  inGiven varchar
@@ -983,6 +995,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION CreateIndividual (
+) RETURNS bigint AS $$
+DECLARE
+BEGIN
+ INSERT INTO Individual (birth) VALUES(NULL);
+ RETURN (SELECT currval(pg_get_serial_sequence('individual','id')));
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Contacts — Email Phone Path (diagrams: individual_email, phones, individual_path)
+-- Assembled in lexicographic order of this directory; see README.md
+
 CREATE OR REPLACE FUNCTION GetEmail (
  inUserName varchar,
  inPlus varchar,
@@ -1045,6 +1070,234 @@ BEGIN
  );
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetIndividualEmail (
+ inIndividual_id bigint,
+ inEmail_id integer,
+ inType varchar
+) RETURNS bigint AS $$
+DECLARE
+ type_id integer;
+BEGIN
+ IF inIndividual_id IS NOT NULL
+  AND inEmail_id IS NOT NULL THEN
+  type_id := (SELECT GetWord(inType));
+  -- Be sure to process any single individual email one at a time without the need of a transaction or locking IndividualEmail table
+  PERFORM pg_advisory_lock(inIndividual_id);
+  BEGIN
+  INSERT INTO IndividualEmail (individual, email, type) (
+   SELECT inIndividual_id, inEmail_id, type_id
+   FROM DUAL
+   LEFT JOIN IndividualEmail AS exists ON exists.individual = inIndividual_id
+    AND exists.email = inEmail_id
+    AND ((exists.type = type_id) OR (exists.type IS NULL AND type_id IS NULL))
+    AND exists.stop IS NULL
+   WHERE exists.individual IS NULL
+   LIMIT 1
+  );
+  PERFORM pg_advisory_unlock(inIndividual_id);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inIndividual_id);
+    RAISE;
+  END;
+  -- Be sure to stop any previous emails of this type associated with this individual
+  UPDATE IndividualEmail
+  SET stop = NOW()
+  WHERE individual = inIndividual_id
+   AND email != inEmail_id
+   AND Stop IS NULL
+   AND ((type = type_id) OR (type IS NULL AND type_id IS NULL))
+  ;
+ END IF;
+ RETURN inIndividual_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetIndividualEmail (
+ inIndividual_id bigint,
+ inEmail_id integer
+) RETURNS bigint AS $$
+DECLARE
+BEGIN
+ RETURN SetIndividualEmail(inIndividual_id, inEmail_id, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Get Individual associated with an email
+CREATE OR REPLACE FUNCTION GetIndividualEmail (
+  inEmail varchar
+) RETURNS bigint AS $$
+DECLARE
+ email_id integer;
+ individual_id bigint;
+BEGIN
+ -- Get email id
+ email_id := (SELECT GetEmail(inEmail));
+
+ IF email_id IS NOT NULL THEN
+  -- Is email already associated with an individual?
+  individual_id := (
+   SELECT individual
+   FROM IndividualEmail
+   WHERE email = email_id
+    AND stop IS NULL
+   LIMIT 1
+  );
+
+  IF individual_id IS NULL THEN
+   -- Email not associated with any individual, so create new individual
+   individual_id = (SELECT CreateIndividual());
+  END IF;
+
+  -- Associate email with individual
+  PERFORM SetIndividualEmail(individual_id, email_id);
+
+ END IF;
+ RETURN individual_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetPath (
+ inProtocol varchar,
+ inSecure integer,
+ inHost varchar,
+ inValue varchar,
+ inGet varchar
+) RETURNS integer AS $$
+DECLARE
+ is_secure integer := 0;
+ lockText varchar;
+ lockID bigint;
+ path_id integer;
+BEGIN
+ -- host and path can not both be null
+ IF inValue IS NOT NULL OR inHost IS NOT NULL THEN
+  -- Default to false or 0
+  IF inSecure IS NOT NULL AND inSecure != 0 THEN
+    is_secure :=1;
+  END IF;
+  lockText := COALESCE(inHost, '') || COALESCE(inValue, '');
+  lockID := hashtext(lockText);
+  SELECT id INTO path_id
+  FROM Path
+  WHERE protocol = inProtocol
+   AND secure = is_secure
+   AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
+   AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
+   AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
+  LIMIT 1;
+  IF path_id IS NULL THEN
+   -- Be sure to process any single path one at a time without the need of a transaction or locking Path table
+   PERFORM pg_advisory_lock(lockID);
+   BEGIN
+   INSERT INTO Path (protocol, secure, host, value, get) (
+    SELECT inProtocol, is_secure, inHost, inValue, inGet
+    FROM Dual
+    LEFT JOIN Path AS exists ON exists.protocol = inProtocol
+     AND exists.secure = is_secure
+     AND ((UPPER(exists.host) = UPPER(inHost)) OR (exists.host IS NULL AND inHost IS NULL))
+     AND ((exists.value = inValue) OR (exists.value IS NULL OR inValue IS NULL))
+     AND ((exists.get = inGet) OR (exists.get IS NULL AND inGet IS NULL))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(lockID);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(lockID);
+     RAISE;
+   END;
+   SELECT id INTO path_id
+   FROM Path
+   WHERE protocol = inProtocol
+    AND secure = is_secure
+    AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
+    AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
+    AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN path_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetURL (
+ inSecure integer,
+ inHost varchar,
+ inValue varchar,
+ inGet varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT GetPath('http', inSecure, inHost, inValue, inGet));
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetFile (
+ inHost varchar,
+ inPathValue varchar,
+ inFileGet varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT GetPath('file', 0, inHost, inPathValue, inFileGet));
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetPhone (
+ inCountryCode varchar,
+ inAreaCode varchar,
+ inNumber varchar
+) RETURNS integer AS $$
+DECLARE
+ countrycode_id integer;
+ phone_id integer;
+BEGIN
+ IF inNumber IS NOT NULL THEN
+  countrycode_id := (SELECT id FROM Country WHERE UPPER(Country.code) = UPPER(inCountryCode));
+  IF countrycode_id IS NOT NULL THEN
+   SELECT id INTO phone_id
+   FROM Phone
+   WHERE country = countrycode_id
+    AND area = inAreaCode
+    AND number = inNumber
+   LIMIT 1;
+   IF phone_id IS NULL THEN
+    -- Be sure to process any single phone number one at a time without the need of a transaction or locking Phone table
+    PERFORM pg_advisory_lock(hashtext(inNumber));
+    BEGIN
+    INSERT INTO Phone (country, area, number) (
+     SELECT countrycode_id, inAreaCode, inNumber
+     FROM Dual
+     LEFT JOIN Phone AS exists ON exists.country = countrycode_id
+      AND exists.area = inAreaCode
+      AND exists.number = inNumber
+     WHERE exists.id IS NULL
+     LIMIT 1
+    );
+    PERFORM pg_advisory_unlock(hashtext(inNumber));
+    EXCEPTION
+     WHEN OTHERS THEN
+      PERFORM pg_advisory_unlock(hashtext(inNumber));
+      RAISE;
+    END;
+    SELECT id INTO phone_id
+    FROM Phone
+    WHERE country = countrycode_id
+     AND area = inAreaCode
+     AND number = inNumber
+    LIMIT 1;
+   END IF;
+  END IF;
+ END IF;
+ RETURN phone_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- For examples only.  Don't use in a production environment
+
+-- Lists (diagram: lists)
+-- Assembled in lexicographic order of this directory; see README.md
 
 CREATE OR REPLACE FUNCTION GetListIndividualName (
  inListName varchar,
@@ -1190,102 +1443,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION CreateIndividual (
-) RETURNS bigint AS $$
-DECLARE
-BEGIN
- INSERT INTO Individual (birth) VALUES(NULL);
- RETURN (SELECT currval(pg_get_serial_sequence('individual','id')));
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION SetIndividualEmail (
- inIndividual_id bigint,
- inEmail_id integer,
- inType varchar
-) RETURNS bigint AS $$
-DECLARE
- type_id integer;
-BEGIN
- IF inIndividual_id IS NOT NULL
-  AND inEmail_id IS NOT NULL THEN
-  type_id := (SELECT GetWord(inType));
-  -- Be sure to process any single individual email one at a time without the need of a transaction or locking IndividualEmail table
-  PERFORM pg_advisory_lock(inIndividual_id);
-  BEGIN
-  INSERT INTO IndividualEmail (individual, email, type) (
-   SELECT inIndividual_id, inEmail_id, type_id
-   FROM DUAL
-   LEFT JOIN IndividualEmail AS exists ON exists.individual = inIndividual_id
-    AND exists.email = inEmail_id
-    AND ((exists.type = type_id) OR (exists.type IS NULL AND type_id IS NULL))
-    AND exists.stop IS NULL
-   WHERE exists.individual IS NULL
-   LIMIT 1
-  );
-  PERFORM pg_advisory_unlock(inIndividual_id);
-  EXCEPTION
-   WHEN OTHERS THEN
-    PERFORM pg_advisory_unlock(inIndividual_id);
-    RAISE;
-  END;
-  -- Be sure to stop any previous emails of this type associated with this individual
-  UPDATE IndividualEmail
-  SET stop = NOW()
-  WHERE individual = inIndividual_id
-   AND email != inEmail_id
-   AND Stop IS NULL
-   AND ((type = type_id) OR (type IS NULL AND type_id IS NULL))
-  ;
- END IF;
- RETURN inIndividual_id;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION SetIndividualEmail (
- inIndividual_id bigint,
- inEmail_id integer
-) RETURNS bigint AS $$
-DECLARE
-BEGIN
- RETURN SetIndividualEmail(inIndividual_id, inEmail_id, NULL);
-END;
-$$ LANGUAGE plpgsql;
-
--- Get Individual associated with an email
-CREATE OR REPLACE FUNCTION GetIndividualEmail (
-  inEmail varchar
-) RETURNS bigint AS $$
-DECLARE
- email_id integer;
- individual_id bigint;
-BEGIN
- -- Get email id
- email_id := (SELECT GetEmail(inEmail));
-
- IF email_id IS NOT NULL THEN
-  -- Is email already associated with an individual?
-  individual_id := (
-   SELECT individual
-   FROM IndividualEmail
-   WHERE email = email_id
-    AND stop IS NULL
-   LIMIT 1
-  );
-
-  IF individual_id IS NULL THEN
-   -- Email not associated with any individual, so create new individual
-   individual_id = (SELECT CreateIndividual());
-  END IF;
-
-  -- Associate email with individual
-  PERFORM SetIndividualEmail(individual_id, email_id);
-
- END IF;
- RETURN individual_id;
-END;
-$$ LANGUAGE plpgsql;
-
 CREATE OR REPLACE FUNCTION ListSubscribeEmail (
  inListName varchar,
  inSetName varchar,
@@ -1310,6 +1467,10 @@ BEGIN
  RETURN (SELECT ListSubscribeEmail(inListName, NULL, inEmail));
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- Software / Parts / Assemblies (diagrams: software, assemblies)
+-- Assembled in lexicographic order of this directory; see README.md
 
 CREATE OR REPLACE FUNCTION GetVersion (
  inMajor varchar,
@@ -2333,143 +2494,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION GetPath (
- inProtocol varchar,
- inSecure integer,
- inHost varchar,
- inValue varchar,
- inGet varchar
-) RETURNS integer AS $$
-DECLARE
- is_secure integer := 0;
- lockText varchar;
- lockID bigint;
- path_id integer;
-BEGIN
- -- host and path can not both be null
- IF inValue IS NOT NULL OR inHost IS NOT NULL THEN
-  -- Default to false or 0
-  IF inSecure IS NOT NULL AND inSecure != 0 THEN
-    is_secure :=1;
-  END IF;
-  lockText := COALESCE(inHost, '') || COALESCE(inValue, '');
-  lockID := hashtext(lockText);
-  SELECT id INTO path_id
-  FROM Path
-  WHERE protocol = inProtocol
-   AND secure = is_secure
-   AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
-   AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
-   AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
-  LIMIT 1;
-  IF path_id IS NULL THEN
-   -- Be sure to process any single path one at a time without the need of a transaction or locking Path table
-   PERFORM pg_advisory_lock(lockID);
-   BEGIN
-   INSERT INTO Path (protocol, secure, host, value, get) (
-    SELECT inProtocol, is_secure, inHost, inValue, inGet
-    FROM Dual
-    LEFT JOIN Path AS exists ON exists.protocol = inProtocol
-     AND exists.secure = is_secure
-     AND ((UPPER(exists.host) = UPPER(inHost)) OR (exists.host IS NULL AND inHost IS NULL))
-     AND ((exists.value = inValue) OR (exists.value IS NULL OR inValue IS NULL))
-     AND ((exists.get = inGet) OR (exists.get IS NULL AND inGet IS NULL))
-    WHERE exists.id IS NULL
-    LIMIT 1
-   );
-   PERFORM pg_advisory_unlock(lockID);
-   EXCEPTION
-    WHEN OTHERS THEN
-     PERFORM pg_advisory_unlock(lockID);
-     RAISE;
-   END;
-   SELECT id INTO path_id
-   FROM Path
-   WHERE protocol = inProtocol
-    AND secure = is_secure
-    AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
-    AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
-    AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
-   LIMIT 1;
-  END IF;
- END IF;
- RETURN path_id;
-END;
-$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION GetURL (
- inSecure integer,
- inHost varchar,
- inValue varchar,
- inGet varchar
-) RETURNS integer AS $$
-BEGIN
- RETURN (SELECT GetPath('http', inSecure, inHost, inValue, inGet));
-END;
-$$ LANGUAGE plpgsql;
+-- Web Session / Agent (diagram: web_session)
+-- Assembled in lexicographic order of this directory; see README.md
 
-CREATE OR REPLACE FUNCTION GetFile (
- inHost varchar,
- inPathValue varchar,
- inFileGet varchar
-) RETURNS integer AS $$
-BEGIN
- RETURN (SELECT GetPath('file', 0, inHost, inPathValue, inFileGet));
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION GetPhone (
- inCountryCode varchar,
- inAreaCode varchar,
- inNumber varchar
-) RETURNS integer AS $$
-DECLARE
- countrycode_id integer;
- phone_id integer;
-BEGIN
- IF inNumber IS NOT NULL THEN
-  countrycode_id := (SELECT id FROM Country WHERE UPPER(Country.code) = UPPER(inCountryCode));
-  IF countrycode_id IS NOT NULL THEN
-   SELECT id INTO phone_id
-   FROM Phone
-   WHERE country = countrycode_id
-    AND area = inAreaCode
-    AND number = inNumber
-   LIMIT 1;
-   IF phone_id IS NULL THEN
-    -- Be sure to process any single phone number one at a time without the need of a transaction or locking Phone table
-    PERFORM pg_advisory_lock(hashtext(inNumber));
-    BEGIN
-    INSERT INTO Phone (country, area, number) (
-     SELECT countrycode_id, inAreaCode, inNumber
-     FROM Dual
-     LEFT JOIN Phone AS exists ON exists.country = countrycode_id
-      AND exists.area = inAreaCode
-      AND exists.number = inNumber
-     WHERE exists.id IS NULL
-     LIMIT 1
-    );
-    PERFORM pg_advisory_unlock(hashtext(inNumber));
-    EXCEPTION
-     WHEN OTHERS THEN
-      PERFORM pg_advisory_unlock(hashtext(inNumber));
-      RAISE;
-    END;
-    SELECT id INTO phone_id
-    FROM Phone
-    WHERE country = countrycode_id
-     AND area = inAreaCode
-     AND number = inNumber
-    LIMIT 1;
-   END IF;
-  END IF;
- END IF;
- RETURN phone_id;
-END;
-$$ LANGUAGE plpgsql;
-
-
--- For examples only.  Don't use in a production environment
 CREATE OR REPLACE FUNCTION RandomString (
  inLength integer
 ) RETURNS varchar AS $$
@@ -2951,6 +2979,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+
+-- DAG edges / vertices (diagram: dag)
+-- Assembled in lexicographic order of this directory; see README.md
+
 -- DAG https://www.codeproject.com/Articles/22824/A-Model-to-Represent-Directed-Acyclic-Graphs-DAG-o
 CREATE OR REPLACE FUNCTION AddEdge(v_start int, v_stop int) RETURNS integer AS $$
 DECLARE
@@ -3238,6 +3270,10 @@ $$ LANGUAGE plpgsql;
 -- Double Entry Accounting functions
 --
 
+
+-- Double-entry Book / Post (diagram: accounting)
+-- Assembled in lexicographic order of this directory; see README.md
+
 -- Drop functions thas use JournalEntryResult
 DROP FUNCTION IF EXISTS Book(varchar, float);
 DROP FUNCTION IF EXISTS Book(varchar, numeric);
@@ -3459,6 +3495,10 @@ $$ LANGUAGE plpgsql;
 
 -- Inventory Movement
 --
+
+-- Bills / Cargo / Jobs / Schedule (diagram: inventory)
+-- Assembled in lexicographic order of this directory; see README.md
+
 CREATE OR REPLACE FUNCTION CreateBill (
  inSupplier bigint,
  inConsignee bigint,
@@ -4050,6 +4090,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+
+-- SchemaVersion helper
+-- Assembled in lexicographic order of this directory; see README.md
+
 -- Schema Mgmt Functions
 --
 CREATE OR REPLACE FUNCTION SetSchemaVersion (
@@ -4076,6 +4120,7 @@ BEGIN
  RETURN (SELECT currval(pg_get_serial_sequence('schemaversion','build')));
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- ---------------------------------------------------------------------------
 -- Recreate views (dropped above for money ALTERs); from current schema.pgsql

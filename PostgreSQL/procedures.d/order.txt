@@ -1,0 +1,12 @@
+00-header.sql	0 functions/types	Header (search_path); must load first
+10-i18n.sql	6 functions/types	I18N — Word / Sentence / Identifier (diagram: i18n)
+20-geo.sql	6 functions/types	Geo / Addresses — Location Postal Address (diagram: addresses)
+30-individual.sql	9 functions/types	Individual / Entity / Name (diagram: individual)
+40-contacts.sql	9 functions/types	Contacts — Email Phone Path (diagrams: individual_email, phones, individual_path)
+50-lists.sql	8 functions/types	Lists (diagram: lists)
+60-software.sql	26 functions/types	Software / Parts / Assemblies (diagrams: software, assemblies)
+70-session.sql	12 functions/types	Web Session / Agent (diagram: web_session)
+80-dag.sql	10 functions/types	DAG edges / vertices (diagram: dag)
+90-accounting.sql	4 functions/types	Double-entry Book / Post (diagram: accounting)
+95-inventory.sql	20 functions/types	Bills / Cargo / Jobs / Schedule (diagram: inventory)
+99-schema.sql	1 functions/types	SchemaVersion helper
