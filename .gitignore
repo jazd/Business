@@ -2,8 +2,9 @@
 profile.json
 .vscode
 # Personal
+AGENTS.md
+review.md
 schemaNotes.txt
-schemaNotesNuoDB.txt
 sqlServer.txt
 # Targets
 schema.pgsql
@@ -13,7 +14,7 @@ schema.sqlite3
 schema.db2
 schema.oracle
 schema.sqlserver
-schema.nuodb
+schema.sybase
 business.sqlite3
 # OS Files
 .DS_Store

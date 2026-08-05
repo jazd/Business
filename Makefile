@@ -22,22 +22,6 @@ ifeq ($(MySQLPassword),)
 MySQLPassword =
 endif
 
-ifeq ($(NuoDBDatabase),)
-NuoDBDatabase = MyCo
-endif
-ifeq ($(NuoDBServer),)
-NuoDBServer = localhost
-endif
-ifeq ($(NuoDBUser),)
-NuoDBUser = dba
-endif
-ifeq ($(NuoDBPassword),)
-NuoDBPassword = secret
-endif
-
-NuoSQLCommand = nuosql $(NuoDBDatabase)@$(NuoDBServer) --user $(NuoDBUser) --password $(NuoDBPassword) --schema Business --connection-property timezone=Etc/GMT
-NuoDBLoad = $(NuoSQLCommand) 3>&1 1>&2 2>&3 3>&- 1>/dev/null
-
 ifeq ($(DROP_TABLE),)
 DROP_TABLE =
 else
@@ -62,16 +46,6 @@ schema.pgsql: schema.xml container
 	sed 's/^/-- /' LICENSE.txt > $@
 	$(SQLT) -f XML-SQLFairy -t PostgreSQL $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "s/DROP TABLE /DROP TABLE IF EXISTS /g" | sed -e "s/DROP VIEW /DROP VIEW IF EXISTS /g" >> $@
 	chmod -w $@
-
-NUODB_UNSUPORTED_VIEWS = IndividualURL IndividualEmailAddress
-schema.nuodb: schema.xml container
-	@echo Creating NuoDB file $@
-	scripts/excludeView.pl $< $(NUODB_UNSUPORTED_VIEWS) > $<.excludeSomeViews
-	if [[ -e $@ ]]; then chmod +w $@; fi
-	sed 's/^/-- /' LICENSE.txt > $@
-	$(SQLT) -f XML-SQLFairy -t NuoDB $(DROP_TABLE) $<.excludeSomeViews | sed -e 's|["'\'']||g' | sed -e 's|lock|"lock"|g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "/--/d" | sed -e "s/CROSS /INNER /g" | sed -e "s/bool_AND/MIN/g" >> $@
-	chmod -w $@
-	rm -f $<.excludeSomeViews
 
 MYSQL_UNSUPORTED_VIEWS = People PeopleEvent Entities IndividualURL URL Sessions File TimePeriod Accounts Ledgers Books LedgerBalance LedgerReport EdgeIndividuals IndividualURL IndividualEmailAddress MaxSpan
 schema.mysql: schema.xml container
@@ -142,14 +116,6 @@ pgsqldb: touch-xml schema.pgsql
 	cat Static/[01]_* | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
 	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
 	cat Static/[23456789]_* | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
-
-nuodbdb: export DROP_TABLE = --add-drop-table
-nuodbdb: touch-xml schema.nuodb
-	@echo Creating new NuoDB database with $@
-	cat NuoDB/pre.sql schema.nuodb NuoDB/procedures.sql NuoDB/post.sql | $(NuoDBLoad)
-	cat Static/[01]_* |  $(NuoDBLoad)
-	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | $(NuoDBLoad)
-	cat Static/[23456789]_* | $(NuoDBLoad)
 
 sqlserverdb: export DROP_TABLE = --add-drop-table
 sqlserverdb: touch-xml schema.sqlserver
