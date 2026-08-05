@@ -32,9 +32,10 @@ BEGIN
 END $$;
 COMMIT;
 
--- Case-insensitive uniqueness for cultured sentences (GetSentence concurrency)
-DROP INDEX IF EXISTS sentence_value;
-CREATE UNIQUE INDEX sentence_value ON Sentence(culture,UPPER(value)) WHERE culture IS NOT NULL;
+-- Non-unique: same culture text can legitimately map to different Sentence ids
+-- (e.g. es-MX "Alquiler" for both English Rent and Rental). GetSentence uses
+-- advisory locks + re-check; identity phrases use sentence_value_null.
+CREATE INDEX sentence_value ON Sentence(culture,UPPER(value));
 CREATE UNIQUE INDEX sentence_value_null ON Sentence(UPPER(value)) WHERE culture IS NULL;
 -- Identifiers: Word.culture IS NULL (GetIdentifier concurrency)
 CREATE UNIQUE INDEX word_value_null ON Word(UPPER(value)) WHERE culture IS NULL;

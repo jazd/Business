@@ -213,6 +213,6 @@ INSERT INTO Sentence (id,culture,value,length) VALUES (217,1033,'Food Bank',9);
 INSERT INTO Sentence (id,culture,value,length) VALUES (218,1033,'Humane Society',24);
 INSERT INTO Sentence (id,culture,value,length) VALUES (219,1033,'Fisher House Foundation',23);
 INSERT INTO Sentence (id,culture,value,length) VALUES (220,1033,'Donations',9);
-INSERT INTO Sentence (id,culture,value,length) VALUES (221,1033,'Charity',7);
+-- Journal "Charity" reuses Sentence id 95 (already seeded above with i18n)
 INSERT INTO Sentence (id,culture,value,length) VALUES (222,1033,'AP Donation',11);
 INSERT INTO Sentence (id,culture,value,length) VALUES (223,1033,'Donation Payment',16);
