@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+# Usage:
+#   PutCertificateSigningRequest <pem> <individual_id>
+#   PutCertificateSigningRequest <pem> <individual_id> <session_id>
+# PEM may be literal or @/path/to/file
+# Returns: csr id
+
+source ~/bin/sqlite/common
+
+PEM_ARG="${1:-}"
+INDIVIDUAL="${2:-}"
+SESSION="${3:-}"
+
+if [[ -z "$PEM_ARG" ]]; then
+  echo ""
+  exit 0
+fi
+
+if [[ -n "$INDIVIDUAL" ]] && ! [[ "$INDIVIDUAL" =~ ^[0-9]+$ ]]; then
+  echo "Error: individual_id must be an integer" >&2
+  exit 1
+fi
+
+if [[ -n "$SESSION" ]] && ! [[ "$SESSION" =~ ^[0-9]+$ ]]; then
+  echo "Error: session_id must be an integer" >&2
+  exit 1
+fi
+
+if [[ "$PEM_ARG" == @* ]]; then
+  pem_file="${PEM_ARG:1}"
+  if [[ ! -f "$pem_file" ]]; then
+    echo "Error: PEM file not found: $pem_file" >&2
+    exit 1
+  fi
+  PEM=$(cat "$pem_file")
+else
+  PEM="$PEM_ARG"
+fi
+
+escaped_pem=$(sql_escape "$PEM")
+individual_sql="${INDIVIDUAL:-NULL}"
+session_sql="${SESSION:-NULL}"
+
+# Insert + last_insert_rowid in one sqlite3 connection
+if [[ -n "$SESSION" ]]; then
+  csr_id=$(sqlite3 "$SQLITE_DB" "
+   INSERT INTO CertificateSigningRequest (pem, individual, session)
+   VALUES ('$escaped_pem', $individual_sql, $session_sql);
+   SELECT last_insert_rowid();
+  ")
+else
+  csr_id=$(sqlite3 "$SQLITE_DB" "
+   INSERT INTO CertificateSigningRequest (pem, individual)
+   VALUES ('$escaped_pem', $individual_sql);
+   SELECT last_insert_rowid();
+  ")
+fi
+
+echo "${csr_id:-}"

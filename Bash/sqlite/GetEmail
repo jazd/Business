@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+# Usage:
+#   GetEmail <addr@host>                 # parse user[+plus]@host
+#   GetEmail <username> <host>           # plus IS NULL
+#   GetEmail <username> <plus> <host>    # empty plus => NULL (same as PG)
+# Returns: email id (find-or-insert)
+
+source ~/bin/sqlite/common
+
+if [[ $# -eq 1 ]]; then
+  EMAIL="${1:-}"
+  if [[ -z "$EMAIL" || "$EMAIL" != *@* ]]; then
+    echo ""
+    exit 0
+  fi
+  local_part="${EMAIL%%@*}"
+  HOST="${EMAIL#*@}"
+  if [[ "$local_part" == *+* ]]; then
+    USERNAME="${local_part%%+*}"
+    PLUS="${local_part#*+}"
+  else
+    USERNAME="$local_part"
+    PLUS=""
+  fi
+elif [[ $# -eq 2 ]]; then
+  USERNAME="${1:-}"
+  PLUS=""
+  HOST="${2:-}"
+elif [[ $# -ge 3 ]]; then
+  USERNAME="${1:-}"
+  PLUS="${2:-}"
+  HOST="${3:-}"
+else
+  echo ""
+  exit 0
+fi
+
+if [[ -z "$USERNAME" || -z "$HOST" ]]; then
+  echo ""
+  exit 0
+fi
+
+esc_user=$(sql_escape "$USERNAME")
+esc_host=$(sql_escape "$HOST")
+if [[ -z "$PLUS" ]]; then
+  plus_match="(plus IS NULL OR plus = '')"
+  plus_sql="NULL"
+else
+  esc_plus=$(sql_escape "$PLUS")
+  plus_match="UPPER(plus) = UPPER('$esc_plus')"
+  plus_sql="'$esc_plus'"
+fi
+
+email_id=$(sqlite_query_one "
+ SELECT id
+ FROM Email
+ WHERE UPPER(username) = UPPER('$esc_user')
+  AND UPPER(host) = UPPER('$esc_host')
+  AND $plus_match
+ LIMIT 1;
+")
+
+if [[ -n "$email_id" ]]; then
+  echo "$email_id"
+  exit 0
+fi
+
+sqlite_run "
+ INSERT OR IGNORE INTO Email (username, plus, host)
+ SELECT '$esc_user', $plus_sql, '$esc_host'
+ WHERE NOT EXISTS (
+  SELECT 1 FROM Email
+  WHERE UPPER(username) = UPPER('$esc_user')
+   AND UPPER(host) = UPPER('$esc_host')
+   AND $plus_match
+ );
+" >/dev/null
+
+email_id=$(sqlite_query_one "
+ SELECT id
+ FROM Email
+ WHERE UPPER(username) = UPPER('$esc_user')
+  AND UPPER(host) = UPPER('$esc_host')
+  AND $plus_match
+ LIMIT 1;
+")
+
+echo "${email_id:-}"

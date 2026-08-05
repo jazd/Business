@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+# Usage: PutAssemblyCertificateSigningRequest <assembly_id> <csr_id>
+# Soft-stops prior active assembly–CSR links, then inserts the new link.
+
+source ~/bin/sqlite/common
+
+ASSEMBLY_ID="${1:-}"
+CSR_ID="${2:-}"
+
+if [[ -z "$ASSEMBLY_ID" || -z "$CSR_ID" ]]; then
+  echo "Error: assembly_id and csr_id are required" >&2
+  exit 1
+fi
+
+if ! [[ "$ASSEMBLY_ID" =~ ^[0-9]+$ ]]; then
+  echo "Error: assembly_id must be an integer" >&2
+  exit 1
+fi
+
+if ! [[ "$CSR_ID" =~ ^[0-9]+$ ]]; then
+  echo "Error: csr_id must be an integer" >&2
+  exit 1
+fi
+
+sqlite_run "
+ UPDATE AssemblyCertificateSigningRequest
+ SET stop = datetime('now')
+ WHERE assembly = $ASSEMBLY_ID
+  AND stop IS NULL;
+" >/dev/null
+
+sqlite_run "
+ INSERT INTO AssemblyCertificateSigningRequest (assembly, csr)
+ VALUES ($ASSEMBLY_ID, $CSR_ID);
+" >/dev/null
+
+exit 0

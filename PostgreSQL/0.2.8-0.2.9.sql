@@ -48,8 +48,17 @@
 --      take numeric amounts; JournalEntryResult recreated with CASCADE).
 --
 -- 4) EST device bring-up write procedures (procedures.d/65-est.sql)
---    * PutAssemblyPublicKey, PutCertificateSigningRequest,
---      PutAssemblyCertificateSigningRequest, PutCertificate.
+--    * PutAssemblyPublicKey(assembly, pem) — soft-stop prior active key,
+--      then insert PEM.
+--    * PutCertificateSigningRequest(pem, individual) and overload with
+--      session — insert CSR, return id.
+--    * PutAssemblyCertificateSigningRequest(assembly, csr) — soft-stop
+--      prior active link, then insert.
+--    * PutCertificate(caPolicy, type, individual, csr, start, days, o, ou,
+--      cn, email, serial, pem) — type is Word value (e.g. 'Client');
+--      returns certificate id.
+--    * Included in full procedure refresh and CREATE OR REPLACE near end
+--      of this script for databases already on the prior 0.2.9 body.
 --
 -- 5) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '9') — stops 0.2.8, activates
@@ -59,29 +68,32 @@
 -- Other release package changes (since tag 0.2.8)
 -- ---------------------------------------------------------------------------
 --
--- 5) NuoDB removed (deprecated)
+-- 6) NuoDB removed (deprecated)
 --    * Removed NuoDB/ tree, schema.nuodb target, Core.NuoDB, profile hooks,
 --      and Makefile NuoDB paths.
 --
--- 6) Build / packaging
+-- 7) Build / packaging
 --    * Makefile: oracle and sybase schema targets; NuoDB targets removed.
---    * README.md: Alpha status, history/NoCRUD wording, feature list cleanup.
 --
--- 7) SQLite post.sql sequence starts
+-- 8) SQLite post.sql sequence starts
 --    * PeriodName, LedgerName, JournalName, BookName, AccountName now set
---      sqlite_sequence high-water marks (incomplete at 0.2.8).
+--      sqlite_sequence high-water marks
 --
--- 8) Diagrams (genDiagrams.sh + regenerated PNGs)
+-- 9) Diagrams (genDiagrams.sh + regenerated PNGs)
 --    * Addresses/Phones include IndividualAddress/Phone and AddressAttribute.
 --    * Session includes IndividualApplicationCreated; Assemblies includes
 --      Application.
 --    * New diagrams/i18n.png and diagrams/software.png.
---    * EST diagram title: "EST Certificates and CA".
+--
+-- 10) Bash/sqlite client helpers
+--    * Fixes: PutAssemblyPart shebang; GetPartbySerial SQL-escapes serial.
+--    * New: GetEmail, GetIndividualEmail, PutAssemblyPublicKey,
+--      PutCertificateSigningRequest, PutAssemblyCertificateSigningRequest,
+--      PutCertificate
 --
 -- TESTING
---   * make pgsqldb + BusinessSchema.PostgreSqlSuite (~24 intentional
---     exceptions on XcepteionRequired).
 --   * Validate on a copy of production 0.2.8 data before cutover.
+--   * DBFit tests pass
 --
 -- =============================================================================
 \set ON_ERROR_STOP on

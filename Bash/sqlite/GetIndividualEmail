@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+# Usage: GetIndividualEmail <addr@host>
+# Returns: individual id linked to email (creates Individual + IndividualEmail if needed)
+# Parity with PG GetIndividualEmail.
+
+source ~/bin/sqlite/common
+
+EMAIL="${1:-}"
+
+if [[ -z "$EMAIL" ]]; then
+  echo ""
+  exit 0
+fi
+
+email_id=$(~/bin/sqlite/GetEmail "$EMAIL")
+if [[ -z "$email_id" ]]; then
+  echo ""
+  exit 0
+fi
+
+individual_id=$(sqlite_query_one "
+ SELECT individual
+ FROM IndividualEmail
+ WHERE email = $email_id
+  AND stop IS NULL
+ LIMIT 1;
+")
+
+if [[ -z "$individual_id" ]]; then
+  # CreateIndividual: next id (Individual.id is not AUTOINCREMENT in SQLite DDL)
+  individual_id=$(sqlite_query_one "
+   SELECT COALESCE(MAX(id), 0) + 1 FROM Individual;
+  ")
+  sqlite_run "
+   INSERT INTO Individual (id, birth) VALUES ($individual_id, NULL);
+  " >/dev/null
+fi
+
+# SetIndividualEmail(individual, email) with type NULL — ensure association
+exists=$(sqlite_query_one "
+ SELECT 1
+ FROM IndividualEmail
+ WHERE individual = $individual_id
+  AND email = $email_id
+  AND type IS NULL
+  AND stop IS NULL
+ LIMIT 1;
+")
+
+if [[ -z "$exists" ]]; then
+  sqlite_run "
+   INSERT INTO IndividualEmail (individual, email, type)
+   VALUES ($individual_id, $email_id, NULL);
+  " >/dev/null
+fi
+
+# Soft-stop other active emails of same type (NULL) for this individual
+sqlite_run "
+ UPDATE IndividualEmail
+ SET stop = datetime('now')
+ WHERE individual = $individual_id
+  AND email != $email_id
+  AND stop IS NULL
+  AND type IS NULL;
+" >/dev/null
+
+echo "$individual_id"
