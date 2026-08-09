@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+# Usage: GetName <first> <middle> <last>
+# Empty middle/first/last allowed (pass '' for null). Parity with PG GetName.
+
+source ~/bin/sqlite/common
+
+FIRST="${1-}"
+MIDDLE="${2-}"
+LAST="${3-}"
+
+if [[ -z "$FIRST" && -z "$MIDDLE" && -z "$LAST" ]]; then
+  echo ""
+  exit 0
+fi
+
+first_id=""; middle_id=""; last_id=""
+[[ -n "$FIRST" ]] && first_id=$(~/bin/sqlite/GetGiven "$FIRST")
+[[ -n "$MIDDLE" ]] && middle_id=$(~/bin/sqlite/GetGiven "$MIDDLE")
+[[ -n "$LAST" ]] && last_id=$(~/bin/sqlite/GetFamily "$LAST")
+
+fs=$(sql_int_or_null "$first_id")
+ms=$(sql_int_or_null "$middle_id")
+ls=$(sql_int_or_null "$last_id")
+
+name_id=$(sqlite_query_one "
+ SELECT id FROM Name
+ WHERE ((given = $fs) OR (given IS NULL AND $fs IS NULL))
+   AND ((middle = $ms) OR (middle IS NULL AND $ms IS NULL))
+   AND ((family = $ls) OR (family IS NULL AND $ls IS NULL))
+ LIMIT 1;
+")
+
+if [[ -n "$name_id" ]]; then
+  echo "$name_id"
+  exit 0
+fi
+
+sqlite_run "INSERT INTO Name (given, middle, family) VALUES ($fs, $ms, $ls);" >/dev/null
+sqlite_query_one "
+ SELECT id FROM Name
+ WHERE ((given = $fs) OR (given IS NULL AND $fs IS NULL))
+   AND ((middle = $ms) OR (middle IS NULL AND $ms IS NULL))
+   AND ((family = $ls) OR (family IS NULL AND $ls IS NULL))
+ LIMIT 1;
+"

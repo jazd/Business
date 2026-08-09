@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+# Usage: GetEntityName <company_name>
+# Parity with PostgreSQL GetEntityName.
+
+source ~/bin/sqlite/common
+
+NAME="${1:-}"
+if [[ -z "$NAME" ]]; then
+  echo ""
+  exit 0
+fi
+
+escaped=$(sql_escape "$NAME")
+NAME_UPPER=$(echo "$NAME" | tr '[:lower:]' '[:upper:]')
+
+id=$(sqlite_query_one "
+ SELECT id FROM Entity WHERE UPPER(name) = '$NAME_UPPER' LIMIT 1;
+")
+if [[ -n "$id" ]]; then
+  echo "$id"
+  exit 0
+fi
+
+sqlite_run "INSERT INTO Entity (name) VALUES ('$escaped');" >/dev/null
+sqlite_query_one "SELECT id FROM Entity WHERE UPPER(name) = '$NAME_UPPER' LIMIT 1;"

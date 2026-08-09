@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# Usage: GetIndividualEntity <company_name>
+# Find-or-insert Individual for a named Entity. Parity with PG GetIndividualEntity(name).
+
+source ~/bin/sqlite/common
+
+NAME="${1:-}"
+if [[ -z "$NAME" ]]; then
+  echo ""
+  exit 0
+fi
+
+entity_id=$(~/bin/sqlite/GetEntityName "$NAME")
+if [[ -z "$entity_id" ]]; then
+  echo ""
+  exit 0
+fi
+
+individual_id=$(sqlite_query_one "
+ SELECT id FROM Individual WHERE entity = $entity_id LIMIT 1;
+")
+
+if [[ -n "$individual_id" ]]; then
+  echo "$individual_id"
+  exit 0
+fi
+
+individual_id=$(next_table_id Individual id)
+sqlite_run "
+ INSERT INTO Individual (id, entity) VALUES ($individual_id, $entity_id);
+" >/dev/null
+
+echo "$individual_id"

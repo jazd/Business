@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# Usage: GetOutstandingBill <supplier_id> <consignee_id> <type_word>
+# Oldest open bill (no received/loaded/clean/dirty). May print empty if none.
+# Parity with PG GetOutstandingBill.
+
+source ~/bin/sqlite/common
+
+SUP="${1:-}"
+CON="${2:-}"
+TYPE="${3:-}"
+
+if [[ -z "$SUP" || -z "$CON" || -z "$TYPE" ]]; then
+  echo "Usage: GetOutstandingBill <supplier_id> <consignee_id> <type>" >&2
+  exit 1
+fi
+
+type_id=$(~/bin/sqlite/GetWord "$TYPE")
+if [[ -z "$type_id" ]]; then
+  echo ""
+  exit 0
+fi
+
+sqlite_query_one "
+ SELECT id FROM Bill
+ WHERE supplier = $SUP
+  AND consignee = $CON
+  AND type = $type_id
+  AND received IS NULL
+  AND loaded IS NULL
+  AND clean IS NULL
+  AND dirty IS NULL
+ ORDER BY created ASC
+ LIMIT 1;
+"

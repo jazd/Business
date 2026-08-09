@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+# Usage:
+#   GetPostal <zipcode>                         # lookup only (any country; prefers better accuracy)
+#   GetPostal <country> <zipcode>               # lookup only for country
+#   GetPostal <country> <zip> <city> <state_abbr> <state> [county]
+#       find-or-insert full postal row (city required for insert)
+# Parity with PG GetPostal overloads (simplified lat/long: omitted → NULL location).
+
+source ~/bin/sqlite/common
+
+if [[ $# -eq 1 ]]; then
+  ZIP="$1"
+  sqlite_query_one "
+   SELECT Postal.id
+   FROM Postal
+   LEFT JOIN Location ON Location.id = Postal.location
+   WHERE UPPER(Postal.code) = UPPER('$(sql_escape "$ZIP")')
+   ORDER BY Location.accuracy ASC NULLS LAST, Postal.id DESC
+   LIMIT 1;
+  "
+  exit 0
+fi
+
+if [[ $# -eq 2 ]]; then
+  CC="$1"; ZIP="$2"
+  sqlite_query_one "
+   SELECT Postal.id
+   FROM Postal
+   JOIN Country ON UPPER(Country.code) = UPPER('$(sql_escape "$CC")')
+   LEFT JOIN Location ON Location.id = Postal.location
+   WHERE Postal.country = Country.id
+    AND UPPER(Postal.code) = UPPER('$(sql_escape "$ZIP")')
+   ORDER BY Location.accuracy ASC NULLS LAST, Postal.id DESC
+   LIMIT 1;
+  "
+  exit 0
+fi
+
+if [[ $# -lt 5 ]]; then
+  echo "Usage: GetPostal <zip> | GetPostal <country> <zip> | GetPostal <country> <zip> <city> <state_abbr> <state> [county]" >&2
+  exit 1
+fi
+
+CC="$1"; ZIP="$2"; CITY="$3"; STATE_ABBR="$4"; STATE="$5"; COUNTY="${6-}"
+
+cc_id=$(sqlite_query_one "
+ SELECT id FROM Country WHERE UPPER(code) = UPPER('$(sql_escape "$CC")') LIMIT 1;
+")
+if [[ -z "$cc_id" ]]; then
+  echo "Error: unknown country '$CC'" >&2
+  exit 1
+fi
+
+city_id=$(~/bin/sqlite/GetWord "$CITY")
+state_abbr_id=$(~/bin/sqlite/GetWord "$STATE_ABBR")
+state_id=$(~/bin/sqlite/GetWord "$STATE")
+county_sql="NULL"
+if [[ -n "$COUNTY" ]]; then
+  county_id=$(~/bin/sqlite/GetWord "$COUNTY")
+  county_sql=$(sql_int_or_null "$county_id")
+fi
+
+esc_zip=$(sql_escape "$ZIP")
+ZIP_UPPER=$(echo "$ZIP" | tr '[:lower:]' '[:upper:]')
+
+postal_id=$(sqlite_query_one "
+ SELECT id FROM Postal
+ WHERE country = $cc_id
+  AND location IS NULL
+  AND UPPER(code) = '$ZIP_UPPER'
+ LIMIT 1;
+")
+if [[ -n "$postal_id" ]]; then
+  echo "$postal_id"
+  exit 0
+fi
+
+sqlite_run "
+ INSERT INTO Postal (country, code, state, stateAbbreviation, county, city, location)
+ SELECT $cc_id, '$esc_zip', $(sql_int_or_null "$state_id"), $(sql_int_or_null "$state_abbr_id"),
+        $county_sql, $(sql_int_or_null "$city_id"), NULL
+ WHERE NOT EXISTS (
+  SELECT 1 FROM Postal
+  WHERE country = $cc_id AND location IS NULL AND UPPER(code) = '$ZIP_UPPER'
+ );
+" >/dev/null
+
+sqlite_query_one "
+ SELECT id FROM Postal
+ WHERE country = $cc_id AND location IS NULL AND UPPER(code) = '$ZIP_UPPER'
+ LIMIT 1;
+"

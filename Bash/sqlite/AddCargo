@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+
+# Usage:
+#   AddCargo <bill> <assembly> [<count>]
+#   AddCargo <bill> <assembly> <count> <individual_job|''> <from_cargo|''> <book|''>
+#   AddCargo --unit <bill> <assembly> <count> <unit_price> [<job|''>] [<from|''>] [<book|''>]
+#
+# Parity with PG AddCargo overloads (procedures.d/95-inventory.sql).
+# Prints: cargo_id
+
+source ~/bin/sqlite/common
+
+UNIT_MODE=0
+if [[ "${1:-}" == "--unit" ]]; then
+  UNIT_MODE=1
+  shift
+fi
+
+BILL="${1:-}"
+ASM="${2:-}"
+COUNT="${3:-1}"
+ARG4="${4-}"
+ARG5="${5-}"
+ARG6="${6-}"
+ARG7="${7-}"
+
+if [[ -z "$BILL" || -z "$ASM" ]]; then
+  echo "Usage: AddCargo <bill> <assembly> [<count>] [job] [fromCargo] [book]" >&2
+  echo "       AddCargo --unit <bill> <assembly> <count> <unit> [job] [from] [book]" >&2
+  exit 1
+fi
+
+JOB=""; FROM=""; BOOK=""; UNIT=""
+if [[ "$UNIT_MODE" -eq 1 ]]; then
+  UNIT="$ARG4"
+  JOB="${ARG5-}"
+  FROM="${ARG6-}"
+  BOOK="${ARG7-}"
+  if [[ -z "$UNIT" ]]; then
+    echo "Error: --unit requires unit price" >&2
+    exit 1
+  fi
+else
+  JOB="${ARG4-}"
+  FROM="${ARG5-}"
+  BOOK="${ARG6-}"
+fi
+
+# count SQL: NULL means one unit on the cargo row
+if [[ -z "$COUNT" || "$COUNT" == "1" ]]; then
+  count_insert="NULL"
+  count_value="1"
+else
+  count_insert="$COUNT"
+  count_value="$COUNT"
+fi
+
+job_sql=$(sql_int_or_null "$JOB")
+from_sql=$(sql_int_or_null "$FROM")
+
+journal_sql="NULL"
+entry_sql="NULL"
+
+# Book amount
+if [[ -n "$BOOK" ]]; then
+  amount=""
+  if [[ -n "$UNIT" ]]; then
+    amount=$(awk -v u="$UNIT" -v c="$count_value" 'BEGIN { printf "%.4f", u * c }')
+  elif [[ -n "$FROM" ]]; then
+    amount=$(sqlite_query_one "
+     SELECT totalPrice FROM LineItems
+     WHERE line = $FROM
+      AND ((part = $ASM) OR (part IS NULL AND $ASM IS NULL))
+      AND totalPrice IS NOT NULL
+     LIMIT 1;
+    ")
+  fi
+  if [[ -n "$amount" && "$amount" != "" ]]; then
+    entry_id=$(~/bin/sqlite/Book "$BOOK" "$amount") || exit 1
+    journal_id=$(journal_for_entry "$entry_id")
+    journal_sql=$(sql_int_or_null "$journal_id")
+    entry_sql=$(sql_int_or_null "$entry_id")
+  fi
+fi
+
+# Find existing cargo line matching bill/assembly/job/journal/entry
+cargo_id=$(sqlite_query_one "
+ SELECT id FROM Cargo
+ WHERE bill = $BILL
+  AND assembly = $ASM
+  AND ((individualJob = $job_sql) OR (individualJob IS NULL AND $job_sql IS NULL))
+  AND ((journal = $journal_sql) OR (journal IS NULL AND $journal_sql IS NULL))
+  AND ((entry = $entry_sql) OR (entry IS NULL AND $entry_sql IS NULL))
+ ORDER BY id DESC
+ LIMIT 1;
+")
+
+if [[ -z "$cargo_id" ]]; then
+  cargo_id=$(next_table_id Cargo id)
+  # New cargo id: count NULL when one unit
+  sqlite_run "
+   INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
+   VALUES ($cargo_id, $BILL, $count_insert, $ASM, $job_sql, $journal_sql, $entry_sql);
+  " >/dev/null
+else
+  # Adjustment row reuses cargo id
+  sqlite_run "
+   INSERT INTO Cargo (id, bill, count, assembly, individualJob, journal, entry)
+   VALUES ($cargo_id, $BILL, $count_value, $ASM, $job_sql, $journal_sql, $entry_sql);
+  " >/dev/null
+fi
+
+if [[ -n "$FROM" ]]; then
+  sqlite_run "
+   INSERT INTO CargoState (cargo, toCargo, count, journal, entry)
+   VALUES ($FROM, $cargo_id, $count_value, $journal_sql, $entry_sql);
+  " >/dev/null
+fi
+
+echo "$cargo_id"

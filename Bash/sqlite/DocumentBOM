@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Usage: DocumentBOM <assembly_part_id> [tsv|csv|column]
+# Export AssemblyParts for a catalog BOM (serial-null assembly version id).
+
+source ~/bin/sqlite/common
+
+ASM="${1:-}"
+FMT="${2:-column}"
+
+if [[ -z "$ASM" ]]; then
+  echo "Usage: DocumentBOM <assembly_part_id> [tsv|csv|column]" >&2
+  exit 1
+fi
+
+SQL="
+ SELECT designator, partname AS part, versionname AS version, quantity
+ FROM AssemblyParts
+ WHERE assembly = $ASM
+ ORDER BY designator;
+"
+
+case "$FMT" in
+  tsv)  sqlite3 -header -separator $'\t' "$SQLITE_DB" "$SQL" ;;
+  csv)  sqlite3 -header -csv "$SQLITE_DB" "$SQL" ;;
+  *)    sqlite3 -header -column "$SQLITE_DB" "$SQL" ;;
+esac

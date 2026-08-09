@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+# Usage: Post <debit_account> <amount> <credit_account> [YYYY-MM-DD]
+# Balanced General journal entry. Prints entry_id.
+# Parity with PG Post(debit, amount, credit, timestamp) — correct debit/credit sides.
+
+source ~/bin/sqlite/common
+
+DEBIT="${1:-}"
+AMOUNT="${2:-}"
+CREDIT="${3:-}"
+WHEN="${4-}"
+
+if [[ -z "$DEBIT" || -z "$AMOUNT" || -z "$CREDIT" ]]; then
+  echo "Usage: Post <debit_account> <amount> <credit_account> [YYYY-MM-DD]" >&2
+  exit 1
+fi
+
+if ! [[ "$AMOUNT" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  echo "Error: amount must be numeric" >&2
+  exit 1
+fi
+
+journal_id=$(sqlite_query_one "
+ SELECT jn.journal
+ FROM JournalName jn
+ JOIN Sentence s ON s.id = jn.name
+ WHERE s.value = 'General' AND s.culture = 1033
+ LIMIT 1;
+")
+
+debit_id=$(sqlite_query_one "
+ SELECT an.account
+ FROM AccountName an
+ JOIN Sentence s ON s.id = an.name
+ WHERE s.value = '$(sql_escape "$DEBIT")' AND s.culture = 1033
+ LIMIT 1;
+")
+credit_id=$(sqlite_query_one "
+ SELECT an.account
+ FROM AccountName an
+ JOIN Sentence s ON s.id = an.name
+ WHERE s.value = '$(sql_escape "$CREDIT")' AND s.culture = 1033
+ LIMIT 1;
+")
+
+if [[ -z "$journal_id" || -z "$debit_id" || -z "$credit_id" ]]; then
+  echo "Error: could not resolve General journal or accounts ('$DEBIT'/'$CREDIT')" >&2
+  exit 1
+fi
+
+if [[ -z "$WHEN" ]]; then
+  WHEN=$(date +%Y-%m-%d)
+fi
+esc_when=$(sql_escape "$WHEN")
+
+entry_id=$(sqlite3 "$SQLITE_DB" "
+ INSERT INTO Entry (assemblyApplicationRelease, credential) VALUES (NULL, NULL);
+ SELECT last_insert_rowid();
+")
+
+sqlite_run "
+ INSERT INTO JournalEntry (journal, entry, account, credit, amount, created)
+ VALUES ($journal_id, $entry_id, $credit_id, 1, $AMOUNT, '$esc_when');
+ INSERT INTO JournalEntry (journal, entry, account, credit, amount, created)
+ VALUES ($journal_id, $entry_id, $debit_id, 0, $AMOUNT, '$esc_when');
+" >/dev/null
+
+echo "$entry_id"

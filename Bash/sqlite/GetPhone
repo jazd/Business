@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+# Usage: GetPhone <country_code> <area> <number>
+# Digits only in area/number (no dashes). Parity with PG GetPhone.
+
+source ~/bin/sqlite/common
+
+CC="${1:-}"
+AREA="${2:-}"
+NUMBER="${3:-}"
+
+if [[ -z "$NUMBER" || -z "$CC" ]]; then
+  echo "Usage: GetPhone <country_code> <area> <number>" >&2
+  exit 1
+fi
+
+# Strip common formatting (dash last so tr does not see a reverse range)
+AREA=$(echo "$AREA" | tr -d '(). -')
+NUMBER=$(echo "$NUMBER" | tr -d '(). -')
+
+cc_id=$(sqlite_query_one "
+ SELECT id FROM Country WHERE UPPER(code) = UPPER('$(sql_escape "$CC")') LIMIT 1;
+")
+if [[ -z "$cc_id" ]]; then
+  echo "Error: unknown country code '$CC'" >&2
+  exit 1
+fi
+
+esc_area=$(sql_escape "$AREA")
+esc_num=$(sql_escape "$NUMBER")
+
+phone_id=$(sqlite_query_one "
+ SELECT id FROM Phone
+ WHERE country = $cc_id AND area = '$esc_area' AND number = '$esc_num'
+ LIMIT 1;
+")
+if [[ -n "$phone_id" ]]; then
+  echo "$phone_id"
+  exit 0
+fi
+
+sqlite_run "
+ INSERT INTO Phone (country, area, number)
+ VALUES ($cc_id, '$esc_area', '$esc_num');
+" >/dev/null
+
+sqlite_query_one "
+ SELECT id FROM Phone
+ WHERE country = $cc_id AND area = '$esc_area' AND number = '$esc_num'
+ LIMIT 1;
+"

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Usage: GetGiven <given_name>
+# Parity with PostgreSQL GetGiven.
+
+source ~/bin/sqlite/common
+
+VALUE="${1:-}"
+if [[ -z "$VALUE" ]]; then
+  echo ""
+  exit 0
+fi
+
+escaped=$(sql_escape "$VALUE")
+id=$(sqlite_query_one "SELECT id FROM Given WHERE value = '$escaped' LIMIT 1;")
+if [[ -n "$id" ]]; then
+  echo "$id"
+  exit 0
+fi
+
+sqlite_run "INSERT OR IGNORE INTO Given (value) VALUES ('$escaped');" >/dev/null
+sqlite_query_one "SELECT id FROM Given WHERE value = '$escaped' LIMIT 1;"

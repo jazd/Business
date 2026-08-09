@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# Usage: SetIndividualEmail <individual_id> <email_id|addr@host> [type_word]
+# Parity with PG SetIndividualEmail. Soft-stops other active emails of same type.
+
+source ~/bin/sqlite/common
+
+IND="${1:-}"
+EMAIL_ARG="${2:-}"
+TYPE="${3-}"
+
+if [[ -z "$IND" || -z "$EMAIL_ARG" ]]; then
+  echo "Usage: SetIndividualEmail <individual_id> <email_id|addr@host> [type]" >&2
+  exit 1
+fi
+
+if [[ "$EMAIL_ARG" =~ ^[0-9]+$ ]]; then
+  email_id="$EMAIL_ARG"
+else
+  email_id=$(~/bin/sqlite/GetEmail "$EMAIL_ARG")
+fi
+if [[ -z "$email_id" ]]; then
+  echo "Error: could not resolve email" >&2
+  exit 1
+fi
+
+type_sql="NULL"
+if [[ -n "$TYPE" ]]; then
+  type_id=$(~/bin/sqlite/GetWord "$TYPE")
+  type_sql=$(sql_int_or_null "$type_id")
+fi
+
+exists=$(sqlite_query_one "
+ SELECT 1 FROM IndividualEmail
+ WHERE individual = $IND AND email = $email_id
+  AND ((type = $type_sql) OR (type IS NULL AND $type_sql IS NULL))
+  AND stop IS NULL
+ LIMIT 1;
+")
+if [[ -z "$exists" ]]; then
+  sqlite_run "
+   INSERT INTO IndividualEmail (individual, email, type)
+   VALUES ($IND, $email_id, $type_sql);
+  " >/dev/null
+fi
+
+sqlite_run "
+ UPDATE IndividualEmail
+ SET stop = datetime('now')
+ WHERE individual = $IND
+  AND email != $email_id
+  AND stop IS NULL
+  AND ((type = $type_sql) OR (type IS NULL AND $type_sql IS NULL));
+" >/dev/null
+
+echo "$IND"

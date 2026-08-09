@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+# Usage: JournalReport [ledger_id] [culture]
+#   culture: en | en-US | 1033 (default)
+#            es | es-MX | spanish | 2058
+#            fr | fr-FR | french  | 1036
+# Prints account | type | debit | credit (wiki Accounting / Wikipedia further examples).
+# Uses Sentence/Word rows for the requested culture (fallback en-US 1033).
+
+source ~/bin/sqlite/common
+
+LEDGER="${1:-1}"
+CULTURE_ARG="${2:-en}"
+
+# Allow: JournalReport es   or  JournalReport spanish
+if [[ "$LEDGER" =~ ^(en|en-US|es|es-MX|spanish|fr|fr-FR|french|1033|2058|1036)$ ]]; then
+  CULTURE_ARG="$LEDGER"
+  LEDGER=1
+fi
+
+if ! [[ "$LEDGER" =~ ^[0-9]+$ ]]; then
+  echo "Usage: JournalReport [ledger_id] [en|es|fr|1033|2058|1036]" >&2
+  exit 1
+fi
+
+case "$(echo "$CULTURE_ARG" | tr '[:upper:]' '[:lower:]')" in
+  en|en-us|1033|"") CULTURE=1033 ;;
+  es|es-mx|spanish|2058) CULTURE=2058 ;;
+  fr|fr-fr|french|1036) CULTURE=1036 ;;
+  *)
+    if [[ "$CULTURE_ARG" =~ ^[0-9]+$ ]]; then
+      CULTURE="$CULTURE_ARG"
+    else
+      echo "Error: unknown culture '$CULTURE_ARG' (use en, es, fr, or LCID)" >&2
+      exit 1
+    fi
+    ;;
+esac
+
+# Culture-aware journal lines (I18N* views in SQLite are fixed to 1033)
+sqlite3 -header -column "$SQLITE_DB" "
+WITH lines AS (
+ SELECT
+  je.entry,
+  je.credit AS rightSide,
+  COALESCE(acc_c.value, acc_en.value) AS account,
+  COALESCE(typ_c.value, typ_en.value) AS type,
+  CASE WHEN NOT je.credit THEN je.amount END AS debit,
+  CASE WHEN je.credit THEN je.amount END AS credit,
+  lj.ledger
+ FROM JournalEntry je
+ JOIN AccountName an ON an.account = je.account
+ JOIN Sentence acc_en ON acc_en.id = an.name AND acc_en.culture = 1033
+ LEFT JOIN Sentence acc_c ON acc_c.id = an.name AND acc_c.culture = $CULTURE
+ JOIN Word typ_en ON typ_en.id = an.type AND typ_en.culture = 1033
+ LEFT JOIN Word typ_c ON typ_c.id = an.type AND typ_c.culture = $CULTURE
+ LEFT JOIN LedgerJournal lj ON lj.journal = je.journal
+ WHERE je.posted IS NULL
+   AND (lj.ledger = $LEDGER OR lj.ledger IS NULL)
+),
+detail AS (
+ SELECT entry, rightSide, type, account,
+  CASE WHEN debit IS NULL THEN '' ELSE printf('%g', debit) END AS debit,
+  CASE WHEN credit IS NULL THEN '' ELSE printf('%g', credit) END AS credit,
+  0 AS sort_group
+ FROM lines
+ WHERE ledger = $LEDGER OR ledger IS NULL
+),
+totals AS (
+ SELECT
+  NULL AS entry,
+  NULL AS rightSide,
+  NULL AS type,
+  'Total' AS account,
+  printf('%g', COALESCE(SUM(CASE WHEN debit != '' THEN CAST(debit AS REAL) END), 0)) AS debit,
+  printf('%g', COALESCE(SUM(CASE WHEN credit != '' THEN CAST(credit AS REAL) END), 0)) AS credit,
+  1 AS sort_group
+ FROM detail
+)
+SELECT account, type, debit, credit
+FROM (
+ SELECT * FROM detail
+ UNION ALL
+ SELECT * FROM totals
+)
+ORDER BY sort_group, entry, rightSide, type;
+"

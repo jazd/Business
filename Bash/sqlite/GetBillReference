@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+# Usage: GetBillReference <bill_id> <type_word> <value> [sequence]
+# Find-or-insert BillReference (e.g. type 'Sales Order', value PO#).
+# Returns reference id. Parity with PG GetBillReference.
+
+source ~/bin/sqlite/common
+
+BILL="${1:-}"
+TYPE="${2:-}"
+VALUE="${3:-}"
+SEQ="${4-}"
+
+if [[ -z "$BILL" || -z "$TYPE" || -z "$VALUE" ]]; then
+  echo "Usage: GetBillReference <bill_id> <type> <value> [sequence]" >&2
+  exit 1
+fi
+
+# trim
+VALUE=$(echo "$VALUE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+if [[ -z "$VALUE" ]]; then
+  echo ""
+  exit 0
+fi
+
+type_id=$(~/bin/sqlite/GetIdentifier "$TYPE")
+if [[ -z "$type_id" ]]; then
+  echo "Error: could not resolve reference type '$TYPE'" >&2
+  exit 1
+fi
+
+esc=$(sql_escape "$VALUE")
+ref_id=$(sqlite_query_one "
+ SELECT id FROM BillReference
+ WHERE bill = $BILL AND type = $type_id AND value = '$esc' AND stop IS NULL
+ LIMIT 1;
+")
+
+if [[ -n "$ref_id" ]]; then
+  if [[ -n "$SEQ" ]]; then
+    sqlite_run "
+     UPDATE BillReference SET sequence = $SEQ
+     WHERE id = $ref_id AND (sequence IS NULL OR sequence != $SEQ);
+    " >/dev/null
+  fi
+  echo "$ref_id"
+  exit 0
+fi
+
+seq_sql=$(sql_int_or_null "$SEQ")
+sqlite_run "
+ INSERT INTO BillReference (bill, type, value, sequence)
+ SELECT $BILL, $type_id, '$esc', $seq_sql
+ WHERE NOT EXISTS (
+  SELECT 1 FROM BillReference
+  WHERE bill = $BILL AND type = $type_id AND value = '$esc' AND stop IS NULL
+ );
+" >/dev/null
+
+sqlite_query_one "
+ SELECT id FROM BillReference
+ WHERE bill = $BILL AND type = $type_id AND value = '$esc' AND stop IS NULL
+ LIMIT 1;
+"

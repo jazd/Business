@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Usage: MoveCargoToChild <from_bill> [item|'' ] [count|'' ] [individual_job|'' ] [book|'']
+# Child = Bill where parent = from_bill. Parity with PG MoveCargoToChild.
+
+source ~/bin/sqlite/common
+
+FROM_BILL="${1:-}"
+ITEM="${2-}"
+COUNT="${3-}"
+JOB="${4-}"
+BOOK="${5-}"
+
+if [[ -z "$FROM_BILL" ]]; then
+  echo "Usage: MoveCargoToChild <from_bill> [item] [count] [job] [book]" >&2
+  exit 1
+fi
+
+to_bill=$(sqlite_query_one "
+ SELECT id FROM Bill WHERE parent = $FROM_BILL ORDER BY id ASC LIMIT 1;
+")
+if [[ -z "$to_bill" ]]; then
+  echo "Error: no child bill for parent $FROM_BILL" >&2
+  exit 1
+fi
+
+~/bin/sqlite/MoveCargo "$FROM_BILL" "$to_bill" "${ITEM:-}" "${COUNT:-}" "${JOB:-}" "${BOOK:-}"

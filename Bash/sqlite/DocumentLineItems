@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# Usage: DocumentLineItems <bill_id> [tsv|csv|column]
+# Export LineItems for a bill (invoice / packing-list source). Default: column.
+
+source ~/bin/sqlite/common
+
+BILL="${1:-}"
+FMT="${2:-column}"
+
+if [[ -z "$BILL" ]]; then
+  echo "Usage: DocumentLineItems <bill_id> [tsv|csv|column]" >&2
+  exit 1
+fi
+
+SQL="
+ SELECT typeName AS type,
+  consigneeName AS consignee,
+  line,
+  item,
+  count,
+  unitprice,
+  currentUnitPrice,
+  totalPrice,
+  outstanding
+ FROM LineItems
+ WHERE bill = $BILL
+ ORDER BY line;
+"
+
+case "$FMT" in
+  tsv)  sqlite3 -header -separator $'\t' "$SQLITE_DB" "$SQL" ;;
+  csv)  sqlite3 -header -csv "$SQLITE_DB" "$SQL" ;;
+  *)    sqlite3 -header -column "$SQLITE_DB" "$SQL" ;;
+esac

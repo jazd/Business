@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+# Usage: GetIndividualPerson <first> <middle> <last> <birth_YYYY-MM-DD> [goesBy]
+# Birth required (parity with PG). Empty middle: pass ''.
+# Returns individual id (find-or-insert by first+last+birth).
+
+source ~/bin/sqlite/common
+
+FIRST="${1:-}"
+MIDDLE="${2-}"
+LAST="${3:-}"
+BIRTH="${4:-}"
+GOESBY="${5-}"
+
+if [[ -z "$FIRST" || -z "$LAST" || -z "$BIRTH" ]]; then
+  echo "Usage: GetIndividualPerson <first> <middle> <last> <birth_YYYY-MM-DD> [goesBy]" >&2
+  exit 1
+fi
+
+# Duplicate check: first + last + birth date
+existing=$(sqlite_query_one "
+ SELECT ind.id
+ FROM Individual ind
+ JOIN Name n ON n.id = ind.name
+ LEFT JOIN Given g ON g.id = n.given
+ LEFT JOIN Family f ON f.id = n.family
+ WHERE g.value = '$(sql_escape "$FIRST")'
+  AND f.value = '$(sql_escape "$LAST")'
+  AND date(ind.birth) = date('$(sql_escape "$BIRTH")')
+ LIMIT 1;
+")
+if [[ -n "$existing" ]]; then
+  echo "$existing"
+  exit 0
+fi
+
+name_id=$(~/bin/sqlite/GetName "$FIRST" "$MIDDLE" "$LAST")
+goes_sql="NULL"
+if [[ -n "$GOESBY" ]]; then
+  goes_id=$(~/bin/sqlite/GetGiven "$GOESBY")
+  goes_sql=$(sql_int_or_null "$goes_id")
+fi
+
+individual_id=$(next_table_id Individual id)
+sqlite_run "
+ INSERT INTO Individual (id, name, goesBy, birth)
+ VALUES ($individual_id, $name_id, $goes_sql, '$(sql_escape "$BIRTH")');
+" >/dev/null
+
+echo "$individual_id"

@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+# Usage: SetIndividualAddress <individual_id> <address_id> [type_word]
+# Schema helper (soft-stop pattern; no PG procedure yet).
+
+source ~/bin/sqlite/common
+
+IND="${1:-}"
+ADDR="${2:-}"
+TYPE="${3-}"
+
+if [[ -z "$IND" || -z "$ADDR" ]]; then
+  echo "Usage: SetIndividualAddress <individual_id> <address_id> [type]" >&2
+  exit 1
+fi
+
+type_sql="NULL"
+if [[ -n "$TYPE" ]]; then
+  type_id=$(~/bin/sqlite/GetWord "$TYPE")
+  type_sql=$(sql_int_or_null "$type_id")
+fi
+
+exists=$(sqlite_query_one "
+ SELECT 1 FROM IndividualAddress
+ WHERE individual = $IND AND address = $ADDR
+  AND ((type = $type_sql) OR (type IS NULL AND $type_sql IS NULL))
+  AND stop IS NULL
+ LIMIT 1;
+")
+if [[ -z "$exists" ]]; then
+  sqlite_run "
+   INSERT INTO IndividualAddress (individual, address, type)
+   VALUES ($IND, $ADDR, $type_sql);
+  " >/dev/null
+fi
+
+sqlite_run "
+ UPDATE IndividualAddress
+ SET stop = datetime('now')
+ WHERE individual = $IND
+  AND address != $ADDR
+  AND stop IS NULL
+  AND ((type = $type_sql) OR (type IS NULL AND $type_sql IS NULL));
+" >/dev/null
+
+echo "$IND"

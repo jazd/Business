@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 # Usage: PutAssemblyPart <assembly_id> <part_id> [<designator>] [<quantity>]
+# Inserts when no matching row has stop IS NULL. If designator is set and another
+# active row differs in part or quantity, sets stop on those rows first.
 
 source ~/bin/sqlite/common
 
@@ -24,13 +26,11 @@ if ! [[ "$PART_ID" =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
-# Validate quantity if provided
 if [[ -n "$QUANTITY" ]] && ! [[ "$QUANTITY" =~ ^[0-9]+$ ]]; then
     echo "Error: quantity must be an integer if provided" >&2
     exit 1
 fi
 
-# Resolve designator word id (empty then NULL)
 designator_id=""
 if [[ -n "$DESIGNATOR" ]]; then
     designator_id=$(~/bin/sqlite/GetWord "$DESIGNATOR")
@@ -40,15 +40,42 @@ if [[ -n "$DESIGNATOR" ]]; then
     fi
 fi
 
-# Build safe SQL values
-designator_sql="${designator_id:-NULL}"
-quantity_sql="${QUANTITY:-NULL}"
+designator_sql=$(sql_int_or_null "$designator_id")
+quantity_sql=$(sql_int_or_null "$QUANTITY")
 
-# Insert only if this exact combination doesn't exist
-sqlite_run "
- INSERT OR IGNORE INTO AssemblyPart (assembly, part, designator, quantity)
- VALUES ($ASSEMBLY_ID, $PART_ID, $designator_sql, $quantity_sql);
-" >/dev/null
+# Same designator: set stop on other active rows when part/quantity differs
+if [[ -n "$designator_id" ]]; then
+  sqlite_run "
+   UPDATE AssemblyPart
+   SET stop = datetime('now')
+   WHERE assembly = $ASSEMBLY_ID
+    AND designator = $designator_id
+    AND stop IS NULL
+    AND (
+     part != $PART_ID
+     OR (
+      ($quantity_sql IS NULL AND quantity IS NOT NULL)
+      OR ($quantity_sql IS NOT NULL AND (quantity IS NULL OR quantity != $quantity_sql))
+     )
+    );
+  " >/dev/null
+fi
 
-# Success — no output (void)
+exists=$(sqlite_query_one "
+ SELECT 1 FROM AssemblyPart
+ WHERE assembly = $ASSEMBLY_ID
+  AND part = $PART_ID
+  AND ((designator = $designator_sql) OR (designator IS NULL AND $designator_sql IS NULL))
+  AND ((quantity = $quantity_sql) OR (quantity IS NULL AND $quantity_sql IS NULL))
+  AND stop IS NULL
+ LIMIT 1;
+")
+
+if [[ -z "$exists" ]]; then
+  sqlite_run "
+   INSERT INTO AssemblyPart (assembly, part, designator, quantity, stop)
+   VALUES ($ASSEMBLY_ID, $PART_ID, $designator_sql, $quantity_sql, NULL);
+  " >/dev/null
+fi
+
 exit 0

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Usage: GetJob <job_name>
+# Parity with PG GetJob (Schedule/Job names via Sentence).
+
+source ~/bin/sqlite/common
+
+NAME="${1:-}"
+if [[ -z "$NAME" ]]; then
+  echo ""
+  exit 0
+fi
+
+name_id=$(~/bin/sqlite/GetSentence "$NAME")
+if [[ -z "$name_id" ]]; then
+  echo ""
+  exit 0
+fi
+
+job_id=$(sqlite_query_one "SELECT job FROM JobName WHERE name = $name_id LIMIT 1;")
+if [[ -n "$job_id" ]]; then
+  echo "$job_id"
+  exit 0
+fi
+
+sqlite_run "INSERT INTO JobName (name) VALUES ($name_id);" >/dev/null
+sqlite_query_one "SELECT job FROM JobName WHERE name = $name_id LIMIT 1;"

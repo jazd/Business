@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# Usage: GetIdentifier <value>
+# Word row with culture IS NULL (bill reference types, DAG types, etc.)
+# Parity with PostgreSQL GetIdentifier in procedures.d/10-i18n.sql.
+
+source ~/bin/sqlite/common
+
+VALUE="${1:-}"
+
+if [[ -z "$VALUE" ]]; then
+  echo ""
+  exit 0
+fi
+
+VALUE_UPPER=$(echo "$VALUE" | tr '[:lower:]' '[:upper:]')
+escaped=$(sql_escape "$VALUE")
+
+ident_id=$(sqlite_query_one "
+ SELECT id FROM Word
+ WHERE UPPER(value) = '$VALUE_UPPER'
+  AND culture IS NULL
+ LIMIT 1;
+")
+
+if [[ -n "$ident_id" ]]; then
+  echo "$ident_id"
+  exit 0
+fi
+
+sqlite_run "
+ INSERT OR IGNORE INTO Word (value, culture)
+ SELECT '$escaped', NULL
+ WHERE NOT EXISTS (
+  SELECT 1 FROM Word WHERE UPPER(value) = '$VALUE_UPPER' AND culture IS NULL
+ );
+" >/dev/null
+
+sqlite_query_one "
+ SELECT id FROM Word
+ WHERE UPPER(value) = '$VALUE_UPPER'
+  AND culture IS NULL
+ LIMIT 1;
+"

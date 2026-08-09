@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+# Usage: MoveCargo <from_bill> <to_bill> [item_assembly|'' ] [count|'' ] [individual_job|'' ] [book|'']
+# Moves outstanding cargo (or one item) from from_bill to to_bill via AddCargo.
+# Parity with PG MoveCargo. Prints to_bill id.
+
+source ~/bin/sqlite/common
+
+FROM_BILL="${1:-}"
+TO_BILL="${2:-}"
+ITEM="${3-}"
+COUNT="${4-}"
+JOB="${5-}"
+BOOK="${6-}"
+
+if [[ -z "$FROM_BILL" || -z "$TO_BILL" ]]; then
+  echo "Usage: MoveCargo <from_bill> <to_bill> [item] [count] [job] [book]" >&2
+  exit 1
+fi
+
+job_arg="${JOB:-}"
+book_arg="${BOOK:-}"
+
+if [[ -z "$ITEM" || "$ITEM" == "NULL" || "$ITEM" == "null" ]]; then
+  # All remaining cargo lines
+  while IFS='|' read -r cargo_id assembly job_id journal_id entry_id outstanding; do
+    [[ -z "$cargo_id" ]] && continue
+    use_job="${job_arg:-$job_id}"
+    # AddCargo bill assembly count job fromCargo book
+    ~/bin/sqlite/AddCargo "$TO_BILL" "$assembly" "$outstanding" "${use_job:-}" "$cargo_id" "${book_arg:-}" >/dev/null
+  done < <(sqlite3 -separator '|' "$SQLITE_DB" "
+   SELECT c.id,
+    c.assembly,
+    c.individualJob,
+    c.journal,
+    c.entry,
+    SUM(COALESCE(c.count, 1)) - COALESCE((
+     SELECT SUM(COALESCE(cs.count, 1)) FROM CargoState cs WHERE cs.cargo = c.id
+    ), 0) AS outstanding
+   FROM Cargo c
+   WHERE c.bill = $FROM_BILL
+   GROUP BY c.id, c.assembly, c.individualJob, c.journal, c.entry
+   HAVING outstanding > 0;
+  ")
+else
+  # Single assembly item — count required if provided, else outstanding sum
+  if [[ -z "$COUNT" || "$COUNT" == "NULL" ]]; then
+    COUNT=$(sqlite_query_one "
+     SELECT SUM(COALESCE(c.count, 1)) - COALESCE((
+      SELECT SUM(COALESCE(cs.count, 1)) FROM CargoState cs WHERE cs.cargo = c.id
+     ), 0)
+     FROM Cargo c
+     WHERE c.bill = $FROM_BILL AND c.assembly = $ITEM
+     GROUP BY c.id
+     LIMIT 1;
+    ")
+  fi
+  while IFS='|' read -r cargo_id assembly job_id; do
+    [[ -z "$cargo_id" ]] && continue
+    use_job="${job_arg:-$job_id}"
+    ~/bin/sqlite/AddCargo "$TO_BILL" "$assembly" "$COUNT" "${use_job:-}" "$cargo_id" "${book_arg:-}" >/dev/null
+  done < <(sqlite3 -separator '|' "$SQLITE_DB" "
+   SELECT c.id, c.assembly, c.individualJob
+   FROM Cargo c
+   WHERE c.bill = $FROM_BILL AND c.assembly = $ITEM
+   GROUP BY c.id, c.assembly, c.individualJob
+   LIMIT 1;
+  ")
+fi
+
+echo "$TO_BILL"

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# Usage: BookBalance <book_name> <amount>
+# Runs Book then prints account balances for accounts touched (posted IS NULL).
+# Soft parity with PG BookBalance (tabular stdout).
+
+source ~/bin/sqlite/common
+
+BOOK_NAME="${1:-}"
+AMOUNT="${2:-}"
+
+if [[ -z "$BOOK_NAME" || -z "$AMOUNT" ]]; then
+  echo "Usage: BookBalance <book_name> <amount>" >&2
+  exit 1
+fi
+
+entry_id=$(~/bin/sqlite/Book "$BOOK_NAME" "$AMOUNT") || exit 1
+
+sqlite3 -header -column "$SQLITE_DB" "
+ SELECT
+  '$BOOK_NAME' AS book,
+  $entry_id AS entry,
+  t.account,
+  s.value AS name,
+  CASE WHEN NOT t.credit THEN t.amount END AS debit,
+  CASE WHEN t.credit THEN t.amount END AS credit
+ FROM JournalEntry t
+ JOIN AccountName an ON an.account = t.account
+ JOIN Sentence s ON s.id = an.name AND s.culture = 1033
+ WHERE t.entry = $entry_id;
+"
+echo "$entry_id"

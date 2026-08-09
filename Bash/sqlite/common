@@ -4,7 +4,8 @@
 
 set -euo pipefail
 
-: "${SQLITE_DB:=$HOME/data/business.sqlite3}"
+# Prefer live shop path used by /business-bookkeeper; override with SQLITE_DB anytime.
+: "${SQLITE_DB:=$HOME/business-shop/business.sqlite3}"
 
 sqlite_run() {
  local sql="$1"
@@ -20,4 +21,37 @@ sqlite_query_one() {
 sql_escape() {
  local s="$1"
  echo "${s//\'/''}"
+}
+
+# NULL-safe integer token for SQL (empty → NULL)
+sql_int_or_null() {
+ local v="${1:-}"
+ if [[ -z "$v" || "$v" == "NULL" || "$v" == "null" ]]; then
+  echo "NULL"
+ else
+  echo "$v"
+ fi
+}
+
+# NULL-safe string literal for SQL (empty → NULL)
+sql_str_or_null() {
+ local v="${1:-}"
+ if [[ -z "$v" || "$v" == "NULL" || "$v" == "null" ]]; then
+  echo "NULL"
+ else
+  echo "'$(sql_escape "$v")'"
+ fi
+}
+
+# Next free integer id for tables without AUTOINCREMENT (Cargo, IndividualJob, Individual)
+next_table_id() {
+ local table="$1"
+ local col="${2:-id}"
+ sqlite_query_one "SELECT COALESCE(MAX($col), 0) + 1 FROM $table;"
+}
+
+# Journal id for an entry (after Book / Post)
+journal_for_entry() {
+ local entry_id="$1"
+ sqlite_query_one "SELECT journal FROM JournalEntry WHERE entry = $entry_id LIMIT 1;"
 }

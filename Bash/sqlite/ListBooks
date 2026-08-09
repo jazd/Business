@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Usage: ListBooks
+# Seeded BookName labels (en-US culture 1033) for operator catalog.
+
+source ~/bin/sqlite/common
+
+sqlite3 -header -column "$SQLITE_DB" "
+ SELECT BookName.book AS id, Sentence.value AS name, JournalName.journal AS journal
+ FROM BookName
+ JOIN Sentence ON Sentence.id = BookName.name AND Sentence.culture = 1033
+ LEFT JOIN JournalName ON JournalName.journal = BookName.journal
+ ORDER BY BookName.book;
+"

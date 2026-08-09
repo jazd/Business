@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Usage: PutAssemblyJobPrice <assembly_part_id> <individual_job_id> <price>
+# INSERT into AssemblyIndividualJobPrice (wiki price schedule line).
+
+source ~/bin/sqlite/common
+
+ASM="${1:-}"
+IJ="${2:-}"
+PRICE="${3:-}"
+
+if [[ -z "$ASM" || -z "$IJ" || -z "$PRICE" ]]; then
+  echo "Usage: PutAssemblyJobPrice <assembly_id> <individual_job_id> <price>" >&2
+  exit 1
+fi
+
+if ! [[ "$PRICE" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  echo "Error: price must be numeric" >&2
+  exit 1
+fi
+
+sqlite_run "
+ INSERT INTO AssemblyIndividualJobPrice (assembly, individualJob, price)
+ VALUES ($ASM, $IJ, $PRICE);
+" >/dev/null
+
+echo "$IJ"

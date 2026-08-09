@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+
+# Usage: Book <book_name> <amount>
+# Parity with PostgreSQL Book(varchar, numeric) in procedures.d/90-accounting.sql.
+# Posts balanced JournalEntry lines for a named book (Rent, Sale, Equipment, Loan, Salary, …).
+# Prints: entry_id
+#
+# Named books come from static General Ledger (BookName / BookAccount).
+
+source ~/bin/sqlite/common
+
+BOOK_NAME="${1:-}"
+AMOUNT="${2:-}"
+
+if [[ -z "$BOOK_NAME" || -z "$AMOUNT" ]]; then
+  echo "Usage: Book <book_name> <amount>" >&2
+  exit 1
+fi
+
+if ! [[ "$AMOUNT" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  echo "Error: amount must be a non-negative number" >&2
+  exit 1
+fi
+
+esc_name=$(sql_escape "$BOOK_NAME")
+
+IFS='|' read -r book_id journal_id < <(sqlite3 "$SQLITE_DB" "
+ SELECT BookName.book, BookName.journal
+ FROM BookName
+ JOIN Sentence ON Sentence.id = BookName.name
+ WHERE UPPER(Sentence.value) = UPPER('$esc_name')
+ LIMIT 1;
+") || true
+
+if [[ -z "${book_id:-}" || -z "${journal_id:-}" ]]; then
+  echo "Error: unknown book '$BOOK_NAME'" >&2
+  exit 1
+fi
+
+entry_id=$(sqlite3 "$SQLITE_DB" "
+ INSERT INTO Entry (assemblyApplicationRelease, credential) VALUES (NULL, NULL);
+ SELECT last_insert_rowid();
+")
+
+if [[ -z "$entry_id" || "$entry_id" == "0" ]]; then
+  echo "Error: failed to create Entry" >&2
+  exit 1
+fi
+
+# Mirrors PG Book() four-way UNION over Books view multipliers:
+# increaseCreditIncrease = 1 when account.credit, increaseDebitIncrease when NOT credit
+# decreaseCreditDecrease = 1 when NOT account.credit, decreaseDebitDecrease when credit
+# credit flag on insert: NOT account.credit | account.credit per branch (see 90-accounting.sql)
+sqlite3 "$SQLITE_DB" "
+INSERT INTO JournalEntry (journal, book, entry, account, credit, amount)
+SELECT $journal_id, $book_id, $entry_id, account, credit, amount
+FROM (
+  -- increase: amount * creditIncrease; credit flag = NOT account.credit
+  SELECT
+    ba.increase AS account,
+    CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 0 ELSE 1 END AS credit,
+    ($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+  FROM BookAccount ba
+  LEFT JOIN AccountName inc ON inc.account = ba.increase
+  WHERE ba.book = $book_id AND (ba.stop IS NULL)
+    AND ba.increase IS NOT NULL
+
+  UNION ALL
+
+  -- increase: amount * debitIncrease; credit flag = account.credit
+  SELECT
+    ba.increase AS account,
+    CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 ELSE 0 END AS credit,
+    ($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+  FROM BookAccount ba
+  LEFT JOIN AccountName inc ON inc.account = ba.increase
+  WHERE ba.book = $book_id AND (ba.stop IS NULL)
+    AND ba.increase IS NOT NULL
+
+  UNION ALL
+
+  -- decrease: amount * creditDecrease; credit flag = NOT account.credit
+  SELECT
+    ba.decrease AS account,
+    CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 0 ELSE 1 END AS credit,
+    ($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+  FROM BookAccount ba
+  LEFT JOIN AccountName dec ON dec.account = ba.decrease
+  WHERE ba.book = $book_id AND (ba.stop IS NULL)
+    AND ba.decrease IS NOT NULL
+
+  UNION ALL
+
+  -- decrease: amount * debitDecrease; credit flag = account.credit
+  SELECT
+    ba.decrease AS account,
+    CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 ELSE 0 END AS credit,
+    ($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+  FROM BookAccount ba
+  LEFT JOIN AccountName dec ON dec.account = ba.decrease
+  WHERE ba.book = $book_id AND (ba.stop IS NULL)
+    AND ba.decrease IS NOT NULL
+) AS lines
+WHERE amount IS NOT NULL;
+"
+
+# Verify rows landed
+n=$(sqlite_query_one "SELECT COUNT(*) FROM JournalEntry WHERE entry = $entry_id;")
+if [[ "${n:-0}" -lt 1 ]]; then
+  echo "Error: Book produced no journal lines for '$BOOK_NAME' $AMOUNT" >&2
+  exit 1
+fi
+
+echo "$entry_id"

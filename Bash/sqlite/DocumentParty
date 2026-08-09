@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+# Usage: DocumentParty <individual_id>
+# Party name + active emails/phones/addresses for invoice header.
+
+source ~/bin/sqlite/common
+
+IND="${1:-}"
+if [[ -z "$IND" ]]; then
+  echo "Usage: DocumentParty <individual_id>" >&2
+  exit 1
+fi
+
+echo "=== Party $IND ==="
+sqlite3 -header -column "$SQLITE_DB" "
+ SELECT id,
+  (SELECT Entity.name FROM Entity WHERE Entity.id = Individual.entity) AS entity,
+  (SELECT g.value FROM Name n LEFT JOIN Given g ON g.id = n.given WHERE n.id = Individual.name) AS given,
+  (SELECT f.value FROM Name n LEFT JOIN Family f ON f.id = n.family WHERE n.id = Individual.name) AS family
+ FROM Individual WHERE id = $IND;
+"
+
+echo
+echo "=== Emails ==="
+sqlite3 -header -column "$SQLITE_DB" "
+ SELECT e.username || CASE WHEN e.plus IS NOT NULL THEN '+' || e.plus ELSE '' END || '@' || e.host AS email,
+  w.value AS type
+ FROM IndividualEmail ie
+ JOIN Email e ON e.id = ie.email
+ LEFT JOIN Word w ON w.id = ie.type
+ WHERE ie.individual = $IND AND ie.stop IS NULL;
+"
+
+echo
+echo "=== Phones ==="
+sqlite3 -header -column "$SQLITE_DB" "
+ SELECT p.local, p.international, w.value AS type
+ FROM IndividualPhone ip
+ JOIN Phones p ON p.phone = ip.phone
+ LEFT JOIN Word w ON w.id = ip.type
+ WHERE ip.individual = $IND AND ip.stop IS NULL;
+" 2>/dev/null || sqlite3 -header -column "$SQLITE_DB" "
+ SELECT ph.area || '-' || ph.number AS phone, w.value AS type
+ FROM IndividualPhone ip
+ JOIN Phone ph ON ph.id = ip.phone
+ LEFT JOIN Word w ON w.id = ip.type
+ WHERE ip.individual = $IND AND ip.stop IS NULL;
+"
+
+echo
+echo "=== Addresses ==="
+sqlite3 -header -column "$SQLITE_DB" "
+ SELECT a.line1, a.city, a.state, a.zipcode, a.countryCode, w.value AS type
+ FROM IndividualAddress ia
+ JOIN Addresses a ON a.address = ia.address
+ LEFT JOIN Word w ON w.id = ia.type
+ WHERE ia.individual = $IND AND ia.stop IS NULL;
+" 2>/dev/null || true

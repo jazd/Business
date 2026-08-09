@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+# Usage:
+#   RemoveAssemblyPart <assembly_id>
+#   RemoveAssemblyPart <assembly_id> <part_id>
+#   RemoveAssemblyPart <assembly_id> <part_id> <designator>
+#   RemoveAssemblyPart <assembly_id> '' <designator>
+# Sets AssemblyPart.stop = now on matching rows where stop IS NULL.
+
+source ~/bin/sqlite/common
+
+ASSEMBLY_ID="${1:-}"
+PART_ARG="${2-}"
+DESIGNATOR="${3-}"
+
+if [[ -z "$ASSEMBLY_ID" ]] || ! [[ "$ASSEMBLY_ID" =~ ^[0-9]+$ ]]; then
+  echo "Usage: RemoveAssemblyPart <assembly_id> [<part_id>] [<designator>]" >&2
+  exit 1
+fi
+
+part_clause="1=1"
+if [[ -n "$PART_ARG" && "$PART_ARG" != "NULL" && "$PART_ARG" != "null" && "$PART_ARG" != "" ]]; then
+  if ! [[ "$PART_ARG" =~ ^[0-9]+$ ]]; then
+    echo "Error: part_id must be an integer" >&2
+    exit 1
+  fi
+  part_clause="part = $PART_ARG"
+fi
+
+des_clause="1=1"
+if [[ -n "$DESIGNATOR" && "$DESIGNATOR" != "NULL" && "$DESIGNATOR" != "null" ]]; then
+  designator_id=$(~/bin/sqlite/GetWord "$DESIGNATOR")
+  if [[ -z "$designator_id" ]]; then
+    echo "Error: Could not resolve designator '$DESIGNATOR'" >&2
+    exit 1
+  fi
+  des_clause="designator = $designator_id"
+fi
+
+sqlite_run "
+ UPDATE AssemblyPart
+ SET stop = datetime('now')
+ WHERE assembly = $ASSEMBLY_ID
+  AND stop IS NULL
+  AND ($part_clause)
+  AND ($des_clause);
+" >/dev/null
+
+exit 0

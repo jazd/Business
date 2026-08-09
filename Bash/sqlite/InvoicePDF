@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# Usage: InvoicePDF <bill_id> [output.pdf]
+# QuickBooks-style invoice PDF from Bills + LineItems (+ party contacts).
+# Default: ~/business-shop/invoices/invoice-<bill_id>.pdf
+#
+# Requires: python3 + reportlab, SQLITE_DB pointing at shop DB.
+
+source ~/bin/sqlite/common
+
+BILL="${1:-}"
+OUT="${2-}"
+
+if [[ -z "$BILL" ]]; then
+  echo "Usage: InvoicePDF <bill_id> [output.pdf]" >&2
+  exit 1
+fi
+
+# Locate repo scripts/ relative to this file or common paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PY="$REPO_ROOT/scripts/invoice_pdf.py"
+if [[ ! -f "$PY" ]]; then
+  PY="$(dirname "$SQLITE_DB")/../sandbox/Business/scripts/invoice_pdf.py"
+fi
+if [[ ! -f "$PY" ]]; then
+  # walk from cwd
+  if [[ -f ./scripts/invoice_pdf.py ]]; then
+    PY=./scripts/invoice_pdf.py
+  fi
+fi
+if [[ ! -f "$PY" ]]; then
+  echo "Error: cannot find scripts/invoice_pdf.py" >&2
+  exit 1
+fi
+
+export SQLITE_DB
+if [[ -n "$OUT" ]]; then
+  exec python3 "$PY" "$BILL" "$OUT"
+else
+  exec python3 "$PY" "$BILL"
+fi

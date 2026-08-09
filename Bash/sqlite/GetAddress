@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+# Usage: GetAddress <street> <zipcode> [postal_plus4]
+# Requires an existing Postal row for zip (use GetPostal full form first if empty).
+# Parity with PG GetAddress(street, zip, plus).
+
+source ~/bin/sqlite/common
+
+STREET="${1:-}"
+ZIP="${2:-}"
+PLUS="${3-}"
+
+if [[ -z "$STREET" || -z "$ZIP" ]]; then
+  echo "Usage: GetAddress <street> <zipcode> [postal_plus4]" >&2
+  exit 1
+fi
+
+zip_id=$(~/bin/sqlite/GetPostal "$ZIP")
+if [[ -z "$zip_id" ]]; then
+  echo "Error: no Postal for zip '$ZIP' — run GetPostal <country> <zip> <city> <state_abbr> <state> first" >&2
+  exit 1
+fi
+
+esc_street=$(sql_escape "$STREET")
+STREET_UPPER=$(echo "$STREET" | tr '[:lower:]' '[:upper:]')
+plus_sql=$(sql_str_or_null "$PLUS")
+
+address_id=$(sqlite_query_one "
+ SELECT id FROM Address
+ WHERE postal = $zip_id
+  AND ((postalPlus = $plus_sql) OR (postalPlus IS NULL AND $plus_sql IS NULL))
+  AND UPPER(line1) = '$STREET_UPPER'
+  AND line2 IS NULL AND line3 IS NULL AND line4 IS NULL
+ ORDER BY location
+ LIMIT 1;
+")
+if [[ -n "$address_id" ]]; then
+  echo "$address_id"
+  exit 0
+fi
+
+sqlite_run "
+ INSERT INTO Address (line1, postal, postalPlus)
+ VALUES ('$esc_street', $zip_id, $plus_sql);
+" >/dev/null
+
+sqlite_query_one "
+ SELECT id FROM Address
+ WHERE postal = $zip_id
+  AND ((postalPlus = $plus_sql) OR (postalPlus IS NULL AND $plus_sql IS NULL))
+  AND UPPER(line1) = '$STREET_UPPER'
+  AND line2 IS NULL AND line3 IS NULL AND line4 IS NULL
+ ORDER BY location
+ LIMIT 1;
+"

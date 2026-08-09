@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+# Usage: GetIndividualJobSchedule <individual_id> <job_id> <schedule_id>
+# Find-or-insert active IndividualJob. Parity with PG (uses inSchedule, not the PG typo).
+
+source ~/bin/sqlite/common
+
+IND="${1:-}"
+JOB="${2:-}"
+SCH="${3:-}"
+
+if [[ -z "$JOB" ]]; then
+  echo "Usage: GetIndividualJobSchedule <individual_id|''> <job_id> <schedule_id|''>" >&2
+  exit 1
+fi
+
+ind_sql=$(sql_int_or_null "$IND")
+sch_sql=$(sql_int_or_null "$SCH")
+
+ij=$(sqlite_query_one "
+ SELECT id FROM IndividualJob
+ WHERE ((individual = $ind_sql) OR (individual IS NULL AND $ind_sql IS NULL))
+  AND job = $JOB
+  AND ((schedule = $sch_sql) OR (schedule IS NULL AND $sch_sql IS NULL))
+  AND stop IS NULL
+ LIMIT 1;
+")
+if [[ -n "$ij" ]]; then
+  echo "$ij"
+  exit 0
+fi
+
+ij=$(next_table_id IndividualJob id)
+sqlite_run "
+ INSERT INTO IndividualJob (id, individual, job, schedule)
+ VALUES ($ij, $ind_sql, $JOB, $sch_sql);
+" >/dev/null
+echo "$ij"

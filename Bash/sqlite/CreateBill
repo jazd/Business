@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# Usage: CreateBill <supplier_id> <consignee_id> <type_word> [parent_bill_id]
+# Returns: bill id. Parity with PG CreateBill.
+
+source ~/bin/sqlite/common
+
+SUP="${1:-}"
+CON="${2:-}"
+TYPE="${3:-}"
+PARENT="${4-}"
+
+if [[ -z "$SUP" || -z "$CON" || -z "$TYPE" ]]; then
+  echo "Usage: CreateBill <supplier_id> <consignee_id> <type> [parent_bill_id]" >&2
+  exit 1
+fi
+
+type_id=$(~/bin/sqlite/GetWord "$TYPE")
+if [[ -z "$type_id" ]]; then
+  echo "Error: could not resolve bill type '$TYPE'" >&2
+  exit 1
+fi
+
+parent_sql=$(sql_int_or_null "$PARENT")
+
+bill_id=$(sqlite3 "$SQLITE_DB" "
+ INSERT INTO Bill (supplier, consignee, type, parent)
+ VALUES ($SUP, $CON, $type_id, $parent_sql);
+ SELECT last_insert_rowid();
+")
+
+echo "$bill_id"
