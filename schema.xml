@@ -619,15 +619,19 @@
 </table>
 
 <table name="AssemblyPart" order="130">
-<comments>untested</comments>
+<comments>BOM line: assembly hosts child part at designator.</comments>
 <fields>
  <field name="assembly" data_type="integer" size="" is_nullable="1" order="1" />
  <field name="part" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="designator" data_type="integer" size="" is_nullable="1" order="3" />
  <field name="quantity" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="5">
+  <comments>No longer associate this record with the assembly BOM. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <constraints>
- <constraint name="assemplypart_assembly" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" deferrable="1" />
+ <constraint name="assemblypart_assembly" type="FOREIGN KEY" fields="assembly" reference_table="Part" reference_fields="id" deferrable="1" />
  <constraint name="assemblypart_part" type="FOREIGN KEY" fields="part" reference_table="Part" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="designator" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
 </constraints>
@@ -2437,6 +2441,8 @@ LEFT JOIN Versions ON Versions.version = Part.version
   </sql>
  </view>
 
+ <!-- Assemblies: distinct assembly from any AssemblyPart row.
+      AssemblyParts: rows with stop IS NULL only. -->
  <view name="Assemblies" fields="assembly, parentName, name, version, versionName, serial">
   <sql>
 SELECT DISTINCT AssemblyPart.assembly, Parent.name AS parentName,
@@ -2464,6 +2470,7 @@ JOIN Parts AS Assemblies ON Assemblies.part = AssemblyPart.assembly
 JOIN Parts AS Parent ON Parent.part = Assemblies.parent
 JOIN Parts AS Parts ON parts.part = AssemblyPart.part
 LEFT JOIN I18NWord AS Designator ON Designator.id = AssemblyPart.designator
+WHERE AssemblyPart.stop IS NULL
   </sql>
  </view>
 
@@ -3065,6 +3072,121 @@ GROUP BY
  CargoStateSum.count
    </sql>
  </view>
+
+ <!-- BillDocuments, InvoiceLineDetail, PartyAddresses, PartyPhones, BillReferences -->
+ <view name="BillDocuments" fields="bill,documentType,documentDate,supplier,supplierName,consignee,consigneeName,source,sourceType,parent,parentType,subtotal,invoiceNumber" order="31">
+   <sql>
+SELECT
+ Bill.id AS bill,
+ Type.value AS documentType,
+ DATE(Bill.created) AS documentDate,
+ Bill.supplier,
+ COALESCE(SupplierEnt.name, SupplierPeople.fullName) AS supplierName,
+ Bill.consignee,
+ COALESCE(ConsigneeEnt.name, ConsigneePeople.fullName) AS consigneeName,
+ Source.id AS source,
+ SourceType.value AS sourceType,
+ Parent.id AS parent,
+ ParentType.value AS parentType,
+ (
+  SELECT COALESCE(SUM(li.totalPrice), 0)
+  FROM LineItems li
+  WHERE li.bill = Bill.id
+ ) AS subtotal,
+ !apos;INV-!apos; || CAST(Bill.id AS varchar(20)) AS invoiceNumber
+FROM Bill
+JOIN I18NWord AS Type ON Type.id = Bill.type
+LEFT JOIN Entities AS SupplierEnt ON SupplierEnt.individual = Bill.supplier
+LEFT JOIN People AS SupplierPeople ON SupplierPeople.individual = Bill.supplier
+LEFT JOIN Entities AS ConsigneeEnt ON ConsigneeEnt.individual = Bill.consignee
+LEFT JOIN People AS ConsigneePeople ON ConsigneePeople.individual = Bill.consignee
+LEFT JOIN Bill AS Source ON Source.id = Bill.source
+LEFT JOIN I18NWord AS SourceType ON SourceType.id = Source.type
+LEFT JOIN Bill AS Parent ON Parent.id = Bill.parent
+LEFT JOIN I18NWord AS ParentType ON ParentType.id = Parent.type
+WHERE Type.value IN (
+ !apos;Wish!apos;, !apos;Cart!apos;, !apos;Quote!apos;, !apos;Order!apos;,
+ !apos;Invoice!apos;, !apos;Receipt!apos;
+)
+ AND COALESCE(SupplierEnt.name, SupplierPeople.fullName) IS NOT NULL
+ AND COALESCE(ConsigneeEnt.name, ConsigneePeople.fullName) IS NOT NULL
+   </sql>
+ </view>
+
+ <view name="InvoiceLineDetail" fields="bill,line,product,description,qty,rate,currentUnitPrice,amount,outstanding,typeName,supplierName,consigneeName" order="32">
+   <sql>
+SELECT
+ li.bill,
+ li.line,
+ li.item AS product,
+ li.version AS description,
+ COALESCE(li.count, 1) AS qty,
+ li.unitPrice AS rate,
+ li.currentUnitPrice,
+ li.totalPrice AS amount,
+ li.outstanding,
+ li.typeName,
+ li.supplierName,
+ li.consigneeName
+FROM LineItems li
+   </sql>
+ </view>
+
+ <view name="PartyAddresses" fields="individual,addressType,address,line1,line2,line3,city,state,zipcode,postalcode,countrycode,created" order="33">
+   <sql>
+SELECT
+ ia.individual,
+ Type.value AS addressType,
+ a.address,
+ a.line1,
+ a.line2,
+ a.line3,
+ a.city,
+ a.state,
+ a.zipcode,
+ a.postalcode,
+ a.countrycode,
+ ia.created
+FROM IndividualAddress ia
+JOIN Addresses a ON a.address = ia.address
+LEFT JOIN I18NWord AS Type ON Type.id = ia.type
+WHERE ia.stop IS NULL
+   </sql>
+ </view>
+
+ <view name="PartyPhones" fields="individual,phoneType,phone,local,international,created" order="34">
+   <sql>
+SELECT
+ ip.individual,
+ Type.value AS phoneType,
+ p.phone,
+ p.local,
+ p.international,
+ ip.created
+FROM IndividualPhone ip
+JOIN Phones p ON p.phone = ip.phone
+LEFT JOIN I18NWord AS Type ON Type.id = ip.type
+WHERE ip.stop IS NULL
+   </sql>
+ </view>
+
+ <view name="BillReferences" fields="id,bill,referenceType,value,sequence,created" order="35">
+   <sql>
+SELECT
+ br.id,
+ br.bill,
+ COALESCE(RefIdent.value, RefWord.value) AS referenceType,
+ br.value,
+ br.sequence,
+ br.created
+FROM BillReference br
+LEFT JOIN Word AS RefIdent ON RefIdent.id = br.type
+ AND RefIdent.culture IS NULL
+LEFT JOIN I18NWord AS RefWord ON RefWord.id = br.type
+WHERE br.stop IS NULL
+   </sql>
+ </view>
+
  <view name="CAs" fields="id, parent, name, owner">
    <sql>
 SELECT CA.id,

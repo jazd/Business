@@ -909,7 +909,66 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Used in other GetAssembly functions
+-- RemoveAssemblyPart: sets stop on matching AssemblyPart rows where stop IS NULL.
+--   (assembly) — all active lines for assembly
+--   (assembly, part) — all active lines for part on assembly
+--   (assembly, part, designator) — designator filter; part NULL = any part
+CREATE OR REPLACE FUNCTION RemoveAssemblyPart (
+ inAssembly integer,
+ inPart integer,
+ inDesignator varchar
+) RETURNS void AS $$
+DECLARE
+ designator_id integer;
+ filter_designator boolean := false;
+BEGIN
+ IF inAssembly IS NULL THEN
+  RETURN;
+ END IF;
+ IF inDesignator IS NOT NULL AND btrim(inDesignator) <> '' THEN
+  filter_designator := true;
+  designator_id := GetWord(inDesignator);
+ END IF;
+ PERFORM pg_advisory_lock(inAssembly);
+ BEGIN
+  UPDATE AssemblyPart
+  SET stop = NOW()
+  WHERE assembly = inAssembly
+   AND stop IS NULL
+   AND (inPart IS NULL OR part = inPart)
+   AND (
+    NOT filter_designator
+    OR designator = designator_id
+   );
+  PERFORM pg_advisory_unlock(inAssembly);
+ EXCEPTION
+  WHEN OTHERS THEN
+   PERFORM pg_advisory_unlock(inAssembly);
+   RAISE;
+ END;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION RemoveAssemblyPart (
+ inAssembly integer,
+ inPart integer
+) RETURNS void AS $$
+BEGIN
+ PERFORM RemoveAssemblyPart(inAssembly, inPart, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION RemoveAssemblyPart (
+ inAssembly integer
+) RETURNS void AS $$
+BEGIN
+ PERFORM RemoveAssemblyPart(inAssembly, NULL, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
+-- PutAssemblyPart: insert active AssemblyPart row (stop IS NULL).
+-- When designator is set, sets stop on other active rows for that assembly+designator
+-- if part or quantity differs.
 CREATE OR REPLACE FUNCTION PutAssemblyPart (
  inAssembly integer,
  inPart integer,
@@ -918,11 +977,23 @@ CREATE OR REPLACE FUNCTION PutAssemblyPart (
 ) RETURNS void AS $$
 DECLARE designator_id integer;
 BEGIN
- IF inAssembly IS NOT NULL THEN
+ IF inAssembly IS NOT NULL AND inPart IS NOT NULL THEN
   designator_id := GetWord(inDesignator);
   -- Be sure to process any single assembly one at a time without the need of a transaction or locking AssemblyPart table
   PERFORM pg_advisory_lock(inAssembly);
   BEGIN
+  IF designator_id IS NOT NULL THEN
+   UPDATE AssemblyPart
+   SET stop = NOW()
+   WHERE assembly = inAssembly
+    AND designator = designator_id
+    AND stop IS NULL
+    AND (
+     part IS DISTINCT FROM inPart
+     OR quantity IS DISTINCT FROM inQuantity
+    );
+  END IF;
+
   INSERT INTO AssemblyPart (assembly, part, designator, quantity) (
    SELECT inAssembly, inPart, designator_id, inQuantity
    FROM Dual
@@ -930,6 +1001,7 @@ BEGIN
     AND exists.part = inPart
     AND ((exists.designator = designator_id) OR (exists.designator IS NULL AND designator_id IS NULL))
     AND ((exists.quantity = inQuantity) OR (exists.quantity IS NULL AND inQuantity IS NULL))
+    AND exists.stop IS NULL
    WHERE exists.assembly IS NULL
    LIMIT 1
   );

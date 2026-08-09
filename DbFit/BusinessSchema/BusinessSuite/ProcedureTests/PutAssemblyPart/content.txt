@@ -1,0 +1,41 @@
+PutAssemblyPart / RemoveAssemblyPart
+
+AssemblyParts lists rows with stop IS NULL. PutAssemblyPart on a designator with a different part sets stop on the previous active row.
+
+!|Execute|SELECT GetPart('Module')|
+!|Execute|SELECT GetPartWithParent('Arduino Nano', 'v3.x', 'Module', 'Micro Controller')|
+!|Execute|SELECT GetPartWithParent('ESP32', 'v1', 'Module', 'Micro Controller')|
+!|Execute|SELECT GetPart('PCB')|
+!|Execute|SELECT GetPartWithParentVersion('AlarmStop', GetVersionName('Demo', '9', '0', '0'), 'PBC', GetVersionName('Demo'))|
+
+!|Execute|SELECT PutAssemblyPart(GetPart('AlarmStop', GetVersionName('Demo', '9', '0', '0')), GetPart('Arduino Nano', GetVersionName('v3.x')), 'U1', NULL)|
+
+!|Ordered Query|SELECT designator, partname FROM AssemblyParts WHERE assemblyname = 'AlarmStop' ORDER BY designator|
+| designator | partname     |
+| U1         | Arduino Nano |
+
+Put ESP32 on U1 (prior Arduino row gets stop set)
+!|Execute|SELECT PutAssemblyPart(GetPart('AlarmStop', GetVersionName('Demo', '9', '0', '0')), GetPart('ESP32', GetVersionName('v1')), 'U1', NULL)|
+
+!|Ordered Query|SELECT designator, partname FROM AssemblyParts WHERE assemblyname = 'AlarmStop' ORDER BY designator|
+| designator | partname |
+| U1         | ESP32    |
+
+Assemblies still lists host when only stopped history remains
+!|Query|SELECT COUNT(*) AS n FROM Assemblies WHERE name = 'AlarmStop'|
+| n |
+| 1 |
+
+RemoveAssemblyPart sets stop on the active U1 line
+!|Execute|SELECT RemoveAssemblyPart(GetPart('AlarmStop', GetVersionName('Demo', '9', '0', '0')), GetPart('ESP32', GetVersionName('v1')), 'U1')|
+
+!|Query|SELECT COUNT(*) AS n FROM AssemblyParts WHERE assemblyname = 'AlarmStop'|
+| n |
+| 0 |
+
+PutAssemblyPart after stop creates a new active row
+!|Execute|SELECT PutAssemblyPart(GetPart('AlarmStop', GetVersionName('Demo', '9', '0', '0')), GetPart('ESP32', GetVersionName('v1')), 'U1', NULL)|
+
+!|Ordered Query|SELECT designator, partname FROM AssemblyParts WHERE assemblyname = 'AlarmStop' ORDER BY designator|
+| designator | partname |
+| U1         | ESP32    |
