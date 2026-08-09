@@ -1,4 +1,4 @@
-# Getting started — Business schema + Grok Build
+# Getting started - Business schema + Grok Build
 
 This guide is for people who are **new to this schema** and **new to Grok Build**.  
 Goal: clone (or open a release), launch Grok, and start recording **customers, quotes, invoices, inventory-style bills, books, and lists** with Grok as your clerk and bookkeeper.
@@ -14,7 +14,7 @@ beyond clone + open Grok is fine.
 
 1. **Clone or open** this repository (or a release unpack that includes `business.sqlite3` and `.grok/skills/business-bookkeeper/`).
 2. **Launch Grok Build** with that folder as the workspace.
-3. Run **`/business-bookkeeper`** (or just ask business questions — the skill should auto-apply when relevant).
+3. Run **`/business-bookkeeper`** (or just ask business questions - the skill should auto-apply when relevant).
 4. Start talking, e.g.  
    *“My company is Acme Widgets. Customer City Library. Quote them 2 Bunny at 14.99.”*
 
@@ -42,8 +42,8 @@ Existing live files are **not** overwritten by bootstrap.
 
 | Piece | What it is |
 |-------|------------|
-| **Business schema** | A history-friendly (“NoCRUD”) SQL model: people/companies, parts, bills (wish → cart → quote → order → invoice → receipt), double-entry books, email lists, and more |
-| **`business.sqlite3`** | Ready-made SQLite template (schema + **Static/** seeds + GeoNames postal sample + wiki addresses/ledger) — Grok copies this to your live shop path. Rebuild: `make rebuild-business-sqlite3` |
+| **Business schema** | A history-friendly (“NoCRUD”) SQL model: people/companies, parts, bills (wish -> cart -> quote -> order -> invoice -> receipt), double-entry books, email lists, and more |
+| **`business.sqlite3`** | Ready-made SQLite template (schema + **Static/** seeds + GeoNames postal sample + wiki addresses/ledger) - Grok copies this to your live shop path. Rebuild: `make rebuild-business-sqlite3` |
 | **Grok skill `business-bookkeeper`** | Instructions so Grok Build uses the schema the intended way |
 | **`Bash/sqlite/` scripts** | Command-line helpers for common Get/Put operations against SQLite |
 | **Wiki** | Human docs and examples: [Business wiki](https://github.com/jazd/Business/wiki) |
@@ -105,12 +105,12 @@ Show the journal report.
 | Demo | File |
 |------|------|
 | Wikipedia books (Rent/Sale/… journal) | [`docs/grok-build-bookkeeper-demo.gif`](./docs/grok-build-bookkeeper-demo.gif) |
-| Parts → order → invoice PDF → pay | [`docs/grok-build-invoice-commerce-demo.gif`](./docs/grok-build-invoice-commerce-demo.gif) |
+| Parts -> order -> invoice PDF -> pay | [`docs/grok-build-invoice-commerce-demo.gif`](./docs/grok-build-invoice-commerce-demo.gif) |
 
 Rebuild commerce GIF: `python3 scripts/build_invoice_commerce_demo_gif.py`
 
 Short **books** script based on Wikipedia  
-[Debits and credits — Further examples](https://en.wikipedia.org/wiki/Debits_and_credits#Further_examples):
+[Debits and credits - Further examples](https://en.wikipedia.org/wiki/Debits_and_credits#Further_examples):
 
 ```text
 /business-bookkeeper
@@ -119,7 +119,7 @@ We received $50 cash for a sale.
 We bought $5200 of equipment with cash.
 We borrowed $11000 cash as a loan.
 We paid $5000 in salaries with cash.
-Show me the journal report — do debits equal credits?
+Show me the journal report - do debits equal credits?
 Now in Spanish.
 Now in French.
 ```
@@ -133,11 +133,11 @@ City Library orders 3 Widget-A at 12.50 and 1 Gadget-B at 49.
 Turn the cart into a quote, order, and invoice.
 Create a PDF invoice.
 Record full payment (receipt / AR Payment).
-Show the journal — sales and cash.
+Show the journal - sales and cash.
 ```
 
 Invoice PDF **limitations** (tax $0, no logo, no email-send, …) are listed in  
-`.grok/skills/business-bookkeeper/references/document-recipes.md` — fill gaps when someone needs them.
+`.grok/skills/business-bookkeeper/references/document-recipes.md` - fill gaps when someone needs them.
 
 Expected: **Total** debit **21350** / credit **21350** (balanced books), then the same totals with Spanish and French account/type names (wiki Accounting I18N).
 
@@ -152,14 +152,14 @@ Expected: **Total** debit **21350** / credit **21350** (balanced books), then th
 - **Get\*** helpers mean “give me the id; insert if missing.”
 - **Views** (e.g. `LineItems`, `JournalReport`) are the normal way to **read**.
 
-You and Grok should not “UPDATE the invoice line to fix a price” casually — use the quote/invoice/cargo patterns from the wiki.
+You and Grok should not “UPDATE the invoice line to fix a price” casually - use the quote/invoice/cargo patterns from the wiki.
 
 ### Commerce chain (sales paperwork)
 
 From the wiki inventory examples:
 
 ```text
-Wish → Cart → Quote → Order → Invoice → Receipt (payment)
+Wish -> Cart -> Quote -> Order -> Invoice -> Receipt (payment)
 ```
 
 Cargo (line items) **moves** down the chain with `MoveCargoToChild`. Parent lines show `outstanding` falling to zero as children take the quantity.
@@ -171,14 +171,14 @@ Sales books on that path (wiki): **AR Sale** when order cargo is booked, **AR Pa
 Hardware / product shops also use the **Parts** wiki section:
 
 ```text
-GetPart categories → GetPartWithParent SKUs → PutAssemblyPart (BOM designators)
-  → GetPartbySerial (physical unit) → PutAssemblyPart (serial children)
+GetPart categories -> GetPartWithParent SKUs -> PutAssemblyPart (BOM designators)
+  -> GetPartbySerial (physical unit) -> PutAssemblyPart (serial children)
 ```
 
 Read with views `Parts`, `Assemblies`, `AssemblyParts`. Skill deep dive:  
 `.grok/skills/business-bookkeeper/references/inventory-bom-builds.md`.
 
-Ship / bill of lading headings in the wiki are still stubs — track fulfilment via Order/Invoice cargo for now.
+Ship / bill of lading headings in the wiki are still stubs - track fulfilment via Order/Invoice cargo for now.
 
 ### Accounting
 
@@ -216,7 +216,7 @@ Full agent rules:
 `.grok/skills/business-bookkeeper/SKILL.md`
 
 Worked SQL examples:  
-[Business wiki — Examples](https://github.com/jazd/Business/wiki/Examples)
+[Business wiki - Examples](https://github.com/jazd/Business/wiki/Examples)
 
 ---
 
@@ -239,14 +239,14 @@ This schema is **NoCRUD**: normal operations **append history** (and often set
 (another book entry, soft-stop a price, unsubscribe, etc.) without erasing the past.
 
 For a solo shop, **file snapshots** are still the easy “go back to 10 minutes
-ago” tool—especially after experiments or CSV imports.
+ago” tool-especially after experiments or CSV imports.
 
 ### Layout
 
 ```text
 ~/business-shop/
   business.sqlite3                 # live books
-  business.sqlite3.pristine-0.2.9  # release template restore (optional)
+  business.sqlite3.pristine-0.2.10  # release template restore (optional)
   snapshots/
     20260805-141502-session-start.sqlite3
     20260805-142230-pre-csv.sqlite3
@@ -269,13 +269,13 @@ sqlite3 "$SQLITE_DB" ".backup '$SNAP_DIR/${STAMP}-${LABEL}.sqlite3'"
 cp -a "$SNAP_DIR/${STAMP}-${LABEL}.sqlite3" "$SQLITE_DB"
 ```
 
-- **Session start / before risky batches / periodic milestones** → snapshot.  
+- **Session start / before risky batches / periodic milestones** -> snapshot.  
 - **Logical undo** when you want the ledger history kept.  
 - **Snapshot restore** when you want to drop a whole batch.  
 - Never overwrite the **repo** pristine `business.sqlite3` with shop data.
 
 - Keep the release `business.sqlite3` as a **template**; day-to-day work should use **your copy** under `~/business-shop/`.
-- Alpha: upgrade paths and schema may change between releases — read release notes.
+- Alpha: upgrade paths and schema may change between releases - read release notes.
 
 ---
 
@@ -289,7 +289,7 @@ cp -a "$SNAP_DIR/${STAMP}-${LABEL}.sqlite3" "$SQLITE_DB"
 | PostgreSQL server install | `README.md`, `make pgsqldb` (Static + GeoNames postal + procedures) |
 | Rebuild SQLite template | `make schema.sqlite` then `make rebuild-business-sqlite3` (same seed order as PG, no PL/pgSQL) |
 | Implementer rules | `AGENTS.md` (for contributors, not required for shop use) |
-| **Submit your improvements as a GitHub PR** | Grok skill **`/contribute-pr`** (clone on Linux → feature branch → PR into `develop`) |
+| **Submit your improvements as a GitHub PR** | Grok skill **`/contribute-pr`** (clone on Linux -> feature branch -> PR into `develop`) |
 
 ---
 
@@ -297,7 +297,7 @@ cp -a "$SNAP_DIR/${STAMP}-${LABEL}.sqlite3" "$SQLITE_DB"
 
 - [ ] Release/clone includes **`business.sqlite3`** + skill under `.grok/skills/business-bookkeeper/`
 - [ ] Grok Build opened on that folder; skill visible (`/skills` or `/business-bookkeeper`)
-- [ ] First ask to Grok — agent creates **`~/business-shop/`** and sets `SQLITE_DB` if needed
+- [ ] First ask to Grok - agent creates **`~/business-shop/`** and sets `SQLITE_DB` if needed
 - [ ] One real task (customer, quote, or book entry) and a report/view check
 - [ ] Optional: know that **snapshots/** holds checkpoints
 

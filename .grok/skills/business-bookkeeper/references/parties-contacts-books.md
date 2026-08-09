@@ -33,10 +33,10 @@ Do **not** DELETE parties; soft-stop contact links instead.
 
 | Intent | Bash |
 |--------|------|
-| Phone | `GetPhone <country> <area> <number>` — digits; strip formatting |
+| Phone | `GetPhone <country> <area> <number>` - digits; strip formatting |
 | Postal (lookup) | `GetPostal <zip>` or `GetPostal <country> <zip>` |
 | Postal (insert) | `GetPostal <country> <zip> <city> <state_abbr> <state> [county]` |
-| Street address | `GetAddress <street> <zip> [plus4]` — needs Postal row first |
+| Street address | `GetAddress <street> <zip> [plus4]` - needs Postal row first |
 | Link phone | `SetIndividualPhone <individual> <phone_id> [type]` |
 | Link address | `SetIndividualAddress <individual> <address_id> [type]` |
 | Party dump | `DocumentParty <individual_id>` |
@@ -76,9 +76,9 @@ ListBooks
 | **Supply** | Bought supplies (seed label is *Supply*, not “Supplies”) |
 | **Supply Return** | Returned supplies |
 | **Petty Cash** / **Petty Cash Return** | Petty cash out / return |
-| **AR Sale** | Credit sale (Receivable / Sales) — cargo path on Order |
+| **AR Sale** | Credit sale (Receivable / Sales) - cargo path on Order |
 | **AR Sale Credit** | Credit memo / reverse AR sale |
-| **AR Payment** | Customer paid AR (Cash / Receivable) — Receipt path |
+| **AR Payment** | Customer paid AR (Cash / Receivable) - Receipt path |
 | **Sale Jane Doe** / **Sale John Doe** | Commission split sales (wiki complex books) |
 | **AP Donation** / **Donation Payment** | Donation AP path if used |
 
@@ -93,7 +93,7 @@ JournalReport
 **Returns / credits (honest):**
 
 - Prefer named books **Sales Credit**, **AR Sale Credit**, **Equipment Return**, **Supply Return**.
-- Cargo returns/split shipments: wiki “more complicated example” is still a **stub** — use compensating cargo/`LineItems` only when you understand the bill tree; do not invent Return bill types beyond schema comments.
+- Cargo returns/split shipments: wiki “more complicated example” is still a **stub** - use compensating cargo/`LineItems` only when you understand the bill tree; do not invent Return bill types beyond schema comments.
 - Soft-stop prices / new `AssemblyIndividualJobPrice` rather than overwriting quoted lines.
 
 ---

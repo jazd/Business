@@ -12,7 +12,7 @@ metadata:
   short-description: "Open a GitHub PR from this clone"
 ---
 
-# /contribute-pr — Submit Business schema changes as a GitHub PR
+# /contribute-pr - Submit Business schema changes as a GitHub PR
 
 Help a contributor who **cloned this repo on Linux**, opened **Grok Build in
 the clone**, and built features/improvements. Guide them to a clean PR against
@@ -31,14 +31,14 @@ otherwise print exact commands.
 | Rule | Detail |
 |------|--------|
 | Base branch | Prefer **`develop`** as the PR target (not `master` unless user insists) |
-| Work branch | Create/use a **feature branch** — never commit on `master` |
+| Work branch | Create/use a **feature branch** - never commit on `master` |
 | Style | Match existing code; NoCRUD: procedures write, views read; no drive-by refactors |
 | NoCRUD | Do not introduce silent DELETE of history or classical CRUD overwrites |
 | Upgrade script | If procedures/DDL/static changed for an unreleased version, update the **living** hop (today: `PostgreSQL/0.2.9-0.2.10.sql`) in the same PR |
-| DbFit pages | `DbFit/.gitignore` ignores `content.txt` / `properties.xml` — **`git add -f`** new test pages |
+| DbFit pages | `DbFit/.gitignore` ignores `content.txt` / `properties.xml` - **`git add -f`** new test pages |
 | Do not commit | Local host overrides (`PostgreSQLServer = postgres`, DbFit Connect host), secrets, `business.sqlite3` shop data, `tmp/`, `*~`, generated `PostgreSQL/procedures.sql` / `schema.pgsql` if gitignored |
 | Vendored | Do not change `sql-translator/`, `ua-parser/` without explicit user ask |
-| Wiki | Public behavior changes → note `Business.wiki` update (may be separate repo) |
+| Wiki | Public behavior changes -> note `Business.wiki` update (may be separate repo) |
 
 Also read root **`AGENTS.md`** if present for durable rules.
 
@@ -113,7 +113,7 @@ EOF
 )"
 ```
 
-Prefer **small, reviewable commits** if the user has several unrelated features—
+Prefer **small, reviewable commits** if the user has several unrelated features-
 split rather than one mega-commit when easy.
 
 ### 5. Push

@@ -1,6 +1,6 @@
 # Document recipes (exports, not new schema)
 
-Customer-facing paper and operator TSVs from **views**. These are skill recipes —
+Customer-facing paper and operator TSVs from **views**. These are skill recipes -
 not new Business procedures or bill-of-lading tables.
 
 Ship / BOL wiki sections remain stubs; use **Order / Invoice / Receipt** cargo
@@ -8,7 +8,7 @@ state plus these exports for packing lists and invoices.
 
 ---
 
-## Schema views (all dialects — `schema.xml`)
+## Schema views (all dialects - `schema.xml`)
 
 Prefer these for invoice/PDF/SQL exports (added for commerce demos; portable SQL):
 
@@ -20,7 +20,7 @@ Prefer these for invoice/PDF/SQL exports (added for commerce demos; portable SQL
 | **`PartyPhones`** | Active phones per individual + type |
 | **`BillReferences`** | Active PO / Sales Order / Tracking refs on a bill |
 
-Older **`Bills`** still **INNER JOIN Entities only** — person-only parties need **`BillDocuments`**.  
+Older **`Bills`** still **INNER JOIN Entities only** - person-only parties need **`BillDocuments`**.  
 `InvoicePDF` uses the new views when present, else falls back to Bills/LineItems joins.
 
 PG upgrade: `PostgreSQL/0.2.9-0.2.10.sql`. Fresh SQLite: `make rebuild-business-sqlite3`.
@@ -32,7 +32,7 @@ PG upgrade: `PostgreSQL/0.2.9-0.2.10.sql`. Fresh SQLite: `make rebuild-business-
 | `DocumentLineItems <bill_id> [column\|tsv\|csv]` | Line items / totals for a bill |
 | `DocumentBOM <assembly_part_id> [column\|tsv\|csv]` | Designators for a catalog BOM |
 | `DocumentParty <individual_id>` | Name + emails + phones + addresses |
-| `InvoicePDF <bill_id> [out.pdf]` | QB-style PDF → `~/business-shop/invoices/` |
+| `InvoicePDF <bill_id> [out.pdf]` | QB-style PDF -> `~/business-shop/invoices/` |
 
 ```bash
 # After invoice stage
@@ -50,7 +50,7 @@ DocumentBOM "$ASM" tsv > /tmp/bom.tsv
 
 1. Resolve parties (`DocumentParty` supplier + consignee).  
 2. Ensure bill is **Invoice** (or **Order** if pre-invoice packing list).  
-3. `DocumentLineItems <bill> tsv` → attach or paste into PDF/docx skill if needed.  
+3. `DocumentLineItems <bill> tsv` -> attach or paste into PDF/docx skill if needed.  
 4. Optional: query `Addresses` for ship-to type.  
 5. Do **not** claim a formal BOL number unless user stores one via  
    `GetBillReference <bill> Tracking '<carrier-tracking>'`.
@@ -123,7 +123,7 @@ export PATH="$REPO/Bash/sqlite:$PATH"
 
 # bill_id of an Invoice (or Order) from Bills / GetOutstandingBill
 InvoicePDF 5
-# → ~/business-shop/invoices/invoice-00005.pdf
+# -> ~/business-shop/invoices/invoice-00005.pdf
 
 InvoicePDF 5 /tmp/custom-name.pdf   # optional path
 ```
@@ -133,7 +133,7 @@ Python entry point: `scripts/invoice_pdf.py` (reportlab). Reads **Bills**,
 **Phones**), and **BillReference** (PO / Sales Order).
 
 Optional shop views (not required by the script):  
-`sqlite3 "$SQLITE_DB" < SQLite/views-invoice.sql` → `InvoiceDocument`, `InvoiceLineDetail`.
+`sqlite3 "$SQLITE_DB" < SQLite/views-invoice.sql` -> `InvoiceDocument`, `InvoiceLineDetail`.
 
 **Layout (QB-like):** company header + green INVOICE title, invoice # / date /
 due (Net 30) / balance due banner, Bill To / Ship To, line table
@@ -143,7 +143,7 @@ due (Net 30) / balance due banner, Bill To / Ship To, line table
 (`GetAddress` / `SetIndividualAddress` / `SetIndividualEmail`) so the PDF is not
 name-only.
 
-### Invoice / PDF limitations (honest — fill later if demand)
+### Invoice / PDF limitations (honest - fill later if demand)
 
 | Limitation | Today | Future if someone needs it |
 |------------|--------|----------------------------|
@@ -155,6 +155,6 @@ name-only.
 | **Person consignees** | `Bills` view is entity-oriented; PDF falls back to `People` | Broader invoice header view |
 | **Ship / BOL** | Not a schema bill type; packing list = Order/Invoice export | Wiki Ship Order when implemented |
 | **Email send** | PDF file only; no SMTP from skill | Optional mail attachment helper |
-| **PDF layout polish** | QB-*inspired*, not a pixel clone of QuickBooks | Templates / CSS HTML→PDF |
+| **PDF layout polish** | QB-*inspired*, not a pixel clone of QuickBooks | Templates / CSS HTML->PDF |
 
 Do **not** claim ERP completeness. Skill stays micro-business clerk + bookkeeper.

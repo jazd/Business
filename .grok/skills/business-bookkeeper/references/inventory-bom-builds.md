@@ -1,7 +1,7 @@
 # Inventory, BOM, builds, orders, invoice & payment
 
 Operator deep dive for `/business-bookkeeper`.  
-Canonical SQL shapes: sibling **`Business.wiki/Examples.md`** → **Parts** and **Inventory Movement**.  
+Canonical SQL shapes: sibling **`Business.wiki/Examples.md`** -> **Parts** and **Inventory Movement**.  
 Full agent rules: `../SKILL.md`.
 
 Two layers stay separate in the operator’s head:
@@ -9,7 +9,7 @@ Two layers stay separate in the operator’s head:
 | Layer | What it is | Main entry points | Read via |
 |-------|------------|-------------------|----------|
 | **A. Catalog + BOM + unit builds** | Part hierarchy, kit/BOM designators, serial-numbered assemblies | `GetPart*`, `GetVersionName`, `PutAssemblyPart`, `GetPartbySerial` | `Parts`, `Assemblies`, `AssemblyParts` |
-| **B. Commerce cargo** | Wish→…→Receipt (sales) and supplier **Order** bills (purchases) | `CreateBill`, `AddCargo`, `MoveCargoToChild`, price schedule helpers | `LineItems`, `JournalReport` |
+| **B. Commerce cargo** | Wish->…->Receipt (sales) and supplier **Order** bills (purchases) | `CreateBill`, `AddCargo`, `MoveCargoToChild`, price schedule helpers | `LineItems`, `JournalReport` |
 
 Do **not** invent classical stock-qty tables or “UPDATE on_hand”. Track stock with **cargo on bills** and **serialized parts** when the business needs unit identity.
 
@@ -17,7 +17,7 @@ Do **not** invent classical stock-qty tables or “UPDATE on_hand”. Track stoc
 
 ## A1. Part catalog (taxonomy)
 
-Parts form a **parent hierarchy**: kind → package/subtype → MPN / value / version.  
+Parts form a **parent hierarchy**: kind -> package/subtype -> MPN / value / version.  
 `Get*` is find-or-insert (NoCRUD).
 
 ### Category root
@@ -41,7 +41,7 @@ SELECT GetPartWithParent('4.7k', '1%', 'Resistor', '0603');
 SELECT GetPartWithParent('ESP32-S3-WROOM', '1-N16', 'Module', 'Micro Controller');
 ```
 
-### Deeper chains (category → flavor → package → MPN)
+### Deeper chains (category -> flavor -> package -> MPN)
 
 Build parents first, then the leaf MPN. Prefer **one** of:
 
@@ -110,10 +110,10 @@ PutAssemblyPart(assembly, part, designator, quantity)
 RemoveAssemblyPart(assembly [, part [, designator]])
 ```
 
-- `assembly` — result of `GetPart(...)` / `GetPartWithParentVersion(...)` for the board/kit version  
-- `part` — discrete component or sub-module id  
-- `designator` — refdes (`R1`, `U1`, `C3`, `TH1`, …)  
-- `quantity` — `NULL` for “one footprint / designator row” (typical BOM); use a real number when the schema call expects count (serialized builds often pass `1`)
+- `assembly` - result of `GetPart(...)` / `GetPartWithParentVersion(...)` for the board/kit version  
+- `part` - discrete component or sub-module id  
+- `designator` - refdes (`R1`, `U1`, `C3`, `TH1`, …)  
+- `quantity` - `NULL` for “one footprint / designator row” (typical BOM); use a real number when the schema call expects count (serialized builds often pass `1`)
 
 **`AssemblyParts`** includes only rows with `AssemblyPart.stop IS NULL`.  
 **`RemoveAssemblyPart`** sets `stop` on matching active rows.
@@ -222,7 +222,7 @@ When a **physical unit** exists (MAC, chip SN, barcode):
 2. Attach **serialized** (or catalog) children on designators.
 
 ```sql
--- Board instance (serial = real id only — never invent empty '')
+-- Board instance (serial = real id only - never invent empty '')
 SELECT GetPartbySerial(
   GetPartWithParentVersion(
     'AI0',
@@ -277,28 +277,28 @@ SELECT GetPartbySerial(
 - **Real serials only.** Empty string is not “unknown unit.”  
 - Catalog BOM (`serial` null) vs unit build (`serial` set) are different part rows.  
 - Optional **firmware on assembly**: wiki **Application Release** + `GetAssemblyApplicationRelease` (advanced).  
-- Optional **device certs**: EST `PutAssemblyPublicKey` / CSR / `PutCertificate` — only if the user is in that lane (see main skill).  
+- Optional **device certs**: EST `PutAssemblyPublicKey` / CSR / `PutCertificate` - only if the user is in that lane (see main skill).  
 - Do **not** document product-specific extension tables (customer “thing” registries) as core Business; stay on `Parts` / `Assemblies` / `AssemblyParts`.
 
 **Bash:** `GetPartbySerial <parentPartId> <serial>`.
 
 ---
 
-## B1. Sales chain (customer order → pay)
+## B1. Sales chain (customer order -> pay)
 
-Wiki **Inventory Movement** simple example (Bunnies-R-Us → Toys for Tots).
+Wiki **Inventory Movement** simple example (Bunnies-R-Us -> Toys for Tots).
 
 ```text
-Wish → Cart → Quote → Order → Invoice → Receipt
-         MoveCargoToChild (parent → child bill)
+Wish -> Cart -> Quote -> Order -> Invoice -> Receipt
+         MoveCargoToChild (parent -> child bill)
 ```
 
 | Step | CreateBill type | Cargo move notes | Accounting book |
 |------|-----------------|------------------|-----------------|
-| Wish list | `Wish` | `AddCargo(bill, part, qty)` | — |
-| Cart | `Cart` (parent = Wish) | `MoveCargoToChild(parent, NULL, NULL)` | — |
-| Price list | — | `GetIndividualJobSchedule` + `Schedule` bands + `AssemblyIndividualJobPrice` | — |
-| Quote | `Quote` (parent = Cart) | Move with **price schedule** job so unit prices lock | — |
+| Wish list | `Wish` | `AddCargo(bill, part, qty)` | - |
+| Cart | `Cart` (parent = Wish) | `MoveCargoToChild(parent, NULL, NULL)` | - |
+| Price list | - | `GetIndividualJobSchedule` + `Schedule` bands + `AssemblyIndividualJobPrice` | - |
+| Quote | `Quote` (parent = Cart) | Move with **price schedule** job so unit prices lock | - |
 | Order | `Order` (parent = Quote) | Move; may pass book **`AR Sale`** | AR Sale (Receivable / Sales) |
 | Invoice | `Invoice` (parent = Order) | Move cargo | inherits quoted/order economics |
 | Payment | `Receipt` (parent = Invoice) | Move with book **`AR Payment`** | Cash / Receivable |
@@ -381,7 +381,7 @@ WHERE bill = GetOutstandingBill(supplier, consignee, 'Invoice' /* or stage */);
 Parent **`outstanding`** falls as cargo moves to children.  
 After **AR Sale** + **AR Payment**, `JournalReport` shows Receivable/Sales then Cash/Receivable (wiki totals).
 
-**Price change rule:** stop old `IndividualJob` / soft-stop price, insert new price — **quoted `unitprice` stays**; `currentUnitPrice` can move. Never overwrite historical invoice lines in place.
+**Price change rule:** stop old `IndividualJob` / soft-stop price, insert new price - **quoted `unitprice` stays**; `currentUnitPrice` can move. Never overwrite historical invoice lines in place.
 
 **Bash (SQLite shop):**
 
@@ -434,7 +434,7 @@ SELECT CreateBill(
 SELECT GetBillReference(<order_bill>, 'Sales Order', '<vendor_po_number>');
 ```
 
-**Build / kitting bills** (advanced): some shops create a bill whose cargo lines are **BOM-derived quantities** for N units, then link those lines via `CargoState` to vendor order lines as parts arrive. Prefer documented `AddCargo` / `MoveCargoToChild` / `AddCargoAlternate` over raw DELETE. If the user pastes a full build↔order trail, follow **their** ids and re-verify with `LineItems` / cargo views — do not invent a second BOM language.
+**Build / kitting bills** (advanced): some shops create a bill whose cargo lines are **BOM-derived quantities** for N units, then link those lines via `CargoState` to vendor order lines as parts arrive. Prefer documented `AddCargo` / `MoveCargoToChild` / `AddCargoAlternate` over raw DELETE. If the user pastes a full build↔order trail, follow **their** ids and re-verify with `LineItems` / cargo views - do not invent a second BOM language.
 
 **AP books** (`AP Purchase`, etc.) must already exist in the chart (`BookName` / static GL). Do not invent book names without checking `Book` / `JournalReport` seeds.
 
@@ -444,10 +444,10 @@ SELECT GetBillReference(<order_bill>, 'Sales Order', '<vendor_po_number>');
 
 Wiki headings under Inventory Movement:
 
-- **Ship Order** — stub  
-- **Received Order** — stub  
-- **Flow** — outline only: *Inventory Bin → Shipper (received) → Carrier (loaded/delivered)*  
-- **More complicated example** (split ship / return / credit) — stub  
+- **Ship Order** - stub  
+- **Received Order** - stub  
+- **Flow** - outline only: *Inventory Bin -> Shipper (received) -> Carrier (loaded/delivered)*  
+- **More complicated example** (split ship / return / credit) - stub  
 
 **What the skill may do today**
 
@@ -457,11 +457,11 @@ Wiki headings under Inventory Movement:
 | Use existing bill types and cargo moves if the user’s DB already has a ship procedure | Claim full BOL / multi-package carrier ERP |
 | Note “wiki Ship Order not implemented; tracking via Order/Invoice cargo” | Fake a PDF BOL as a Business procedure unless user only wants a document export |
 
-If the user needs a **customer-facing packing list / invoice PDF**, generate that as a **document** from `LineItems` + party addresses — separate from inventing inventory procedures.
+If the user needs a **customer-facing packing list / invoice PDF**, generate that as a **document** from `LineItems` + party addresses - separate from inventing inventory procedures.
 
 ---
 
-## Operator playbooks (say → do)
+## Operator playbooks (say -> do)
 
 ### “Add these resistors/caps to the catalog”
 
@@ -481,7 +481,7 @@ If the user needs a **customer-facing packing list / invoice PDF**, generate tha
 
 ### “Register built unit serial S with chip serials …”
 
-1. `GetPartbySerial(assemblyVersion, S)` → id.  
+1. `GetPartbySerial(assemblyVersion, S)` -> id.  
 2. `PutAssemblyPart(id, GetPartbySerial(component, sn), designator, 1)` for each serialized child.  
 3. `AssemblyParts` for that id; confirm serials.  
 4. Optional EST / Application Release only if asked.
@@ -490,9 +490,9 @@ If the user needs a **customer-facing packing list / invoice PDF**, generate tha
 
 1. Resolve supplier (you) + consignee C.  
 2. Ensure price schedule + `AssemblyIndividualJobPrice`.  
-3. Walk Wish→… or start at Cart/Quote if user skips steps (still use legal bill parent chain).  
+3. Walk Wish->… or start at Cart/Quote if user skips steps (still use legal bill parent chain).  
 4. Move cargo; verify `LineItems` each stage.  
-5. Invoice → Receipt with **AR Payment**.  
+5. Invoice -> Receipt with **AR Payment**.  
 6. Show `JournalReport` / open AR if unpaid.
 
 ### “Order parts from Digi-Key / Mouser”
@@ -543,7 +543,7 @@ If the user needs a **customer-facing packing list / invoice PDF**, generate tha
 
 ## Wiki anchors
 
-- `Business.wiki/Examples.md` → **# Parts**  
-- `Business.wiki/Examples.md` → **# Inventory Movement**  
+- `Business.wiki/Examples.md` -> **# Parts**  
+- `Business.wiki/Examples.md` -> **# Inventory Movement**  
 - Diagrams: `diagrams/assemblies.png`, `diagrams/inventory.png`  
 - Accounting books for AR: static GL / Inventory Movement payment section  
