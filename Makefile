@@ -141,16 +141,18 @@ mysqldb: touch-xml schema.mysql
 	cat Static/[01]_[^T]* |  mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
 	cat Static/[23456789]_* | grep -v GetAddress | mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
 
-business.sqlite3: schema.sqlite
+# SQLite release template: same seed story as pgsqldb (Static + GeoNames sample)
+# without PL/pgSQL. See scripts/build-business-sqlite3.sh.
+.PHONY: rebuild-business-sqlite3
+business.sqlite3: schema.sqlite scripts/build-business-sqlite3.sh scripts/PostalImportSQLite.awk scripts/USZip.awk SQLite/seed-addresses.sql
 ifeq ($(wildcard business.sqlite3),)
 	@echo Creating new SQLite database with $@
-	cat SQLite/pre.sql schema.sqlite | sqlite3 $@
-	cat Static/[01]_* | sed -e "/GetInterval */d" | sqlite3 $@
-	# TODO come up with GetPostal replacement
-	# TODO come up with GetSentence and GetAddress replacements
-	cat Static/[23456789]_* | sed -e "/GetSentence */d" | sed -e "/GetAddress */d" | sed -e "s/, false/, 0/g" | sed -e "s/, true/, 1/g" | sqlite3 $@
-	cat SQLite/post.sql | sqlite3 $@
+	./scripts/build-business-sqlite3.sh $@
 else
 	@echo SQLite database $@ already exists.
-	@echo Please move or remove it.
+	@echo Please move or remove it, or: make rebuild-business-sqlite3
 endif
+
+rebuild-business-sqlite3: schema.sqlite
+	@echo Rebuilding business.sqlite3 from schema + Static + GeoNames sample
+	FORCE=1 ./scripts/build-business-sqlite3.sh business.sqlite3

@@ -1,0 +1,12 @@
+-- DEPRECATED: views moved into schema.xml (all dialects).
+--
+-- Use after regenerating schema:
+--   make schema.sqlite && make rebuild-business-sqlite3
+--
+-- Views:
+--   BillDocuments, InvoiceLineDetail, PartyAddresses, PartyPhones, BillReferences
+--
+-- PostgreSQL upgrade hop: PostgreSQL/0.2.9-0.2.10.sql
+--
+-- This file is kept only so old docs that reference it do not 404.
+SELECT 'Use schema.xml views BillDocuments / InvoiceLineDetail / Party* / BillReferences' AS notice;
