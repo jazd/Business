@@ -156,3 +156,10 @@ endif
 rebuild-business-sqlite3: schema.sqlite
 	@echo Rebuilding business.sqlite3 from schema + Static + GeoNames sample
 	FORCE=1 ./scripts/build-business-sqlite3.sh business.sqlite3
+
+# Shop SQLite hop (living while target unreleased). Example:
+#   SQLITE_DB=$$HOME/business-shop/business.sqlite3 make upgrade-sqlite-0.2.10-0.2.11
+# Stamp version when hop is complete: STAMP_VERSION=1 make ...
+.PHONY: upgrade-sqlite-0.2.10-0.2.11
+upgrade-sqlite-0.2.10-0.2.11:
+	./scripts/upgrade-sqlite.sh 0.2.10 0.2.11

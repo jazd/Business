@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+# Usage: SetSchemaVersion <schema_name> <major> <minor> <patch>
+# Inserts SchemaVersion row and sets stop on other active rows for that schema.
+# Parity with PG SetSchemaVersion (Version row with name NULL).
+
+source ~/bin/sqlite/common
+
+SCHEMA_NAME="${1:-}"
+MAJOR="${2:-}"
+MINOR="${3:-}"
+PATCH="${4:-}"
+
+if [[ -z "$SCHEMA_NAME" || -z "$MAJOR" || -z "$MINOR" || -z "$PATCH" ]]; then
+  echo "Usage: SetSchemaVersion <schema_name> <major> <minor> <patch>" >&2
+  exit 1
+fi
+
+schema_id=$(~/bin/sqlite/GetWord "$SCHEMA_NAME")
+major_id=$(~/bin/sqlite/GetWord "$MAJOR")
+minor_id=$(~/bin/sqlite/GetWord "$MINOR")
+patch_id=$(~/bin/sqlite/GetWord "$PATCH")
+
+if [[ -z "$schema_id" || -z "$major_id" || -z "$minor_id" || -z "$patch_id" ]]; then
+  echo "Error: could not resolve schema/version words" >&2
+  exit 1
+fi
+
+version_id=$(sqlite_query_one "
+ SELECT id FROM Version
+ WHERE name IS NULL
+  AND major = $major_id
+  AND minor = $minor_id
+  AND patch = $patch_id
+ LIMIT 1;
+")
+
+if [[ -z "$version_id" ]]; then
+  sqlite_run "
+   INSERT INTO Version (name, major, minor, patch)
+   VALUES (NULL, $major_id, $minor_id, $patch_id);
+  " >/dev/null
+  version_id=$(sqlite_query_one "
+   SELECT id FROM Version
+   WHERE name IS NULL
+    AND major = $major_id
+    AND minor = $minor_id
+    AND patch = $patch_id
+   LIMIT 1;
+  ")
+fi
+
+if [[ -z "$version_id" ]]; then
+  echo "Error: could not create Version row" >&2
+  exit 1
+fi
+
+sqlite_run "
+ INSERT INTO SchemaVersion (schema, version) VALUES ($schema_id, $version_id);
+ UPDATE SchemaVersion
+ SET stop = datetime('now')
+ WHERE schema = $schema_id
+  AND version != $version_id
+  AND stop IS NULL;
+" >/dev/null
+
+sqlite_query_one "
+ SELECT build FROM SchemaVersion
+ WHERE schema = $schema_id AND version = $version_id AND stop IS NULL
+ ORDER BY build DESC LIMIT 1;
+"

@@ -69,6 +69,13 @@ sqlite3 "$OUT" < "${ROOT}/SQLite/seed-addresses.sql"
 
 sqlite3 "$OUT" < "${ROOT}/SQLite/post.sql"
 
+# Stamp template schema version (matches current release series on develop)
+export SQLITE_DB="$OUT"
+export PATH="$ROOT/Bash/sqlite:${PATH:-}"
+if [[ -x "$ROOT/Bash/sqlite/SetSchemaVersion" ]]; then
+  SetSchemaVersion Business 0 2 10 >/dev/null || true
+fi
+
 # Quick counts for operators
 sqlite3 "$OUT" "
 SELECT 'Country' AS t, COUNT(*) AS n FROM Country
@@ -80,7 +87,8 @@ UNION ALL SELECT 'Word', COUNT(*) FROM Word
 UNION ALL SELECT 'Sentence', COUNT(*) FROM Sentence
 UNION ALL SELECT 'Individual', COUNT(*) FROM Individual
 UNION ALL SELECT 'Timezone', COUNT(*) FROM Timezone
-UNION ALL SELECT 'PeriodName', COUNT(*) FROM PeriodName;
+UNION ALL SELECT 'PeriodName', COUNT(*) FROM PeriodName
+UNION ALL SELECT 'SchemaVersion', COUNT(*) FROM SchemaVersion WHERE stop IS NULL;
 "
 
 echo "Done: $OUT"

@@ -2,9 +2,8 @@
 -- Business schema upgrade: 0.2.9 -> 0.2.10 (PostgreSQL)
 -- =============================================================================
 --
--- Living upgrade path while 0.2.10 is unreleased. Keep this file in sync with
--- develop (procedures.d, schema.xml, post.sql, Static seeds) so a database
--- installed at 0.2.9 can reach the same end state as a fresh 0.2.10 build.
+-- Released hop 0.2.9 -> 0.2.10 (freeze after release). Living work for the next
+-- version is PostgreSQL/0.2.10-0.2.11.sql (and SQLite/0.2.10-0.2.11.sql).
 --
 -- Fresh installs: make pgsqldb (pre + schema + procedures + post + Static).
 -- Do not use this script for a greenfield install.
