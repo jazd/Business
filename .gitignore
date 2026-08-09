@@ -6,6 +6,8 @@ AGENTS.md
 review.md
 schemaNotes.txt
 sqlServer.txt
+tmp
+Business-README.md
 # Targets
 schema.pgsql
 schema.mysql
