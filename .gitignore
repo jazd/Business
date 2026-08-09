@@ -23,3 +23,7 @@ PostgreSQL/procedures.sql
 # Temporary files
 *~
 *.swp
+
+# Generated demo assets under docs/ (rebuild scripts recreate them)
+docs/*.gif
+docs/grok-build-invoice-commerce-demo.pdf
