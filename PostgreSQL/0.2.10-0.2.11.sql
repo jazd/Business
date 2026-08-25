@@ -78,6 +78,12 @@ SET search_path TO business, public;
 -- or re-embed a full procedure refresh when many signatures change.
 -- Prefer small, reviewable sections with clear comments.
 
+ALTER TABLE Bill ADD COLUMN shipfrom integer;
+ALTER TABLE Bill ADD COLUMN shipto integer;
+ALTER TABLE Bill ADD CONSTRAINT bill_address_from FOREIGN KEY (shipfrom) REFERENCES Address (id) DEFERRABLE;
+ALTER TABLE Bill ADD CONSTRAINT bill_address_to FOREIGN KEY (shipto) REFERENCES Address (id) DEFERRABLE;
+--^^--
+
 
 -- Mark schema upgraded to 0.2.11 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped

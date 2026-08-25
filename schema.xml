@@ -1794,6 +1794,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
  <field name="shipper" data_type="bigint" size="20" is_nullable="1" order="8">
    <comments>Entity responsible for shipping all cargo in bill</comments>
  </field>
+ <field name="shipfrom" data_type="integer" size="" is_nullable="1" order="9" />
+ <field name="shipto" data_type="integer" size="" is_nullable="1" order="10" />
  <field name="received" data_type="timestamp" is_nullable="1" order="9">
    <comments>All cargo has been received by the shipper</comments>
  </field>
@@ -1819,6 +1821,8 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 <constraints>
  <constraint name="bill_source" type="FOREIGN KEY" fields="source" reference_table="Bill" reference_fields="id" deferrable="1" />
  <constraint name="bill_parent" type="FOREIGN KEY" fields="parent" reference_table="Bill" reference_fields="id" deferrable="1" />
+ <constraint name="bill_address_from" type="FOREIGN KEY" fields="shipfrom" reference_table="Address" reference_fields="id" deferrable="1" />
+ <constraint name="bill_address_to" type="FOREIGN KEY" fields="shipto" reference_table="Address" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="supplier" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="shipper" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>

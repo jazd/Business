@@ -24,6 +24,11 @@
 --
 -- (Add numbered items as 0.2.11 work lands: ALTER TABLE, CREATE INDEX,
 --  CREATE VIEW, seed INSERTs that fresh builds get via Static/.)
+PRAGMA foreign_keys = ON;
+ALTER TABLE Bill ADD COLUMN shipfrom INTEGER REFERENCES Address(id) DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE Bill ADD COLUMN shipto INTEGER REFERENCES Address(id) DEFERRABLE INITIALLY DEFERRED;
+
+
 --
 -- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
 -- after this file runs successfully (Business 0.2.11).

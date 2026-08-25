@@ -49,7 +49,7 @@ DAG="Edge VertexName Individual IndividualVertex Sentence"
 
 ACCOUNTING="Word Sentence Individual LedgerName AccountName JournalName BookName IndividualLedger IndividualAccount LedgerAccount LedgerJournal JournalAccount BookAccount Entry JournalEntry AssemblyApplicationRelease Credential"
 
-INVENTORY="Word Sentence Part AssemblyApplicationRelease PeriodName ScheduleName JobName Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule IndividualJob AssemblyIndividualJobPrice Bill Cargo CargoState AccountName BillReference"
+INVENTORY="Word Sentence Part AssemblyApplicationRelease PeriodName ScheduleName JobName Entry JournalEntry IndividualAssemblyCost IndividualAssemblyCustomerPrice Schedule IndividualJob AssemblyIndividualJobPrice Bill Cargo CargoState AccountName BillReference Address"
 
 PROCESSES="Word Sentence Paragraph Attribute Part AssemblyApplicationRelease Individual Version Process Step Variance ProcessStep ProcessRun ProcessRunResult"
 
