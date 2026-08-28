@@ -101,7 +101,7 @@ SELECT setval('listindividualname_listindividual_seq', 2000000, false);
 SELECT setval('path_id_seq', 2000000, false);
 -- IDs for DMA 0 - 999, for MSA 1000-99999.  Current schema will only support one type of marketing area number
 SELECT setval('area_id_seq', 100000, false);
-SELECT setval('location_id_seq', 10000, false);
+SELECT setval('location_id_seq', 20000, false);
 SELECT setval('country_id_seq', 10000, false);
 SELECT setval('phone_id_seq', 10000, false);
 SELECT setval('periodname_period_seq', 1000, false);

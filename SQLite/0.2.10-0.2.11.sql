@@ -29,6 +29,7 @@ ALTER TABLE Bill ADD COLUMN shipfrom INTEGER REFERENCES Address(id) DEFERRABLE I
 ALTER TABLE Bill ADD COLUMN shipto INTEGER REFERENCES Address(id) DEFERRABLE INITIALLY DEFERRED;
 
 
+UPDATE sqlite-sequence SET seq = 20000 WHERE name = 'Location';
 --
 -- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
 -- after this file runs successfully (Business 0.2.11).

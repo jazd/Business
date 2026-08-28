@@ -51,7 +51,7 @@ UPDATE sqlite_sequence SET seq = 2000000 WHERE name = 'Path';
 UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'Phone';
 UPDATE sqlite_sequence SET seq = 100000 WHERE name = 'Area';
 UPDATE sqlite_sequence SET seq = 1000 WHERE name = 'Period';
-UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'Location';
+UPDATE sqlite_sequence SET seq = 20000 WHERE name = 'Location';
 UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'Postal';
 UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'Country';
 UPDATE sqlite_sequence SET seq = 100 WHERE name = 'DateRange';

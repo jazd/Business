@@ -82,6 +82,9 @@ ALTER TABLE Bill ADD COLUMN shipfrom integer;
 ALTER TABLE Bill ADD COLUMN shipto integer;
 ALTER TABLE Bill ADD CONSTRAINT bill_address_from FOREIGN KEY (shipfrom) REFERENCES Address (id) DEFERRABLE;
 ALTER TABLE Bill ADD CONSTRAINT bill_address_to FOREIGN KEY (shipto) REFERENCES Address (id) DEFERRABLE;
+
+
+SELECT setval('location_id_seq', 20000, false);
 --^^--
 
 
