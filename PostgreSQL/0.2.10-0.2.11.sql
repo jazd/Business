@@ -28,6 +28,7 @@
 --  3) URL and IndividualURL include :port when Path.port is set
 --  4) GetPath / GetURL overloads with inPort (default-port stored as NULL)
 --  5) SessionToken.type; SetSession inType overloads; Word 18-20 session/mail/trial
+--  6) SetSession writes IndividualSessionCreated when inCredential has an individual
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '11') - last substantive step
@@ -295,6 +296,7 @@ DECLARE
  newSession bigint;
  existingSession bigint;
  type_id integer;
+ session_credential_id bigint;
 BEGIN
  IF inSessionToken IS NOT NULL THEN
   type_id = (SELECT GetWord(inType));
@@ -342,6 +344,28 @@ BEGIN
    WHERE exists.id IS NULL
    LIMIT 1
   );
+  SELECT id INTO session_credential_id
+  FROM SessionCredential
+  WHERE session = existingSession
+   AND ((agentString = inAgentString) OR (agentString IS NULL AND inAgentString IS NULL))
+   AND ((credential = inCredential) OR (credential IS NULL AND inCredential IS NULL))
+   AND ((referring = inReferring) OR (referring IS NULL AND inReferring IS NULL))
+   AND ((fromAddress = inIPAddress) OR (fromAddress IS NULL AND inIPAddress IS NULL))
+   AND ((location = inLocation) OR (location IS NULL AND inLocation IS NULL))
+  LIMIT 1;
+  IF inCredential IS NOT NULL AND session_credential_id IS NOT NULL THEN
+   INSERT INTO IndividualSessionCreated (individual, sessionCredential) (
+    SELECT cred.individual, session_credential_id
+    FROM Credential AS cred
+    LEFT JOIN IndividualSessionCreated AS exists
+     ON exists.individual = cred.individual
+     AND exists.sessionCredential = session_credential_id
+    WHERE cred.id = inCredential
+     AND cred.individual IS NOT NULL
+     AND exists.individual IS NULL
+    LIMIT 1
+   );
+  END IF;
   PERFORM pg_advisory_unlock(existingSession);
   EXCEPTION
    WHEN OTHERS THEN

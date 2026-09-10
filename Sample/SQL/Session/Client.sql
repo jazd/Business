@@ -31,12 +31,19 @@ INSERT INTO SessionToken (session, token, initialized, timeout, items) SELECT 1,
 INSERT INTO password (provider, generator, value) VALUES (NULL, NULL, '1234');
 -- In this example, password.id is 1
 -- 2.c) Create a user credential (account) associated with the new password
-INSERT INTO credential (username, password, culture) VALUES ('helmet', 1, 1033);
+--      individual 1 is a static person; required for IndividualSessionCreated
+INSERT INTO credential (individual, username, password, culture) VALUES (1, 'helmet', 1, 1033);
 -- 2.d) Associate current session with new user credential
 --      (Token, siteId, agentStringId, credentialId, referringURLId, remoteAddr, locationId)
 --      Adds record to SessionCredential
+--      When Credential.individual is set, also inserts IndividualSessionCreated
+--      (individual, sessionCredential) if that pair is not already present
 SELECT SetSession('BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn', NULL, 1000, 1, 10, '107.77.97.52', NULL) FROM DUAL;
 -- SetSession should be called on every page load to keep session alive and track the client
+
+SELECT individual, sessionCredential
+FROM IndividualSessionCreated
+ORDER BY created;
 
 SELECT session, token, os, agent, credential, username
 FROM Sessions

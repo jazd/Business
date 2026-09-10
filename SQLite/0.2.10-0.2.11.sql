@@ -27,6 +27,9 @@
 --  3) Path.port (NULL on existing rows = default 80 / 443 in GetPath)
 --  4) Recreate URL view with :port when Path.port is set
 --  5) SessionToken.type; Word 18-20 session/mail/trial
+--  6) IndividualSessionCreated already exists in the shop schema. PostgreSQL
+--     SetSession writes it when inCredential has an individual. No shop Bash
+--     SetSession; no SQLite DDL for this behavior.
 --
 -- SQLite does not enforce varchar(n). Email.host 30->96, Path.host 64->96,
 -- and SessionToken.token 32->128 need no table rebuild; stored values stay.

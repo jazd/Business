@@ -465,6 +465,7 @@ DECLARE
  newSession bigint;
  existingSession bigint;
  type_id integer;
+ session_credential_id bigint;
 BEGIN
  IF inSessionToken IS NOT NULL THEN
   type_id = (SELECT GetWord(inType));
@@ -512,6 +513,28 @@ BEGIN
    WHERE exists.id IS NULL
    LIMIT 1
   );
+  SELECT id INTO session_credential_id
+  FROM SessionCredential
+  WHERE session = existingSession
+   AND ((agentString = inAgentString) OR (agentString IS NULL AND inAgentString IS NULL))
+   AND ((credential = inCredential) OR (credential IS NULL AND inCredential IS NULL))
+   AND ((referring = inReferring) OR (referring IS NULL AND inReferring IS NULL))
+   AND ((fromAddress = inIPAddress) OR (fromAddress IS NULL AND inIPAddress IS NULL))
+   AND ((location = inLocation) OR (location IS NULL AND inLocation IS NULL))
+  LIMIT 1;
+  IF inCredential IS NOT NULL AND session_credential_id IS NOT NULL THEN
+   INSERT INTO IndividualSessionCreated (individual, sessionCredential) (
+    SELECT cred.individual, session_credential_id
+    FROM Credential AS cred
+    LEFT JOIN IndividualSessionCreated AS exists
+     ON exists.individual = cred.individual
+     AND exists.sessionCredential = session_credential_id
+    WHERE cred.id = inCredential
+     AND cred.individual IS NOT NULL
+     AND exists.individual IS NULL
+    LIMIT 1
+   );
+  END IF;
   PERFORM pg_advisory_unlock(existingSession);
   EXCEPTION
    WHEN OTHERS THEN

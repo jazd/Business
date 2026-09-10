@@ -1,6 +1,4 @@
-GetPath
-
-These tables are empty
+AnonymousSession and SetSession
 
 A simplified version of Sample/SQL/Session/Client.sql
 
@@ -10,4 +8,63 @@ A simplified version of Sample/SQL/Session/Client.sql
 |  os   | agent  |
 | Linux | Chrome |
 
-TODO SetSession
+Anonymous session does not write IndividualSessionCreated
+!|Query|SELECT COUNT(*) AS n FROM IndividualSessionCreated isc JOIN SessionCredential sc ON sc.id = isc.sessionCredential WHERE sc.credential IS NULL|
+|n|
+|0|
+
+SetSession with a credential that has an individual writes IndividualSessionCreated
+for that individual and the SessionCredential row just used.
+
+!|Execute|INSERT INTO Password (value) VALUES ('dbfit-session')|
+
+!|Query|SELECT id FROM Password WHERE value = 'dbfit-session'|
+|id?|
+|>>pwd|
+
+!|Execute|INSERT INTO Credential (individual, username, password, culture) VALUES (1, 'dbfitsess', _:pwd::INT, 1033)|
+
+!|Query|SELECT id FROM Credential WHERE username = 'dbfitsess'|
+|id?|
+|>>cred|
+
+!|Query|SELECT SetSession('DbFitISCToken', NULL, NULL, _:cred::INT, NULL, NULL, NULL)|
+|setsession?|
+|>>sess|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualSessionCreated WHERE individual = 1 AND sessionCredential IN (SELECT id FROM SessionCredential WHERE credential = _:cred::INT)|
+|n|
+|1|
+
+Same pair is not inserted again
+!|Query|SELECT SetSession('DbFitISCToken', NULL, NULL, _:cred::INT, NULL, NULL, NULL)|
+|setsession|
+|<<sess|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualSessionCreated WHERE individual = 1 AND sessionCredential IN (SELECT id FROM SessionCredential WHERE credential = _:cred::INT)|
+|n|
+|1|
+
+A different token is a different SessionCredential, so a new pair
+!|Query|SELECT SetSession('DbFitISCTokenB', NULL, NULL, _:cred::INT, NULL, NULL, NULL)|
+|setsession?|
+|>>sessb|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualSessionCreated WHERE individual = 1 AND sessionCredential IN (SELECT id FROM SessionCredential WHERE credential = _:cred::INT)|
+|n|
+|2|
+
+Credential with no individual does not write IndividualSessionCreated
+!|Execute|INSERT INTO Credential (username, password, culture) VALUES ('dbfitnoid', _:pwd::INT, 1033)|
+
+!|Query|SELECT id FROM Credential WHERE username = 'dbfitnoid'|
+|id?|
+|>>crednoid|
+
+!|Query|SELECT SetSession('DbFitNoIndToken', NULL, NULL, _:crednoid::INT, NULL, NULL, NULL)|
+|setsession?|
+|>>sessnoid|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualSessionCreated WHERE sessionCredential IN (SELECT id FROM SessionCredential WHERE credential = _:crednoid::INT)|
+|n|
+|0|
