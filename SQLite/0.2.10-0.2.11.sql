@@ -31,6 +31,7 @@
 --     SetSession writes it when inCredential has an individual. No shop Bash
 --     SetSession; no SQLite DDL for this behavior.
 --  7) IndividualSessions view (current individual to session across sites)
+--  8) Unique active IndividualPath (individual, type, path); Bash Set/StopIndividualPath
 --
 -- SQLite does not enforce varchar(n). Email.host 30->96, Path.host 64->96,
 -- and SessionToken.token 32->128 need no table rebuild; stored values stay.
@@ -120,3 +121,7 @@ LEFT JOIN Site ON Site.id = SiteApplicationRelease.site
 LEFT JOIN People ON People.individual = bound.individual
 LEFT JOIN Entities ON Entities.individual = bound.individual
 LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email;
+
+CREATE UNIQUE INDEX IF NOT EXISTS individualPath_individual_type_path_unstopped
+ ON IndividualPath (individual, type, path)
+ WHERE stop IS NULL;

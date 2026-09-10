@@ -30,6 +30,7 @@
 --  5) SessionToken.type; SetSession inType overloads; Word 18-20 session/mail/trial
 --  6) SetSession writes IndividualSessionCreated when inCredential has an individual
 --  7) IndividualSessions view (current individual to session across sites)
+--  8) SetIndividualPath / StopIndividualPath; unique active (individual, type, path)
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '11') - last substantive step
@@ -515,6 +516,81 @@ LEFT JOIN Site ON Site.id = SiteApplicationRelease.site
 LEFT JOIN People ON People.individual = bound.individual
 LEFT JOIN Entities ON Entities.individual = bound.individual
 LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email;
+
+-- ---------------------------------------------------------------------------
+-- 0.2.11: SetIndividualPath / StopIndividualPath
+-- ---------------------------------------------------------------------------
+-- Append an unstopped (individual, type, path) if missing. Stop sets stop on
+-- that current row only (does not stop other paths of the same type).
+
+CREATE UNIQUE INDEX IF NOT EXISTS individualPath_individual_type_path_unstopped
+ ON IndividualPath (individual, type, path)
+ WHERE stop IS NULL;
+
+CREATE OR REPLACE FUNCTION SetIndividualPath (
+ inIndividual bigint,
+ inType varchar,
+ inPath bigint
+) RETURNS bigint AS $$
+DECLARE
+ type_id integer;
+BEGIN
+ IF inIndividual IS NOT NULL
+  AND inPath IS NOT NULL THEN
+  type_id := (SELECT GetWord(inType));
+  -- Be sure to process any single individual path one at a time without the need of a transaction or locking IndividualPath table
+  PERFORM pg_advisory_lock(inIndividual);
+  BEGIN
+  INSERT INTO IndividualPath (individual, type, path) (
+   SELECT inIndividual, type_id, inPath
+   FROM Dual
+   LEFT JOIN IndividualPath AS exists ON exists.individual = inIndividual
+    AND exists.path = inPath
+    AND ((exists.type = type_id) OR (exists.type IS NULL AND type_id IS NULL))
+    AND exists.stop IS NULL
+   WHERE exists.individual IS NULL
+   LIMIT 1
+  );
+  PERFORM pg_advisory_unlock(inIndividual);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inIndividual);
+    RAISE;
+  END;
+ END IF;
+ RETURN inIndividual;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION StopIndividualPath (
+ inIndividual bigint,
+ inType varchar,
+ inPath bigint
+) RETURNS bigint AS $$
+DECLARE
+ type_id integer;
+BEGIN
+ IF inIndividual IS NOT NULL
+  AND inPath IS NOT NULL THEN
+  type_id := (SELECT GetWord(inType));
+  PERFORM pg_advisory_lock(inIndividual);
+  BEGIN
+  UPDATE IndividualPath
+  SET stop = NOW()
+  WHERE individual = inIndividual
+   AND path = inPath
+   AND stop IS NULL
+   AND ((type = type_id) OR (type IS NULL AND type_id IS NULL));
+  PERFORM pg_advisory_unlock(inIndividual);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inIndividual);
+    RAISE;
+  END;
+ END IF;
+ RETURN inIndividual;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Mark schema upgraded to 0.2.11 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped

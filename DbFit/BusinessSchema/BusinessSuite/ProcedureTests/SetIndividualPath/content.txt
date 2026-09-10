@@ -1,0 +1,62 @@
+SetIndividualPath and StopIndividualPath
+
+Static IndividualPath (individual 10 IBM, type Home, path 10 www.IBM.com).
+SetIndividualPath appends only if that triple is not already unstopped.
+
+!|Query|SELECT SetIndividualPath(10, 'Home', 10)|
+|setindividualpath|
+|10|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualPath WHERE individual = 10 AND type = 10 AND path = 10 AND stop IS NULL|
+|n|
+|1|
+
+A different path of the same type is a second active row (not a replace).
+
+!|Query|SELECT GetPath('http', 0, 'www.SetIndividualPath.example', NULL, NULL)|
+|getpath?|
+|>>p|
+
+!|Query|SELECT SetIndividualPath(10, 'Home', _:p::INT)|
+|setindividualpath|
+|10|
+
+!|Query|SELECT SetIndividualPath(10, 'Home', _:p::INT)|
+|setindividualpath|
+|10|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualPath WHERE individual = 10 AND type = 10 AND path = _:p::INT AND stop IS NULL|
+|n|
+|1|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualPath WHERE individual = 10 AND type = 10 AND stop IS NULL|
+|n|
+|2|
+
+StopIndividualPath stops only that current triple.
+
+!|Query|SELECT StopIndividualPath(10, 'Home', _:p::INT)|
+|stopindividualpath|
+|10|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualPath WHERE individual = 10 AND type = 10 AND path = _:p::INT AND stop IS NULL|
+|n|
+|0|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualPath WHERE individual = 10 AND type = 10 AND path = 10 AND stop IS NULL|
+|n|
+|1|
+
+Stopped triple can be set again (new row).
+
+!|Query|SELECT SetIndividualPath(10, 'Home', _:p::INT)|
+|setindividualpath|
+|10|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualPath WHERE individual = 10 AND type = 10 AND path = _:p::INT|
+|n|
+|2|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualPath WHERE individual = 10 AND type = 10 AND path = _:p::INT AND stop IS NULL|
+|n|
+|1|

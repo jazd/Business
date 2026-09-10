@@ -66,6 +66,11 @@ CREATE UNIQUE INDEX name_null_null_family ON Name (family) WHERE given IS NULL A
 -- Do not allow duplicate email addresses
 CREATE UNIQUE INDEX email_username_plus_host ON Email (UPPER(username),UPPER(plus),UPPER(host));
 
+-- One active IndividualPath per (individual, type, path); history keeps stopped rows
+CREATE UNIQUE INDEX individualPath_individual_type_path_unstopped
+ ON IndividualPath (individual, type, path)
+ WHERE stop IS NULL;
+
 -- Do not allow duplicate country codes
 CREATE UNIQUE INDEX country_code ON Country (UPPER(code));
 

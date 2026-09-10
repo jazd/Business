@@ -117,6 +117,71 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION SetIndividualPath (
+ inIndividual bigint,
+ inType varchar,
+ inPath bigint
+) RETURNS bigint AS $$
+DECLARE
+ type_id integer;
+BEGIN
+ IF inIndividual IS NOT NULL
+  AND inPath IS NOT NULL THEN
+  type_id := (SELECT GetWord(inType));
+  -- Be sure to process any single individual path one at a time without the need of a transaction or locking IndividualPath table
+  PERFORM pg_advisory_lock(inIndividual);
+  BEGIN
+  INSERT INTO IndividualPath (individual, type, path) (
+   SELECT inIndividual, type_id, inPath
+   FROM Dual
+   LEFT JOIN IndividualPath AS exists ON exists.individual = inIndividual
+    AND exists.path = inPath
+    AND ((exists.type = type_id) OR (exists.type IS NULL AND type_id IS NULL))
+    AND exists.stop IS NULL
+   WHERE exists.individual IS NULL
+   LIMIT 1
+  );
+  PERFORM pg_advisory_unlock(inIndividual);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inIndividual);
+    RAISE;
+  END;
+ END IF;
+ RETURN inIndividual;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION StopIndividualPath (
+ inIndividual bigint,
+ inType varchar,
+ inPath bigint
+) RETURNS bigint AS $$
+DECLARE
+ type_id integer;
+BEGIN
+ IF inIndividual IS NOT NULL
+  AND inPath IS NOT NULL THEN
+  type_id := (SELECT GetWord(inType));
+  PERFORM pg_advisory_lock(inIndividual);
+  BEGIN
+  UPDATE IndividualPath
+  SET stop = NOW()
+  WHERE individual = inIndividual
+   AND path = inPath
+   AND stop IS NULL
+   AND ((type = type_id) OR (type IS NULL AND type_id IS NULL));
+  PERFORM pg_advisory_unlock(inIndividual);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inIndividual);
+    RAISE;
+  END;
+ END IF;
+ RETURN inIndividual;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Get Individual associated with an email
 CREATE OR REPLACE FUNCTION GetIndividualEmail (
   inEmail varchar
