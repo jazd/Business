@@ -39,7 +39,7 @@ I18N="Culture Word WordPlural Sentence Paragraph"
 # Application / release / site / firmware-style assembly binding (less crowded than Session)
 SOFTWARE="Application Version Release ApplicationRelease Site SiteApplicationRelease AssemblyApplicationRelease Part Word Sentence"
 
-SESSION="Session AgentString SessionToken SessionCredential Individual Name Entity IndividualSessionCreated IndividualApplicationCreated Password Credential Site Part AssemblyApplicationRelease Application Release Path ApplicationRelease SiteApplicationRelease Version Email Location Area Timezone Culture Sentence Word"
+SESSION="Session AgentString SessionToken SessionCredential SessionPath Individual Name Entity IndividualSessionCreated IndividualApplicationCreated Password Credential Site Part AssemblyApplicationRelease Application Release Path ApplicationRelease SiteApplicationRelease Version Email Location Area Timezone Culture Sentence Word"
 
 ASSEMBLIES="AssemblyPart Part PartDescription AssemblyApplicationRelease Application ApplicationRelease Version Word Sentence Paragraph Path PartPath"
 

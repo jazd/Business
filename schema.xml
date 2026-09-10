@@ -839,6 +839,28 @@
 </constraints>
 </table>
 
+<table name="SessionPath" order="219">
+<comments>untested</comments>
+<fields>
+ <field name="session" data_type="bigint" size="20" is_nullable="0" order="1" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="2" />
+ <field name="path" data_type="bigint" size="20" is_nullable="1" order="4" />
+ <field name="track" data_type="varchar" size="30" is_nullable="1" order="5">
+  <comments>Added to end of path in the Get section for tracking links to same path</comments>
+ </field>
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="6">
+  <comments>No longer associate this record with session.  Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="sessionpath_session" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
+ <constraint name="sessionpath_path" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+
 <comments>Tables for Enrollment over Secure Transport RFC 7030 (EST) support</comments>
 <!-- applicationrelease that generated csr -->
 <!-- applicationrelease that generated certificate -->
