@@ -373,7 +373,9 @@ CREATE OR REPLACE FUNCTION SetSession (
  -- Connection
  inIPAddress inet,
  inLocation integer,
- inStart timestamp
+ inStart timestamp,
+ -- Type
+ inType varchar
 ) RETURNS bigint AS $$
 DECLARE
  string_id INTEGER;
@@ -392,9 +394,46 @@ BEGIN
 
  referring_id = (SELECT GetUrl(inRefSecure,inRefHost,inRefPath,inRefGet));
 
- RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, agentString_id, inCredential, referring_id, inIPAddress, inLocation, inStart));
+ RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, agentString_id, inCredential, referring_id, inIPAddress, inLocation, inStart, inType));
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetSession (
+ inSessionToken varchar,
+ inSiteApplicationRelease integer,
+ inCredential integer,
+ -- User Agent
+ inUAstring varchar,
+ inUAfamily varchar,
+ inUAmajor varchar,
+ inUAminor varchar,
+ inUApatch varchar,
+ inUAbuild varchar,
+ -- Operating System
+ inOSfamily varchar,
+ inOSmajor varchar,
+ inOSminor varchar,
+ inOSpatch varchar,
+ -- Device
+ inDeviceBrand varchar,
+ inDeviceModel varchar,
+ inDeviceFamily varchar,
+ inDeviceFamilyVersion varchar,
+ -- Referring
+ inRefSecure integer,
+ inRefHost varchar,
+ inRefPath varchar,
+ inRefGet varchar,
+ -- Connection
+ inIPAddress inet,
+ inLocation integer,
+ inStart timestamp
+) RETURNS bigint AS $$
+BEGIN
+ RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, inAgentString, inCredential, inReferring, inIPAddress, inLocation, inStart, NULL));
+END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION SetSession (
  inSessionToken varchar,
@@ -410,6 +449,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
 CREATE OR REPLACE FUNCTION SetSession (
  inSessionToken varchar,
  inSiteApplicationRelease integer,
@@ -418,13 +458,16 @@ CREATE OR REPLACE FUNCTION SetSession (
  inReferring integer,
  inIPAddress inet,
  inLocation integer,
- inStart timestamp
+ inStart timestamp,
+ inType varchar
 ) RETURNS bigint AS $$
 DECLARE
  newSession bigint;
  existingSession bigint;
+ type_id integer;
 BEGIN
  IF inSessionToken IS NOT NULL THEN
+  type_id = (SELECT GetWord(inType));
   -- Does a session already exist for this token and site application release
   existingSession := (
    SELECT session
@@ -441,8 +484,8 @@ BEGIN
    PERFORM pg_advisory_lock(hashtext(inSessionToken));
    BEGIN
    INSERT INTO Session (lock) VALUES (0) RETURNING id INTO existingSession;
-   INSERT INTO SessionToken (session,token,siteApplicationRelease,created) (
-    SELECT existingSession, inSessionToken, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created
+   INSERT INTO SessionToken (session,token,type,siteApplicationRelease,created) (
+    SELECT existingSession, inSessionToken, type_id, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created
    );
    PERFORM pg_advisory_unlock(hashtext(inSessionToken));
    EXCEPTION
@@ -482,3 +525,17 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+CREATE OR REPLACE FUNCTION SetSession (
+ inSessionToken varchar,
+ inSiteApplicationRelease integer,
+ inAgentString integer,
+ inCredential integer,
+ inReferring integer,
+ inIPAddress inet,
+ inLocation integer,
+ inStart timestamp
+) RETURNS bigint AS $$
+BEGIN
+ RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, inAgentString, inCredential, inReferring, inIPAddress, inLocation, inStart, NULL));
+END;
+$$ LANGUAGE plpgsql;

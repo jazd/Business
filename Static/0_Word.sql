@@ -8,6 +8,9 @@ INSERT INTO Word (id,culture,value) VALUES (14,1033,'Pager');
 INSERT INTO Word (id,culture,value) VALUES (15,1033,'Fax');
 INSERT INTO Word (id,culture,value) VALUES (16,1033,'Desk');
 INSERT INTO Word (id,culture,value) VALUES (17,1033,'Mobile');
+INSERT INTO Word (id,culture,value) VALUES (18,1033,'session'); -- SessionToken type
+INSERT INTO Word (id,culture,value) VALUES (19,1033,'mail'); -- SessionToken type
+INSERT INTO Word (id,culture,value) VALUES (20,1033,'trial'); -- SessionToken type
 ---- Name words
 INSERT INTO Word (id,culture,value) VALUES (100,1033,'Mr');
 INSERT INTO Word (id,culture,value) VALUES (101,1033,'Master');
