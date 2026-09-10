@@ -292,7 +292,7 @@
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="username" data_type="varchar" size="30" is_nullable="0" order="2" />
  <field name="plus" data_type="varchar" size="30" is_nullable="1" order="3" />
- <field name="host" data_type="varchar" size="30" is_nullable="0" order="4" />
+ <field name="host" data_type="varchar" size="96" is_nullable="0" order="4" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="5" />
 </fields>
 <constraints>
@@ -304,7 +304,10 @@
  <field name="id" data_type="bigint" size="20" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="protocol" data_type="varchar" size="4" is_nullable="0" order="2" />
  <field name="secure" data_type="smallint" size="1" is_nullable="0" default_value="0" order="3" />
- <field name="host" data_type="varchar" size="64" is_nullable="1" order="4" />
+ <field name="host" data_type="varchar" size="96" is_nullable="1" order="4" />
+ <field name="port" data_type="smallint" size="1" is_nullable="1" order="4">
+   <comments>NULL is 433 if secure is 1 and 80 if secure is 0. Only set if not 433 or 80 in these two cases</comments>
+ </field>
  <field name="value" data_type="varchar" size="256" is_nullable="1" order="5" />
  <field name="get" data_type="varchar" size="256" is_nullable="1" order="6" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
@@ -748,7 +751,7 @@
 <comments>untested</comments>
 <fields>
  <field name="session" data_type="bigint" size="20" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" />
- <field name="token" data_type="varchar" size="32" is_nullable="0" is_foreign_key="0" order="1" />
+ <field name="token" data_type="varchar" size="128" is_nullable="0" is_foreign_key="0" order="1" />
  <field name="siteApplicationRelease" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="initialized" data_type="smallint" size="1" is_nullable="1" order="3" />
  <field name="timeout" data_type="integer" size="" is_nullable="1" order="4" />
@@ -2194,7 +2197,9 @@ FROM Email
 SELECT id AS path, protocol, host,
  protocol ||
  CASE WHEN secure = 1 THEN !apos;s!apos; ELSE !apos;!apos; END ||
- !apos;://!apos; || host || !apos;/!apos; ||
+ !apos;://!apos; || host ||
+ CASE WHEN port IS NOT NULL THEN !apos;:!apos; || port ELSE !apos;!apos; END ||
+ !apos;/!apos; ||
  COALESCE(value,!apos;!apos;) ||
  CASE WHEN get IS NULL
  THEN !apos;!apos;
@@ -2240,7 +2245,9 @@ WITH latest (individual,type,created) AS (
 SELECT latest.individual, latest.type, Path.id AS path, Path.protocol, Path.host,
  Path.protocol ||
  CASE WHEN secure = 1 THEN !apos;s!apos; ELSE !apos;!apos; END ||
- !apos;://!apos; || host || !apos;/!apos; ||
+ !apos;://!apos; || host ||
+ CASE WHEN port IS NOT NULL THEN !apos;:!apos; || port ELSE !apos;!apos; END ||
+ !apos;/!apos; ||
  COALESCE(Path.value,!apos;!apos;) ||
  CASE WHEN COALESCE(Path.get,IndividualPath.track) IS NULL
  THEN !apos;!apos;

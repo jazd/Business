@@ -156,10 +156,12 @@ CREATE OR REPLACE FUNCTION GetPath (
  inSecure integer,
  inHost varchar,
  inValue varchar,
- inGet varchar
+ inGet varchar,
+ inPort integer
 ) RETURNS integer AS $$
 DECLARE
  is_secure integer := 0;
+ port_value integer;
  lockText varchar;
  lockID bigint;
  path_id integer;
@@ -170,13 +172,16 @@ BEGIN
   IF inSecure IS NOT NULL AND inSecure != 0 THEN
     is_secure :=1;
   END IF;
-  lockText := COALESCE(inHost, '') || COALESCE(inValue, '');
+  lockText := COALESCE(inHost, '') || COALESCE(inPort::text, '') || COALESCE(inValue, '');
   lockID := hashtext(lockText);
+  IF is_secure = 0 AND inPort != 80 THEN port_value := inPort; END IF;
+  IF is_secure = 1 AND inPort != 443 THEN port_value := inPort; END IF;
   SELECT id INTO path_id
   FROM Path
   WHERE protocol = inProtocol
    AND secure = is_secure
    AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
+   AND ((port = port_value) OR (port IS NULL AND port_value IS NULL))
    AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
    AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
   LIMIT 1;
@@ -184,12 +189,13 @@ BEGIN
    -- Be sure to process any single path one at a time without the need of a transaction or locking Path table
    PERFORM pg_advisory_lock(lockID);
    BEGIN
-   INSERT INTO Path (protocol, secure, host, value, get) (
-    SELECT inProtocol, is_secure, inHost, inValue, inGet
+   INSERT INTO Path (protocol, secure, host, port, value, get) (
+    SELECT inProtocol, is_secure, inHost, port_value, inValue, inGet
     FROM Dual
     LEFT JOIN Path AS exists ON exists.protocol = inProtocol
      AND exists.secure = is_secure
      AND ((UPPER(exists.host) = UPPER(inHost)) OR (exists.host IS NULL AND inHost IS NULL))
+     AND ((exists.port = port_value) OR (exists.port IS NULL AND port_value IS NULL))
      AND ((exists.value = inValue) OR (exists.value IS NULL OR inValue IS NULL))
      AND ((exists.get = inGet) OR (exists.get IS NULL AND inGet IS NULL))
     WHERE exists.id IS NULL
@@ -206,12 +212,37 @@ BEGIN
    WHERE protocol = inProtocol
     AND secure = is_secure
     AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
+    AND ((port = port_value) OR (port IS NULL AND port_value IS NULL))
     AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
     AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
    LIMIT 1;
   END IF;
  END IF;
  RETURN path_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetPath (
+ inProtocol varchar,
+ inSecure integer,
+ inHost varchar,
+ inValue varchar,
+ inGet varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT GetPath(inProtocol, inSecure, inHost, inValue, inGet, NULL));
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetURL (
+ inSecure integer,
+ inHost varchar,
+ inValue varchar,
+ inGet varchar,
+ inPort integer
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT GetPath('http', inSecure, inHost, inValue, inGet, inPort));
 END;
 $$ LANGUAGE plpgsql;
 
@@ -222,9 +253,10 @@ CREATE OR REPLACE FUNCTION GetURL (
  inGet varchar
 ) RETURNS integer AS $$
 BEGIN
- RETURN (SELECT GetPath('http', inSecure, inHost, inValue, inGet));
+ RETURN (SELECT GetURL(inSecure, inHost, inValue, inGet, NULL));
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION GetFile (
  inHost varchar,
