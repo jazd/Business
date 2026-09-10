@@ -1,0 +1,50 @@
+-- =============================================================================
+-- Business schema upgrade: 0.2.11 -> 0.2.12 (PostgreSQL)
+-- =============================================================================
+--
+-- Living upgrade path while 0.2.12 is unreleased. Keep this file in sync with
+-- develop (procedures.d, schema.xml, post.sql, Static seeds) so a database
+-- installed at 0.2.11 can reach the same end state as a fresh 0.2.12 build.
+--
+-- Fresh installs: make pgsqldb (pre + schema + procedures + post + Static).
+-- Do not use this script for a greenfield install.
+--
+-- PRECONDITIONS
+--   * Schema "business" exists
+--   * Active SchemaVersion is Business 0.2.11 (stop IS NULL)
+--   * Role can ALTER tables, DROP/CREATE views and functions
+--   * Backup recommended for production
+--
+-- HOW TO RUN
+--   psql -h <host> -U <user> -d <db> -v ON_ERROR_STOP=1 \
+--     -f PostgreSQL/0.2.11-0.2.12.sql
+--
+-- ---------------------------------------------------------------------------
+-- Applied by this script (existing 0.2.11 database)
+-- ---------------------------------------------------------------------------
+--
+-- (Add numbered items as 0.2.12 work lands: DDL ALTERs, indexes, static seeds,
+--  CREATE OR REPLACE of changed procedures from procedures.d, view recreate.)
+--
+-- N) Schema version
+--    * SetSchemaVersion('Business', '0', '2', '12') - last substantive step
+--
+-- TESTING
+--   * make pgsqldb on develop (fresh 0.2.12-shaped DB)
+--   * Upgrade a copy of a 0.2.11 production/test DB with this script
+--   * BusinessSchema.PostgreSqlSuite (~24 intentional exceptions on
+--     XcepteionRequired)
+--
+-- =============================================================================
+
+-- ---------------------------------------------------------------------------
+-- 0.2.12: (pending) DDL / data / procedure changes
+-- ---------------------------------------------------------------------------
+-- Append CREATE OR REPLACE FUNCTION bodies from procedures.d as needed,
+-- or re-embed a full procedure refresh when many signatures change.
+-- Prefer small, reviewable sections with clear comments.
+
+-- Mark schema upgraded to 0.2.12 when the hop body is ready for the release.
+-- Until then, leave this commented so a partial living script is not stamped
+-- as 0.2.12 on production by mistake.
+-- SELECT SetSchemaVersion('Business', '0', '2', '12');

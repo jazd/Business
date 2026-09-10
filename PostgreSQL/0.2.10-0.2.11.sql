@@ -2,9 +2,8 @@
 -- Business schema upgrade: 0.2.10 -> 0.2.11 (PostgreSQL)
 -- =============================================================================
 --
--- Living upgrade path while 0.2.11 is unreleased. Keep this file in sync with
--- develop (procedures.d, schema.xml, post.sql, Static seeds) so a database
--- installed at 0.2.10 can reach the same end state as a fresh 0.2.11 build.
+-- Released hop 0.2.10 -> 0.2.11 (freeze after release). Living work for the next
+-- version is PostgreSQL/0.2.11-0.2.12.sql (and SQLite/0.2.11-0.2.12.sql).
 --
 -- Fresh installs: make pgsqldb (pre + schema + procedures + post + Static).
 -- Do not use this script for a greenfield install.
@@ -44,7 +43,7 @@
 --    * SetSchemaVersion('Business', '0', '2', '11') - last substantive step
 --
 -- TESTING
---   * make pgsqldb on develop (fresh 0.2.11-shaped DB)
+--   * make pgsqldb (fresh 0.2.11-shaped DB)
 --   * Upgrade a copy of a 0.2.10 production/test DB with this script
 --   * BusinessSchema.PostgreSqlSuite (~24 intentional exceptions on
 --     XcepteionRequired)
@@ -1041,7 +1040,4 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Mark schema upgraded to 0.2.11 when the hop body is ready for the release.
--- Until then, leave this commented so a partial living script is not stamped
--- as 0.2.11 on production by mistake.
--- SELECT SetSchemaVersion('Business', '0', '2', '11');
+SELECT SetSchemaVersion('Business', '0', '2', '11');

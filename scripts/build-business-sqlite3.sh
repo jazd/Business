@@ -73,7 +73,7 @@ sqlite3 "$OUT" < "${ROOT}/SQLite/post.sql"
 export SQLITE_DB="$OUT"
 export PATH="$ROOT/Bash/sqlite:${PATH:-}"
 if [[ -x "$ROOT/Bash/sqlite/SetSchemaVersion" ]]; then
-  SetSchemaVersion Business 0 2 10 >/dev/null || true
+  SetSchemaVersion Business 0 2 11 >/dev/null || true
 fi
 
 # Quick counts for operators

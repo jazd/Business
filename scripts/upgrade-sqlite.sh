@@ -3,7 +3,7 @@
 #
 # Usage:
 #   export SQLITE_DB=$HOME/business-shop/business.sqlite3
-#   ./scripts/upgrade-sqlite.sh 0.2.10 0.2.11
+#   ./scripts/upgrade-sqlite.sh 0.2.11 0.2.12
 #
 # Preconditions: active SchemaVersion Business = <from>.
 # After SQL file succeeds: SetSchemaVersion Business to <to>.
@@ -18,7 +18,7 @@ TO="${2:-}"
 
 if [[ -z "$FROM" || -z "$TO" ]]; then
   echo "Usage: SQLITE_DB=... $0 <from_version> <to_version>" >&2
-  echo "Example: $0 0.2.10 0.2.11" >&2
+  echo "Example: $0 0.2.11 0.2.12" >&2
   exit 1
 fi
 
@@ -60,7 +60,7 @@ active=$(sqlite3 "$SQLITE_DB" "
 
 if [[ -z "$active" ]]; then
   echo "Error: no active SchemaVersion for Business in $SQLITE_DB" >&2
-  echo "Stamp a 0.2.10 shop with: SetSchemaVersion Business 0 2 10" >&2
+  echo "Stamp a 0.2.11 shop with: SetSchemaVersion Business 0 2 11" >&2
   exit 1
 fi
 

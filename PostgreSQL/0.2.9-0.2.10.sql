@@ -2,8 +2,9 @@
 -- Business schema upgrade: 0.2.9 -> 0.2.10 (PostgreSQL)
 -- =============================================================================
 --
--- Released hop 0.2.9 -> 0.2.10 (freeze after release). Living work for the next
--- version is PostgreSQL/0.2.10-0.2.11.sql (and SQLite/0.2.10-0.2.11.sql).
+-- Released hop 0.2.9 -> 0.2.10 (freeze after release). Next released hop is
+-- PostgreSQL/0.2.10-0.2.11.sql. Living work is PostgreSQL/0.2.11-0.2.12.sql
+-- (and SQLite/0.2.11-0.2.12.sql).
 --
 -- Fresh installs: make pgsqldb (pre + schema + procedures + post + Static).
 -- Do not use this script for a greenfield install.
