@@ -1,0 +1,5 @@
+!4 Verify IndividualSessions view exists
+Has no static records
+!|Query Stats                                                               |
+|query                                                 |row count?|is empty?|
+|SELECT session FROM IndividualSessions LIMIT 1        |0         |true     |

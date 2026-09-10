@@ -29,6 +29,7 @@
 --  4) GetPath / GetURL overloads with inPort (default-port stored as NULL)
 --  5) SessionToken.type; SetSession inType overloads; Word 18-20 session/mail/trial
 --  6) SetSession writes IndividualSessionCreated when inCredential has an individual
+--  7) IndividualSessions view (current individual to session across sites)
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '11') - last substantive step
@@ -471,6 +472,49 @@ BEGIN
  RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, inCredential, inUAstring, inUAfamily, inUAmajor, inUAminor, inUApatch, inUAbuild, inOSfamily, inOSmajor, inOSminor, inOSpatch, inDeviceBrand, inDeviceModel, inDeviceFamily, inDeviceFamilyVersion, inRefSecure, inRefHost, inRefPath, inRefGet, inIPAddress, inLocation, inStart, NULL));
 END;
 $$ LANGUAGE plpgsql;
+
+-- ---------------------------------------------------------------------------
+-- 0.2.11: IndividualSessions (current individual to session, all sites)
+-- ---------------------------------------------------------------------------
+
+CREATE OR REPLACE VIEW IndividualSessions AS
+WITH bound (individual, sessionCredential, bound) AS (
+ SELECT individual, sessionCredential, created
+ FROM IndividualSessionCreated
+ UNION
+ SELECT Credential.individual, SessionCredential.id, SessionCredential.created
+ FROM SessionCredential
+ JOIN Credential ON Credential.id = SessionCredential.credential
+  AND Credential.revoked IS NULL
+  AND Credential.individual IS NOT NULL
+)
+SELECT
+ bound.individual,
+ COALESCE(People.fullName, Entities.name) AS individualName,
+ Session.id AS session,
+ SessionToken.token,
+ Type.value AS tokenType,
+ SessionToken.siteApplicationRelease,
+ Site.id AS site,
+ SessionCredential.id AS sessionCredential,
+ SessionCredential.credential,
+ Credential.username,
+ EmailAddress.value AS email,
+ bound.bound,
+ Session.touched,
+ COALESCE(SessionToken.created, Session.created) AS created
+FROM bound
+JOIN SessionCredential ON SessionCredential.id = bound.sessionCredential
+JOIN Session ON Session.id = SessionCredential.session
+JOIN Credential ON Credential.id = SessionCredential.credential
+ AND Credential.revoked IS NULL
+LEFT JOIN SessionToken ON SessionToken.session = Session.id
+LEFT JOIN I18NWord AS Type ON Type.id = SessionToken.type
+LEFT JOIN SiteApplicationRelease ON SiteApplicationRelease.id = SessionToken.siteApplicationRelease
+LEFT JOIN Site ON Site.id = SiteApplicationRelease.site
+LEFT JOIN People ON People.individual = bound.individual
+LEFT JOIN Entities ON Entities.individual = bound.individual
+LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email;
 
 -- Mark schema upgraded to 0.2.11 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped

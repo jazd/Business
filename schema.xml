@@ -51,7 +51,6 @@
 </table>
 
 <table name="Paragraph" order="4">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="0" is_foreign_key="0" order="1" />
  <field name="culture" data_type="smallint" size="" is_nullable="1" is_foreign_key="1" default_value="1033" order="2" />
@@ -522,7 +521,6 @@
 </table>
 
 <table name="Version" order="999">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="1" order="2" />
@@ -542,7 +540,6 @@
 </table>
 
 <table name="Release" order="240">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0"	is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="version" data_type="integer" size="" is_nullable="1" order="2" />
@@ -567,7 +564,6 @@
 </table>
 
 <table name="Application" order="240">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="1" order="2" />
@@ -585,7 +581,6 @@
 </table>
 
 <table name="ApplicationRelease" order="233">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="application" data_type="integer" size="" is_nullable="1" order="2" />
@@ -602,7 +597,6 @@
 </table>
 
 <table name="Part" order="131">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="parent" data_type="integer" size="" is_nullable="1" order="2" />
@@ -682,7 +676,6 @@
 
 <comments>A client device and its operating system.</comments>
 <table name="AssemblyApplicationRelease" order="140">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="parent" data_type="integer" size="" is_nullable="1" order="2" />
@@ -704,7 +697,6 @@
 </table>
 
 <table name="Site" order="211">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="1" order="2" />
@@ -718,7 +710,6 @@
 
 <comments>Information about when etc. site got particular released application</comments>
 <table name="SiteApplicationRelease" order="210">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="site" data_type="integer" size="" is_nullable="1" order="2" />
@@ -732,7 +723,6 @@
 </table>
 
 <table name="Session" order="220">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="bigint" size="20" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="lock" data_type="integer" size="" default_value="0" is_nullable="0" order="3">
@@ -748,7 +738,6 @@
 </table>
 
 <table name="SessionToken" order="209">
-<comments>untested</comments>
 <fields>
  <field name="session" data_type="bigint" size="20" is_nullable="0" is_primary_key="0" is_foreign_key="0" order="1" />
  <field name="token" data_type="varchar" size="128" is_nullable="0" is_foreign_key="0" order="1" />
@@ -773,7 +762,6 @@
 </table>
 
 <table name="Password" order="232">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="provider" data_type="bigint" size="20" is_nullable="1" order="2" />
@@ -791,7 +779,6 @@
 </table>
 
 <table name="Credential" order="231">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="individual" data_type="bigint" size="20" is_nullable="1" order="2" />
@@ -814,7 +801,6 @@
 </table>
 
 <table name="AgentString" order="232">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="agent" data_type="integer" size="" is_nullable="1" order="5">
@@ -834,7 +820,6 @@
 </table>
 
 <table name="SessionCredential" order="219">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="bigint" size="20" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="session" data_type="bigint" size="20" is_nullable="0" order="2" />
@@ -859,7 +844,6 @@
 <!-- applicationrelease that generated certificate -->
 
 <table name="AssemblyPublicKey" order="240">
-<comments>untested</comments>
 <fields>
  <field name="assembly" data_type="integer" size="" is_nullable="0" order="1" />
  <field name="pem" data_type="varchar" size="" is_nullable="0" order="2" />
@@ -871,7 +855,6 @@
 </table>
 
 <table name="CertificateSigningRequest" order="240">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="pem" data_type="varchar" size="" is_nullable="0" order="2" />
@@ -885,7 +868,6 @@
 </table>
 
 <table name="AssemblyCertificateSigningRequest" order="240">
-<comments>untested</comments>
 <fields>
  <field name="assembly" data_type="integer" size="" is_nullable="0" order="2" />
  <field name="csr" data_type="integer" size="" is_nullable="0" order="3" />
@@ -898,7 +880,6 @@
 </table>
 
 <table name="CA" order="240">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
@@ -913,7 +894,6 @@
 </table>
 
 <table name="CAPolicy" order="240">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="ca" data_type="integer" size="" is_nullable="0" order="2" />
@@ -949,7 +929,6 @@
 </table>
 
 <table name="Certificate" order="240">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="caPolicy" data_type="integer" size="" is_nullable="0" order="2" />
@@ -1032,7 +1011,6 @@
 </table>
 
 <table name="Attribute" order="801">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="unit" data_type="integer" size="" is_nullable="1" order="2" />
@@ -1049,7 +1027,6 @@
 </table>
 
 <table name="RecordProperty" order="800">
-<comments>untested</comments>
 <fields>
  <field name="tableName" data_type="varchar" size="64" is_nullable="0" order="1" />
  <field name="tableId" data_type="bigint" size="20" is_nullable="1" order="2">
@@ -1215,7 +1192,6 @@
 
 <comments>Span tables share the same unique sequence id</comments>
 <table name="DateRange" order="310">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="start" data_type="timestamp WITHOUT TIME ZONE" size="0" is_nullable="0" order="2" />
@@ -1225,7 +1201,6 @@
 </table>
 
 <table name="TimeOfDay" order="311">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="start" data_type="time WITHOUT TIME ZONE" size="0" is_nullable="0" order="2" />
@@ -1298,7 +1273,6 @@
 
 
 <table name="SchemaVersion" order="990">
-<comments>untested</comments>
 <fields>
  <field name="build" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="schema" data_type="integer" size="" is_nullable="1" order="2" />
@@ -1330,7 +1304,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="IndividualAddress" order="75">
-<comments>untested</comments>
 <fields>
  <field name="individual" data_type="bigint" size="20" is_nullable="1" order="3" />
  <field name="type" data_type="integer" size="" is_nullable="1" order="3" />
@@ -1351,7 +1324,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="IndividualApplicationCreated" order="211">
-<comments>untested</comments>
 <fields>
  <field name="individual" data_type="bigint" size="20" is_nullable="1" order="3" />
  <field name="applicationRelease" data_type="integer" size="" is_nullable="1" order="3" />
@@ -1364,7 +1336,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="IndividualSessionCreated" order="218">
-<comments>untested</comments>
 <fields>
  <field name="individual" data_type="bigint" size="20" is_nullable="1" order="3" />
  <field name="sessionCredential" data_type="bigint" size="20" is_nullable="1" order="3" />
@@ -1404,7 +1375,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="BookName" order="900">
-<comments>untested</comments>
 <fields>
  <field name="book" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
@@ -1419,7 +1389,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="AccountName" order="900">
-<comments>untested</comments>
 <fields>
  <field name="account" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
@@ -1452,7 +1421,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="JobName" order="900">
-<comments>untested</comments>
 <fields>
  <field name="job" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
@@ -1465,7 +1433,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="ScheduleName" order="900">
-<comments>untested</comments>
 <fields>
  <field name="schedule" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
@@ -1516,7 +1483,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="Entry" order="900">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="assemblyApplicationRelease" data_type="integer" is_nullable="1" order="2" />
@@ -1623,7 +1589,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="JournalEntry" order="901">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="book" data_type="integer" size="" is_nullable="1" order="4" />
@@ -1701,7 +1666,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="Schedule" order="901">
-<comments>untested</comments>
 <fields>
  <field name="schedule" data_type="integer" size="" is_nullable="0" order="1" />
  <field name="period" data_type="integer" size="" is_nullable="1" is_auto_increment="0" is_primary_key="0" is_foreign_key="0" order="2" />
@@ -1734,7 +1698,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="IndividualJob" order="901">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="0" order="1">
   <comments>Not unique.  Used to group one or more individuals and/or schedules together for a single corgo record</comments>
@@ -1763,7 +1726,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="AssemblyIndividualJobPrice" order="910">
-<comments>untested</comments>
 <fields>
  <field name="assembly" data_type="integer" size="" is_nullable="1" order="2" />
  <field name="individualJob" data_type="integer" size="" is_nullable="0" order="1" />
@@ -1777,7 +1739,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="Bill" order="901">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="1" order="1" />
  <field name="supplier" data_type="bigint" size="20" is_nullable="0" order="2">
@@ -1864,7 +1825,6 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </table>
 
 <table name="Cargo" order="901">
-<comments>untested</comments>
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="0" is_primary_key="0" is_foreign_key="1" order="1">
   <comments>Not unique. Cargo lines can be adjusted before Bill.clean or Bill.dirty</comments>
@@ -2438,6 +2398,52 @@ LEFT JOIN Credential ON Credential.id = SessionCredential.credential
 LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email
 LEFT JOIN URL ON URL.path = SessionCredential.referring
 WHERE Session.id = SessionCredential.session
+  </sql>
+ </view>
+
+ <view name="IndividualSessions" fields="individual,individualName,session,token,tokenType,siteApplicationRelease,site,sessionCredential,credential,username,email,bound,touched,created">
+  <comments>
+   Current individual to session across all sites. Unrevoked credential,
+   bound via IndividualSessionCreated and/or Credential.individual.
+  </comments>
+  <sql>
+WITH bound (individual, sessionCredential, bound) AS (
+ SELECT individual, sessionCredential, created
+ FROM IndividualSessionCreated
+ UNION
+ SELECT Credential.individual, SessionCredential.id, SessionCredential.created
+ FROM SessionCredential
+ JOIN Credential ON Credential.id = SessionCredential.credential
+  AND Credential.revoked IS NULL
+  AND Credential.individual IS NOT NULL
+)
+SELECT
+ bound.individual,
+ COALESCE(People.fullName, Entities.name) AS individualName,
+ Session.id AS session,
+ SessionToken.token,
+ Type.value AS tokenType,
+ SessionToken.siteApplicationRelease,
+ Site.id AS site,
+ SessionCredential.id AS sessionCredential,
+ SessionCredential.credential,
+ Credential.username,
+ EmailAddress.value AS email,
+ bound.bound,
+ Session.touched,
+ COALESCE(SessionToken.created, Session.created) AS created
+FROM bound
+JOIN SessionCredential ON SessionCredential.id = bound.sessionCredential
+JOIN Session ON Session.id = SessionCredential.session
+JOIN Credential ON Credential.id = SessionCredential.credential
+ AND Credential.revoked IS NULL
+LEFT JOIN SessionToken ON SessionToken.session = Session.id
+LEFT JOIN I18NWord AS Type ON Type.id = SessionToken.type
+LEFT JOIN SiteApplicationRelease ON SiteApplicationRelease.id = SessionToken.siteApplicationRelease
+LEFT JOIN Site ON Site.id = SiteApplicationRelease.site
+LEFT JOIN People ON People.individual = bound.individual
+LEFT JOIN Entities ON Entities.individual = bound.individual
+LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email
   </sql>
  </view>
 

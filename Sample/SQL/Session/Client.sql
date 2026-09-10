@@ -45,11 +45,23 @@ SELECT individual, sessionCredential
 FROM IndividualSessionCreated
 ORDER BY created;
 
+-- Hit telemetry (includes the anonymous SessionCredential with no individual)
 SELECT session, token, os, agent, credential, username
 FROM Sessions
 ORDER BY token, credential NULLS FIRST, touched
 ;
--- session |              token               |  os   | agent  | credential | username 
+-- session |              token               |  os   | agent  | credential | username
 -----------+----------------------------------+-------+--------+------------+----------
---       1 | BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn | Linux | Chrome |            | 
+--       1 | BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn | Linux | Chrome |            |
 --       1 | BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn | Linux | Chrome |          1 | helmet
+
+-- Current individual to session across all sites (unrevoked credential).
+-- Anonymous hits are omitted. Join reports on individual and/or site.
+SELECT individual, individualName, session, token, tokenType, site, username
+FROM IndividualSessions
+WHERE individual = 1
+ORDER BY touched
+;
+-- individual | individualName | session | token                            | tokenType | site | username
+--------------+----------------+---------+----------------------------------+-----------+------+----------
+--          1 | ...            |       1 | BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn |           |      | helmet

@@ -30,6 +30,7 @@
 --  6) IndividualSessionCreated already exists in the shop schema. PostgreSQL
 --     SetSession writes it when inCredential has an individual. No shop Bash
 --     SetSession; no SQLite DDL for this behavior.
+--  7) IndividualSessions view (current individual to session across sites)
 --
 -- SQLite does not enforce varchar(n). Email.host 30->96, Path.host 64->96,
 -- and SessionToken.token 32->128 need no table rebuild; stored values stay.
@@ -79,3 +80,43 @@ WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id = 19 AND culture = 1033);
 INSERT INTO Word (id, culture, value)
 SELECT 20, 1033, 'trial'
 WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id = 20 AND culture = 1033);
+
+DROP VIEW IF EXISTS IndividualSessions;
+CREATE VIEW IndividualSessions AS
+WITH bound (individual, sessionCredential, bound) AS (
+ SELECT individual, sessionCredential, created
+ FROM IndividualSessionCreated
+ UNION
+ SELECT Credential.individual, SessionCredential.id, SessionCredential.created
+ FROM SessionCredential
+ JOIN Credential ON Credential.id = SessionCredential.credential
+  AND Credential.revoked IS NULL
+  AND Credential.individual IS NOT NULL
+)
+SELECT
+ bound.individual,
+ COALESCE(People.fullName, Entities.name) AS individualName,
+ Session.id AS session,
+ SessionToken.token,
+ Type.value AS tokenType,
+ SessionToken.siteApplicationRelease,
+ Site.id AS site,
+ SessionCredential.id AS sessionCredential,
+ SessionCredential.credential,
+ Credential.username,
+ EmailAddress.value AS email,
+ bound.bound,
+ Session.touched,
+ COALESCE(SessionToken.created, Session.created) AS created
+FROM bound
+JOIN SessionCredential ON SessionCredential.id = bound.sessionCredential
+JOIN Session ON Session.id = SessionCredential.session
+JOIN Credential ON Credential.id = SessionCredential.credential
+ AND Credential.revoked IS NULL
+LEFT JOIN SessionToken ON SessionToken.session = Session.id
+LEFT JOIN I18NWord AS Type ON Type.id = SessionToken.type
+LEFT JOIN SiteApplicationRelease ON SiteApplicationRelease.id = SessionToken.siteApplicationRelease
+LEFT JOIN Site ON Site.id = SiteApplicationRelease.site
+LEFT JOIN People ON People.individual = bound.individual
+LEFT JOIN Entities ON Entities.individual = bound.individual
+LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email;

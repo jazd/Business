@@ -68,3 +68,22 @@ Credential with no individual does not write IndividualSessionCreated
 !|Query|SELECT COUNT(*) AS n FROM IndividualSessionCreated WHERE sessionCredential IN (SELECT id FROM SessionCredential WHERE credential = _:crednoid::INT)|
 |n|
 |0|
+
+IndividualSessions is the current individual to session report join (all sites).
+Anonymous and no-individual credentials are omitted.
+
+!|Query|SELECT individual, username, token FROM IndividualSessions WHERE username = 'dbfitsess' ORDER BY token|
+|individual|username|token|
+|1|dbfitsess|DbFitISCToken|
+|1|dbfitsess|DbFitISCTokenB|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualSessions WHERE username = 'dbfitnoid'|
+|n|
+|0|
+
+Revoked credential drops off IndividualSessions
+!|Execute|UPDATE Credential SET revoked = NOW() WHERE id = _:cred::INT|
+
+!|Query|SELECT COUNT(*) AS n FROM IndividualSessions WHERE username = 'dbfitsess'|
+|n|
+|0|
