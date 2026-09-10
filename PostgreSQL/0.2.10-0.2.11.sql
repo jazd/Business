@@ -23,8 +23,11 @@
 -- ---------------------------------------------------------------------------
 --
 --  1) Bill.shipfrom / Bill.shipto + Address FKs; Location id sequence
---  2) Wider Email.host, Path.host, SessionToken.token; Path.port
---  3) URL and IndividualURL include :port when Path.port is set
+--  2) Wider Email.host, Path.host, SessionToken.token; Path.port.
+--     PostgreSQL cannot ALTER COLUMN TYPE while a view uses that column, so
+--     drop only EmailAddress, URL, File, IndividualURL, IndividualEmailAddress,
+--     and Sessions; recreate them after the type change.
+--  3) Recreated URL and IndividualURL include :port when Path.port is set
 --  4) GetPath / GetURL overloads with inPort (default-port stored as NULL)
 --  5) SessionToken.type; SetSession inType overloads; Word 18-20 session/mail/trial
 --  6) SetSession writes IndividualSessionCreated when inCredential has an individual
@@ -88,9 +91,11 @@ SET search_path TO business, public;
 -- 0.2.11: Bill ship addresses; Location id sequence
 -- ---------------------------------------------------------------------------
 
-ALTER TABLE Bill ADD COLUMN shipfrom integer;
-ALTER TABLE Bill ADD COLUMN shipto integer;
+ALTER TABLE Bill ADD COLUMN IF NOT EXISTS shipfrom integer;
+ALTER TABLE Bill ADD COLUMN IF NOT EXISTS shipto integer;
+ALTER TABLE Bill DROP CONSTRAINT IF EXISTS bill_address_from;
 ALTER TABLE Bill ADD CONSTRAINT bill_address_from FOREIGN KEY (shipfrom) REFERENCES Address (id) DEFERRABLE;
+ALTER TABLE Bill DROP CONSTRAINT IF EXISTS bill_address_to;
 ALTER TABLE Bill ADD CONSTRAINT bill_address_to FOREIGN KEY (shipto) REFERENCES Address (id) DEFERRABLE;
 
 SELECT setval('location_id_seq', 20000, false);
@@ -102,6 +107,20 @@ SELECT setval('location_id_seq', 20000, false);
 -- Widen in place (existing values fit the old lengths). Path.port stays NULL
 -- on existing rows: GetPath treats NULL as 80 when insecure and 443 when
 -- secure. Do not backfill 80/443.
+--
+-- PostgreSQL refuses ALTER COLUMN TYPE while a view's _RETURN rule uses that
+-- column. Drop only those views (and the views that sit on them), then put
+-- them back. Do not CASCADE the whole schema.
+
+-- Email.host -> EmailAddress; IndividualEmailAddress and Sessions use EmailAddress
+DROP VIEW IF EXISTS IndividualEmailAddress;
+DROP VIEW IF EXISTS Sessions;
+DROP VIEW IF EXISTS EmailAddress;
+-- Path.host -> URL, File, IndividualURL; Sessions uses URL (already dropped)
+DROP VIEW IF EXISTS IndividualURL;
+DROP VIEW IF EXISTS File;
+DROP VIEW IF EXISTS URL;
+-- SessionToken.token -> Sessions (already dropped)
 
 ALTER TABLE Email ALTER COLUMN host TYPE varchar(96);
 ALTER TABLE Path ALTER COLUMN host TYPE varchar(96);
@@ -109,8 +128,15 @@ ALTER TABLE SessionToken ALTER COLUMN token TYPE varchar(128);
 ALTER TABLE Path ADD COLUMN IF NOT EXISTS port smallint;
 
 -- ---------------------------------------------------------------------------
--- 0.2.11: URL views (port in concatenated value; column list unchanged)
+-- 0.2.11: Recreate views dropped for the type changes (URL includes :port)
 -- ---------------------------------------------------------------------------
+
+CREATE OR REPLACE VIEW EmailAddress AS
+SELECT id AS email, username, plus, host,
+ username ||
+ COALESCE('+' || plus, '') ||
+ '@' || host AS value
+FROM Email;
 
 CREATE OR REPLACE VIEW URL AS
 SELECT id AS path, protocol, host,
@@ -124,6 +150,27 @@ SELECT id AS path, protocol, host,
  THEN ''
  ELSE '?' || get
  END AS value,
+ created
+FROM Path;
+
+CREATE OR REPLACE VIEW File AS
+SELECT id AS path, protocol, host,
+ protocol ||
+ ':///' ||
+ COALESCE(value,'') ||
+ CASE WHEN value IS NOT NULL
+ THEN '/'
+ ELSE ''
+ END ||
+ COALESCE(get,'')
+ AS value,
+ COALESCE(value,'') ||
+ CASE WHEN value IS NOT NULL
+ THEN '/'
+ ELSE ''
+ END ||
+ COALESCE(get,'')
+ AS file,
  created
 FROM Path;
 
@@ -155,6 +202,42 @@ JOIN IndividualPath ON IndividualPath.individual = latest.individual
 JOIN Individual ON Individual.id = latest.individual
  AND Individual.nameChange IS NULL
 JOIN Path ON Path.id = IndividualPath.path;
+
+CREATE OR REPLACE VIEW IndividualEmailAddress AS
+WITH latest (individual,type,created) AS (
+ SELECT individual, type, MAX(created) AS created
+ FROM IndividualEmail
+ WHERE IndividualEmail.stop IS NULL
+ GROUP BY individual, type
+)
+SELECT latest.individual, latest.type, IndividualEmail.email, EmailAddress.username,
+ EmailAddress.plus, EmailAddress.host, EmailAddress.value, latest.created
+FROM latest
+JOIN Individual ON Individual.id = latest.individual
+ AND Individual.nameChange IS NULL
+JOIN IndividualEmail ON IndividualEmail.individual = latest.individual
+ AND IndividualEmail.type = latest.type
+ AND IndividualEmail.created = latest.created
+JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email;
+
+CREATE OR REPLACE VIEW Sessions AS
+SELECT Session.id AS session,
+ SessionToken.token, SessionToken.siteapplicationrelease,
+ SessionCredential.agentstring,
+ deviceid, ParsedAgentStringShort.device, osid, ParsedAgentStringShort.os, agentid, ParsedAgentStringShort.agent,
+ SessionCredential.referring, URL.value AS referrringURL,
+ SessionCredential.fromaddress,
+ SessionCredential.credential, Credential.individual,  Credential.username,
+ EmailAddress.value AS email,
+ COALESCE(SessionToken.created, Session.created) AS created, Session.touched
+FROM Session
+CROSS JOIN SessionCredential
+LEFT JOIN SessionToken ON SessionToken.session = Session.id
+LEFT JOIN ParsedAgentStringShort ON ParsedAgentStringShort.agentstring = SessionCredential.agentstring
+LEFT JOIN Credential ON Credential.id = SessionCredential.credential
+LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email
+LEFT JOIN URL ON URL.path = SessionCredential.referring
+WHERE Session.id = SessionCredential.session;
 
 -- ---------------------------------------------------------------------------
 -- 0.2.11: GetPath / GetURL port overloads (from procedures.d/40-contacts.sql)
