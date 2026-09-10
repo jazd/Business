@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+
+# Usage: GetPath <protocol> <secure> <host> <value> <get> [port]
+# Find-or-insert Path. Empty host/value/get/port => NULL.
+# Port 80 with insecure or 443 with secure is stored as NULL (same as PG).
+# Parity with PG GetPath.
+
+source ~/bin/sqlite/common
+
+PROTOCOL="${1:-}"
+SECURE="${2:-}"
+HOST="${3:-}"
+VALUE="${4:-}"
+GET="${5:-}"
+PORT="${6:-}"
+
+if [[ -z "$PROTOCOL" ]]; then
+  echo "Usage: GetPath <protocol> <secure> <host> <value> <get> [port]" >&2
+  exit 1
+fi
+
+if [[ -z "$HOST" && -z "$VALUE" ]]; then
+  echo ""
+  exit 0
+fi
+
+is_secure=0
+if [[ -n "$SECURE" && "$SECURE" != "0" ]]; then
+  is_secure=1
+fi
+
+port_sql="NULL"
+if [[ -n "$PORT" && "$PORT" != "NULL" && "$PORT" != "null" ]]; then
+  if [[ "$is_secure" -eq 0 && "$PORT" != "80" ]]; then
+    port_sql="$PORT"
+  elif [[ "$is_secure" -eq 1 && "$PORT" != "443" ]]; then
+    port_sql="$PORT"
+  fi
+fi
+
+prot_sql=$(sql_str_or_null "$PROTOCOL")
+host_sql=$(sql_str_or_null "$HOST")
+value_sql=$(sql_str_or_null "$VALUE")
+get_sql=$(sql_str_or_null "$GET")
+
+if [[ "$host_sql" == "NULL" ]]; then
+  host_match="host IS NULL"
+else
+  host_match="UPPER(host) = UPPER($host_sql)"
+fi
+if [[ "$value_sql" == "NULL" ]]; then
+  value_match="value IS NULL"
+else
+  value_match="value = $value_sql"
+fi
+if [[ "$get_sql" == "NULL" ]]; then
+  get_match="get IS NULL"
+else
+  get_match="get = $get_sql"
+fi
+if [[ "$port_sql" == "NULL" ]]; then
+  port_match="port IS NULL"
+else
+  port_match="port = $port_sql"
+fi
+
+path_id=$(sqlite_query_one "
+ SELECT id
+ FROM Path
+ WHERE protocol = $prot_sql
+  AND secure = $is_secure
+  AND $host_match
+  AND $port_match
+  AND $value_match
+  AND $get_match
+ LIMIT 1;
+")
+
+if [[ -n "$path_id" ]]; then
+  echo "$path_id"
+  exit 0
+fi
+
+sqlite_run "
+ INSERT INTO Path (protocol, secure, host, port, value, get)
+ SELECT $prot_sql, $is_secure, $host_sql, $port_sql, $value_sql, $get_sql
+ WHERE NOT EXISTS (
+  SELECT 1 FROM Path
+  WHERE protocol = $prot_sql
+   AND secure = $is_secure
+   AND $host_match
+   AND $port_match
+   AND $value_match
+   AND $get_match
+ );
+" >/dev/null
+
+sqlite_query_one "
+ SELECT id
+ FROM Path
+ WHERE protocol = $prot_sql
+  AND secure = $is_secure
+  AND $host_match
+  AND $port_match
+  AND $value_match
+  AND $get_match
+ LIMIT 1;
+"

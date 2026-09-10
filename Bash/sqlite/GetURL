@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# Usage: GetURL <secure> <host> <value> <get> [port]
+# Wrapper: GetPath http ...  Parity with PG GetURL.
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+exec "$ROOT/GetPath" http "$@"

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# Usage: GetFile <host> <pathValue> <fileGet>
+# Wrapper: GetPath file 0 ...  Parity with PG GetFile.
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+HOST="${1:-}"
+PATH_VALUE="${2:-}"
+FILE_GET="${3:-}"
+exec "$ROOT/GetPath" file 0 "$HOST" "$PATH_VALUE" "$FILE_GET"
