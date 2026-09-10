@@ -17,10 +17,9 @@ metadata:
 **Audience:** Grok Build, skills, and other agents implementing **public HTTP
 sites**. This file is **not** customer copy. Do not paste it onto HTML or mail.
 
-**Requires Business 0.2.11** (living hop `PostgreSQL/0.2.10-0.2.11.sql` on
-`develop` until a 0.2.11 tag exists). 0.2.10 has Session / SessionToken /
-lists but **not** SessionPath, ClaimSession, SessionToken.type, Path.port,
-PathPassword, or the report views below.
+**Requires Business 0.2.11** (`PostgreSQL/0.2.10-0.2.11.sql`). 0.2.10 has
+Session / SessionToken / lists but **not** SessionPath, ClaimSession,
+SessionToken.type, Path.port, PathPassword, or the report views below.
 
 **PostgreSQL only** for the session join (`SetSession`, `ClaimSession`,
 `AnonymousSession`). SQLite has Bash helpers for Path / IndividualPath /
@@ -85,10 +84,15 @@ is not the same kind of fact as a party, a bill, or a session.
 value, get, port)` take **`inPort`**. Do not put `example.com:8443` in
 `Path.host`.
 
+**`Path.value` has no leading `/`.** The URL view is
+`https://host[:port]/` **plus** `value`. Passing `r.URL.Path` (`/t/abc`)
+stores `https://host//t/abc`. Strip leading slashes; empty path → NULL
+(homepage `https://host/`).
+
 ```sql
--- https://example.com/           (port NULL)
+-- https://example.com/           (port NULL, value NULL)
 SELECT GetURL(1, 'example.com', NULL, NULL);
--- https://example.com:8443/foo
+-- https://example.com:8443/foo     value is 'foo', not '/foo'
 SELECT GetURL(1, 'example.com', 'foo', NULL, 8443);
 -- amqps://broker.example.com:5671/
 SELECT GetPath('amqp', 1, 'broker.example.com', NULL, NULL, 5671);
@@ -163,11 +167,17 @@ Mint tokens as **unguessable** random strings (32–128 chars). Unique is
 5. Load identity from views (not ad-hoc joins) when you need email/plan:
 
 ```sql
-SELECT individual, email, tokenType, site, credential
-FROM IndividualSessions
-WHERE token = $1 AND site = $2
+SELECT s.individual, s.email, s.tokenType, s.credential, w.value AS site
+FROM IndividualSessions s
+JOIN site st ON st.id = s.site
+JOIN word w ON w.id = st.name
+WHERE s.token = $1 AND s.site = $2
 LIMIT 1;
 ```
+
+Do **not** use `IndividualSessions.siteName`. `Site.name` is a **Word** id;
+that column joins Sentence by the same integer and collides with unrelated
+sentences. Always `site` → `word`.
 
 Anonymous browsers **will not** appear in `IndividualSessions` (no
 credential). They still have a `Session` / `SessionToken` / `Sessions` row.
@@ -294,7 +304,8 @@ tenant table.
 
 Unique unrevoked is **`(path, password)`**, so more than one live secret per
 path is allowed (overlap during rotation). Application picks the current one
-(latest `created` where `revoked IS NULL`).
+(latest `created` where `revoked IS NULL`). There is no one-secret-per-path
+unique.
 
 Inbound vendor events (Stripe event id, etc.) are **application** tables, not
 Business.
@@ -307,7 +318,7 @@ Filter in `WHERE`; do not bake a product name into a new view.
 
 | View | What |
 |------|------|
-| **IndividualSessions** | Individual ↔ session, token, tokenType, site, siteName, email, credential, touched. Omits anonymous hits. |
+| **IndividualSessions** | Individual ↔ session, token, tokenType, site, email, credential, touched. Omits anonymous hits. **Ignore `siteName`** (Word vs Sentence); join `site`+`word`. |
 | **Sessions** | Hit log including anonymous SessionCredential |
 | **SiteMembership** | individual, email, listNameValue, listSetValue, **unlist**, created (from ListIndividual, not the current-only `List` view) |
 | **IndividualPaths** / **IndividualPathHistory** | Person-owned URLs |
@@ -376,6 +387,20 @@ unstopped IndividualPath; Stop then Set is a new row; mail token type is
 **Do not** start from a 0.2.10 database. Apply `PostgreSQL/0.2.10-0.2.11.sql`
 as the Business role (not a superuser for app objects) or install fresh 0.2.11.
 
+The hop `SET search_path TO business, public` and checks `pg_namespace =
+'business'`. If tables already live in **`public`** (common when the database
+is named `business` but objects were created on `public`), run the hop with
+`search_path` `public` and treat the version check as `schemaversion` 0.2.10,
+not the namespace name.
+
+`ALTER COLUMN` on `Email.host` / `Path.host` fails while views depend on
+those columns (`EmailAddress`, `URL`, `File`, …). The hop drops and
+recreates the official views. Extra app views on those columns must be
+dropped first, then rebuilt.
+
+`psql` without `-q` prints `INSERT 0 1` next to `RETURNING id`. Use
+`psql -qAt` (or parse the last **digit** line) when capturing new ids.
+
 ---
 
 ## Anti-patterns
@@ -383,6 +408,8 @@ as the Business role (not a superuser for app objects) or install fresh 0.2.11.
 - Sidecar `site_session(uuid, email)` when ClaimSession exists.
 - `CreateIndividual()` on first GET /.
 - Host:port stuffed into `Path.host` after 0.2.11.
+- Leading `/` on `Path.value` (double slash in the URL view).
+- `IndividualSessions.siteName` as the DNS host (join `site`+`word`).
 - Site / list names longer than 25 characters (use Path.host for FQDNs).
 - DELETE of watches to enforce a free cap.
 - Treating `List` as history (stopped Pro disappears).
@@ -392,6 +419,27 @@ as the Business role (not a superuser for app objects) or install fresh 0.2.11.
 - Reusing one SAR across two public hosts.
 - Same token string on two SiteApplicationReleases (ClaimSession token lookup
   is not SAR-scoped).
+
+---
+
+## Process (QA / deploy smoke)
+
+`Process` / `Step` / `ProcessStep` / `ProcessRun` / `ProcessRunResult` are
+the PCB/assembly QA tables (`schema.xml` order 850, comments “untested”).
+There are **no** writer procedures. Use them to record a named checklist
+(site smoke, hardware test) without inventing a stats table.
+
+| Table | Fact |
+|-------|------|
+| **Process** | `name` → Sentence (`GetSentence`). Optional description / version. |
+| **Step** | `name` → Sentence. One checklist item. |
+| **ProcessStep** | Process + Step + `sequence`. Seed once (idempotent on process+sequence). |
+| **ProcessRun** | One execution. `assembly` → **Part** (`GetPart` then `GetPartbySerial` for a unique serial). `tester` → **AssemblyApplicationRelease** (`GetPart` + `GetApplicationRelease` + `GetAssemblyApplicationRelease`), **not** SiteApplicationRelease. `supervisor` Individual optional. |
+| **ProcessRunResult** | `run`, `processStep`, `pass` / `marginal` / `failure`. Append only. |
+
+Word names for Application/Part must fit varchar(25). Sentence names can be
+longer. Insert Process/Step with Dual/LEFT JOIN so a second seed is a no-op.
+Do not DELETE runs.
 
 ---
 
@@ -419,5 +467,5 @@ as the Business role (not a superuser for app objects) or install fresh 0.2.11.
 - `Sample/SQL/Session/Client.sql`
 - `Sample/PostgreSQL/Go/business/session.go` — older AnonymousSession helper
 - `PostgreSQL/procedures.d/70-session.sql`, `40-contacts.sql`, `50-lists.sql`
-- `PostgreSQL/0.2.10-0.2.11.sql` — living upgrade
+- `PostgreSQL/0.2.10-0.2.11.sql` — 0.2.10 → 0.2.11 hop
 - Wiki Sessions (human); this skill wins on 0.2.11 identity for agents
