@@ -21,7 +21,7 @@ A couple of the supported SQL servers:
 
 [Documentation and examples](https://github.com/jazd/Business/wiki): https://github.com/jazd/Business/wiki
 
-**New to the schema or Grok Build?** See [GETTING-STARTED.md](./GETTING-STARTED.md) (SQLite file from the release + `/business-bookkeeper` skill).
+**New to the schema or Grok Build?** See [GETTING-STARTED.md](./GETTING-STARTED.md) (SQLite file from the release + `/business-bookkeeper` skill). Multi-domain public sites (sessions, subscriptions): `/business-sites`.
 
 **Features**
 * i18n support from the start

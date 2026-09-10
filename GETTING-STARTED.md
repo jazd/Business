@@ -44,11 +44,19 @@ Existing live files are **not** overwritten by bootstrap.
 |-------|------------|
 | **Business schema** | A history-friendly (“NoCRUD”) SQL model: people/companies, parts, bills (wish -> cart -> quote -> order -> invoice -> receipt), double-entry books, email lists, and more |
 | **`business.sqlite3`** | Ready-made SQLite template (schema + **Static/** seeds + GeoNames postal sample + wiki addresses/ledger) - Grok copies this to your live shop path. Rebuild: `make rebuild-business-sqlite3` |
-| **Grok skill `business-bookkeeper`** | Instructions so Grok Build uses the schema the intended way |
+| **Grok skill `business-bookkeeper`** | Instructions so Grok Build uses the schema the intended way (shop, books, lists) |
+| **Grok skill `business-sites`** | Multi-domain **HTTP sites**: sessions, claim-by-email, subscriptions, mail tokens (PostgreSQL **0.2.11+**, `/business-sites`) |
 | **`Bash/sqlite/` scripts** | Command-line helpers for common Get/Put operations against SQLite |
 | **Wiki** | Human docs and examples: [Business wiki](https://github.com/jazd/Business/wiki) |
 
 You do **not** need PostgreSQL to get started. SQLite is enough for a one-person shop on a laptop.
+
+**Public websites** (cookies, signup, paid lists, mailed restore links) need
+**PostgreSQL 0.2.11+** and **`/business-sites`**
+(`.grok/skills/business-sites/SKILL.md`). Open Grok Build on this repo (or copy
+that skill into the site workspace) and ask it to create a new site; it should
+use Session / ClaimSession / lists, not a sidecar identity schema. Shop
+bookkeeping stays `/business-bookkeeper`.
 
 ---
 
