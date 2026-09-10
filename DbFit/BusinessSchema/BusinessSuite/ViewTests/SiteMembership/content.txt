@@ -1,0 +1,5 @@
+!4 Verify SiteMembership view includes ListIndividual rows
+Static list id 100
+!|Query Stats                                                    |
+|query                                      |row count?|is empty?|
+|SELECT individual FROM SiteMembership WHERE listNameValue IS NOT NULL LIMIT 1|1|false|

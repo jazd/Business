@@ -1,0 +1,5 @@
+!4 Verify SessionPaths view exists
+Has no static records
+!|Query Stats                                          |
+|query                            |row count?|is empty?|
+|SELECT session FROM SessionPaths LIMIT 1|0   |true     |

@@ -1,0 +1,5 @@
+!4 Verify IndividualPaths view (unstopped)
+Static IndividualPath individual 10, type Home, path 10
+!|Query|SELECT type, protocol, host, url FROM IndividualPaths WHERE individual = 10 AND path = 10|
+|type|protocol|host|url|
+|Home|http|www.IBM.com|http://www.IBM.com/?NoCRUD|

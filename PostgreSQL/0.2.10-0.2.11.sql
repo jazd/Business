@@ -37,6 +37,8 @@
 --     copy unstopped SessionPath to IndividualPath
 -- 11) PathPassword; SetPathPassword / RevokePathPassword; unique unrevoked
 --     (path, password)
+-- 12) Report views: IndividualSessions.siteName; IndividualPaths /
+--     IndividualPathHistory; SessionPaths / SessionPathHistory; SiteMembership
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '11') - last substantive step
@@ -509,7 +511,8 @@ SELECT
  EmailAddress.value AS email,
  bound.bound,
  Session.touched,
- COALESCE(SessionToken.created, Session.created) AS created
+ COALESCE(SessionToken.created, Session.created) AS created,
+ SiteName.value AS siteName
 FROM bound
 JOIN SessionCredential ON SessionCredential.id = bound.sessionCredential
 JOIN Session ON Session.id = SessionCredential.session
@@ -519,9 +522,77 @@ LEFT JOIN SessionToken ON SessionToken.session = Session.id
 LEFT JOIN I18NWord AS Type ON Type.id = SessionToken.type
 LEFT JOIN SiteApplicationRelease ON SiteApplicationRelease.id = SessionToken.siteApplicationRelease
 LEFT JOIN Site ON Site.id = SiteApplicationRelease.site
+LEFT JOIN I18NSentence AS SiteName ON SiteName.id = Site.name
 LEFT JOIN People ON People.individual = bound.individual
 LEFT JOIN Entities ON Entities.individual = bound.individual
 LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email;
+
+-- IndividualPaths
+CREATE OR REPLACE VIEW IndividualPaths AS
+SELECT IndividualPath.individual,
+ Type.value AS type,
+ Path.id AS path,
+ Path.protocol,
+ Path.host,
+ Path.protocol ||
+ CASE WHEN Path.secure = 1 THEN 's' ELSE '' END ||
+ '://' || Path.host ||
+ CASE WHEN Path.port IS NOT NULL THEN ':' || Path.port ELSE '' END ||
+ '/' ||
+ COALESCE(Path.value,'') ||
+ CASE WHEN COALESCE(Path.get,IndividualPath.track) IS NULL
+ THEN ''
+ ELSE '?' ||
+ COALESCE(Path.get,'') ||
+ COALESCE(CASE WHEN (Path.get IS NOT NULL AND IndividualPath.track IS NOT  NULL) THEN '&' ELSE '' END || IndividualPath.track, '')
+ END AS url,
+ IndividualPath.created
+FROM IndividualPath
+JOIN Path ON Path.id = IndividualPath.path
+LEFT JOIN I18NWord AS Type ON Type.id = IndividualPath.type
+WHERE IndividualPath.stop IS NULL;
+
+-- IndividualPathHistory
+CREATE OR REPLACE VIEW IndividualPathHistory AS
+SELECT IndividualPath.individual,
+ Type.value AS type,
+ Path.id AS path,
+ Path.protocol,
+ Path.host,
+ Path.protocol ||
+ CASE WHEN Path.secure = 1 THEN 's' ELSE '' END ||
+ '://' || Path.host ||
+ CASE WHEN Path.port IS NOT NULL THEN ':' || Path.port ELSE '' END ||
+ '/' ||
+ COALESCE(Path.value,'') ||
+ CASE WHEN COALESCE(Path.get,IndividualPath.track) IS NULL
+ THEN ''
+ ELSE '?' ||
+ COALESCE(Path.get,'') ||
+ COALESCE(CASE WHEN (Path.get IS NOT NULL AND IndividualPath.track IS NOT  NULL) THEN '&' ELSE '' END || IndividualPath.track, '')
+ END AS url,
+ IndividualPath.stop,
+ IndividualPath.created
+FROM IndividualPath
+JOIN Path ON Path.id = IndividualPath.path
+LEFT JOIN I18NWord AS Type ON Type.id = IndividualPath.type;
+
+-- SiteMembership
+CREATE OR REPLACE VIEW SiteMembership AS
+SELECT ListIndividual.individual,
+ EmailAddress.value AS email,
+ Name.value AS listNameValue,
+ ListSet.value AS listSetValue,
+ ListIndividual.unlist,
+ ListIndividual.created
+FROM ListIndividual
+LEFT JOIN ListIndividualName ON ListIndividualName.listIndividual = ListIndividual.id
+LEFT JOIN I18NWord AS Name ON Name.id = ListIndividualName.name
+LEFT JOIN I18NWord AS ListSet ON ListSet.id = ListIndividualName.listSet
+LEFT JOIN IndividualEmail ON IndividualEmail.individual = ListIndividual.individual
+ AND IndividualEmail.stop IS NULL
+ AND IndividualEmail.type IS NULL
+LEFT JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email;
 
 -- ---------------------------------------------------------------------------
 -- 0.2.11: SetIndividualPath / StopIndividualPath
@@ -711,6 +782,57 @@ SELECT latest.session, latest.type, Path.id AS path, Path.protocol, Path.host,
 FROM latest
 JOIN Path ON Path.id = latest.path
 WHERE latest.rn = 1;
+
+-- SessionPaths
+CREATE OR REPLACE VIEW SessionPaths AS
+SELECT SessionPath.session,
+ Type.value AS type,
+ Path.id AS path,
+ Path.protocol,
+ Path.host,
+ Path.protocol ||
+ CASE WHEN Path.secure = 1 THEN 's' ELSE '' END ||
+ '://' || Path.host ||
+ CASE WHEN Path.port IS NOT NULL THEN ':' || Path.port ELSE '' END ||
+ '/' ||
+ COALESCE(Path.value,'') ||
+ CASE WHEN COALESCE(Path.get,SessionPath.track) IS NULL
+ THEN ''
+ ELSE '?' ||
+ COALESCE(Path.get,'') ||
+ COALESCE(CASE WHEN (Path.get IS NOT NULL AND SessionPath.track IS NOT  NULL) THEN '&' ELSE '' END || SessionPath.track, '')
+ END AS url,
+ SessionPath.created
+FROM SessionPath
+JOIN Path ON Path.id = SessionPath.path
+LEFT JOIN I18NWord AS Type ON Type.id = SessionPath.type
+WHERE SessionPath.stop IS NULL;
+
+-- SessionPathHistory
+CREATE OR REPLACE VIEW SessionPathHistory AS
+SELECT SessionPath.session,
+ Type.value AS type,
+ Path.id AS path,
+ Path.protocol,
+ Path.host,
+ Path.protocol ||
+ CASE WHEN Path.secure = 1 THEN 's' ELSE '' END ||
+ '://' || Path.host ||
+ CASE WHEN Path.port IS NOT NULL THEN ':' || Path.port ELSE '' END ||
+ '/' ||
+ COALESCE(Path.value,'') ||
+ CASE WHEN COALESCE(Path.get,SessionPath.track) IS NULL
+ THEN ''
+ ELSE '?' ||
+ COALESCE(Path.get,'') ||
+ COALESCE(CASE WHEN (Path.get IS NOT NULL AND SessionPath.track IS NOT  NULL) THEN '&' ELSE '' END || SessionPath.track, '')
+ END AS url,
+ SessionPath.stop,
+ SessionPath.created
+FROM SessionPath
+JOIN Path ON Path.id = SessionPath.path
+LEFT JOIN I18NWord AS Type ON Type.id = SessionPath.type;
+
 
 -- ---------------------------------------------------------------------------
 -- 0.2.11: ClaimSession (session id or token + email)
