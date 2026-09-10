@@ -778,6 +778,24 @@
 </constraints>
 </table>
 
+<table name="PathPassword" order="232">
+<fields>
+ <field name="path" data_type="bigint" size="20" is_nullable="0" order="1" />
+ <field name="password" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="revoked" data_type="timestamp" size="0" is_nullable="1" order="98">
+  <comments>No longer associate this password with path. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="pathpassword_path" type="NORMAL" fields="path" />
+</indices>
+<constraints>
+ <constraint name="pathpassword_path" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
+ <constraint name="pathpassword_password" type="FOREIGN KEY" fields="password" reference_table="Password" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
 <table name="Credential" order="231">
 <fields>
  <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />

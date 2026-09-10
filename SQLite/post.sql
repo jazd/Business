@@ -37,6 +37,11 @@ CREATE UNIQUE INDEX sessionPath_session_type_path_unstopped
  ON SessionPath (session, type, path)
  WHERE stop IS NULL;
 
+-- One unrevoked PathPassword per (path, password); history keeps revoked rows
+CREATE UNIQUE INDEX pathPassword_path_password_unrevoked
+ ON PathPassword (path, password)
+ WHERE revoked IS NULL;
+
 -- Update the next in sequence for id
 UPDATE sqlite_sequence SET seq = 1000 WHERE name = 'WordPlural';
 UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'Edge';

@@ -76,6 +76,11 @@ CREATE UNIQUE INDEX sessionPath_session_type_path_unstopped
  ON SessionPath (session, type, path)
  WHERE stop IS NULL;
 
+-- One unrevoked PathPassword per (path, password); history keeps revoked rows
+CREATE UNIQUE INDEX pathPassword_path_password_unrevoked
+ ON PathPassword (path, password)
+ WHERE revoked IS NULL;
+
 -- Do not allow duplicate country codes
 CREATE UNIQUE INDEX country_code ON Country (UPPER(code));
 

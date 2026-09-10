@@ -182,6 +182,61 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION SetPathPassword (
+ inPath bigint,
+ inPassword integer
+) RETURNS bigint AS $$
+BEGIN
+ IF inPath IS NOT NULL
+  AND inPassword IS NOT NULL THEN
+  -- Be sure to process any single path password one at a time without the need of a transaction or locking PathPassword table
+  PERFORM pg_advisory_lock(inPath);
+  BEGIN
+  INSERT INTO PathPassword (path, password) (
+   SELECT inPath, inPassword
+   FROM Dual
+   LEFT JOIN PathPassword AS exists ON exists.path = inPath
+    AND exists.password = inPassword
+    AND exists.revoked IS NULL
+   WHERE exists.path IS NULL
+   LIMIT 1
+  );
+  PERFORM pg_advisory_unlock(inPath);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inPath);
+    RAISE;
+  END;
+ END IF;
+ RETURN inPath;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION RevokePathPassword (
+ inPath bigint,
+ inPassword integer
+) RETURNS bigint AS $$
+BEGIN
+ IF inPath IS NOT NULL
+  AND inPassword IS NOT NULL THEN
+  PERFORM pg_advisory_lock(inPath);
+  BEGIN
+  UPDATE PathPassword
+  SET revoked = NOW()
+  WHERE path = inPath
+   AND password = inPassword
+   AND revoked IS NULL;
+  PERFORM pg_advisory_unlock(inPath);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inPath);
+    RAISE;
+  END;
+ END IF;
+ RETURN inPath;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Get Individual associated with an email
 CREATE OR REPLACE FUNCTION GetIndividualEmail (
   inEmail varchar

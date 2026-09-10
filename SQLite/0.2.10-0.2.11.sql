@@ -35,6 +35,7 @@
 --  9) SessionPath table; unique active (session, type, path); SessionURL;
 --     Bash SetSessionPath / StopSessionPath
 -- 10) ClaimSession is PostgreSQL-only (uses SetSession)
+-- 11) PathPassword; unique unrevoked (path, password); Bash Set/RevokePathPassword
 --
 -- SQLite does not enforce varchar(n). Email.host 30->96, Path.host 64->96,
 -- and SessionToken.token 32->128 need no table rebuild; stored values stay.
@@ -174,3 +175,18 @@ SELECT latest.session, latest.type, Path.id AS path, Path.protocol, Path.host,
 FROM latest
 JOIN Path ON Path.id = latest.path
 WHERE latest.rn = 1;
+
+CREATE TABLE IF NOT EXISTS PathPassword (
+ path INTEGER NOT NULL,
+ password INTEGER NOT NULL,
+ revoked timestamp,
+ created timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (path) REFERENCES Path(id) DEFERRABLE INITIALLY DEFERRED,
+ FOREIGN KEY (password) REFERENCES Password(id) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE INDEX IF NOT EXISTS pathpassword_path ON PathPassword (path);
+
+CREATE UNIQUE INDEX IF NOT EXISTS pathPassword_path_password_unrevoked
+ ON PathPassword (path, password)
+ WHERE revoked IS NULL;

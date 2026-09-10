@@ -1,0 +1,47 @@
+SetPathPassword and RevokePathPassword
+
+Append if no unrevoked (path, password). Revoke sets revoked on that pair only.
+
+!|Execute|INSERT INTO Password (value) VALUES ('dbfit-path-password')|
+
+!|Query|SELECT id FROM Password WHERE value = 'dbfit-path-password'|
+|id?|
+|>>pwd|
+
+!|Query|SELECT GetPath('http', 0, 'www.SetPathPassword.example', NULL, NULL)|
+|getpath?|
+|>>p|
+
+!|Query|SELECT SetPathPassword(_:p::BIGINT, _:pwd::INT)|
+|setpathpassword|
+|<<p|
+
+!|Query|SELECT SetPathPassword(_:p::BIGINT, _:pwd::INT)|
+|setpathpassword|
+|<<p|
+
+!|Query|SELECT COUNT(*) AS n FROM PathPassword WHERE path = _:p::BIGINT AND password = _:pwd::INT AND revoked IS NULL|
+|n|
+|1|
+
+!|Query|SELECT RevokePathPassword(_:p::BIGINT, _:pwd::INT)|
+|revokepathpassword|
+|<<p|
+
+!|Query|SELECT COUNT(*) AS n FROM PathPassword WHERE path = _:p::BIGINT AND password = _:pwd::INT AND revoked IS NULL|
+|n|
+|0|
+
+Revoked pair can be set again (new row).
+
+!|Query|SELECT SetPathPassword(_:p::BIGINT, _:pwd::INT)|
+|setpathpassword|
+|<<p|
+
+!|Query|SELECT COUNT(*) AS n FROM PathPassword WHERE path = _:p::BIGINT AND password = _:pwd::INT|
+|n|
+|2|
+
+!|Query|SELECT COUNT(*) AS n FROM PathPassword WHERE path = _:p::BIGINT AND password = _:pwd::INT AND revoked IS NULL|
+|n|
+|1|
