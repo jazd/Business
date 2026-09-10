@@ -26,10 +26,12 @@
 --  2) Location sqlite_sequence
 --  3) Path.port (NULL on existing rows = default 80 / 443 in GetPath)
 --  4) Recreate URL view with :port when Path.port is set
+--  5) SessionToken.type; Word 18-20 session/mail/trial
 --
 -- SQLite does not enforce varchar(n). Email.host 30->96, Path.host 64->96,
 -- and SessionToken.token 32->128 need no table rebuild; stored values stay.
 -- IndividualURL is not in the SQLite template (SQLITE_UNSUPORTED_VIEWS).
+-- SetSession remains PostgreSQL-only (no shop Bash port).
 --
 -- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
 -- after this file runs successfully (Business 0.2.11) when STAMP_VERSION=1.
@@ -60,3 +62,17 @@ SELECT id AS path, protocol, host,
  END AS value,
  created
 FROM Path;
+
+ALTER TABLE SessionToken ADD COLUMN type integer;
+
+INSERT INTO Word (id, culture, value)
+SELECT 18, 1033, 'session'
+WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id = 18 AND culture = 1033);
+
+INSERT INTO Word (id, culture, value)
+SELECT 19, 1033, 'mail'
+WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id = 19 AND culture = 1033);
+
+INSERT INTO Word (id, culture, value)
+SELECT 20, 1033, 'trial'
+WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id = 20 AND culture = 1033);

@@ -27,6 +27,7 @@
 --  2) Wider Email.host, Path.host, SessionToken.token; Path.port
 --  3) URL and IndividualURL include :port when Path.port is set
 --  4) GetPath / GetURL overloads with inPort (default-port stored as NULL)
+--  5) SessionToken.type; SetSession inType overloads; Word 18-20 session/mail/trial
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '11') - last substantive step
@@ -254,6 +255,196 @@ CREATE OR REPLACE FUNCTION GetURL (
 ) RETURNS integer AS $$
 BEGIN
  RETURN (SELECT GetURL(inSecure, inHost, inValue, inGet, NULL));
+END;
+$$ LANGUAGE plpgsql;
+
+-- ---------------------------------------------------------------------------
+-- 0.2.11: SessionToken.type and SetSession inType overloads
+-- ---------------------------------------------------------------------------
+-- Existing SessionToken rows keep type NULL (schema: NULL means session).
+-- Do not backfill Word 18 onto old rows.
+
+ALTER TABLE SessionToken ADD COLUMN IF NOT EXISTS type integer;
+
+INSERT INTO Word (id, culture, value)
+SELECT 18, 1033, 'session'
+WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id = 18 AND culture = 1033);
+
+INSERT INTO Word (id, culture, value)
+SELECT 19, 1033, 'mail'
+WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id = 19 AND culture = 1033);
+
+INSERT INTO Word (id, culture, value)
+SELECT 20, 1033, 'trial'
+WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id = 20 AND culture = 1033);
+
+-- Core writer first (new 9-arg). Then wrappers: old 8-arg, UA with type, UA without type.
+
+CREATE OR REPLACE FUNCTION SetSession (
+ inSessionToken varchar,
+ inSiteApplicationRelease integer,
+ inAgentString integer,
+ inCredential integer,
+ inReferring integer,
+ inIPAddress inet,
+ inLocation integer,
+ inStart timestamp,
+ inType varchar
+) RETURNS bigint AS $$
+DECLARE
+ newSession bigint;
+ existingSession bigint;
+ type_id integer;
+BEGIN
+ IF inSessionToken IS NOT NULL THEN
+  type_id = (SELECT GetWord(inType));
+  -- Does a session already exist for this token and site application release
+  existingSession := (
+   SELECT session
+   FROM SessionToken
+   WHERE token = inSessionToken
+    AND (
+     (siteApplicationRelease = inSiteApplicationRelease)
+      OR (siteApplicationRelease IS NULL AND inSiteApplicationRelease IS NULL)
+    )
+   LIMIT 1
+  );
+
+  IF existingSession IS NULL THEN
+   PERFORM pg_advisory_lock(hashtext(inSessionToken));
+   BEGIN
+   INSERT INTO Session (lock) VALUES (0) RETURNING id INTO existingSession;
+   INSERT INTO SessionToken (session,token,type,siteApplicationRelease,created) (
+    SELECT existingSession, inSessionToken, type_id, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created
+   );
+   PERFORM pg_advisory_unlock(hashtext(inSessionToken));
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(hashtext(inSessionToken));
+     RAISE;
+   END;
+  ELSE
+   UPDATE Session SET touched = NOW() WHERE id = existingSession;
+  END IF;
+
+  -- Be sure to process any single session credential one at a time without the need of a transaction or locking SessionCredential table
+  PERFORM pg_advisory_lock(existingSession);
+  BEGIN
+  INSERT INTO SessionCredential (session, agentString, credential, referring, fromAddress, location) (
+   SELECT existingSession, inAgentString, inCredential, inReferring, inIPAddress, inLocation
+   FROM Dual
+   LEFT JOIN SessionCredential AS exists ON exists.session = existingSession
+    AND ((agentString = inAgentString) OR (agentString IS NULL AND inAgentString IS NULL))
+    AND ((credential = inCredential) OR (credential IS NULL AND inCredential IS NULL))
+    AND ((referring = inReferring) OR (referring IS NULL AND inReferring IS NULL))
+    AND ((fromAddress = inIPAddress) OR (fromAddress IS NULL AND inIPAddress IS NULL))
+    AND ((location = inLocation) OR (location IS NULL AND inLocation IS NULL))
+   WHERE exists.id IS NULL
+   LIMIT 1
+  );
+  PERFORM pg_advisory_unlock(existingSession);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(existingSession);
+    RAISE;
+  END;
+
+ END IF;
+ RETURN existingSession;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetSession (
+ inSessionToken varchar,
+ inSiteApplicationRelease integer,
+ inAgentString integer,
+ inCredential integer,
+ inReferring integer,
+ inIPAddress inet,
+ inLocation integer,
+ inStart timestamp
+) RETURNS bigint AS $$
+BEGIN
+ RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, inAgentString, inCredential, inReferring, inIPAddress, inLocation, inStart, NULL));
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetSession (
+ inSessionToken varchar,
+ inSiteApplicationRelease integer,
+ inCredential integer,
+ inUAstring varchar,
+ inUAfamily varchar,
+ inUAmajor varchar,
+ inUAminor varchar,
+ inUApatch varchar,
+ inUAbuild varchar,
+ inOSfamily varchar,
+ inOSmajor varchar,
+ inOSminor varchar,
+ inOSpatch varchar,
+ inDeviceBrand varchar,
+ inDeviceModel varchar,
+ inDeviceFamily varchar,
+ inDeviceFamilyVersion varchar,
+ inRefSecure integer,
+ inRefHost varchar,
+ inRefPath varchar,
+ inRefGet varchar,
+ inIPAddress inet,
+ inLocation integer,
+ inStart timestamp,
+ inType varchar
+) RETURNS bigint AS $$
+DECLARE
+ string_id INTEGER;
+ deviceAgent_id INTEGER;
+ deviceName VARCHAR;
+ agentString_id INTEGER;
+ referring_id INTEGER;
+BEGIN
+ string_id := (SELECT GetIdentityPhrase(inUAstring));
+
+ deviceAgent_id = (SELECT GetDeviceOSApplicationRelease(inUAfamily, inUAmajor, inUAminor, inUApatch, inUAbuild,
+  inOSfamily, inOSmajor, inOSminor, inOSpatch,
+  inDeviceBrand, inDeviceModel, inDeviceFamily, inDeviceFamilyVersion));
+
+ agentString_id = (SELECT GetAgentString(deviceAgent_id, string_id));
+
+ referring_id = (SELECT GetUrl(inRefSecure,inRefHost,inRefPath,inRefGet));
+
+ RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, agentString_id, inCredential, referring_id, inIPAddress, inLocation, inStart, inType));
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetSession (
+ inSessionToken varchar,
+ inSiteApplicationRelease integer,
+ inCredential integer,
+ inUAstring varchar,
+ inUAfamily varchar,
+ inUAmajor varchar,
+ inUAminor varchar,
+ inUApatch varchar,
+ inUAbuild varchar,
+ inOSfamily varchar,
+ inOSmajor varchar,
+ inOSminor varchar,
+ inOSpatch varchar,
+ inDeviceBrand varchar,
+ inDeviceModel varchar,
+ inDeviceFamily varchar,
+ inDeviceFamilyVersion varchar,
+ inRefSecure integer,
+ inRefHost varchar,
+ inRefPath varchar,
+ inRefGet varchar,
+ inIPAddress inet,
+ inLocation integer,
+ inStart timestamp
+) RETURNS bigint AS $$
+BEGIN
+ RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, inCredential, inUAstring, inUAfamily, inUAmajor, inUAminor, inUApatch, inUAbuild, inOSfamily, inOSmajor, inOSminor, inOSpatch, inDeviceBrand, inDeviceModel, inDeviceFamily, inDeviceFamilyVersion, inRefSecure, inRefHost, inRefPath, inRefGet, inIPAddress, inLocation, inStart, NULL));
 END;
 $$ LANGUAGE plpgsql;
 
