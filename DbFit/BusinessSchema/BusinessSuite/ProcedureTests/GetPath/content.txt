@@ -11,6 +11,20 @@ Path from Static/3_Path.sql
 |        value       |
 | http://www.IBM.com/|
 
+Six-arg GetPath with NULL port, and insecure port 80, are the same row.
+Default ports are stored NULL, not 80 or 443.
+
+!|Query|SELECT GetPath('http', 0, 'www.IBM.com', NULL, NULL, NULL)|
+|getpath|
+|10|
+
+!|Query|SELECT GetPath('http', 0, 'www.IBM.com', NULL, NULL, 80)|
+|getpath|
+|10|
+
+!|Query|SELECT port IS NULL AS noport FROM Path WHERE id = 10|
+|noport|
+|true|
 
 New URL
 !|Query|SELECT GetPath('http', 1, 'www.NoCRUD.com', NULL, NULL)|
@@ -21,8 +35,26 @@ New URL
 |        value        |
 | https://www.NoCRUD.com/|
 
+Secure default port 443 is stored NULL, same row as GetPath without port
+
+!|Query|SELECT GetPath('http', 1, 'www.NoCRUD.com', NULL, NULL, 443)|
+|getpath|
+|<<np|
+
+!|Query|SELECT port IS NULL AS noport FROM Path WHERE id = _:np::INT|
+|noport|
+|true|
+
 GetURL is the same, but hard coded protocol http
 !|Query|SELECT GetURL(0, 'www.IBM.com', NULL, NULL)|
+|geturl|
+|10|
+
+!|Query|SELECT GetURL(0, 'www.IBM.com', NULL, NULL, NULL)|
+|geturl|
+|10|
+
+!|Query|SELECT GetURL(0, 'www.IBM.com', NULL, NULL, 80)|
 |geturl|
 |10|
 
@@ -34,3 +66,69 @@ GetFile is the same, but hard coded protocol file, security 0
 !|Query|SELECT file FROM File WHERE path = _:fin::INT|
 |        file         |
 |images/logo/50x50.png|
+
+Non-default insecure port is a different Path row; URL includes :port
+
+!|Query|SELECT GetPath('http', 0, 'www.IBM.com', NULL, NULL, 8080)|
+|getpath?|
+|>>ibm8080|
+
+!|Query|SELECT GetPath('http', 0, 'www.IBM.com', NULL, NULL, 8080)|
+|getpath|
+|<<ibm8080|
+
+!|Query|SELECT GetURL(0, 'www.IBM.com', NULL, NULL, 8080)|
+|geturl|
+|<<ibm8080|
+
+!|Query|SELECT _:ibm8080::INT = 10 AS test|
+|test|
+|false|
+
+!|Query|SELECT value FROM URL WHERE path = _:ibm8080::INT|
+|value|
+|http://www.IBM.com:8080/|
+
+!|Query|SELECT port FROM Path WHERE id = _:ibm8080::INT|
+|port|
+|8080|
+
+Non-default secure port is a different row from 443/NULL
+
+!|Query|SELECT GetPath('http', 1, 'www.NoCRUD.com', NULL, NULL, 8443)|
+|getpath?|
+|>>np8443|
+
+!|Query|SELECT GetPath('http', 1, 'www.NoCRUD.com', NULL, NULL, 8443)|
+|getpath|
+|<<np8443|
+
+!|Query|SELECT GetURL(1, 'www.NoCRUD.com', NULL, NULL, 8443)|
+|geturl|
+|<<np8443|
+
+!|Query|SELECT _:np::INT = _:np8443::INT AS test|
+|test|
+|false|
+
+!|Query|SELECT value FROM URL WHERE path = _:np8443::INT|
+|value|
+|https://www.NoCRUD.com:8443/|
+
+!|Query|SELECT port FROM Path WHERE id = _:np8443::INT|
+|port|
+|8443|
+
+Path value, get, and port together; GetPath and GetURL agree
+
+!|Query|SELECT GetPath('http', 0, 'www.IBM.com', 'search', 'q=1', 8080)|
+|getpath?|
+|>>ibmsearch|
+
+!|Query|SELECT GetURL(0, 'www.IBM.com', 'search', 'q=1', 8080)|
+|geturl|
+|<<ibmsearch|
+
+!|Query|SELECT value FROM URL WHERE path = _:ibmsearch::INT|
+|value|
+|http://www.IBM.com:8080/search?q=1|

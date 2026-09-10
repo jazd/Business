@@ -1,9 +1,11 @@
 GetLocation
 
 Static location from Static/GeoNamesUSZipSample.tsv
+First GeoNames sample row (US 39530 Biloxi). Location user ids start at 20000
+(PostgreSQL/post.sql location_id_seq).
 !|Query|SELECT GetLocation(30.4035,-88.8971,NULL)|
 |getlocation|
-|10000|
+|20000|
 
 Accuracy of lat/lng from from NULL=unknown, 1=estimated to 6=centroid (center of town)
 Newlocation  this is not currently in the database.
