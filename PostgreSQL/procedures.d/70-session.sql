@@ -562,3 +562,68 @@ BEGIN
  RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, inAgentString, inCredential, inReferring, inIPAddress, inLocation, inStart, NULL));
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetSessionPath (
+ inSession bigint,
+ inType varchar,
+ inPath bigint
+) RETURNS bigint AS $$
+DECLARE
+ type_id integer;
+BEGIN
+ IF inSession IS NOT NULL
+  AND inPath IS NOT NULL THEN
+  type_id := (SELECT GetWord(inType));
+  -- Be sure to process any single session path one at a time without the need of a transaction or locking SessionPath table
+  PERFORM pg_advisory_lock(inSession);
+  BEGIN
+  INSERT INTO SessionPath (session, type, path) (
+   SELECT inSession, type_id, inPath
+   FROM Dual
+   LEFT JOIN SessionPath AS exists ON exists.session = inSession
+    AND exists.path = inPath
+    AND ((exists.type = type_id) OR (exists.type IS NULL AND type_id IS NULL))
+    AND exists.stop IS NULL
+   WHERE exists.session IS NULL
+   LIMIT 1
+  );
+  PERFORM pg_advisory_unlock(inSession);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inSession);
+    RAISE;
+  END;
+ END IF;
+ RETURN inSession;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION StopSessionPath (
+ inSession bigint,
+ inType varchar,
+ inPath bigint
+) RETURNS bigint AS $$
+DECLARE
+ type_id integer;
+BEGIN
+ IF inSession IS NOT NULL
+  AND inPath IS NOT NULL THEN
+  type_id := (SELECT GetWord(inType));
+  PERFORM pg_advisory_lock(inSession);
+  BEGIN
+  UPDATE SessionPath
+  SET stop = NOW()
+  WHERE session = inSession
+   AND path = inPath
+   AND stop IS NULL
+   AND ((type = type_id) OR (type IS NULL AND type_id IS NULL));
+  PERFORM pg_advisory_unlock(inSession);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inSession);
+    RAISE;
+  END;
+ END IF;
+ RETURN inSession;
+END;
+$$ LANGUAGE plpgsql;

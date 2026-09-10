@@ -31,6 +31,8 @@
 --  6) SetSession writes IndividualSessionCreated when inCredential has an individual
 --  7) IndividualSessions view (current individual to session across sites)
 --  8) SetIndividualPath / StopIndividualPath; unique active (individual, type, path)
+--  9) SessionPath table; SetSessionPath / StopSessionPath; unique active
+--     (session, type, path); SessionURL view
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '11') - last substantive step
@@ -591,6 +593,120 @@ BEGIN
  RETURN inIndividual;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ---------------------------------------------------------------------------
+-- 0.2.11: SessionPath, SetSessionPath / StopSessionPath, SessionURL
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS SessionPath (
+ session bigint NOT NULL,
+ type integer,
+ path bigint,
+ track varchar(30),
+ stop timestamp,
+ created timestamp NOT NULL DEFAULT NOW(),
+ CONSTRAINT sessionpath_session FOREIGN KEY (session) REFERENCES Session (id) DEFERRABLE,
+ CONSTRAINT sessionpath_path FOREIGN KEY (path) REFERENCES Path (id) DEFERRABLE
+);
+
+CREATE INDEX IF NOT EXISTS sessionpath_session_type ON SessionPath (session, type);
+
+CREATE UNIQUE INDEX IF NOT EXISTS sessionPath_session_type_path_unstopped
+ ON SessionPath (session, type, path)
+ WHERE stop IS NULL;
+
+CREATE OR REPLACE FUNCTION SetSessionPath (
+ inSession bigint,
+ inType varchar,
+ inPath bigint
+) RETURNS bigint AS $$
+DECLARE
+ type_id integer;
+BEGIN
+ IF inSession IS NOT NULL
+  AND inPath IS NOT NULL THEN
+  type_id := (SELECT GetWord(inType));
+  -- Be sure to process any single session path one at a time without the need of a transaction or locking SessionPath table
+  PERFORM pg_advisory_lock(inSession);
+  BEGIN
+  INSERT INTO SessionPath (session, type, path) (
+   SELECT inSession, type_id, inPath
+   FROM Dual
+   LEFT JOIN SessionPath AS exists ON exists.session = inSession
+    AND exists.path = inPath
+    AND ((exists.type = type_id) OR (exists.type IS NULL AND type_id IS NULL))
+    AND exists.stop IS NULL
+   WHERE exists.session IS NULL
+   LIMIT 1
+  );
+  PERFORM pg_advisory_unlock(inSession);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inSession);
+    RAISE;
+  END;
+ END IF;
+ RETURN inSession;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION StopSessionPath (
+ inSession bigint,
+ inType varchar,
+ inPath bigint
+) RETURNS bigint AS $$
+DECLARE
+ type_id integer;
+BEGIN
+ IF inSession IS NOT NULL
+  AND inPath IS NOT NULL THEN
+  type_id := (SELECT GetWord(inType));
+  PERFORM pg_advisory_lock(inSession);
+  BEGIN
+  UPDATE SessionPath
+  SET stop = NOW()
+  WHERE session = inSession
+   AND path = inPath
+   AND stop IS NULL
+   AND ((type = type_id) OR (type IS NULL AND type_id IS NULL));
+  PERFORM pg_advisory_unlock(inSession);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inSession);
+    RAISE;
+  END;
+ END IF;
+ RETURN inSession;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE VIEW SessionURL AS
+WITH latest AS (
+ SELECT session, type, path, track, created,
+  ROW_NUMBER() OVER (
+   PARTITION BY session, type
+   ORDER BY created DESC, path DESC
+  ) AS rn
+ FROM SessionPath
+ WHERE stop IS NULL
+)
+SELECT latest.session, latest.type, Path.id AS path, Path.protocol, Path.host,
+ Path.protocol ||
+ CASE WHEN secure = 1 THEN 's' ELSE '' END ||
+ '://' || host ||
+ CASE WHEN port IS NOT NULL THEN ':' || port ELSE '' END ||
+ '/' ||
+ COALESCE(Path.value,'') ||
+ CASE WHEN COALESCE(Path.get,latest.track) IS NULL
+ THEN ''
+ ELSE '?' ||
+ COALESCE(Path.get,'') ||
+ COALESCE(CASE WHEN (Path.get IS NOT NULL AND latest.track IS NOT  NULL) THEN '&' ELSE '' END ||  latest.track, '')
+ END AS value,
+ latest.created
+FROM latest
+JOIN Path ON Path.id = latest.path
+WHERE latest.rn = 1;
 
 -- Mark schema upgraded to 0.2.11 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped

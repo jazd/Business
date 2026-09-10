@@ -1,0 +1,57 @@
+SetSessionPath and StopSessionPath
+
+Append if no unstopped (session, type, path). Does not replace other paths of the same type.
+
+!|Query|SELECT AnonymousSession('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36', 'Chrome', '43', '0', '2357', '130', 'Linux', NULL,NULL,NULL,NULL,NULL, 'Other', 0, 'www.ibm.com', NULL,NULL,'107.77.97.52')|
+|anonymoussession?|
+|>>sid|
+
+Static Path 10 is IBM (protocol http, host www.IBM.com).
+
+!|Query|SELECT SetSessionPath(_:sid::BIGINT, 'Home', 10)|
+|setsessionpath|
+|<<sid|
+
+!|Query|SELECT SetSessionPath(_:sid::BIGINT, 'Home', 10)|
+|setsessionpath|
+|<<sid|
+
+!|Query|SELECT COUNT(*) AS n FROM SessionPath WHERE session = _:sid::BIGINT AND type = 10 AND path = 10 AND stop IS NULL|
+|n|
+|1|
+
+!|Query|SELECT value FROM SessionURL WHERE session = _:sid::BIGINT AND type = 10|
+|value|
+|http://www.IBM.com/|
+
+A different path of the same type is a second active row. SessionURL keeps the latest.
+
+!|Query|SELECT GetPath('http', 0, 'www.SetSessionPath.example', NULL, NULL)|
+|getpath?|
+|>>p|
+
+!|Query|SELECT SetSessionPath(_:sid::BIGINT, 'Home', _:p::INT)|
+|setsessionpath|
+|<<sid|
+
+!|Query|SELECT COUNT(*) AS n FROM SessionPath WHERE session = _:sid::BIGINT AND type = 10 AND stop IS NULL|
+|n|
+|2|
+
+!|Query|SELECT value FROM SessionURL WHERE session = _:sid::BIGINT AND type = 10|
+|value|
+|http://www.SetSessionPath.example/|
+
+StopSessionPath stops only that current triple.
+
+!|Query|SELECT StopSessionPath(_:sid::BIGINT, 'Home', _:p::INT)|
+|stopsessionpath|
+|<<sid|
+
+!|Query|SELECT COUNT(*) AS n FROM SessionPath WHERE session = _:sid::BIGINT AND type = 10 AND path = _:p::INT AND stop IS NULL|
+|n|
+|0|
+
+!|Query|SELECT value FROM SessionURL WHERE session = _:sid::BIGINT AND type = 10|
+|value|
+|http://www.IBM.com/|

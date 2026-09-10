@@ -71,6 +71,11 @@ CREATE UNIQUE INDEX individualPath_individual_type_path_unstopped
  ON IndividualPath (individual, type, path)
  WHERE stop IS NULL;
 
+-- One active SessionPath per (session, type, path); history keeps stopped rows
+CREATE UNIQUE INDEX sessionPath_session_type_path_unstopped
+ ON SessionPath (session, type, path)
+ WHERE stop IS NULL;
+
 -- Do not allow duplicate country codes
 CREATE UNIQUE INDEX country_code ON Country (UPPER(code));
 

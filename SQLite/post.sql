@@ -32,6 +32,11 @@ CREATE UNIQUE INDEX individualPath_individual_type_path_unstopped
  ON IndividualPath (individual, type, path)
  WHERE stop IS NULL;
 
+-- One active SessionPath per (session, type, path); history keeps stopped rows
+CREATE UNIQUE INDEX sessionPath_session_type_path_unstopped
+ ON SessionPath (session, type, path)
+ WHERE stop IS NULL;
+
 -- Update the next in sequence for id
 UPDATE sqlite_sequence SET seq = 1000 WHERE name = 'WordPlural';
 UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'Edge';

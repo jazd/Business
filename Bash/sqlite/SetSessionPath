@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+# Usage: SetSessionPath <session_id> <type_word> <path_id>
+# Append if no unstopped row for (session, type, path). Does not stop other
+# paths of the same type. Parity with PG SetSessionPath.
+
+source ~/bin/sqlite/common
+
+SID="${1:-}"
+TYPE="${2:-}"
+PATH_ID="${3:-}"
+
+if [[ -z "$SID" || -z "$PATH_ID" ]]; then
+  echo "Usage: SetSessionPath <session_id> <type_word> <path_id>" >&2
+  exit 1
+fi
+
+type_sql="NULL"
+if [[ -n "$TYPE" ]]; then
+  type_id=$(~/bin/sqlite/GetWord "$TYPE")
+  type_sql=$(sql_int_or_null "$type_id")
+fi
+
+exists=$(sqlite_query_one "
+ SELECT 1 FROM SessionPath
+ WHERE session = $SID AND path = $PATH_ID
+  AND ((type = $type_sql) OR (type IS NULL AND $type_sql IS NULL))
+  AND stop IS NULL
+ LIMIT 1;
+")
+if [[ -z "$exists" ]]; then
+  sqlite_run "
+   INSERT INTO SessionPath (session, type, path)
+   VALUES ($SID, $type_sql, $PATH_ID);
+  " >/dev/null
+fi
+
+echo "$SID"

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# Usage: StopSessionPath <session_id> <type_word> <path_id>
+# Sets stop on the current unstopped row for that triple only.
+# Parity with PG StopSessionPath.
+
+source ~/bin/sqlite/common
+
+SID="${1:-}"
+TYPE="${2:-}"
+PATH_ID="${3:-}"
+
+if [[ -z "$SID" || -z "$PATH_ID" ]]; then
+  echo "Usage: StopSessionPath <session_id> <type_word> <path_id>" >&2
+  exit 1
+fi
+
+type_sql="NULL"
+if [[ -n "$TYPE" ]]; then
+  type_id=$(~/bin/sqlite/GetWord "$TYPE")
+  type_sql=$(sql_int_or_null "$type_id")
+fi
+
+sqlite_run "
+ UPDATE SessionPath
+ SET stop = datetime('now')
+ WHERE session = $SID
+  AND path = $PATH_ID
+  AND stop IS NULL
+  AND ((type = $type_sql) OR (type IS NULL AND $type_sql IS NULL));
+" >/dev/null
+
+echo "$SID"

@@ -840,7 +840,6 @@
 </table>
 
 <table name="SessionPath" order="219">
-<comments>untested</comments>
 <fields>
  <field name="session" data_type="bigint" size="20" is_nullable="0" order="1" />
  <field name="type" data_type="integer" size="" is_nullable="1" order="2" />
@@ -853,6 +852,9 @@
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
+<indices>
+ <index name="sessionpath_session_type" type="NORMAL" fields="session,type" />
+</indices>
 <constraints>
  <constraint name="sessionpath_session" type="FOREIGN KEY" fields="session" reference_table="Session" reference_fields="id" on_delete="" on_update="" match_type="" expression="" options="" deferrable="1" />
  <constraint name="sessionpath_path" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
@@ -2249,6 +2251,40 @@ JOIN IndividualPath ON IndividualPath.individual = latest.individual
 JOIN Individual ON Individual.id = latest.individual
  AND Individual.nameChange IS NULL
 JOIN Path ON Path.id = IndividualPath.path
+  </sql>
+ </view>
+
+ <view name="SessionURL" fields="session,type,path,protocol,host,value,created">
+  <comments>
+   Latest unstopped SessionPath per session and type, formatted like IndividualURL.
+  </comments>
+  <sql>
+WITH latest AS (
+ SELECT session, type, path, track, created,
+  ROW_NUMBER() OVER (
+   PARTITION BY session, type
+   ORDER BY created DESC, path DESC
+  ) AS rn
+ FROM SessionPath
+ WHERE stop IS NULL
+)
+SELECT latest.session, latest.type, Path.id AS path, Path.protocol, Path.host,
+ Path.protocol ||
+ CASE WHEN secure = 1 THEN !apos;s!apos; ELSE !apos;!apos; END ||
+ !apos;://!apos; || host ||
+ CASE WHEN port IS NOT NULL THEN !apos;:!apos; || port ELSE !apos;!apos; END ||
+ !apos;/!apos; ||
+ COALESCE(Path.value,!apos;!apos;) ||
+ CASE WHEN COALESCE(Path.get,latest.track) IS NULL
+ THEN !apos;!apos;
+ ELSE !apos;?!apos; ||
+ COALESCE(Path.get,!apos;!apos;) ||
+ COALESCE(CASE WHEN (Path.get IS NOT NULL AND latest.track IS NOT  NULL) THEN !apos;!amp;!apos; ELSE !apos;!apos; END ||  latest.track, !apos;!apos;)
+ END AS value,
+ latest.created
+FROM latest
+JOIN Path ON Path.id = latest.path
+WHERE latest.rn = 1
   </sql>
  </view>
 

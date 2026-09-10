@@ -32,6 +32,8 @@
 --     SetSession; no SQLite DDL for this behavior.
 --  7) IndividualSessions view (current individual to session across sites)
 --  8) Unique active IndividualPath (individual, type, path); Bash Set/StopIndividualPath
+--  9) SessionPath table; unique active (session, type, path); SessionURL;
+--     Bash SetSessionPath / StopSessionPath
 --
 -- SQLite does not enforce varchar(n). Email.host 30->96, Path.host 64->96,
 -- and SessionToken.token 32->128 need no table rebuild; stored values stay.
@@ -125,3 +127,49 @@ LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email;
 CREATE UNIQUE INDEX IF NOT EXISTS individualPath_individual_type_path_unstopped
  ON IndividualPath (individual, type, path)
  WHERE stop IS NULL;
+
+CREATE TABLE IF NOT EXISTS SessionPath (
+ session INTEGER NOT NULL,
+ type INTEGER,
+ path INTEGER,
+ track varchar(30),
+ stop timestamp,
+ created timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (session) REFERENCES Session(id) DEFERRABLE INITIALLY DEFERRED,
+ FOREIGN KEY (path) REFERENCES Path(id) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE INDEX IF NOT EXISTS sessionpath_session_type ON SessionPath (session, type);
+
+CREATE UNIQUE INDEX IF NOT EXISTS sessionPath_session_type_path_unstopped
+ ON SessionPath (session, type, path)
+ WHERE stop IS NULL;
+
+DROP VIEW IF EXISTS SessionURL;
+CREATE VIEW SessionURL AS
+WITH latest AS (
+ SELECT session, type, path, track, created,
+  ROW_NUMBER() OVER (
+   PARTITION BY session, type
+   ORDER BY created DESC, path DESC
+  ) AS rn
+ FROM SessionPath
+ WHERE stop IS NULL
+)
+SELECT latest.session, latest.type, Path.id AS path, Path.protocol, Path.host,
+ Path.protocol ||
+ CASE WHEN secure = 1 THEN 's' ELSE '' END ||
+ '://' || host ||
+ CASE WHEN port IS NOT NULL THEN ':' || port ELSE '' END ||
+ '/' ||
+ COALESCE(Path.value,'') ||
+ CASE WHEN COALESCE(Path.get,latest.track) IS NULL
+ THEN ''
+ ELSE '?' ||
+ COALESCE(Path.get,'') ||
+ COALESCE(CASE WHEN (Path.get IS NOT NULL AND latest.track IS NOT  NULL) THEN '&' ELSE '' END ||  latest.track, '')
+ END AS value,
+ latest.created
+FROM latest
+JOIN Path ON Path.id = latest.path
+WHERE latest.rn = 1;

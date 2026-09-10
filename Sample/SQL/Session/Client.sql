@@ -41,6 +41,15 @@ INSERT INTO credential (individual, username, password, culture) VALUES (1, 'hel
 SELECT SetSession('BKrB9cYbZYcP1xKbKBOeXsAxDmoybyHn', NULL, 1000, 1, 10, '107.77.97.52', NULL) FROM DUAL;
 -- SetSession should be called on every page load to keep session alive and track the client
 
+-- Bind a path to this session (Home = Word 10, path 10 = www.IBM.com)
+SELECT SetSessionPath(1, 'Home', 10) FROM DUAL;
+
+SELECT session, value
+FROM SessionURL
+WHERE session = 1
+ORDER BY type
+;
+
 SELECT individual, sessionCredential
 FROM IndividualSessionCreated
 ORDER BY created;
