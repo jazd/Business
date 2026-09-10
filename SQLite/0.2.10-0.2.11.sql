@@ -34,6 +34,7 @@
 --  8) Unique active IndividualPath (individual, type, path); Bash Set/StopIndividualPath
 --  9) SessionPath table; unique active (session, type, path); SessionURL;
 --     Bash SetSessionPath / StopSessionPath
+-- 10) ClaimSession is PostgreSQL-only (uses SetSession)
 --
 -- SQLite does not enforce varchar(n). Email.host 30->96, Path.host 64->96,
 -- and SessionToken.token 32->128 need no table rebuild; stored values stay.

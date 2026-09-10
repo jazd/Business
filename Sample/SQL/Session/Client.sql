@@ -50,6 +50,11 @@ WHERE session = 1
 ORDER BY type
 ;
 
+-- Claim this session for an email. Finds or creates the individual and an
+-- unrevoked credential, SetSession (IndividualSessionCreated), copies each
+-- unstopped SessionPath to IndividualPath.
+SELECT ClaimSession(1, 'helmet@example.com') FROM DUAL;
+
 SELECT individual, sessionCredential
 FROM IndividualSessionCreated
 ORDER BY created;

@@ -1,0 +1,52 @@
+ClaimSession
+
+Anonymous session, token, Home path. Claim finds/creates individual and unrevoked
+credential, SetSession (IndividualSessionCreated), copies SessionPath, leaves
+SessionPath in place. ListSubscribe is not called.
+
+!|Query|SELECT AnonymousSession('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36', 'Chrome', '43', '0', '2357', '130', 'Linux', NULL,NULL,NULL,NULL,NULL, 'Other', 0, 'www.ibm.com', NULL,NULL,'107.77.97.52')|
+|anonymoussession?|
+|>>sid|
+
+!|Execute|INSERT INTO SessionToken (session, token) VALUES (_:sid::BIGINT, 'ClaimSessionTok')|
+
+!|Query|SELECT SetSessionPath(_:sid::BIGINT, 'Home', 10)|
+|setsessionpath|
+|<<sid|
+
+!|Query|SELECT ClaimSession(_:sid::BIGINT, 'claim+session@example.com')|
+|claimsession?|
+|>>ind|
+
+!|Query|SELECT ClaimSession(_:sid::BIGINT, 'claim+session@example.com')|
+|claimsession|
+|<<ind|
+
+Token overload is the same individual
+!|Query|SELECT ClaimSession('ClaimSessionTok', 'claim+session@example.com')|
+|claimsession|
+|<<ind|
+
+Unrevoked credential for that individual and email
+!|Query|SELECT COUNT(*) AS n FROM Credential WHERE individual = _:ind::BIGINT AND email = GetEmail('claim+session@example.com') AND revoked IS NULL|
+|n|
+|1|
+
+IndividualSessionCreated for this session
+!|Query|SELECT COUNT(*) AS n FROM IndividualSessionCreated isc JOIN SessionCredential sc ON sc.id = isc.sessionCredential WHERE isc.individual = _:ind::BIGINT AND sc.session = _:sid::BIGINT AND sc.credential IS NOT NULL|
+|n|
+|1|
+
+SessionPath copied to IndividualPath and left unstopped
+!|Query|SELECT COUNT(*) AS n FROM IndividualPath WHERE individual = _:ind::BIGINT AND type = 10 AND path = 10 AND stop IS NULL|
+|n|
+|1|
+
+!|Query|SELECT COUNT(*) AS n FROM SessionPath WHERE session = _:sid::BIGINT AND type = 10 AND path = 10 AND stop IS NULL|
+|n|
+|1|
+
+ListSubscribe is not inside ClaimSession
+!|Query|SELECT COUNT(*) AS n FROM ListIndividual WHERE individual = _:ind::BIGINT|
+|n|
+|0|

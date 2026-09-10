@@ -33,6 +33,8 @@
 --  8) SetIndividualPath / StopIndividualPath; unique active (individual, type, path)
 --  9) SessionPath table; SetSessionPath / StopSessionPath; unique active
 --     (session, type, path); SessionURL view
+-- 10) ClaimSession (session id or token + email); credential + SetSession +
+--     copy unstopped SessionPath to IndividualPath
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '11') - last substantive step
@@ -707,6 +709,139 @@ SELECT latest.session, latest.type, Path.id AS path, Path.protocol, Path.host,
 FROM latest
 JOIN Path ON Path.id = latest.path
 WHERE latest.rn = 1;
+
+-- ---------------------------------------------------------------------------
+-- 0.2.11: ClaimSession (session id or token + email)
+-- ---------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION ClaimSession (
+ inSession bigint,
+ inEmail varchar
+) RETURNS bigint AS $$
+DECLARE
+ individual_id bigint;
+ email_id integer;
+ credential_id integer;
+ last_agent integer;
+ last_referring integer;
+ last_ip inet;
+ last_location integer;
+ tok RECORD;
+ sp RECORD;
+ type_word varchar;
+BEGIN
+ IF inSession IS NULL OR inEmail IS NULL THEN
+  RETURN NULL;
+ END IF;
+
+ individual_id := (SELECT GetIndividualEmail(inEmail));
+ IF individual_id IS NULL THEN
+  RETURN NULL;
+ END IF;
+
+ email_id := (SELECT GetEmail(inEmail));
+ IF email_id IS NULL THEN
+  RETURN individual_id;
+ END IF;
+
+ PERFORM pg_advisory_lock(individual_id);
+ BEGIN
+  SELECT id INTO credential_id
+  FROM Credential
+  WHERE individual = individual_id
+   AND email = email_id
+   AND revoked IS NULL
+  LIMIT 1;
+  IF credential_id IS NULL THEN
+   INSERT INTO Credential (individual, email, culture) (
+    SELECT individual_id, email_id, 1033
+    FROM Dual
+    LEFT JOIN Credential AS exists ON exists.individual = individual_id
+     AND exists.email = email_id
+     AND exists.revoked IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   SELECT id INTO credential_id
+   FROM Credential
+   WHERE individual = individual_id
+    AND email = email_id
+    AND revoked IS NULL
+   LIMIT 1;
+  END IF;
+  PERFORM pg_advisory_unlock(individual_id);
+ EXCEPTION
+  WHEN OTHERS THEN
+   PERFORM pg_advisory_unlock(individual_id);
+   RAISE;
+ END;
+
+ SELECT agentString, referring::integer, fromAddress, location
+ INTO last_agent, last_referring, last_ip, last_location
+ FROM SessionCredential
+ WHERE session = inSession
+ ORDER BY created DESC, id DESC
+ LIMIT 1;
+
+ FOR tok IN
+  SELECT token, siteApplicationRelease
+  FROM SessionToken
+  WHERE session = inSession
+ LOOP
+  PERFORM SetSession(
+   tok.token,
+   tok.siteApplicationRelease,
+   last_agent,
+   credential_id,
+   last_referring,
+   last_ip,
+   last_location
+  );
+ END LOOP;
+
+ FOR sp IN
+  SELECT type, path
+  FROM SessionPath
+  WHERE session = inSession
+   AND stop IS NULL
+   AND path IS NOT NULL
+ LOOP
+  IF sp.type IS NULL THEN
+   type_word := NULL;
+  ELSE
+   type_word := (
+    SELECT value FROM I18NWord WHERE id = sp.type LIMIT 1
+   );
+   IF type_word IS NULL THEN
+    type_word := (
+     SELECT value FROM Word WHERE id = sp.type LIMIT 1
+    );
+   END IF;
+  END IF;
+  PERFORM SetIndividualPath(individual_id, type_word, sp.path);
+ END LOOP;
+
+ RETURN individual_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ClaimSession (
+ inSessionToken varchar,
+ inEmail varchar
+) RETURNS bigint AS $$
+DECLARE
+ session_id bigint;
+BEGIN
+ IF inSessionToken IS NULL THEN
+  RETURN NULL;
+ END IF;
+ SELECT session INTO session_id
+ FROM SessionToken
+ WHERE token = inSessionToken
+ LIMIT 1;
+ RETURN (SELECT ClaimSession(session_id, inEmail));
+END;
+$$ LANGUAGE plpgsql;
 
 -- Mark schema upgraded to 0.2.11 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped
