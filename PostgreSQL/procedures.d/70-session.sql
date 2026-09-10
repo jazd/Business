@@ -430,7 +430,7 @@ CREATE OR REPLACE FUNCTION SetSession (
  inStart timestamp
 ) RETURNS bigint AS $$
 BEGIN
- RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, inAgentString, inCredential, inReferring, inIPAddress, inLocation, inStart, NULL));
+ RETURN (SELECT SetSession(inSessionToken, inSiteApplicationRelease, inCredential, inUAstring, inUAfamily, inUAmajor, inUAminor, inUApatch, inUAbuild, inOSfamily, inOSmajor, inOSminor, inOSpatch, inDeviceBrand, inDeviceModel, inDeviceFamily, inDeviceFamilyVersion, inRefSecure, inRefHost, inRefPath, inRefGet, inIPAddress, inLocation, inStart, NULL));
 END;
 $$ LANGUAGE plpgsql;
 
