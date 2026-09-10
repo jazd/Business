@@ -23,8 +23,10 @@
 -- Applied by this script (existing 0.2.10 database)
 -- ---------------------------------------------------------------------------
 --
--- (Add numbered items as 0.2.11 work lands: DDL ALTERs, indexes, static seeds,
---  CREATE OR REPLACE of changed procedures from procedures.d, view recreate.)
+--  1) Bill.shipfrom / Bill.shipto + Address FKs; Location id sequence
+--  2) Wider Email.host, Path.host, SessionToken.token; Path.port
+--  3) URL and IndividualURL include :port when Path.port is set
+--  4) GetPath / GetURL overloads with inPort (default-port stored as NULL)
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '11') - last substantive step
@@ -72,21 +74,188 @@ END $$;
 SET search_path TO business, public;
 
 -- ---------------------------------------------------------------------------
--- 0.2.11: (pending) DDL / data / procedure changes
+-- 0.2.11: Bill ship addresses; Location id sequence
 -- ---------------------------------------------------------------------------
--- Append CREATE OR REPLACE FUNCTION bodies from procedures.d as needed,
--- or re-embed a full procedure refresh when many signatures change.
--- Prefer small, reviewable sections with clear comments.
 
 ALTER TABLE Bill ADD COLUMN shipfrom integer;
 ALTER TABLE Bill ADD COLUMN shipto integer;
 ALTER TABLE Bill ADD CONSTRAINT bill_address_from FOREIGN KEY (shipfrom) REFERENCES Address (id) DEFERRABLE;
 ALTER TABLE Bill ADD CONSTRAINT bill_address_to FOREIGN KEY (shipto) REFERENCES Address (id) DEFERRABLE;
 
-
 SELECT setval('location_id_seq', 20000, false);
 --^^--
 
+-- ---------------------------------------------------------------------------
+-- 0.2.11: Email/Path host widths, SessionToken.token, Path.port
+-- ---------------------------------------------------------------------------
+-- Widen in place (existing values fit the old lengths). Path.port stays NULL
+-- on existing rows: GetPath treats NULL as 80 when insecure and 443 when
+-- secure. Do not backfill 80/443.
+
+ALTER TABLE Email ALTER COLUMN host TYPE varchar(96);
+ALTER TABLE Path ALTER COLUMN host TYPE varchar(96);
+ALTER TABLE SessionToken ALTER COLUMN token TYPE varchar(128);
+ALTER TABLE Path ADD COLUMN IF NOT EXISTS port smallint;
+
+-- ---------------------------------------------------------------------------
+-- 0.2.11: URL views (port in concatenated value; column list unchanged)
+-- ---------------------------------------------------------------------------
+
+CREATE OR REPLACE VIEW URL AS
+SELECT id AS path, protocol, host,
+ protocol ||
+ CASE WHEN secure = 1 THEN 's' ELSE '' END ||
+ '://' || host ||
+ CASE WHEN port IS NOT NULL THEN ':' || port ELSE '' END ||
+ '/' ||
+ COALESCE(value,'') ||
+ CASE WHEN get IS NULL
+ THEN ''
+ ELSE '?' || get
+ END AS value,
+ created
+FROM Path;
+
+CREATE OR REPLACE VIEW IndividualURL AS
+WITH latest (individual,type,created) AS (
+ SELECT individual, type, MAX(created) AS created
+ FROM IndividualPath
+ WHERE IndividualPath.stop IS NULL
+ GROUP BY individual, type
+)
+SELECT latest.individual, latest.type, Path.id AS path, Path.protocol, Path.host,
+ Path.protocol ||
+ CASE WHEN secure = 1 THEN 's' ELSE '' END ||
+ '://' || host ||
+ CASE WHEN port IS NOT NULL THEN ':' || port ELSE '' END ||
+ '/' ||
+ COALESCE(Path.value,'') ||
+ CASE WHEN COALESCE(Path.get,IndividualPath.track) IS NULL
+ THEN ''
+ ELSE '?' ||
+ COALESCE(Path.get,'') ||
+ COALESCE(CASE WHEN (Path.get IS NOT NULL AND IndividualPath.track IS NOT  NULL) THEN '&' ELSE '' END ||  IndividualPath.track, '')
+ END AS value,
+ latest.created
+FROM latest
+JOIN IndividualPath ON IndividualPath.individual = latest.individual
+ AND IndividualPath.type = latest.type
+ AND IndividualPath.created = latest.created
+JOIN Individual ON Individual.id = latest.individual
+ AND Individual.nameChange IS NULL
+JOIN Path ON Path.id = IndividualPath.path;
+
+-- ---------------------------------------------------------------------------
+-- 0.2.11: GetPath / GetURL port overloads (from procedures.d/40-contacts.sql)
+-- ---------------------------------------------------------------------------
+-- New 6-arg GetPath and 5-arg GetURL; existing 5-arg GetPath and 4-arg GetURL
+-- become wrappers (port NULL). GetFile keeps calling 5-arg GetPath.
+
+CREATE OR REPLACE FUNCTION GetPath (
+ inProtocol varchar,
+ inSecure integer,
+ inHost varchar,
+ inValue varchar,
+ inGet varchar,
+ inPort integer
+) RETURNS integer AS $$
+DECLARE
+ is_secure integer := 0;
+ port_value integer;
+ lockText varchar;
+ lockID bigint;
+ path_id integer;
+BEGIN
+ -- host and path can not both be null
+ IF inValue IS NOT NULL OR inHost IS NOT NULL THEN
+  -- Default to false or 0
+  IF inSecure IS NOT NULL AND inSecure != 0 THEN
+    is_secure :=1;
+  END IF;
+  lockText := COALESCE(inHost, '') || COALESCE(inPort::text, '') || COALESCE(inValue, '');
+  lockID := hashtext(lockText);
+  IF is_secure = 0 AND inPort != 80 THEN port_value := inPort; END IF;
+  IF is_secure = 1 AND inPort != 443 THEN port_value := inPort; END IF;
+  SELECT id INTO path_id
+  FROM Path
+  WHERE protocol = inProtocol
+   AND secure = is_secure
+   AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
+   AND ((port = port_value) OR (port IS NULL AND port_value IS NULL))
+   AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
+   AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
+  LIMIT 1;
+  IF path_id IS NULL THEN
+   -- Be sure to process any single path one at a time without the need of a transaction or locking Path table
+   PERFORM pg_advisory_lock(lockID);
+   BEGIN
+   INSERT INTO Path (protocol, secure, host, port, value, get) (
+    SELECT inProtocol, is_secure, inHost, port_value, inValue, inGet
+    FROM Dual
+    LEFT JOIN Path AS exists ON exists.protocol = inProtocol
+     AND exists.secure = is_secure
+     AND ((UPPER(exists.host) = UPPER(inHost)) OR (exists.host IS NULL AND inHost IS NULL))
+     AND ((exists.port = port_value) OR (exists.port IS NULL AND port_value IS NULL))
+     AND ((exists.value = inValue) OR (exists.value IS NULL OR inValue IS NULL))
+     AND ((exists.get = inGet) OR (exists.get IS NULL AND inGet IS NULL))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(lockID);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(lockID);
+     RAISE;
+   END;
+   SELECT id INTO path_id
+   FROM Path
+   WHERE protocol = inProtocol
+    AND secure = is_secure
+    AND ((UPPER(host) = UPPER(inHost)) OR (host IS NULL and inHost IS NULL))
+    AND ((port = port_value) OR (port IS NULL AND port_value IS NULL))
+    AND ((value = inValue) OR (value IS NULL AND inValue IS NULL))
+    AND ((get = inGet) OR (get IS NULL AND inGet IS NULL))
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN path_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetPath (
+ inProtocol varchar,
+ inSecure integer,
+ inHost varchar,
+ inValue varchar,
+ inGet varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT GetPath(inProtocol, inSecure, inHost, inValue, inGet, NULL));
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetURL (
+ inSecure integer,
+ inHost varchar,
+ inValue varchar,
+ inGet varchar,
+ inPort integer
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT GetPath('http', inSecure, inHost, inValue, inGet, inPort));
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetURL (
+ inSecure integer,
+ inHost varchar,
+ inValue varchar,
+ inGet varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT GetURL(inSecure, inHost, inValue, inGet, NULL));
+END;
+$$ LANGUAGE plpgsql;
 
 -- Mark schema upgraded to 0.2.11 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped
