@@ -60,7 +60,8 @@ is not the same kind of fact as a party, a bill, or a session.
    user-typed emails, hosts, URLs, or list history.
 3. Do not UPDATE those values in place. NULL → timestamp on `stop`/`timeout`/
    `revoked` is the allowed “end or fill this version” write.
-4. Find-or-insert via `Get*` / `Set*` / `ClaimSession` / `ListSubscribeEmail`.
+4. Find-or-insert via `Get*` / `Set*` / `ClaimSession` / `ListSubscribeEmail`
+   (see **Get\* is the interface** below).
 5. Do **not** `CreateIndividual()` on first anonymous page view. Anonymous
    work hangs on **SessionPath** until `ClaimSession`.
 6. Do **not** store user hosts or webhook URLs in `SessionToken.items` (bytea
@@ -68,6 +69,36 @@ is not the same kind of fact as a party, a bill, or a session.
 7. `Word.value` is **varchar(25)**. Site names, list names, list sets, and
    SessionToken types must fit. Hostnames longer than 25 are **Path.host**
    (varchar 96), not Word.
+
+---
+
+## Get* is the interface
+
+`GetWord`, `GetEmail`, `GetIndividualEmail`, `GetPath`, `GetURL`,
+`GetSentence`, `GetPart`, and the other `Get*` procedures in
+`PostgreSQL/procedures.d/` are how agents talk to those tables. They are
+**find-or-insert**: if the value is new, they **create** it. That is how
+words, mailboxes, and people are born. Use the **same Get** to look up rows
+that were created that way. Do not bypass Get with a raw `SELECT` for the id.
+
+**`GetEmail`** is the mailbox (`Email` table). Calling it on a possible
+stranger is **OK**: the address is stored even when no person is attached, so
+invalid or bounce history can be reviewed later. After `GetEmail`, look at
+**`IndividualEmail`** (`email` = that id, `stop` IS NULL) to see whether a
+person already owns it.
+
+**`GetIndividualEmail`** attaches a person (creates an Individual if this
+mailbox is not already on IndividualEmail). Signup and `ClaimSession` use it.
+If you only want an **existing** person: `GetEmail`, then IndividualEmail; if
+there is no unstopped row, **do not** call `GetIndividualEmail`. If there is a
+row, `GetIndividualEmail` for the individual id.
+
+`ListUnSubscribe(listName, listSet, individual)` takes that individual id.
+Two-argument form uses a NULL set. `ListSubscribeEmail` calls
+`GetIndividualEmail` internally.
+
+Current members: view `List`. History including `unlist`: **`SiteMembership`**.
+`unlist` NULL means the fact is current.
 
 ---
 
@@ -238,8 +269,9 @@ SELECT ListSubscribeEmail('Example', 'Watch', 'user@example.com');
 SELECT ListSubscribeEmail('Example', 'Terms', 'user@example.com');
 -- paid:
 SELECT ListSubscribeEmail('Example', 'Pro', 'user@example.com');
--- cancel paid:
+-- cancel paid / unlist mail (NoCRUD; does not DELETE):
 SELECT ListUnSubscribe('Example', 'Pro', individualId);
+-- individualId ← GetIndividualEmail(addr)
 ```
 
 Current members: view `List` (`unlist IS NULL`). History including stopped:
@@ -406,6 +438,9 @@ dropped first, then rebuilt.
 ## Anti-patterns
 
 - Sidecar `site_session(uuid, email)` when ClaimSession exists.
+- Skipping `GetEmail` / `GetIndividualEmail` with a raw SELECT for the id.
+  Stranger addresses: `GetEmail` is fine (records the mailbox); do not
+  `GetIndividualEmail` unless IndividualEmail already has an unstopped row.
 - `CreateIndividual()` on first GET /.
 - Host:port stuffed into `Path.host` after 0.2.11.
 - Leading `/` on `Path.value` (double slash in the URL view).
@@ -447,14 +482,15 @@ Do not DELETE runs.
 
 | Call | Role |
 |------|------|
-| `GetWord` / `GetEmail` / `GetIndividualEmail` | Words, mailbox, person |
+| `GetWord` / `GetEmail` / `GetIndividualEmail` | Find-or-insert words, mailbox, person |
 | `GetApplication` / `GetApplicationRelease` | App + release |
 | `GetPath` / `GetURL` | Path id (`inPort` on 0.2.11) |
+| `GetSentence` / `GetPart` / `GetPartbySerial` | Process names, QA assembly serials |
 | `SetSession` | Cookie token ↔ session; optional credential + type |
 | `SetSessionPath` / `StopSessionPath` | Anonymous paths |
 | `SetIndividualPath` / `StopIndividualPath` | Claimed paths |
-| `ClaimSession` | Email owns this session |
-| `ListSubscribeEmail` / `ListUnSubscribe` | Membership |
+| `ClaimSession` | Email owns this session (`GetIndividualEmail` inside) |
+| `ListSubscribeEmail` / `ListUnSubscribe` | Membership. Unlist needs individual id |
 | `SetPathPassword` / `RevokePathPassword` | Secret on a Path |
 | `AnonymousSession` | Optional UA-parsed hit without a token |
 
