@@ -180,11 +180,13 @@ CREATE OR REPLACE FUNCTION SetContentElement (
  inFormat integer,
  inWord integer,
  inSentence integer,
- inParagraph integer
+ inParagraph integer,
+ inArgument varchar
 ) RETURNS integer AS $$
 DECLARE
  edition_id integer;
  atom_count integer;
+ argument_id integer;
 BEGIN
  atom_count := (inWord IS NOT NULL)::integer
   + (inSentence IS NOT NULL)::integer
@@ -192,6 +194,9 @@ BEGIN
  IF inContent IS NOT NULL
   AND inSequence IS NOT NULL
   AND atom_count = 1 THEN
+  IF inWord IS NOT NULL THEN
+   argument_id := (SELECT GetWord(inArgument));
+  END IF;
   PERFORM pg_advisory_lock(inContent);
   BEGIN
    SELECT id INTO edition_id
@@ -214,8 +219,8 @@ BEGIN
      AND stop IS NULL
     LIMIT 1;
    END IF;
-   INSERT INTO ContentElement (edition, sequence, word, sentence, paragraph, format) (
-    SELECT edition_id, inSequence, inWord, inSentence, inParagraph, inFormat
+   INSERT INTO ContentElement (edition, sequence, word, sentence, paragraph, format, argument) (
+    SELECT edition_id, inSequence, inWord, inSentence, inParagraph, inFormat, argument_id
     FROM Dual
     LEFT JOIN ContentElement AS exists ON exists.edition = edition_id
      AND exists.sequence = inSequence
@@ -230,6 +235,19 @@ BEGIN
   END;
  END IF;
  RETURN inContent;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetContentElement (
+ inContent integer,
+ inSequence integer,
+ inFormat integer,
+ inWord integer,
+ inSentence integer,
+ inParagraph integer
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT SetContentElement(inContent, inSequence, inFormat, inWord, inSentence, inParagraph, NULL));
 END;
 $$ LANGUAGE plpgsql;
 

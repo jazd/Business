@@ -1,9 +1,9 @@
 00-header.sql	0 functions/types	Header (search_path); must load first
-10-i18n.sql	6 functions/types	I18N — Word / Sentence / Identifier (diagram: i18n)
+10-i18n.sql	8 functions/types	I18N — Word / Sentence / Paragraph / PluralWord (diagram: i18n)
 20-geo.sql	6 functions/types	Geo / Addresses — Location Postal Address (diagram: addresses)
 30-individual.sql	9 functions/types	Individual / Entity / Name (diagram: individual)
 40-contacts.sql	9 functions/types	Contacts — Email Phone Path (diagrams: individual_email, phones, individual_path)
-45-content.sql	23 functions/types	Content and campaign — format, edition, placement, runs, attachments, events (diagram: content)
+45-content.sql	24 functions/types	Content and campaign — format, edition, placement, runs, attachments, events (diagram: content)
 50-lists.sql	8 functions/types	Lists (diagram: lists)
 60-software.sql	26 functions/types	Software / Parts / Assemblies (diagrams: software, assemblies)
 65-est.sql	5 functions/types	EST / certificates — public key, CSR, Certificate (diagram: est)

@@ -59,7 +59,23 @@ A person's chosen language is `Credential.culture`. Set `inject_culture` from th
 
 `SetContent('Home page')` is the stable id. Sites and lists keep that id.
 
-`SetContentElement(content, sequence, format, word, sentence, paragraph)` writes the open edition, or opens one. Exactly one of word, sentence, paragraph is set. The same sequence on that edition is a no-op.
+`SetContentElement(content, sequence, format, word, sentence, paragraph, argument)` writes the open edition, or opens one. Exactly one of word, sentence, paragraph is set. The same sequence on that edition is a no-op. `argument` is optional and only stored on a word element.
+
+## Plurals
+
+`WordPlural` holds the other forms of a singular Word. `plural` is 0 zero, 2 two, 3 few, 4 many. The singular form is the Word itself. Static `1_Plural.sql` shows Cat / Cats, Chat / Chats, Kot / Koty / Kotów, Gato / Gatos on one concept id (80000).
+
+The count is not stored on the element. Name the count with `argument` (`items`, `guests`). At render time the caller supplies that count and calls `PluralWord(wordId, count)`. The form follows `ClientCulture()` when that culture has the word, otherwise en-US.
+
+| Count | Column |
+|-------|--------|
+| 0 | zero |
+| 1 | singular |
+| 2 | two |
+| 3 or 4 | few |
+| anything else | many |
+
+`ContentElements.argument` is that name. `ContentElementPlurals` lists singular, zero, two, few, and many for the current edition so a renderer can pick without calling `PluralWord`. Sentences and paragraphs are not pluralized.
 
 `StopContent(content)` closes the edition. The next `SetContentElement` starts a new edition. Old elements stay on the stopped edition.
 

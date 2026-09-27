@@ -796,6 +796,9 @@
  <field name="sentence" data_type="integer" size="" is_nullable="1" order="4" />
  <field name="paragraph" data_type="integer" size="" is_nullable="1" order="5" />
  <field name="format" data_type="integer" size="" is_nullable="1" order="6" />
+ <field name="argument" data_type="integer" size="" is_nullable="1" order="7">
+  <comments>Word name of a render-time count. NULL means do not pluralize. Only used when word is set.</comments>
+ </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <indices>
@@ -805,6 +808,7 @@
  <constraint name="contentelement_edition" type="FOREIGN KEY" fields="edition" reference_table="ContentEdition" reference_fields="id" deferrable="1" />
  <constraint name="contentelement_format" type="FOREIGN KEY" fields="format" reference_table="Format" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="word" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid3" type="FOREIGN KEY" fields="argument" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="sentence" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="paragraph" reference_table="Paragraph" reference_fields="id" deferrable="1" /></comments>
 </constraints>
@@ -2230,8 +2234,8 @@ WHERE FormatAttribute.stop IS NULL
  </sql>
  </view>
 
- <view name="ContentElements" fields="content,edition,sequence,kind,element,value,format,created">
- <comments>Current edition only. value follows ClientCulture().</comments>
+ <view name="ContentElements" fields="content,edition,sequence,kind,element,value,format,argument,created">
+ <comments>Current edition only. value follows ClientCulture(). argument is the count name for a pluralized word.</comments>
  <sql>
 SELECT ContentEdition.content,
  ContentEdition.id AS edition,
@@ -2244,12 +2248,40 @@ SELECT ContentEdition.content,
  COALESCE(ContentElement.word, ContentElement.sentence, ContentElement.paragraph) AS element,
  COALESCE(I18NWord.value, I18NSentence.value, I18NParagraph.value) AS value,
  ContentElement.format,
+ Argument.value AS argument,
  ContentEdition.created
 FROM ContentEdition
 JOIN ContentElement ON ContentElement.edition = ContentEdition.id
 LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
 LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
 LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
+LEFT JOIN I18NWord AS Argument ON Argument.id = ContentElement.argument
+WHERE ContentEdition.stop IS NULL
+ </sql>
+ </view>
+
+ <view name="ContentElementPlurals" fields="content,edition,sequence,argument,word,singular,zero,two,few,many">
+ <comments>Plural columns for the client culture, else en-US. Renderer picks a column from the count.</comments>
+ <sql>
+SELECT ContentEdition.content,
+ ContentEdition.id AS edition,
+ ContentElement.sequence,
+ Argument.value AS argument,
+ ContentElement.word,
+ Forms.singular,
+ Forms.zero,
+ Forms.two,
+ Forms.few,
+ Forms.many
+FROM ContentEdition
+JOIN ContentElement ON ContentElement.edition = ContentEdition.id
+ AND ContentElement.word IS NOT NULL
+ AND ContentElement.argument IS NOT NULL
+LEFT JOIN I18NWord AS Argument ON Argument.id = ContentElement.argument
+LEFT JOIN WordPlurals AS Forms ON Forms.word = ContentElement.word
+ AND Forms.culture = COALESCE(
+  (SELECT w.culture FROM Word w WHERE w.id = ContentElement.word AND w.culture = ClientCulture() LIMIT 1),
+  1033)
 WHERE ContentEdition.stop IS NULL
  </sql>
  </view>

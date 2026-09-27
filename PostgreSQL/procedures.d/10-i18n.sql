@@ -242,6 +242,45 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- WordPlural.plural: 0 zero, 2 two, 3 few, 4 many. Singular is the Word itself.
+-- 0 -> zero, 1 -> singular, 2 -> two, 3 and 4 -> few, otherwise many.
+-- Forms follow ClientCulture() when that culture has the word, else 1033.
+CREATE OR REPLACE FUNCTION PluralWord (
+ inWord integer,
+ inCount integer
+) RETURNS varchar AS $$
+DECLARE
+ form_culture smallint;
+ form_value varchar;
+BEGIN
+ IF inWord IS NULL OR inCount IS NULL THEN
+  RETURN NULL;
+ END IF;
+ form_culture := (
+  SELECT w.culture
+  FROM Word w
+  WHERE w.id = inWord
+   AND w.culture = ClientCulture()
+  LIMIT 1
+ );
+ IF form_culture IS NULL THEN
+  form_culture := 1033;
+ END IF;
+ SELECT CASE
+  WHEN inCount = 0 THEN zero
+  WHEN inCount = 1 THEN singular
+  WHEN inCount = 2 THEN two
+  WHEN inCount IN (3, 4) THEN few
+  ELSE many
+ END INTO form_value
+ FROM WordPlurals
+ WHERE word = inWord
+  AND culture = form_culture
+ LIMIT 1;
+ RETURN form_value;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Default to en-US
 CREATE OR REPLACE FUNCTION GetParagraph (
  paragraph_value text
