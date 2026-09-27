@@ -1,4 +1,4 @@
--- I18N — Word / Sentence / Identifier (diagram: i18n)
+-- I18N — Word / Sentence / Paragraph / Identifier (diagram: i18n)
 -- Assembled in lexicographic order of this directory; see README.md
 
 CREATE OR REPLACE FUNCTION GetWord (
@@ -182,6 +182,113 @@ DECLARE
 BEGIN
  RETURN (
   SELECT GetSentence(sentence_value, 'en-US') AS id
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Same lookup as GetSentence. Paragraph has no length column.
+-- Cultured paragraph text is not unique: the same words in one culture share an id.
+CREATE OR REPLACE FUNCTION GetParagraph (
+ paragraph_value text,
+ culture_name varchar
+) RETURNS integer AS $$
+DECLARE
+ paragraph_id integer;
+ lock_key bigint;
+BEGIN
+ IF paragraph_value IS NOT NULL THEN
+  SELECT id INTO paragraph_id
+  FROM Paragraph
+  JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
+  WHERE UPPER(Paragraph.value) = UPPER(paragraph_value)
+   AND Paragraph.culture = Culture.code
+  LIMIT 1;
+  IF paragraph_id IS NULL THEN
+   lock_key := hashtext(paragraph_value);
+   PERFORM pg_advisory_lock(lock_key);
+   BEGIN
+    SELECT id INTO paragraph_id
+    FROM Paragraph
+    JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
+    WHERE UPPER(Paragraph.value) = UPPER(paragraph_value)
+     AND Paragraph.culture = Culture.code
+    LIMIT 1;
+    IF paragraph_id IS NULL THEN
+     INSERT INTO Paragraph (value, culture) (
+      SELECT paragraph_value, Culture.code
+      FROM Culture
+      LEFT JOIN Paragraph AS exists ON UPPER(exists.value) = UPPER(paragraph_value)
+       AND exists.culture = Culture.code
+      WHERE UPPER(Culture.name) = UPPER(culture_name)
+       AND exists.id IS NULL
+      LIMIT 1
+     );
+     SELECT id INTO paragraph_id
+     FROM Paragraph
+     JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
+     WHERE UPPER(Paragraph.value) = UPPER(paragraph_value)
+      AND Paragraph.culture = Culture.code
+     LIMIT 1;
+    END IF;
+    PERFORM pg_advisory_unlock(lock_key);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(lock_key);
+     RAISE;
+   END;
+  END IF;
+ END IF;
+ RETURN paragraph_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- WordPlural.plural: 0 zero, 2 two, 3 few, 4 many. Singular is the Word itself.
+-- 0 -> zero, 1 -> singular, 2 -> two, 3 and 4 -> few, otherwise many.
+-- Forms follow ClientCulture() when that culture has the word, else 1033.
+CREATE OR REPLACE FUNCTION PluralWord (
+ inWord integer,
+ inCount integer
+) RETURNS varchar AS $$
+DECLARE
+ form_culture smallint;
+ form_value varchar;
+BEGIN
+ IF inWord IS NULL OR inCount IS NULL THEN
+  RETURN NULL;
+ END IF;
+ form_culture := (
+  SELECT w.culture
+  FROM Word w
+  WHERE w.id = inWord
+   AND w.culture = ClientCulture()
+  LIMIT 1
+ );
+ IF form_culture IS NULL THEN
+  form_culture := 1033;
+ END IF;
+ SELECT CASE
+  WHEN inCount = 0 THEN zero
+  WHEN inCount = 1 THEN singular
+  WHEN inCount = 2 THEN two
+  WHEN inCount IN (3, 4) THEN few
+  ELSE many
+ END INTO form_value
+ FROM WordPlurals
+ WHERE word = inWord
+  AND culture = form_culture
+ LIMIT 1;
+ RETURN form_value;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Default to en-US
+CREATE OR REPLACE FUNCTION GetParagraph (
+ paragraph_value text
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN (
+  SELECT GetParagraph(paragraph_value, 'en-US') AS id
  );
 END;
 $$ LANGUAGE plpgsql;

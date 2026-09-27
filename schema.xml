@@ -722,11 +722,249 @@
 </constraints>
 </table>
 
+<comments>Named group of formatting attributes for content elements.</comments>
+<table name="Format" order="212">
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="FormatAttribute" order="213">
+<comments>target NULL applies to every output. A non-NULL target is one output only.</comments>
+<fields>
+ <field name="format" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="value" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="target" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer part of this format. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="formatattribute_format" type="NORMAL" fields="format" />
+</indices>
+<constraints>
+ <constraint name="formatattribute_format" type="FOREIGN KEY" fields="format" reference_table="Format" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="value" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="target" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="Content" order="214">
+<comments>Stable id for a page, message, or document body. Editions change; this id does not.</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="ContentEdition" order="215">
+<comments>stop IS NULL is the edition currently published for this content.</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="content" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>This collection of elements is no longer current. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="contentedition_content" type="NORMAL" fields="content" />
+</indices>
+<constraints>
+ <constraint name="contentedition_content" type="FOREIGN KEY" fields="content" reference_table="Content" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
+<table name="ContentElement" order="216">
+<comments>Exactly one of word, sentence, or paragraph is set. That value is the concept id, not a culture row.</comments>
+<fields>
+ <field name="edition" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="sequence" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="word" data_type="integer" size="" is_nullable="1" order="3" />
+ <field name="sentence" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="paragraph" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="format" data_type="integer" size="" is_nullable="1" order="6" />
+ <field name="argument" data_type="integer" size="" is_nullable="1" order="7">
+  <comments>Word name of a render-time count. NULL means do not pluralize. Only used when word is set.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="contentelement_edition_sequence" type="NORMAL" fields="edition,sequence" />
+</indices>
+<constraints>
+ <constraint name="contentelement_edition" type="FOREIGN KEY" fields="edition" reference_table="ContentEdition" reference_fields="id" deferrable="1" />
+ <constraint name="contentelement_format" type="FOREIGN KEY" fields="format" reference_table="Format" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="word" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid3" type="FOREIGN KEY" fields="argument" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="sentence" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="paragraph" reference_table="Paragraph" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="ContentSite" order="217">
+<fields>
+ <field name="content" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="site" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="sequence" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer show this content on this site. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="contentsite_site" type="NORMAL" fields="site" />
+</indices>
+<constraints>
+ <constraint name="contentsite_content" type="FOREIGN KEY" fields="content" reference_table="Content" reference_fields="id" deferrable="1" />
+ <constraint name="contentsite_site" type="FOREIGN KEY" fields="site" reference_table="Site" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
+<table name="ContentList" order="218">
+<comments>listName is the same Word a list subscription uses.</comments>
+<fields>
+ <field name="content" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="listName" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="sequence" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer send this content for this list. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="contentlist_listname" type="NORMAL" fields="listName" />
+</indices>
+<constraints>
+ <constraint name="contentlist_content" type="FOREIGN KEY" fields="content" reference_table="Content" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="listName" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="Campaign" order="219">
+<comments>Audience is a list name. period is PeriodName.period. NULL period means any time during an open run.</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="listName" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="listSet" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="channel" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="period" data_type="integer" size="" is_nullable="1" order="6" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="campaign_period" type="FOREIGN KEY" fields="period" reference_table="PeriodName" reference_fields="period" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="listName" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="listSet" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid3" type="FOREIGN KEY" fields="channel" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="CampaignRun" order="219">
+<comments>One row per start. stop NULL is the open run. Not a Period span.</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="campaign" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="started" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>This start has ended. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="campaignrun_campaign" type="NORMAL" fields="campaign" />
+</indices>
+<constraints>
+ <constraint name="campaignrun_campaign" type="FOREIGN KEY" fields="campaign" reference_table="Campaign" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
+<table name="CampaignContent" order="219">
+<fields>
+ <field name="campaign" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="content" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="sequence" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer part of this campaign body. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="campaigncontent_campaign_sequence" type="NORMAL" fields="campaign,sequence" />
+</indices>
+<constraints>
+ <constraint name="campaigncontent_campaign" type="FOREIGN KEY" fields="campaign" reference_table="Campaign" reference_fields="id" deferrable="1" />
+ <constraint name="campaigncontent_content" type="FOREIGN KEY" fields="content" reference_table="Content" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
+<table name="CampaignAttachment" order="219">
+<comments>target NULL applies to every output. type is what the file is.</comments>
+<fields>
+ <field name="campaign" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="path" data_type="bigint" size="20" is_nullable="0" order="2" />
+ <field name="sequence" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="target" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer attach this path. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="campaignattachment_campaign_sequence" type="NORMAL" fields="campaign,sequence" />
+</indices>
+<constraints>
+ <constraint name="campaignattachment_campaign" type="FOREIGN KEY" fields="campaign" reference_table="Campaign" reference_fields="id" deferrable="1" />
+ <constraint name="campaignattachment_path" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="target" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="CampaignEvent" order="219">
+<comments>Append-only. kind is sent, read, bounce, delivered, returned, and the same sort of fact.</comments>
+<fields>
+ <field name="campaign" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="0" order="2" />
+ <field name="kind" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="path" data_type="bigint" size="20" is_nullable="1" order="4" />
+ <field name="run" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="campaignevent_campaign_individual" type="NORMAL" fields="campaign,individual" />
+</indices>
+<constraints>
+ <constraint name="campaignevent_campaign" type="FOREIGN KEY" fields="campaign" reference_table="Campaign" reference_fields="id" deferrable="1" />
+ <constraint name="campaignevent_path" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
+ <constraint name="campaignevent_run" type="FOREIGN KEY" fields="run" reference_table="CampaignRun" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="kind" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 <table name="Session" order="220">
 <fields>
  <field name="id" data_type="bigint" size="20" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
  <field name="lock" data_type="integer" size="" default_value="0" is_nullable="0" order="3">
   <comments>Mono System.Web/ASPState.sql style locks</comments>
+ </field>
+ <field name="culture" data_type="smallint" size="" is_nullable="1" order="4">
+  <comments>Visitor language. NULL means en-US.</comments>
  </field>
  <field name="touched" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="98" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
@@ -734,6 +972,7 @@
 <indices>
 </indices>
 <constraints>
+ <constraint name="session_culture" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" deferrable="1" />
 </constraints>
 </table>
 
@@ -1969,6 +2208,209 @@ WHERE SentenceDefault.culture = 1033
  </sql>
  </view>
 
+ <view name="I18NParagraph" fields="id,defaultCulture,clientCulture,resultCulture,value" order="0">
+ <sql>
+SELECT ParagraphDefault.id,
+ ParagraphDefault.culture AS defaultCulture,
+ ClientCulture() AS clientCulture,
+ COALESCE(Paragraph.culture, ParagraphDefault.culture) AS resultCulture,
+ COALESCE(Paragraph.value, ParagraphDefault.value) AS value
+FROM Paragraph AS ParagraphDefault
+LEFT JOIN Paragraph ON Paragraph.id = ParagraphDefault.id
+ AND Paragraph.culture = ClientCulture()
+WHERE ParagraphDefault.culture = 1033
+ </sql>
+ </view>
+
+ <view name="ContentCultures" fields="content,culture,name">
+ <comments>Cultures that can show every element of the current edition. 1033 is always included.</comments>
+ <sql>
+WITH open_edition AS (
+ SELECT id, content
+ FROM ContentEdition
+ WHERE stop IS NULL
+),
+elem AS (
+ SELECT open_edition.content, ContentElement.word, ContentElement.sentence, ContentElement.paragraph
+ FROM open_edition
+ JOIN ContentElement ON ContentElement.edition = open_edition.id
+),
+candidate AS (
+ SELECT elem.content, Word.culture
+ FROM elem
+ JOIN Word ON Word.id = elem.word
+ UNION
+ SELECT elem.content, WordPlural.culture
+ FROM elem
+ JOIN WordPlural ON WordPlural.word = elem.word
+ UNION
+ SELECT elem.content, Sentence.culture
+ FROM elem
+ JOIN Sentence ON Sentence.id = elem.sentence
+ UNION
+ SELECT elem.content, Paragraph.culture
+ FROM elem
+ JOIN Paragraph ON Paragraph.id = elem.paragraph
+ UNION
+ SELECT content, 1033
+ FROM open_edition
+)
+SELECT candidate.content,
+ candidate.culture,
+ Culture.name
+FROM candidate
+JOIN Culture ON Culture.code = candidate.culture
+WHERE NOT EXISTS (
+ SELECT 1
+ FROM elem
+ WHERE elem.content = candidate.content
+ AND (
+  (elem.word IS NOT NULL AND NOT (
+    EXISTS (SELECT 1 FROM Word WHERE Word.id = elem.word AND Word.culture = candidate.culture)
+    OR EXISTS (SELECT 1 FROM WordPlural WHERE WordPlural.word = elem.word AND WordPlural.culture = candidate.culture)
+  ))
+  OR (elem.sentence IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM Sentence WHERE Sentence.id = elem.sentence AND Sentence.culture = candidate.culture
+  ))
+  OR (elem.paragraph IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM Paragraph WHERE Paragraph.id = elem.paragraph AND Paragraph.culture = candidate.culture
+  ))
+ )
+)
+ </sql>
+ </view>
+
+ <view name="FormatAttributes" fields="format,name,value,target,created">
+ <comments>Unstopped format attributes. target NULL means every output.</comments>
+ <sql>
+SELECT FormatAttribute.format,
+ Name.value AS name,
+ Value.value AS value,
+ Target.value AS target,
+ FormatAttribute.created
+FROM FormatAttribute
+LEFT JOIN I18NWord AS Name ON Name.id = FormatAttribute.name
+LEFT JOIN I18NWord AS Value ON Value.id = FormatAttribute.value
+LEFT JOIN I18NWord AS Target ON Target.id = FormatAttribute.target
+WHERE FormatAttribute.stop IS NULL
+ </sql>
+ </view>
+
+ <view name="ContentElements" fields="content,edition,sequence,kind,element,value,format,created,argument">
+ <comments>Current edition only. value follows ClientCulture(). argument is the count name for a pluralized word.</comments>
+ <sql>
+SELECT ContentEdition.content,
+ ContentEdition.id AS edition,
+ ContentElement.sequence,
+ CASE
+  WHEN ContentElement.word IS NOT NULL THEN !apos;word!apos;
+  WHEN ContentElement.sentence IS NOT NULL THEN !apos;sentence!apos;
+  ELSE !apos;paragraph!apos;
+ END AS kind,
+ COALESCE(ContentElement.word, ContentElement.sentence, ContentElement.paragraph) AS element,
+ COALESCE(I18NWord.value, I18NSentence.value, I18NParagraph.value) AS value,
+ ContentElement.format,
+ ContentEdition.created,
+ Argument.value AS argument
+FROM ContentEdition
+JOIN ContentElement ON ContentElement.edition = ContentEdition.id
+LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
+LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
+LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
+LEFT JOIN I18NWord AS Argument ON Argument.id = ContentElement.argument
+WHERE ContentEdition.stop IS NULL
+ </sql>
+ </view>
+
+ <view name="ContentHistory" fields="content,edition,sequence,kind,element,value,format,stop,created">
+ <comments>Every edition, including stopped ones.</comments>
+ <sql>
+SELECT ContentEdition.content,
+ ContentEdition.id AS edition,
+ ContentElement.sequence,
+ CASE
+  WHEN ContentElement.word IS NOT NULL THEN !apos;word!apos;
+  WHEN ContentElement.sentence IS NOT NULL THEN !apos;sentence!apos;
+  ELSE !apos;paragraph!apos;
+ END AS kind,
+ COALESCE(ContentElement.word, ContentElement.sentence, ContentElement.paragraph) AS element,
+ COALESCE(I18NWord.value, I18NSentence.value, I18NParagraph.value) AS value,
+ ContentElement.format,
+ ContentEdition.stop,
+ ContentEdition.created
+FROM ContentEdition
+JOIN ContentElement ON ContentElement.edition = ContentEdition.id
+LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
+LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
+LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
+ </sql>
+ </view>
+
+ <view name="ContentSites" fields="site,content,sequence,created">
+ <sql>
+SELECT site, content, sequence, created
+FROM ContentSite
+WHERE stop IS NULL
+ </sql>
+ </view>
+
+ <view name="ContentLists" fields="listName,listNameValue,content,sequence,created">
+ <sql>
+SELECT ContentList.listName,
+ Name.value AS listNameValue,
+ ContentList.content,
+ ContentList.sequence,
+ ContentList.created
+FROM ContentList
+LEFT JOIN I18NWord AS Name ON Name.id = ContentList.listName
+WHERE ContentList.stop IS NULL
+ </sql>
+ </view>
+
+ <view name="CampaignContents" fields="campaign,content,sequence,created">
+ <sql>
+SELECT campaign, content, sequence, created
+FROM CampaignContent
+WHERE stop IS NULL
+ </sql>
+ </view>
+
+ <view name="CampaignAttachments" fields="campaign,path,sequence,type,target,created">
+ <comments>target NULL applies to every output.</comments>
+ <sql>
+SELECT CampaignAttachment.campaign,
+ CampaignAttachment.path,
+ CampaignAttachment.sequence,
+ Type.value AS type,
+ Target.value AS target,
+ CampaignAttachment.created
+FROM CampaignAttachment
+LEFT JOIN I18NWord AS Type ON Type.id = CampaignAttachment.type
+LEFT JOIN I18NWord AS Target ON Target.id = CampaignAttachment.target
+WHERE CampaignAttachment.stop IS NULL
+ </sql>
+ </view>
+
+ <view name="CampaignRuns" fields="run,campaign,started,stop,created">
+ <sql>
+SELECT id AS run, campaign, started, stop, created
+FROM CampaignRun
+ </sql>
+ </view>
+
+ <view name="CampaignEvents" fields="campaign,individual,kind,path,run,created">
+ <sql>
+SELECT CampaignEvent.campaign,
+ CampaignEvent.individual,
+ Kind.value AS kind,
+ CampaignEvent.path,
+ CampaignEvent.run,
+ CampaignEvent.created
+FROM CampaignEvent
+LEFT JOIN I18NWord AS Kind ON Kind.id = CampaignEvent.kind
+ </sql>
+ </view>
+
  <view name="WordPlurals" fields="word,culture,zero,singular,two,few,many" order="0">
  <sql>
 SELECT Word.id AS word,
@@ -1999,6 +2441,32 @@ LEFT JOIN WordPlural AS WordPluralMany ON WordPluralMany.word = Word.id
  AND WordPluralMany.culture = Word.culture
 LEFT JOIN Word AS WordFormMany on WordFormMany.id = WordPluralMany.form
  AND WordFormMany.culture = Word.culture
+ </sql>
+ </view>
+
+ <view name="ContentElementPlurals" fields="content,edition,sequence,argument,word,singular,zero,two,few,many">
+ <comments>Plural columns for the client culture, else en-US. Renderer picks a column from the count.</comments>
+ <sql>
+SELECT ContentEdition.content,
+ ContentEdition.id AS edition,
+ ContentElement.sequence,
+ Argument.value AS argument,
+ ContentElement.word,
+ Forms.singular,
+ Forms.zero,
+ Forms.two,
+ Forms.few,
+ Forms.many
+FROM ContentEdition
+JOIN ContentElement ON ContentElement.edition = ContentEdition.id
+ AND ContentElement.word IS NOT NULL
+ AND ContentElement.argument IS NOT NULL
+LEFT JOIN I18NWord AS Argument ON Argument.id = ContentElement.argument
+LEFT JOIN WordPlurals AS Forms ON Forms.word = ContentElement.word
+ AND Forms.culture = COALESCE(
+  (SELECT w.culture FROM Word w WHERE w.id = ContentElement.word AND w.culture = ClientCulture() LIMIT 1),
+  1033)
+WHERE ContentEdition.stop IS NULL
  </sql>
  </view>
 
@@ -2188,6 +2656,16 @@ WHERE disable.individual IS NULL
   </sql>
  </view>
 
+ <view name="EmailAddress" fields="email,username,plus,host,value">
+ <sql>
+SELECT id AS email, username, plus, host,
+ username ||
+ COALESCE(!apos;+!apos; || plus, !apos;!apos;) ||
+ !apos;@!apos; || host AS value
+FROM Email
+ </sql>
+ </view>
+
  <view name="SiteMembership" fields="individual,email,listNameValue,listSetValue,unlist,created">
   <comments>
    ListIndividual including unlisted rows. Filter listNameValue in the WHERE.
@@ -2210,13 +2688,25 @@ LEFT JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email
   </sql>
  </view>
 
- <view name="EmailAddress" fields="email,username,plus,host,value">
+ <view name="CampaignRecipients" fields="campaign,individual,email,address">
+ <comments>Current list members. email and address are the primary (type NULL) rows.</comments>
  <sql>
-SELECT id AS email, username, plus, host,
- username ||
- COALESCE(!apos;+!apos; || plus, !apos;!apos;) ||
- !apos;@!apos; || host AS value
-FROM Email
+SELECT Campaign.id AS campaign,
+ ListIndividual.individual,
+ EmailAddress.value AS email,
+ IndividualAddress.address
+FROM Campaign
+JOIN ListIndividualName ON ListIndividualName.name = Campaign.listName
+ AND (Campaign.listSet IS NULL OR ListIndividualName.listSet = Campaign.listSet)
+JOIN ListIndividual ON ListIndividual.id = ListIndividualName.listIndividual
+ AND ListIndividual.unlist IS NULL
+LEFT JOIN IndividualEmail ON IndividualEmail.individual = ListIndividual.individual
+ AND IndividualEmail.stop IS NULL
+ AND IndividualEmail.type IS NULL
+LEFT JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email
+LEFT JOIN IndividualAddress ON IndividualAddress.individual = ListIndividual.individual
+ AND IndividualAddress.stop IS NULL
+ AND IndividualAddress.type IS NULL
  </sql>
  </view>
 
@@ -2619,7 +3109,7 @@ WHERE Session.id = SessionCredential.session
   </sql>
  </view>
 
- <view name="IndividualSessions" fields="individual,individualName,session,token,tokenType,siteApplicationRelease,site,sessionCredential,credential,username,email,bound,touched,created,siteName">
+ <view name="IndividualSessions" fields="individual,individualName,session,token,tokenType,siteApplicationRelease,site,sessionCredential,credential,username,email,bound,touched,created,siteName,culture">
   <comments>
    Current individual to session across all sites. Unrevoked credential,
    bound via IndividualSessionCreated and/or Credential.individual.
@@ -2651,7 +3141,8 @@ SELECT
  bound.bound,
  Session.touched,
  COALESCE(SessionToken.created, Session.created) AS created,
- SiteName.value AS siteName
+ SiteName.value AS siteName,
+ Session.culture
 FROM bound
 JOIN SessionCredential ON SessionCredential.id = bound.sessionCredential
 JOIN Session ON Session.id = SessionCredential.session

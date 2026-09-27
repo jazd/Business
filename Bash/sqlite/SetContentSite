@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# Usage: SetContentSite <site_id> <content_id> [sequence]
+# Omit sequence to append. Existing unstopped pair is left in place.
+
+source ~/bin/sqlite/common
+
+SITE="${1:-}"
+CONTENT="${2:-}"
+SEQUENCE="${3:-}"
+
+if [[ -z "$SITE" || -z "$CONTENT" ]]; then
+ echo "Usage: SetContentSite <site_id> <content_id> [sequence]" >&2
+ exit 1
+fi
+
+if [[ -z "$SEQUENCE" ]]; then
+ SEQUENCE=$(sqlite_query_one "SELECT COALESCE(MAX(sequence),0)+1 FROM ContentSite WHERE site = $SITE AND stop IS NULL;")
+fi
+
+exists=$(sqlite_query_one "SELECT 1 FROM ContentSite WHERE site = $SITE AND content = $CONTENT AND stop IS NULL LIMIT 1;")
+if [[ -z "$exists" ]]; then
+ sqlite_run "INSERT INTO ContentSite (content, site, sequence) VALUES ($CONTENT, $SITE, $SEQUENCE);" >/dev/null
+fi
+echo "$CONTENT"

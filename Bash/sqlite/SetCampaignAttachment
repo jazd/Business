@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# Usage: SetCampaignAttachment <campaign_id> <path_id> [type] [target] [sequence]
+# Empty target means every output.
+
+source ~/bin/sqlite/common
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+CAMPAIGN="${1:-}"
+PATH_ID="${2:-}"
+TYPE="${3:-}"
+TARGET="${4:-}"
+SEQUENCE="${5:-}"
+if [[ -z "$CAMPAIGN" || -z "$PATH_ID" ]]; then
+ echo "Usage: SetCampaignAttachment <campaign_id> <path_id> [type] [target] [sequence]" >&2
+ exit 1
+fi
+type_sql="NULL"
+target_sql="NULL"
+[[ -n "$TYPE" ]] && type_sql=$("$ROOT/GetWord" "$TYPE")
+[[ -n "$TARGET" ]] && target_sql=$("$ROOT/GetWord" "$TARGET")
+if [[ -z "$SEQUENCE" ]]; then
+ SEQUENCE=$(sqlite_query_one "SELECT COALESCE(MAX(sequence),0)+1 FROM CampaignAttachment WHERE campaign = $CAMPAIGN AND stop IS NULL;")
+fi
+exists=$(sqlite_query_one "
+ SELECT 1 FROM CampaignAttachment
+ WHERE campaign = $CAMPAIGN AND path = $PATH_ID
+  AND ((type = $type_sql) OR (type IS NULL AND $type_sql IS NULL))
+  AND ((target = $target_sql) OR (target IS NULL AND $target_sql IS NULL))
+  AND stop IS NULL LIMIT 1;
+")
+if [[ -z "$exists" ]]; then
+ sqlite_run "INSERT INTO CampaignAttachment (campaign, path, sequence, type, target) VALUES ($CAMPAIGN, $PATH_ID, $SEQUENCE, $type_sql, $target_sql);" >/dev/null
+fi
+echo "$CAMPAIGN"

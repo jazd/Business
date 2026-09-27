@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Usage: SetCampaignContent <campaign_id> <content_id> [sequence]
+
+source ~/bin/sqlite/common
+CAMPAIGN="${1:-}"
+CONTENT="${2:-}"
+SEQUENCE="${3:-}"
+if [[ -z "$CAMPAIGN" || -z "$CONTENT" ]]; then
+ echo "Usage: SetCampaignContent <campaign_id> <content_id> [sequence]" >&2
+ exit 1
+fi
+if [[ -z "$SEQUENCE" ]]; then
+ SEQUENCE=$(sqlite_query_one "SELECT COALESCE(MAX(sequence),0)+1 FROM CampaignContent WHERE campaign = $CAMPAIGN AND stop IS NULL;")
+fi
+exists=$(sqlite_query_one "SELECT 1 FROM CampaignContent WHERE campaign = $CAMPAIGN AND content = $CONTENT AND stop IS NULL LIMIT 1;")
+if [[ -z "$exists" ]]; then
+ sqlite_run "INSERT INTO CampaignContent (campaign, content, sequence) VALUES ($CAMPAIGN, $CONTENT, $SEQUENCE);" >/dev/null
+fi
+echo "$CAMPAIGN"

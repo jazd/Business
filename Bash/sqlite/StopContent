@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# Usage: StopContent <content_id>
+# Closes the open edition. The next SetContentElement starts a new one.
+
+source ~/bin/sqlite/common
+
+CONTENT="${1:-}"
+if [[ -z "$CONTENT" ]]; then
+ echo "Usage: StopContent <content_id>" >&2
+ exit 1
+fi
+
+sqlite_run "
+ UPDATE ContentEdition SET stop = datetime('now')
+ WHERE content = $CONTENT AND stop IS NULL;
+" >/dev/null
+echo "$CONTENT"

@@ -55,6 +55,8 @@ PROCESSES="Word Sentence Paragraph Attribute Part AssemblyApplicationRelease Ind
 
 EST="Session AssemblyPublicKey Part CertificateSigningRequest Individual AssemblyCertificateSigningRequest CA Entity CAPolicy Path Word Certificate Email CACertificate AssemblyCertificate ESTRequest"
 
+CONTENT="Content ContentEdition ContentElement Format FormatAttribute ContentSite ContentList Campaign CampaignRun CampaignContent CampaignAttachment CampaignEvent Site ListIndividual Word Sentence Paragraph Path PeriodName"
+
 # Include invalid references for display purposes only
 cat schema.xml | sed '/invalid/ {s/<comments invalid="">//; s/<\/comments>//}' > schema.xml.invalid
 
@@ -105,6 +107,9 @@ ${SQLTDIAGRAM} --title "Processes" $ARGS -c 5 -o diagrams/processes.png ./zot.xm
 
 ${EXTRACTTABLE} schema.xml.invalid $EST >./zot.xml
 ${SQLTDIAGRAM} --title "EST Certificates and CA" $ARGS -c 5 -o diagrams/est.png ./zot.xml
+
+${EXTRACTTABLE} schema.xml.invalid $CONTENT >./zot.xml
+${SQLTDIAGRAM} --title "Content and Campaigns" $ARGS -c 4 -o diagrams/content.png ./zot.xml
 
 # Remove temporary files
 rm -f zot.xml
