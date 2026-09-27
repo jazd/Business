@@ -42,6 +42,24 @@ CREATE UNIQUE INDEX pathPassword_path_password_unrevoked
  ON PathPassword (path, password)
  WHERE revoked IS NULL;
 
+CREATE UNIQUE INDEX IF NOT EXISTS contentedition_content_open
+ ON ContentEdition (content)
+ WHERE stop IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS contentelement_edition_sequence_key
+ ON ContentElement (edition, sequence);
+CREATE UNIQUE INDEX IF NOT EXISTS contentsite_site_content_open
+ ON ContentSite (site, content)
+ WHERE stop IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS contentlist_listname_content_open
+ ON ContentList (listName, content)
+ WHERE stop IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS campaignrun_campaign_open
+ ON CampaignRun (campaign)
+ WHERE stop IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS campaigncontent_campaign_content_open
+ ON CampaignContent (campaign, content)
+ WHERE stop IS NULL;
+
 -- Update the next in sequence for id
 UPDATE sqlite_sequence SET seq = 1000 WHERE name = 'WordPlural';
 UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'Edge';

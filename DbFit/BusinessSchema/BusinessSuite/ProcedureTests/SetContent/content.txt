@@ -1,0 +1,44 @@
+SetContent editions
+
+StopContent closes the open edition. The next element starts another edition
+on the same content id.
+
+!|Query|SELECT SetContent('DbFit CMS page')|
+|setcontent?|
+|>>cid|
+
+!|Query|SELECT SetContent('DbFit CMS page')|
+|setcontent|
+|<<cid|
+
+!|Query|SELECT GetWord('Alpha')|
+|getword?|
+|>>w|
+
+!|Query|SELECT SetContentElement(_:cid::INT, 1, NULL, _:w::INT, NULL, NULL)|
+|setcontentelement|
+|<<cid|
+
+!|Query|SELECT StopContent(_:cid::INT)|
+|stopcontent|
+|<<cid|
+
+!|Query|SELECT SetContentElement(_:cid::INT, 1, NULL, _:w::INT, NULL, NULL)|
+|setcontentelement|
+|<<cid|
+
+!|Query|SELECT COUNT(*) AS n FROM ContentEdition WHERE content = _:cid::INT|
+|n|
+|2|
+
+!|Query|SELECT COUNT(*) AS n FROM ContentEdition WHERE content = _:cid::INT AND stop IS NULL|
+|n|
+|1|
+
+!|Query|SELECT COUNT(*) AS n FROM ContentHistory WHERE content = _:cid::INT|
+|n|
+|2|
+
+!|Query|SELECT COUNT(*) AS n FROM ContentElements WHERE content = _:cid::INT|
+|n|
+|1|

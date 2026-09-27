@@ -81,6 +81,29 @@ CREATE UNIQUE INDEX pathPassword_path_password_unrevoked
  ON PathPassword (path, password)
  WHERE revoked IS NULL;
 
+-- One open edition per content. Elements are unique on edition and sequence.
+CREATE UNIQUE INDEX contentedition_content_open
+ ON ContentEdition (content)
+ WHERE stop IS NULL;
+CREATE UNIQUE INDEX contentelement_edition_sequence_key
+ ON ContentElement (edition, sequence);
+
+-- One live placement of a content on a site or list name.
+CREATE UNIQUE INDEX contentsite_site_content_open
+ ON ContentSite (site, content)
+ WHERE stop IS NULL;
+CREATE UNIQUE INDEX contentlist_listname_content_open
+ ON ContentList (listName, content)
+ WHERE stop IS NULL;
+
+-- One open campaign run. One live copy of a content in a campaign body.
+CREATE UNIQUE INDEX campaignrun_campaign_open
+ ON CampaignRun (campaign)
+ WHERE stop IS NULL;
+CREATE UNIQUE INDEX campaigncontent_campaign_content_open
+ ON CampaignContent (campaign, content)
+ WHERE stop IS NULL;
+
 -- Do not allow duplicate country codes
 CREATE UNIQUE INDEX country_code ON Country (UPPER(code));
 

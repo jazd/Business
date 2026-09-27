@@ -2234,7 +2234,7 @@ WHERE FormatAttribute.stop IS NULL
  </sql>
  </view>
 
- <view name="ContentElements" fields="content,edition,sequence,kind,element,value,format,argument,created">
+ <view name="ContentElements" fields="content,edition,sequence,kind,element,value,format,created,argument">
  <comments>Current edition only. value follows ClientCulture(). argument is the count name for a pluralized word.</comments>
  <sql>
 SELECT ContentEdition.content,
@@ -2248,8 +2248,8 @@ SELECT ContentEdition.content,
  COALESCE(ContentElement.word, ContentElement.sentence, ContentElement.paragraph) AS element,
  COALESCE(I18NWord.value, I18NSentence.value, I18NParagraph.value) AS value,
  ContentElement.format,
- Argument.value AS argument,
- ContentEdition.created
+ ContentEdition.created,
+ Argument.value AS argument
 FROM ContentEdition
 JOIN ContentElement ON ContentElement.edition = ContentEdition.id
 LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
