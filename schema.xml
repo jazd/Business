@@ -849,6 +849,110 @@
 </constraints>
 </table>
 
+<table name="Campaign" order="219">
+<comments>Audience is a list name. period is PeriodName.period. NULL period means any time during an open run.</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="listName" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="listSet" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="channel" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="period" data_type="integer" size="" is_nullable="1" order="6" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<constraints>
+ <constraint name="campaign_period" type="FOREIGN KEY" fields="period" reference_table="PeriodName" reference_fields="period" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="listName" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="listSet" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid3" type="FOREIGN KEY" fields="channel" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="CampaignRun" order="219">
+<comments>One row per start. stop NULL is the open run. Not a Period span.</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="campaign" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="started" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>This start has ended. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="campaignrun_campaign" type="NORMAL" fields="campaign" />
+</indices>
+<constraints>
+ <constraint name="campaignrun_campaign" type="FOREIGN KEY" fields="campaign" reference_table="Campaign" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
+<table name="CampaignContent" order="219">
+<fields>
+ <field name="campaign" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="content" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="sequence" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer part of this campaign body. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="campaigncontent_campaign_sequence" type="NORMAL" fields="campaign,sequence" />
+</indices>
+<constraints>
+ <constraint name="campaigncontent_campaign" type="FOREIGN KEY" fields="campaign" reference_table="Campaign" reference_fields="id" deferrable="1" />
+ <constraint name="campaigncontent_content" type="FOREIGN KEY" fields="content" reference_table="Content" reference_fields="id" deferrable="1" />
+</constraints>
+</table>
+
+<table name="CampaignAttachment" order="219">
+<comments>target NULL applies to every output. type is what the file is.</comments>
+<fields>
+ <field name="campaign" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="path" data_type="bigint" size="20" is_nullable="0" order="2" />
+ <field name="sequence" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="target" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer attach this path. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="campaignattachment_campaign_sequence" type="NORMAL" fields="campaign,sequence" />
+</indices>
+<constraints>
+ <constraint name="campaignattachment_campaign" type="FOREIGN KEY" fields="campaign" reference_table="Campaign" reference_fields="id" deferrable="1" />
+ <constraint name="campaignattachment_path" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="target" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="CampaignEvent" order="219">
+<comments>Append-only. kind is sent, read, bounce, delivered, returned, and the same sort of fact.</comments>
+<fields>
+ <field name="campaign" data_type="integer" size="" is_nullable="0" order="1" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="0" order="2" />
+ <field name="kind" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="path" data_type="bigint" size="20" is_nullable="1" order="4" />
+ <field name="run" data_type="integer" size="" is_nullable="1" order="5" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="campaignevent_campaign_individual" type="NORMAL" fields="campaign,individual" />
+</indices>
+<constraints>
+ <constraint name="campaignevent_campaign" type="FOREIGN KEY" fields="campaign" reference_table="Campaign" reference_fields="id" deferrable="1" />
+ <constraint name="campaignevent_path" type="FOREIGN KEY" fields="path" reference_table="Path" reference_fields="id" deferrable="1" />
+ <constraint name="campaignevent_run" type="FOREIGN KEY" fields="run" reference_table="CampaignRun" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="kind" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 <table name="Session" order="220">
 <fields>
  <field name="id" data_type="bigint" size="20" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
