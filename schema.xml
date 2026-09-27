@@ -963,12 +963,16 @@
  <field name="lock" data_type="integer" size="" default_value="0" is_nullable="0" order="3">
   <comments>Mono System.Web/ASPState.sql style locks</comments>
  </field>
+ <field name="culture" data_type="smallint" size="" is_nullable="1" order="4">
+  <comments>Visitor language. NULL means en-US.</comments>
+ </field>
  <field name="touched" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="98" />
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
 <indices>
 </indices>
 <constraints>
+ <constraint name="session_culture" type="FOREIGN KEY" fields="culture" reference_table="Culture" reference_fields="code" deferrable="1" />
 </constraints>
 </table>
 
@@ -2218,6 +2222,64 @@ WHERE ParagraphDefault.culture = 1033
  </sql>
  </view>
 
+ <view name="ContentCultures" fields="content,culture,name">
+ <comments>Cultures that can show every element of the current edition. 1033 is always included.</comments>
+ <sql>
+WITH open_edition AS (
+ SELECT id, content
+ FROM ContentEdition
+ WHERE stop IS NULL
+),
+elem AS (
+ SELECT open_edition.content, ContentElement.word, ContentElement.sentence, ContentElement.paragraph
+ FROM open_edition
+ JOIN ContentElement ON ContentElement.edition = open_edition.id
+),
+candidate AS (
+ SELECT elem.content, Word.culture
+ FROM elem
+ JOIN Word ON Word.id = elem.word
+ UNION
+ SELECT elem.content, WordPlural.culture
+ FROM elem
+ JOIN WordPlural ON WordPlural.word = elem.word
+ UNION
+ SELECT elem.content, Sentence.culture
+ FROM elem
+ JOIN Sentence ON Sentence.id = elem.sentence
+ UNION
+ SELECT elem.content, Paragraph.culture
+ FROM elem
+ JOIN Paragraph ON Paragraph.id = elem.paragraph
+ UNION
+ SELECT content, 1033
+ FROM open_edition
+)
+SELECT candidate.content,
+ candidate.culture,
+ Culture.name
+FROM candidate
+JOIN Culture ON Culture.code = candidate.culture
+WHERE NOT EXISTS (
+ SELECT 1
+ FROM elem
+ WHERE elem.content = candidate.content
+ AND (
+  (elem.word IS NOT NULL AND NOT (
+    EXISTS (SELECT 1 FROM Word WHERE Word.id = elem.word AND Word.culture = candidate.culture)
+    OR EXISTS (SELECT 1 FROM WordPlural WHERE WordPlural.word = elem.word AND WordPlural.culture = candidate.culture)
+  ))
+  OR (elem.sentence IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM Sentence WHERE Sentence.id = elem.sentence AND Sentence.culture = candidate.culture
+  ))
+  OR (elem.paragraph IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM Paragraph WHERE Paragraph.id = elem.paragraph AND Paragraph.culture = candidate.culture
+  ))
+ )
+)
+ </sql>
+ </view>
+
  <view name="FormatAttributes" fields="format,name,value,target,created">
  <comments>Unstopped format attributes. target NULL means every output.</comments>
  <sql>
@@ -3047,7 +3109,7 @@ WHERE Session.id = SessionCredential.session
   </sql>
  </view>
 
- <view name="IndividualSessions" fields="individual,individualName,session,token,tokenType,siteApplicationRelease,site,sessionCredential,credential,username,email,bound,touched,created,siteName">
+ <view name="IndividualSessions" fields="individual,individualName,session,token,tokenType,siteApplicationRelease,site,sessionCredential,credential,username,email,bound,touched,created,siteName,culture">
   <comments>
    Current individual to session across all sites. Unrevoked credential,
    bound via IndividualSessionCreated and/or Credential.individual.
@@ -3079,7 +3141,8 @@ SELECT
  bound.bound,
  Session.touched,
  COALESCE(SessionToken.created, Session.created) AS created,
- SiteName.value AS siteName
+ SiteName.value AS siteName,
+ Session.culture
 FROM bound
 JOIN SessionCredential ON SessionCredential.id = bound.sessionCredential
 JOIN Session ON Session.id = SessionCredential.session

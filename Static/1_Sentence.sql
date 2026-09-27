@@ -200,6 +200,16 @@ INSERT INTO Sentence (id,culture,value,length) VALUES (201,2058,'Comisiones a pa
 INSERT INTO Sentence (id,culture,value,length) VALUES (210,1033,'Sale Jane Doe',13);
 INSERT INTO Sentence (id,culture,value,length) VALUES (210,1036,'Vente Jane Doe',14);
 INSERT INTO Sentence (id,culture,value,length) VALUES (210,2058,'Venta Jane Doe',14);
+
+-- Thank-you content. Same ids in en-US, fr-FR, pl-PL, es-MX.
+INSERT INTO Sentence (id,culture,value,length) VALUES (80110,1033,'Thank you for your',18);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80110,1036,'Merci pour votre',16);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80110,1045,'Dziękuję za Twoją',17);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80110,2058,'Gracias por tu',14);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80130,1033,'Thank you',9);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80130,1036,'Merci',5);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80130,1045,'Dziękuję',8);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80130,2058,'Gracias',7);
 INSERT INTO Sentence (id,culture,value,length) VALUES (211,1033,'Sale John Doe',13);
 INSERT INTO Sentence (id,culture,value,length) VALUES (211,1036,'Vente John Doe',14);
 INSERT INTO Sentence (id,culture,value,length) VALUES (211,2058,'Venta John Doe',14);

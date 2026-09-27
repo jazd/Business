@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Usage: SetSessionCulture <session_id> [culture_name]
+# Omit culture name to clear Session.culture (en-US fallback).
+
+source ~/bin/sqlite/common
+
+SESSION="${1:-}"
+CULTURE="${2:-}"
+
+if [[ -z "$SESSION" ]]; then
+ echo "Usage: SetSessionCulture <session_id> [culture_name]" >&2
+ exit 1
+fi
+
+if [[ -z "$CULTURE" ]]; then
+ sqlite_run "UPDATE Session SET culture = NULL WHERE id = $SESSION;" >/dev/null
+ echo "$SESSION"
+ exit 0
+fi
+
+CULTURE_UPPER=$(echo "$CULTURE" | tr '[:lower:]' '[:upper:]')
+code=$(sqlite_query_one "SELECT code FROM Culture WHERE UPPER(name) = '$CULTURE_UPPER' LIMIT 1;")
+if [[ -n "$code" ]]; then
+ sqlite_run "UPDATE Session SET culture = $code WHERE id = $SESSION;" >/dev/null
+fi
+echo "$SESSION"

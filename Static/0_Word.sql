@@ -210,3 +210,14 @@ INSERT INTO Word (id,culture,value) VALUES (80001,1033,'Cats');
 INSERT INTO Word (id,culture,value) VALUES (80001,1036,'Chats');
 INSERT INTO Word (id,culture,value) VALUES (80001,1045,'Koty');
 INSERT INTO Word (id,culture,value) VALUES (80002,1045,'Kotów');
+
+-- Thank-you content: subscription / subscriptions
+INSERT INTO Word (id,culture,value) VALUES (80110,1033,'subscription');
+INSERT INTO Word (id,culture,value) VALUES (80110,1036,'abonnement');
+INSERT INTO Word (id,culture,value) VALUES (80110,1045,'subskrypcja');
+INSERT INTO Word (id,culture,value) VALUES (80110,2058,'suscripción');
+INSERT INTO Word (id,culture,value) VALUES (80111,1033,'subscriptions');
+INSERT INTO Word (id,culture,value) VALUES (80111,1036,'abonnements');
+INSERT INTO Word (id,culture,value) VALUES (80111,1045,'subskrypcje');
+INSERT INTO Word (id,culture,value) VALUES (80111,2058,'suscripciones');
+INSERT INTO Word (id,culture,value) VALUES (80112,1045,'subskrypcji');

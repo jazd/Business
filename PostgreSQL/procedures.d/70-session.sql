@@ -449,6 +449,31 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- NULL culture name clears Session.culture (en-US fallback).
+CREATE OR REPLACE FUNCTION SetSessionCulture (
+ inSession bigint,
+ inCulture varchar
+) RETURNS bigint AS $$
+DECLARE
+ culture_code smallint;
+BEGIN
+ IF inSession IS NULL THEN
+  RETURN NULL;
+ END IF;
+ IF inCulture IS NULL THEN
+  UPDATE Session SET culture = NULL WHERE id = inSession;
+ ELSE
+  SELECT code INTO culture_code
+  FROM Culture
+  WHERE UPPER(name) = UPPER(inCulture);
+  IF culture_code IS NOT NULL THEN
+   UPDATE Session SET culture = culture_code WHERE id = inSession;
+  END IF;
+ END IF;
+ RETURN inSession;
+END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION SetSession (
  inSessionToken varchar,

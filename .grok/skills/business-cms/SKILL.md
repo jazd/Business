@@ -45,7 +45,9 @@ INSERT INTO inject_culture (value)
 SELECT code FROM Culture WHERE name = 'es-MX';
 ```
 
-A person's chosen language is `Credential.culture`. Set `inject_culture` from that code before reading `ContentElements`, then send or render. Do not copy translated text into a second content id.
+A person's chosen language is `Credential.culture`. A visitor's choice is `Session.culture` (NULL means en-US). `SetSessionCulture(session, 'es-MX')` sets it. `SetSessionCulture(session, NULL)` clears it. `SetSession` does not change it. `IndividualSessions.culture` is that code.
+
+`ContentCultures` lists cultures that can show every element of the current edition. 1033 is always included. A site language menu is that view for the content on the site. Set `inject_culture` from the chosen code before reading `ContentElements`. Do not copy translated text into a second content id.
 
 ## Format
 
@@ -76,6 +78,8 @@ The count is not stored on the element. Name the count with `argument` (`items`,
 | anything else | many |
 
 `ContentElements.argument` is that name. `ContentElementPlurals` lists singular, zero, two, few, and many for the current edition so a renderer can pick without calling `PluralWord`. Sentences and paragraphs are not pluralized.
+
+"Thank you for your subscription" is two elements, not one sentence with a brace. See `Sample/SQL/Content/thank-you.sql` and `Static/6_Content.sql` (content id 10). Element 1 is sentence 80110. Element 2 is word 80110 (`subscription`) with argument 80111 (`subscriptions`). Cultures on those ids: en-US, fr-FR, pl-PL, es-MX.
 
 `StopContent(content)` closes the edition. The next `SetContentElement` starts a new edition. Old elements stay on the stopped edition.
 

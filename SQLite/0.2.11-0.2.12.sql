@@ -26,6 +26,8 @@
 --  2) Partial unique indexes
 --  3) I18NParagraph and content/campaign read views
 --     Writers are Bash/sqlite (no PostgreSQL procedures on the shop)
+--  4) Session.culture, ContentCultures, IndividualSessions.culture
+--  5) Static thank-you content id 10 (en-US, fr-FR, pl-PL, es-MX)
 --
 -- SQLite does not enforce varchar(n). Width-only ALTERs are no-ops here.
 --
@@ -322,3 +324,136 @@ LEFT JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email
 LEFT JOIN IndividualAddress ON IndividualAddress.individual = ListIndividual.individual
  AND IndividualAddress.stop IS NULL
  AND IndividualAddress.type IS NULL;
+
+ALTER TABLE Session ADD COLUMN culture smallint;
+
+DROP VIEW IF EXISTS ContentCultures;
+CREATE VIEW ContentCultures AS
+WITH open_edition AS (
+ SELECT id, content
+ FROM ContentEdition
+ WHERE stop IS NULL
+),
+elem AS (
+ SELECT open_edition.content, ContentElement.word, ContentElement.sentence, ContentElement.paragraph
+ FROM open_edition
+ JOIN ContentElement ON ContentElement.edition = open_edition.id
+),
+candidate AS (
+ SELECT elem.content, Word.culture
+ FROM elem
+ JOIN Word ON Word.id = elem.word
+ UNION
+ SELECT elem.content, WordPlural.culture
+ FROM elem
+ JOIN WordPlural ON WordPlural.word = elem.word
+ UNION
+ SELECT elem.content, Sentence.culture
+ FROM elem
+ JOIN Sentence ON Sentence.id = elem.sentence
+ UNION
+ SELECT elem.content, Paragraph.culture
+ FROM elem
+ JOIN Paragraph ON Paragraph.id = elem.paragraph
+ UNION
+ SELECT content, 1033
+ FROM open_edition
+)
+SELECT candidate.content,
+ candidate.culture,
+ Culture.name
+FROM candidate
+JOIN Culture ON Culture.code = candidate.culture
+WHERE NOT EXISTS (
+ SELECT 1
+ FROM elem
+ WHERE elem.content = candidate.content
+ AND (
+  (elem.word IS NOT NULL AND NOT (
+    EXISTS (SELECT 1 FROM Word WHERE Word.id = elem.word AND Word.culture = candidate.culture)
+    OR EXISTS (SELECT 1 FROM WordPlural WHERE WordPlural.word = elem.word AND WordPlural.culture = candidate.culture)
+  ))
+  OR (elem.sentence IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM Sentence WHERE Sentence.id = elem.sentence AND Sentence.culture = candidate.culture
+  ))
+  OR (elem.paragraph IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM Paragraph WHERE Paragraph.id = elem.paragraph AND Paragraph.culture = candidate.culture
+  ))
+ )
+);
+
+DROP VIEW IF EXISTS IndividualSessions;
+CREATE VIEW IndividualSessions AS
+WITH bound (individual, sessionCredential, bound) AS (
+ SELECT individual, sessionCredential, created
+ FROM IndividualSessionCreated
+ UNION
+ SELECT Credential.individual, SessionCredential.id, SessionCredential.created
+ FROM SessionCredential
+ JOIN Credential ON Credential.id = SessionCredential.credential
+  AND Credential.revoked IS NULL
+  AND Credential.individual IS NOT NULL
+)
+SELECT
+ bound.individual,
+ COALESCE(People.fullName, Entities.name) AS individualName,
+ Session.id AS session,
+ SessionToken.token,
+ Type.value AS tokenType,
+ SessionToken.siteApplicationRelease,
+ Site.id AS site,
+ SessionCredential.id AS sessionCredential,
+ SessionCredential.credential,
+ Credential.username,
+ EmailAddress.value AS email,
+ bound.bound,
+ Session.touched,
+ COALESCE(SessionToken.created, Session.created) AS created,
+ SiteName.value AS siteName,
+ Session.culture
+FROM bound
+JOIN SessionCredential ON SessionCredential.id = bound.sessionCredential
+JOIN Session ON Session.id = SessionCredential.session
+JOIN Credential ON Credential.id = SessionCredential.credential
+ AND Credential.revoked IS NULL
+LEFT JOIN SessionToken ON SessionToken.session = Session.id
+LEFT JOIN I18NWord AS Type ON Type.id = SessionToken.type
+LEFT JOIN SiteApplicationRelease ON SiteApplicationRelease.id = SessionToken.siteApplicationRelease
+LEFT JOIN Site ON Site.id = SiteApplicationRelease.site
+LEFT JOIN I18NSentence AS SiteName ON SiteName.id = Site.name
+LEFT JOIN People ON People.individual = bound.individual
+LEFT JOIN Entities ON Entities.individual = bound.individual
+LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email;
+
+
+INSERT INTO Word (id,culture,value) SELECT 80110,1033,'subscription' WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id=80110 AND culture=1033);
+INSERT INTO Word (id,culture,value) SELECT 80110,1036,'abonnement' WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id=80110 AND culture=1036);
+INSERT INTO Word (id,culture,value) SELECT 80110,1045,'subskrypcja' WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id=80110 AND culture=1045);
+INSERT INTO Word (id,culture,value) SELECT 80110,2058,'suscripción' WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id=80110 AND culture=2058);
+INSERT INTO Word (id,culture,value) SELECT 80111,1033,'subscriptions' WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id=80111 AND culture=1033);
+INSERT INTO Word (id,culture,value) SELECT 80111,1036,'abonnements' WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id=80111 AND culture=1036);
+INSERT INTO Word (id,culture,value) SELECT 80111,1045,'subskrypcje' WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id=80111 AND culture=1045);
+INSERT INTO Word (id,culture,value) SELECT 80111,2058,'suscripciones' WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id=80111 AND culture=2058);
+INSERT INTO Word (id,culture,value) SELECT 80112,1045,'subskrypcji' WHERE NOT EXISTS (SELECT 1 FROM Word WHERE id=80112 AND culture=1045);
+INSERT INTO Sentence (id,culture,value,length) SELECT 80110,1033,'Thank you for your',18 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id=80110 AND culture=1033);
+INSERT INTO Sentence (id,culture,value,length) SELECT 80110,1036,'Merci pour votre',16 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id=80110 AND culture=1036);
+INSERT INTO Sentence (id,culture,value,length) SELECT 80110,1045,'Dziękuję za Twoją',17 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id=80110 AND culture=1045);
+INSERT INTO Sentence (id,culture,value,length) SELECT 80110,2058,'Gracias por tu',14 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id=80110 AND culture=2058);
+INSERT INTO Sentence (id,culture,value,length) SELECT 80130,1033,'Thank you',9 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id=80130 AND culture=1033);
+INSERT INTO Sentence (id,culture,value,length) SELECT 80130,1036,'Merci',5 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id=80130 AND culture=1036);
+INSERT INTO Sentence (id,culture,value,length) SELECT 80130,1045,'Dziękuję',8 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id=80130 AND culture=1045);
+INSERT INTO Sentence (id,culture,value,length) SELECT 80130,2058,'Gracias',7 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id=80130 AND culture=2058);
+INSERT INTO WordPlural (id, culture, word, plural, form) SELECT 50, 1033, 80110, 0, 80111 WHERE NOT EXISTS (SELECT 1 FROM WordPlural WHERE id=50);
+INSERT INTO WordPlural (id, culture, word, plural, form) SELECT 51, 1033, 80110, 3, 80111 WHERE NOT EXISTS (SELECT 1 FROM WordPlural WHERE id=51);
+INSERT INTO WordPlural (id, culture, word, plural, form) SELECT 52, 1036, 80110, 0, 80110 WHERE NOT EXISTS (SELECT 1 FROM WordPlural WHERE id=52);
+INSERT INTO WordPlural (id, culture, word, plural, form) SELECT 53, 1036, 80110, 3, 80111 WHERE NOT EXISTS (SELECT 1 FROM WordPlural WHERE id=53);
+INSERT INTO WordPlural (id, culture, word, plural, form) SELECT 54, 1045, 80110, 0, 80110 WHERE NOT EXISTS (SELECT 1 FROM WordPlural WHERE id=54);
+INSERT INTO WordPlural (id, culture, word, plural, form) SELECT 55, 1045, 80110, 3, 80111 WHERE NOT EXISTS (SELECT 1 FROM WordPlural WHERE id=55);
+INSERT INTO WordPlural (id, culture, word, plural, form) SELECT 56, 1045, 80110, 4, 80112 WHERE NOT EXISTS (SELECT 1 FROM WordPlural WHERE id=56);
+INSERT INTO WordPlural (id, culture, word, plural, form) SELECT 57, 2058, 80110, 0, 80111 WHERE NOT EXISTS (SELECT 1 FROM WordPlural WHERE id=57);
+INSERT INTO WordPlural (id, culture, word, plural, form) SELECT 58, 2058, 80110, 3, 80111 WHERE NOT EXISTS (SELECT 1 FROM WordPlural WHERE id=58);
+INSERT INTO Content (id, name) SELECT 10, 80130 WHERE NOT EXISTS (SELECT 1 FROM Content WHERE id=10);
+INSERT INTO ContentEdition (id, content) SELECT 10, 10 WHERE NOT EXISTS (SELECT 1 FROM ContentEdition WHERE id=10);
+INSERT INTO ContentElement (edition, sequence, sentence) SELECT 10, 1, 80110 WHERE NOT EXISTS (SELECT 1 FROM ContentElement WHERE edition=10 AND sequence=1);
+INSERT INTO ContentElement (edition, sequence, word, argument) SELECT 10, 2, 80110, 80111 WHERE NOT EXISTS (SELECT 1 FROM ContentElement WHERE edition=10 AND sequence=2);
+
