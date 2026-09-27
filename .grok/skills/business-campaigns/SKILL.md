@@ -35,6 +35,12 @@ SELECT SetCampaignAttachment(campaignId, pathId, NULL, 'brochure', 'html');
 
 `StopCampaignContent` / `StopCampaignAttachment` end that row only.
 
+## Draft
+
+`SetCampaign` does not start the campaign. A draft is a `Campaign` with no open `CampaignRun` (`CampaignRuns.stop` is never NULL). Add `CampaignContent` and `CampaignAttachment` before `StartCampaign`. The send query only selects an open run, so a draft is not sent.
+
+`StopCampaign` ends the open run and leaves that history. The campaign is idle, not a first draft, and it is not sending. The next `StartCampaign` inserts a new run.
+
 ## Who receives it
 
 `CampaignRecipients` is current members of the campaign list (and list set, when the campaign set one). `email` is the primary `IndividualEmail` (`type` NULL). `address` is the primary `IndividualAddress`.
