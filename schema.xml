@@ -814,6 +814,7 @@
 <fields>
  <field name="content" data_type="integer" size="" is_nullable="0" order="1" />
  <field name="site" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="sequence" data_type="integer" size="" is_nullable="0" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
   <comments>No longer show this content on this site. Used instead of DELETE.</comments>
  </field>
@@ -833,6 +834,7 @@
 <fields>
  <field name="content" data_type="integer" size="" is_nullable="0" order="1" />
  <field name="listName" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="sequence" data_type="integer" size="" is_nullable="0" order="3" />
  <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
   <comments>No longer send this content for this list. Used instead of DELETE.</comments>
  </field>
