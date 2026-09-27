@@ -1,4 +1,4 @@
--- I18N — Word / Sentence / Identifier (diagram: i18n)
+-- I18N — Word / Sentence / Paragraph / Identifier (diagram: i18n)
 -- Assembled in lexicographic order of this directory; see README.md
 
 CREATE OR REPLACE FUNCTION GetWord (
@@ -182,6 +182,74 @@ DECLARE
 BEGIN
  RETURN (
   SELECT GetSentence(sentence_value, 'en-US') AS id
+ );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Same lookup as GetSentence. Paragraph has no length column.
+-- Cultured paragraph text is not unique: the same words in one culture share an id.
+CREATE OR REPLACE FUNCTION GetParagraph (
+ paragraph_value text,
+ culture_name varchar
+) RETURNS integer AS $$
+DECLARE
+ paragraph_id integer;
+ lock_key bigint;
+BEGIN
+ IF paragraph_value IS NOT NULL THEN
+  SELECT id INTO paragraph_id
+  FROM Paragraph
+  JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
+  WHERE UPPER(Paragraph.value) = UPPER(paragraph_value)
+   AND Paragraph.culture = Culture.code
+  LIMIT 1;
+  IF paragraph_id IS NULL THEN
+   lock_key := hashtext(paragraph_value);
+   PERFORM pg_advisory_lock(lock_key);
+   BEGIN
+    SELECT id INTO paragraph_id
+    FROM Paragraph
+    JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
+    WHERE UPPER(Paragraph.value) = UPPER(paragraph_value)
+     AND Paragraph.culture = Culture.code
+    LIMIT 1;
+    IF paragraph_id IS NULL THEN
+     INSERT INTO Paragraph (value, culture) (
+      SELECT paragraph_value, Culture.code
+      FROM Culture
+      LEFT JOIN Paragraph AS exists ON UPPER(exists.value) = UPPER(paragraph_value)
+       AND exists.culture = Culture.code
+      WHERE UPPER(Culture.name) = UPPER(culture_name)
+       AND exists.id IS NULL
+      LIMIT 1
+     );
+     SELECT id INTO paragraph_id
+     FROM Paragraph
+     JOIN Culture ON UPPER(Culture.name) = UPPER(culture_name)
+     WHERE UPPER(Paragraph.value) = UPPER(paragraph_value)
+      AND Paragraph.culture = Culture.code
+     LIMIT 1;
+    END IF;
+    PERFORM pg_advisory_unlock(lock_key);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(lock_key);
+     RAISE;
+   END;
+  END IF;
+ END IF;
+ RETURN paragraph_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Default to en-US
+CREATE OR REPLACE FUNCTION GetParagraph (
+ paragraph_value text
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN (
+  SELECT GetParagraph(paragraph_value, 'en-US') AS id
  );
 END;
 $$ LANGUAGE plpgsql;

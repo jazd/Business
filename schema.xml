@@ -2096,6 +2096,20 @@ WHERE SentenceDefault.culture = 1033
  </sql>
  </view>
 
+ <view name="I18NParagraph" fields="id,defaultCulture,clientCulture,resultCulture,value" order="0">
+ <sql>
+SELECT ParagraphDefault.id,
+ ParagraphDefault.culture AS defaultCulture,
+ ClientCulture() AS clientCulture,
+ COALESCE(Paragraph.culture, ParagraphDefault.culture) AS resultCulture,
+ COALESCE(Paragraph.value, ParagraphDefault.value) AS value
+FROM Paragraph AS ParagraphDefault
+LEFT JOIN Paragraph ON Paragraph.id = ParagraphDefault.id
+ AND Paragraph.culture = ClientCulture()
+WHERE ParagraphDefault.culture = 1033
+ </sql>
+ </view>
+
  <view name="WordPlurals" fields="word,culture,zero,singular,two,few,many" order="0">
  <sql>
 SELECT Word.id AS word,
