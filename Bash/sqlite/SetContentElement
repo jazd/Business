@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# Usage: SetContentElement <content_id> <sequence> <format_id> <word_id> <sentence_id> <paragraph_id>
+# Empty atom args are NULL. Exactly one of word, sentence, paragraph must be set.
+# Opens an edition when none is current. Repeated sequence on that edition is a no-op.
+
+source ~/bin/sqlite/common
+
+CONTENT="${1:-}"
+SEQUENCE="${2:-}"
+FORMAT="${3:-}"
+WORD="${4:-}"
+SENTENCE="${5:-}"
+PARAGRAPH="${6:-}"
+
+if [[ -z "$CONTENT" || -z "$SEQUENCE" ]]; then
+ echo "Usage: SetContentElement <content_id> <sequence> <format_id> <word_id> <sentence_id> <paragraph_id>" >&2
+ exit 1
+fi
+
+atoms=0
+[[ -n "$WORD" ]] && atoms=$((atoms+1))
+[[ -n "$SENTENCE" ]] && atoms=$((atoms+1))
+[[ -n "$PARAGRAPH" ]] && atoms=$((atoms+1))
+if [[ "$atoms" -ne 1 ]]; then
+ echo ""
+ exit 0
+fi
+
+word_sql=$(sql_int_or_null "$WORD")
+sentence_sql=$(sql_int_or_null "$SENTENCE")
+paragraph_sql=$(sql_int_or_null "$PARAGRAPH")
+format_sql=$(sql_int_or_null "$FORMAT")
+
+edition=$(sqlite_query_one "SELECT id FROM ContentEdition WHERE content = $CONTENT AND stop IS NULL LIMIT 1;")
+if [[ -z "$edition" ]]; then
+ sqlite_run "INSERT INTO ContentEdition (content) SELECT $CONTENT WHERE NOT EXISTS (SELECT 1 FROM ContentEdition WHERE content = $CONTENT AND stop IS NULL);" >/dev/null
+ edition=$(sqlite_query_one "SELECT id FROM ContentEdition WHERE content = $CONTENT AND stop IS NULL LIMIT 1;")
+fi
+
+exists=$(sqlite_query_one "SELECT 1 FROM ContentElement WHERE edition = $edition AND sequence = $SEQUENCE LIMIT 1;")
+if [[ -z "$exists" ]]; then
+ sqlite_run "
+  INSERT INTO ContentElement (edition, sequence, word, sentence, paragraph, format)
+  VALUES ($edition, $SEQUENCE, $word_sql, $sentence_sql, $paragraph_sql, $format_sql);
+ " >/dev/null
+fi
+echo "$CONTENT"

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Usage: StopContentSite <site_id> <content_id>
+
+source ~/bin/sqlite/common
+SITE="${1:-}"
+CONTENT="${2:-}"
+if [[ -z "$SITE" || -z "$CONTENT" ]]; then
+ echo "Usage: StopContentSite <site_id> <content_id>" >&2
+ exit 1
+fi
+sqlite_run "UPDATE ContentSite SET stop = datetime('now') WHERE site = $SITE AND content = $CONTENT AND stop IS NULL;" >/dev/null
+echo "$CONTENT"

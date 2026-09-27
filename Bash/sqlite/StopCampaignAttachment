@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+# Usage: StopCampaignAttachment <campaign_id> <path_id> [type] [target]
+
+source ~/bin/sqlite/common
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+CAMPAIGN="${1:-}"
+PATH_ID="${2:-}"
+TYPE="${3:-}"
+TARGET="${4:-}"
+if [[ -z "$CAMPAIGN" || -z "$PATH_ID" ]]; then
+ echo "Usage: StopCampaignAttachment <campaign_id> <path_id> [type] [target]" >&2
+ exit 1
+fi
+type_sql="NULL"
+target_sql="NULL"
+[[ -n "$TYPE" ]] && type_sql=$("$ROOT/GetWord" "$TYPE")
+[[ -n "$TARGET" ]] && target_sql=$("$ROOT/GetWord" "$TARGET")
+sqlite_run "
+ UPDATE CampaignAttachment SET stop = datetime('now')
+ WHERE campaign = $CAMPAIGN AND path = $PATH_ID
+  AND ((type = $type_sql) OR (type IS NULL AND $type_sql IS NULL))
+  AND ((target = $target_sql) OR (target IS NULL AND $target_sql IS NULL))
+  AND stop IS NULL;
+" >/dev/null
+echo "$CAMPAIGN"

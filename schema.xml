@@ -2214,6 +2214,157 @@ WHERE ParagraphDefault.culture = 1033
  </sql>
  </view>
 
+ <view name="FormatAttributes" fields="format,name,value,target,created">
+ <comments>Unstopped format attributes. target NULL means every output.</comments>
+ <sql>
+SELECT FormatAttribute.format,
+ Name.value AS name,
+ Value.value AS value,
+ Target.value AS target,
+ FormatAttribute.created
+FROM FormatAttribute
+LEFT JOIN I18NWord AS Name ON Name.id = FormatAttribute.name
+LEFT JOIN I18NWord AS Value ON Value.id = FormatAttribute.value
+LEFT JOIN I18NWord AS Target ON Target.id = FormatAttribute.target
+WHERE FormatAttribute.stop IS NULL
+ </sql>
+ </view>
+
+ <view name="ContentElements" fields="content,edition,sequence,kind,element,value,format,created">
+ <comments>Current edition only. value follows ClientCulture().</comments>
+ <sql>
+SELECT ContentEdition.content,
+ ContentEdition.id AS edition,
+ ContentElement.sequence,
+ CASE
+  WHEN ContentElement.word IS NOT NULL THEN !apos;word!apos;
+  WHEN ContentElement.sentence IS NOT NULL THEN !apos;sentence!apos;
+  ELSE !apos;paragraph!apos;
+ END AS kind,
+ COALESCE(ContentElement.word, ContentElement.sentence, ContentElement.paragraph) AS element,
+ COALESCE(I18NWord.value, I18NSentence.value, I18NParagraph.value) AS value,
+ ContentElement.format,
+ ContentEdition.created
+FROM ContentEdition
+JOIN ContentElement ON ContentElement.edition = ContentEdition.id
+LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
+LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
+LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
+WHERE ContentEdition.stop IS NULL
+ </sql>
+ </view>
+
+ <view name="ContentHistory" fields="content,edition,sequence,kind,element,value,format,stop,created">
+ <comments>Every edition, including stopped ones.</comments>
+ <sql>
+SELECT ContentEdition.content,
+ ContentEdition.id AS edition,
+ ContentElement.sequence,
+ CASE
+  WHEN ContentElement.word IS NOT NULL THEN !apos;word!apos;
+  WHEN ContentElement.sentence IS NOT NULL THEN !apos;sentence!apos;
+  ELSE !apos;paragraph!apos;
+ END AS kind,
+ COALESCE(ContentElement.word, ContentElement.sentence, ContentElement.paragraph) AS element,
+ COALESCE(I18NWord.value, I18NSentence.value, I18NParagraph.value) AS value,
+ ContentElement.format,
+ ContentEdition.stop,
+ ContentEdition.created
+FROM ContentEdition
+JOIN ContentElement ON ContentElement.edition = ContentEdition.id
+LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
+LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
+LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
+ </sql>
+ </view>
+
+ <view name="ContentSites" fields="site,content,sequence,created">
+ <sql>
+SELECT site, content, sequence, created
+FROM ContentSite
+WHERE stop IS NULL
+ </sql>
+ </view>
+
+ <view name="ContentLists" fields="listName,listNameValue,content,sequence,created">
+ <sql>
+SELECT ContentList.listName,
+ Name.value AS listNameValue,
+ ContentList.content,
+ ContentList.sequence,
+ ContentList.created
+FROM ContentList
+LEFT JOIN I18NWord AS Name ON Name.id = ContentList.listName
+WHERE ContentList.stop IS NULL
+ </sql>
+ </view>
+
+ <view name="CampaignContents" fields="campaign,content,sequence,created">
+ <sql>
+SELECT campaign, content, sequence, created
+FROM CampaignContent
+WHERE stop IS NULL
+ </sql>
+ </view>
+
+ <view name="CampaignAttachments" fields="campaign,path,sequence,type,target,created">
+ <comments>target NULL applies to every output.</comments>
+ <sql>
+SELECT CampaignAttachment.campaign,
+ CampaignAttachment.path,
+ CampaignAttachment.sequence,
+ Type.value AS type,
+ Target.value AS target,
+ CampaignAttachment.created
+FROM CampaignAttachment
+LEFT JOIN I18NWord AS Type ON Type.id = CampaignAttachment.type
+LEFT JOIN I18NWord AS Target ON Target.id = CampaignAttachment.target
+WHERE CampaignAttachment.stop IS NULL
+ </sql>
+ </view>
+
+ <view name="CampaignRuns" fields="run,campaign,started,stop,created">
+ <sql>
+SELECT id AS run, campaign, started, stop, created
+FROM CampaignRun
+ </sql>
+ </view>
+
+ <view name="CampaignEvents" fields="campaign,individual,kind,path,run,created">
+ <sql>
+SELECT CampaignEvent.campaign,
+ CampaignEvent.individual,
+ Kind.value AS kind,
+ CampaignEvent.path,
+ CampaignEvent.run,
+ CampaignEvent.created
+FROM CampaignEvent
+LEFT JOIN I18NWord AS Kind ON Kind.id = CampaignEvent.kind
+ </sql>
+ </view>
+
+ <view name="CampaignRecipients" fields="campaign,individual,email,address">
+ <comments>Current list members. email and address are the primary (type NULL) rows.</comments>
+ <sql>
+SELECT Campaign.id AS campaign,
+ ListIndividual.individual,
+ EmailAddress.value AS email,
+ IndividualAddress.address
+FROM Campaign
+JOIN ListIndividualName ON ListIndividualName.name = Campaign.listName
+ AND (Campaign.listSet IS NULL OR ListIndividualName.listSet = Campaign.listSet)
+JOIN ListIndividual ON ListIndividual.id = ListIndividualName.listIndividual
+ AND ListIndividual.unlist IS NULL
+LEFT JOIN IndividualEmail ON IndividualEmail.individual = ListIndividual.individual
+ AND IndividualEmail.stop IS NULL
+ AND IndividualEmail.type IS NULL
+LEFT JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email
+LEFT JOIN IndividualAddress ON IndividualAddress.individual = ListIndividual.individual
+ AND IndividualAddress.stop IS NULL
+ AND IndividualAddress.type IS NULL
+ </sql>
+ </view>
+
  <view name="WordPlurals" fields="word,culture,zero,singular,two,few,many" order="0">
  <sql>
 SELECT Word.id AS word,

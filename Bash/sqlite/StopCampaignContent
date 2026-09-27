@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Usage: StopCampaignContent <campaign_id> <content_id>
+
+source ~/bin/sqlite/common
+CAMPAIGN="${1:-}"
+CONTENT="${2:-}"
+if [[ -z "$CAMPAIGN" || -z "$CONTENT" ]]; then
+ echo "Usage: StopCampaignContent <campaign_id> <content_id>" >&2
+ exit 1
+fi
+sqlite_run "UPDATE CampaignContent SET stop = datetime('now') WHERE campaign = $CAMPAIGN AND content = $CONTENT AND stop IS NULL;" >/dev/null
+echo "$CAMPAIGN"

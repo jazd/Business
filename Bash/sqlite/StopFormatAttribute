@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# Usage: StopFormatAttribute <format_id> <name> [value] [target]
+
+source ~/bin/sqlite/common
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+
+FORMAT="${1:-}"
+NAME="${2:-}"
+VALUE="${3:-}"
+TARGET="${4:-}"
+
+if [[ -z "$FORMAT" || -z "$NAME" ]]; then
+ echo "Usage: StopFormatAttribute <format_id> <name> [value] [target]" >&2
+ exit 1
+fi
+
+name_id=$("$ROOT/GetWord" "$NAME")
+value_sql="NULL"
+target_sql="NULL"
+[[ -n "$VALUE" ]] && value_sql=$("$ROOT/GetWord" "$VALUE")
+[[ -n "$TARGET" ]] && target_sql=$("$ROOT/GetWord" "$TARGET")
+
+sqlite_run "
+ UPDATE FormatAttribute
+ SET stop = datetime('now')
+ WHERE format = $FORMAT AND name = $name_id
+  AND ((value = $value_sql) OR (value IS NULL AND $value_sql IS NULL))
+  AND ((target = $target_sql) OR (target IS NULL AND $target_sql IS NULL))
+  AND stop IS NULL;
+" >/dev/null
+echo "$FORMAT"

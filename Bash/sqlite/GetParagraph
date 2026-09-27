@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+# Usage: GetParagraph <paragraph_value> [<culture>]
+# Find-or-insert. Same idea as GetSentence. Paragraph has no length column.
+
+source ~/bin/sqlite/common
+
+PARAGRAPH_VALUE="${1:-}"
+CULTURE="${2:-en-US}"
+
+if [[ -z "$PARAGRAPH_VALUE" ]]; then
+ echo ""
+ exit 0
+fi
+
+PARAGRAPH_UPPER=$(echo "$PARAGRAPH_VALUE" | tr '[:lower:]' '[:upper:]')
+CULTURE_UPPER=$(echo "$CULTURE" | tr '[:lower:]' '[:upper:]')
+
+paragraph_id=$(sqlite_query_one "
+ SELECT Paragraph.id
+ FROM Paragraph
+ JOIN Culture ON UPPER(Culture.name) = '$CULTURE_UPPER'
+ WHERE UPPER(Paragraph.value) = '$PARAGRAPH_UPPER'
+  AND Paragraph.culture = Culture.code
+ LIMIT 1;
+")
+
+if [[ -n "$paragraph_id" ]]; then
+ echo "$paragraph_id"
+ exit 0
+fi
+
+escaped_value=$(sql_escape "$PARAGRAPH_VALUE")
+
+sqlite_run "
+ INSERT INTO Paragraph (value, culture)
+ SELECT '$escaped_value', Culture.code
+ FROM Culture
+ WHERE UPPER(Culture.name) = '$CULTURE_UPPER'
+  AND NOT EXISTS (
+   SELECT 1 FROM Paragraph
+   WHERE UPPER(Paragraph.value) = '$PARAGRAPH_UPPER'
+    AND Paragraph.culture = Culture.code
+  )
+ LIMIT 1;
+" >/dev/null
+
+paragraph_id=$(sqlite_query_one "
+ SELECT Paragraph.id
+ FROM Paragraph
+ JOIN Culture ON UPPER(Culture.name) = '$CULTURE_UPPER'
+ WHERE UPPER(Paragraph.value) = '$PARAGRAPH_UPPER'
+  AND Paragraph.culture = Culture.code
+ LIMIT 1;
+")
+
+echo "${paragraph_id:-}"

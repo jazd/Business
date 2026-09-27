@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+# Usage: SetFormatAttribute <format_id> <name> [value] [target]
+# target empty means every output. Parity with PG SetFormatAttribute.
+
+source ~/bin/sqlite/common
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+
+FORMAT="${1:-}"
+NAME="${2:-}"
+VALUE="${3:-}"
+TARGET="${4:-}"
+
+if [[ -z "$FORMAT" || -z "$NAME" ]]; then
+ echo "Usage: SetFormatAttribute <format_id> <name> [value] [target]" >&2
+ exit 1
+fi
+
+name_id=$("$ROOT/GetWord" "$NAME")
+value_sql="NULL"
+target_sql="NULL"
+if [[ -n "$VALUE" ]]; then
+ value_sql=$("$ROOT/GetWord" "$VALUE")
+fi
+if [[ -n "$TARGET" ]]; then
+ target_sql=$("$ROOT/GetWord" "$TARGET")
+fi
+
+exists=$(sqlite_query_one "
+ SELECT 1 FROM FormatAttribute
+ WHERE format = $FORMAT AND name = $name_id
+  AND ((value = $value_sql) OR (value IS NULL AND $value_sql IS NULL))
+  AND ((target = $target_sql) OR (target IS NULL AND $target_sql IS NULL))
+  AND stop IS NULL
+ LIMIT 1;
+")
+if [[ -z "$exists" ]]; then
+ sqlite_run "
+  INSERT INTO FormatAttribute (format, name, value, target)
+  VALUES ($FORMAT, $name_id, $value_sql, $target_sql);
+ " >/dev/null
+fi
+echo "$FORMAT"

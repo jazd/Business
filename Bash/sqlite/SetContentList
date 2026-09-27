@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Usage: SetContentList <list_name> <content_id> [sequence]
+
+source ~/bin/sqlite/common
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+LIST="${1:-}"
+CONTENT="${2:-}"
+SEQUENCE="${3:-}"
+if [[ -z "$LIST" || -z "$CONTENT" ]]; then
+ echo "Usage: SetContentList <list_name> <content_id> [sequence]" >&2
+ exit 1
+fi
+list_id=$("$ROOT/GetWord" "$LIST")
+if [[ -z "$SEQUENCE" ]]; then
+ SEQUENCE=$(sqlite_query_one "SELECT COALESCE(MAX(sequence),0)+1 FROM ContentList WHERE listName = $list_id AND stop IS NULL;")
+fi
+exists=$(sqlite_query_one "SELECT 1 FROM ContentList WHERE listName = $list_id AND content = $CONTENT AND stop IS NULL LIMIT 1;")
+if [[ -z "$exists" ]]; then
+ sqlite_run "INSERT INTO ContentList (content, listName, sequence) VALUES ($CONTENT, $list_id, $SEQUENCE);" >/dev/null
+fi
+echo "$CONTENT"

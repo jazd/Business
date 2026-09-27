@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# Usage: StartCampaign <campaign_id>
+# Inserts a run when none is open.
+
+source ~/bin/sqlite/common
+CAMPAIGN="${1:-}"
+if [[ -z "$CAMPAIGN" ]]; then
+ echo "Usage: StartCampaign <campaign_id>" >&2
+ exit 1
+fi
+exists=$(sqlite_query_one "SELECT 1 FROM CampaignRun WHERE campaign = $CAMPAIGN AND stop IS NULL LIMIT 1;")
+if [[ -z "$exists" ]]; then
+ sqlite_run "INSERT INTO CampaignRun (campaign) VALUES ($CAMPAIGN);" >/dev/null
+fi
+echo "$CAMPAIGN"

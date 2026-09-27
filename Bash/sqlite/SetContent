@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# Usage: SetContent <name>
+# Find-or-insert Content by sentence name.
+
+source ~/bin/sqlite/common
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+
+NAME="${1:-}"
+if [[ -z "$NAME" ]]; then
+ echo "Usage: SetContent <name>" >&2
+ exit 1
+fi
+
+name_id=$("$ROOT/GetSentence" "$NAME")
+content_id=$(sqlite_query_one "SELECT id FROM Content WHERE name = $name_id LIMIT 1;")
+if [[ -z "$content_id" ]]; then
+ sqlite_run "INSERT INTO Content (name) SELECT $name_id WHERE NOT EXISTS (SELECT 1 FROM Content WHERE name = $name_id);" >/dev/null
+ content_id=$(sqlite_query_one "SELECT id FROM Content WHERE name = $name_id LIMIT 1;")
+fi
+echo "$content_id"
