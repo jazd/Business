@@ -2322,32 +2322,6 @@ WHERE ContentEdition.stop IS NULL
  </sql>
  </view>
 
- <view name="ContentElementPlurals" fields="content,edition,sequence,argument,word,singular,zero,two,few,many">
- <comments>Plural columns for the client culture, else en-US. Renderer picks a column from the count.</comments>
- <sql>
-SELECT ContentEdition.content,
- ContentEdition.id AS edition,
- ContentElement.sequence,
- Argument.value AS argument,
- ContentElement.word,
- Forms.singular,
- Forms.zero,
- Forms.two,
- Forms.few,
- Forms.many
-FROM ContentEdition
-JOIN ContentElement ON ContentElement.edition = ContentEdition.id
- AND ContentElement.word IS NOT NULL
- AND ContentElement.argument IS NOT NULL
-LEFT JOIN I18NWord AS Argument ON Argument.id = ContentElement.argument
-LEFT JOIN WordPlurals AS Forms ON Forms.word = ContentElement.word
- AND Forms.culture = COALESCE(
-  (SELECT w.culture FROM Word w WHERE w.id = ContentElement.word AND w.culture = ClientCulture() LIMIT 1),
-  1033)
-WHERE ContentEdition.stop IS NULL
- </sql>
- </view>
-
  <view name="ContentHistory" fields="content,edition,sequence,kind,element,value,format,stop,created">
  <comments>Every edition, including stopped ones.</comments>
  <sql>
@@ -2437,28 +2411,6 @@ LEFT JOIN I18NWord AS Kind ON Kind.id = CampaignEvent.kind
  </sql>
  </view>
 
- <view name="CampaignRecipients" fields="campaign,individual,email,address">
- <comments>Current list members. email and address are the primary (type NULL) rows.</comments>
- <sql>
-SELECT Campaign.id AS campaign,
- ListIndividual.individual,
- EmailAddress.value AS email,
- IndividualAddress.address
-FROM Campaign
-JOIN ListIndividualName ON ListIndividualName.name = Campaign.listName
- AND (Campaign.listSet IS NULL OR ListIndividualName.listSet = Campaign.listSet)
-JOIN ListIndividual ON ListIndividual.id = ListIndividualName.listIndividual
- AND ListIndividual.unlist IS NULL
-LEFT JOIN IndividualEmail ON IndividualEmail.individual = ListIndividual.individual
- AND IndividualEmail.stop IS NULL
- AND IndividualEmail.type IS NULL
-LEFT JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email
-LEFT JOIN IndividualAddress ON IndividualAddress.individual = ListIndividual.individual
- AND IndividualAddress.stop IS NULL
- AND IndividualAddress.type IS NULL
- </sql>
- </view>
-
  <view name="WordPlurals" fields="word,culture,zero,singular,two,few,many" order="0">
  <sql>
 SELECT Word.id AS word,
@@ -2489,6 +2441,32 @@ LEFT JOIN WordPlural AS WordPluralMany ON WordPluralMany.word = Word.id
  AND WordPluralMany.culture = Word.culture
 LEFT JOIN Word AS WordFormMany on WordFormMany.id = WordPluralMany.form
  AND WordFormMany.culture = Word.culture
+ </sql>
+ </view>
+
+ <view name="ContentElementPlurals" fields="content,edition,sequence,argument,word,singular,zero,two,few,many">
+ <comments>Plural columns for the client culture, else en-US. Renderer picks a column from the count.</comments>
+ <sql>
+SELECT ContentEdition.content,
+ ContentEdition.id AS edition,
+ ContentElement.sequence,
+ Argument.value AS argument,
+ ContentElement.word,
+ Forms.singular,
+ Forms.zero,
+ Forms.two,
+ Forms.few,
+ Forms.many
+FROM ContentEdition
+JOIN ContentElement ON ContentElement.edition = ContentEdition.id
+ AND ContentElement.word IS NOT NULL
+ AND ContentElement.argument IS NOT NULL
+LEFT JOIN I18NWord AS Argument ON Argument.id = ContentElement.argument
+LEFT JOIN WordPlurals AS Forms ON Forms.word = ContentElement.word
+ AND Forms.culture = COALESCE(
+  (SELECT w.culture FROM Word w WHERE w.id = ContentElement.word AND w.culture = ClientCulture() LIMIT 1),
+  1033)
+WHERE ContentEdition.stop IS NULL
  </sql>
  </view>
 
@@ -2678,6 +2656,16 @@ WHERE disable.individual IS NULL
   </sql>
  </view>
 
+ <view name="EmailAddress" fields="email,username,plus,host,value">
+ <sql>
+SELECT id AS email, username, plus, host,
+ username ||
+ COALESCE(!apos;+!apos; || plus, !apos;!apos;) ||
+ !apos;@!apos; || host AS value
+FROM Email
+ </sql>
+ </view>
+
  <view name="SiteMembership" fields="individual,email,listNameValue,listSetValue,unlist,created">
   <comments>
    ListIndividual including unlisted rows. Filter listNameValue in the WHERE.
@@ -2700,13 +2688,25 @@ LEFT JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email
   </sql>
  </view>
 
- <view name="EmailAddress" fields="email,username,plus,host,value">
+ <view name="CampaignRecipients" fields="campaign,individual,email,address">
+ <comments>Current list members. email and address are the primary (type NULL) rows.</comments>
  <sql>
-SELECT id AS email, username, plus, host,
- username ||
- COALESCE(!apos;+!apos; || plus, !apos;!apos;) ||
- !apos;@!apos; || host AS value
-FROM Email
+SELECT Campaign.id AS campaign,
+ ListIndividual.individual,
+ EmailAddress.value AS email,
+ IndividualAddress.address
+FROM Campaign
+JOIN ListIndividualName ON ListIndividualName.name = Campaign.listName
+ AND (Campaign.listSet IS NULL OR ListIndividualName.listSet = Campaign.listSet)
+JOIN ListIndividual ON ListIndividual.id = ListIndividualName.listIndividual
+ AND ListIndividual.unlist IS NULL
+LEFT JOIN IndividualEmail ON IndividualEmail.individual = ListIndividual.individual
+ AND IndividualEmail.stop IS NULL
+ AND IndividualEmail.type IS NULL
+LEFT JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email
+LEFT JOIN IndividualAddress ON IndividualAddress.individual = ListIndividual.individual
+ AND IndividualAddress.stop IS NULL
+ AND IndividualAddress.type IS NULL
  </sql>
  </view>
 
