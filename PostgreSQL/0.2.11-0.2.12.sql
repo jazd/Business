@@ -1309,4 +1309,4 @@ INSERT INTO ContentElement (edition, sequence, word, argument) SELECT 10, 2, 801
 -- Mark schema upgraded to 0.2.12 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped
 -- as 0.2.12 on production by mistake.
--- SELECT SetSchemaVersion('Business', '0', '2', '12');
+SELECT SetSchemaVersion('Business', '0', '2', '12');
