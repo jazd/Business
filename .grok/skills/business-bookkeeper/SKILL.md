@@ -236,7 +236,7 @@ When the user narrates **ordinary business events** (not accounting jargon), map
 | “Now in Spanish” / “en español” / “es-MX” | `JournalReport 1 es` (or `JournalReport es`) |
 | “Now in French” / “en français” / “fr-FR” | `JournalReport 1 fr` (or `JournalReport fr`) |
 
-Spanish/French labels match wiki Accounting I18N (`es-MX` 2058, `fr-FR` 1036): e.g. Rent->Alquiler/Louer, Cash->Dinero en efectivo/encaisser. Amounts and **Total 21350/21350** stay the same. On PostgreSQL, culture inject (`inject_culture`) also works with the view; on SQLite use **`JournalReport` with culture** (I18N views are fixed to en-US).
+Spanish/French labels match wiki Accounting I18N (`es-MX` 2058, `fr-FR` 1036): e.g. Rent->Alquiler/Louer, Cash->Dinero en efectivo/encaisser. Amounts and **Total 21350.00 / 21350.00** stay the same. On PostgreSQL, culture inject (`inject_culture`) also works with the view; on SQLite use **`JournalReport` with culture** (I18N views are fixed to en-US).
 
 **Demo flow for videos/gifs** (open with title + tagline on screen or voiceover):
 
@@ -244,7 +244,7 @@ Spanish/French labels match wiki Accounting I18N (`es-MX` 2058, `fr-FR` 1036): e
 2. Optional snapshot `pre-wiki-demo`.
 3. Accept five natural-language events (wiki order: rent->sale->equipment->loan->salary).
 4. Run the five `Book` commands (or SQL `SELECT Book(...)`).
-5. “Show the journal - do debits equal credits?” -> **JournalReport** (en-US), Total **21350/21350** - prove **true double-entry** (debits = credits).
+5. “Show the journal - do debits equal credits?” -> **JournalReport** (en-US), Total **21350.00 / 21350.00** - prove **true double-entry** (debits = credits).
 6. “Now in Spanish” -> **JournalReport es** (same numbers, Spanish names/types).
 7. “Now in French” -> **JournalReport fr**.
 

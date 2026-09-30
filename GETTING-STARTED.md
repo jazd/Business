@@ -147,7 +147,7 @@ Show the journal - sales and cash.
 Invoice PDF **limitations** (tax $0, no logo, no email-send, …) are listed in  
 `.grok/skills/business-bookkeeper/references/document-recipes.md` - fill gaps when someone needs them.
 
-Expected: **Total** debit **21350** / credit **21350** (balanced books), then the same totals with Spanish and French account/type names (wiki Accounting I18N).
+Expected: **Total** debit **21350.00** / credit **21350.00** (balanced books), then the same totals with Spanish and French account/type names (wiki Accounting I18N).
 
 ---
 

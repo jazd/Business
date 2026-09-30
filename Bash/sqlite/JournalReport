@@ -5,7 +5,9 @@
 #            es | es-MX | spanish | 2058
 #            fr | fr-FR | french  | 1036
 # Prints account | type | debit | credit (wiki Accounting / Wikipedia further examples).
-# Uses Sentence/Word rows for the requested culture (fallback en-US 1033).
+# Amounts print with two decimal places. Totals are summed from the numeric
+# amounts, then printed once. Uses Sentence/Word rows for the requested
+# culture (fallback en-US 1033).
 
 source ~/bin/sqlite/common
 
@@ -59,10 +61,7 @@ WITH lines AS (
    AND (lj.ledger = $LEDGER OR lj.ledger IS NULL)
 ),
 detail AS (
- SELECT entry, rightSide, type, account,
-  CASE WHEN debit IS NULL THEN '' ELSE printf('%g', debit) END AS debit,
-  CASE WHEN credit IS NULL THEN '' ELSE printf('%g', credit) END AS credit,
-  0 AS sort_group
+ SELECT entry, rightSide, type, account, debit, credit, 0 AS sort_group
  FROM lines
  WHERE ledger = $LEDGER OR ledger IS NULL
 ),
@@ -72,12 +71,22 @@ totals AS (
   NULL AS rightSide,
   NULL AS type,
   'Total' AS account,
-  printf('%g', COALESCE(SUM(CASE WHEN debit != '' THEN CAST(debit AS REAL) END), 0)) AS debit,
-  printf('%g', COALESCE(SUM(CASE WHEN credit != '' THEN CAST(credit AS REAL) END), 0)) AS credit,
+  SUM(debit) AS debit,
+  SUM(credit) AS credit,
   1 AS sort_group
  FROM detail
 )
-SELECT account, type, debit, credit
+SELECT account, type,
+ CASE
+  WHEN sort_group = 1 THEN printf('%.2f', COALESCE(debit, 0))
+  WHEN debit IS NULL THEN ''
+  ELSE printf('%.2f', debit)
+ END AS debit,
+ CASE
+  WHEN sort_group = 1 THEN printf('%.2f', COALESCE(credit, 0))
+  WHEN credit IS NULL THEN ''
+  ELSE printf('%.2f', credit)
+ END AS credit
 FROM (
  SELECT * FROM detail
  UNION ALL

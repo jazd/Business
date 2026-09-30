@@ -22,7 +22,7 @@
 -- Applied by this script (existing 0.2.12 shop database)
 -- ---------------------------------------------------------------------------
 --
---  (none yet)
+--  1) JournalReport: two-decimal text amounts, no scientific notation; Total row last
 --
 -- SQLite does not enforce varchar(n). Width-only ALTERs are no-ops here.
 --
@@ -33,3 +33,52 @@
 -- =============================================================================
 
 PRAGMA foreign_keys = ON;
+
+-- Amounts are text with two decimal places. Total is the last row.
+-- SQLite keeps ORDER BY on a view only when LIMIT is present; LIMIT -1 returns every row.
+DROP VIEW IF EXISTS JournalReport;
+CREATE VIEW JournalReport AS
+SELECT journal,
+ journalName,
+ entry,
+ account,
+ type,
+ ledger,
+ ledgerName,
+ CASE WHEN debit IS NULL THEN NULL ELSE printf('%.2f', debit) END AS debit,
+ CASE WHEN credit IS NULL THEN NULL ELSE printf('%.2f', credit) END AS credit,
+ rightSide,
+ created
+FROM (
+SELECT journal,
+ journalName,
+ entry,
+ accountName AS account,
+ typeName AS type,
+ ledger,
+ ledgerName,
+ debit,
+ credit,
+ rightSide,
+ created,
+ 0 AS sortTotal
+FROM JournalEntries
+WHERE posted IS NULL
+UNION ALL
+SELECT NULL AS journal,
+ NULL AS journalName,
+ NULL AS entry,
+ 'Total' AS account,
+ NULL AS type,
+ MAX(ledger) AS ledger,
+ MAX(ledgerName) AS ledgerName,
+ COALESCE(SUM(debit), 0) AS debit,
+ COALESCE(SUM(credit), 0) AS credit,
+ NULL AS rightSide,
+ NULL AS created,
+ 1 AS sortTotal
+FROM JournalEntries
+WHERE posted IS NULL
+) AS JournalReportLines
+ORDER BY sortTotal, entry, rightSide
+LIMIT -1;

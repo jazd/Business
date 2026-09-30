@@ -23,12 +23,58 @@
 -- Applied by this script (existing 0.2.12 database)
 -- ---------------------------------------------------------------------------
 --
---  (none yet)
+--  1) JournalReport: Total row sorts last (sortTotal). debit and credit stay numeric.
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '13') - last substantive step
 --
 -- =============================================================================
+
+-- Total row sorts last. debit and credit stay numeric for existing CAST consumers.
+CREATE OR REPLACE VIEW JournalReport ( journal, journalName, entry, account, type, ledger, ledgerName, debit, credit, rightside, created ) AS
+SELECT journal,
+ journalName,
+ entry,
+ account,
+ type,
+ ledger,
+ ledgerName,
+ debit,
+ credit,
+ rightSide,
+ created
+FROM (
+SELECT journal,
+ journalName,
+ entry,
+ accountName AS account,
+ typeName AS type,
+ ledger,
+ ledgerName,
+ debit,
+ credit,
+ rightSide,
+ created,
+ 0 AS sortTotal
+FROM JournalEntries
+WHERE posted IS NULL
+UNION ALL
+SELECT NULL AS journal,
+ NULL AS journalName,
+ NULL AS entry,
+ 'Total' AS account,
+ NULL AS type,
+ MAX(ledger) AS ledger,
+ MAX(ledgerName) AS ledgerName,
+ SUM(debit) AS debit,
+ SUM(credit) AS credit,
+ NULL AS rightSide,
+ NULL AS created,
+ 1 AS sortTotal
+FROM JournalEntries
+WHERE posted IS NULL
+) AS JournalReportLines
+ORDER BY sortTotal, entry, rightSide;
 
 -- Mark schema upgraded to 0.2.13 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped
