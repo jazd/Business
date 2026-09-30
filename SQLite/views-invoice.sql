@@ -6,7 +6,7 @@
 -- Views:
 --   BillDocuments, InvoiceLineDetail, PartyAddresses, PartyPhones, BillReferences
 --
--- PostgreSQL upgrade hop: PostgreSQL/0.2.9-0.2.10.sql
+-- Living upgrade hops: PostgreSQL/0.2.12-0.2.13.sql and SQLite/0.2.12-0.2.13.sql
 --
 -- This file is kept only so old docs that reference it do not 404.
 SELECT 'Use schema.xml views BillDocuments / InvoiceLineDetail / Party* / BillReferences' AS notice;

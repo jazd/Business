@@ -51,7 +51,7 @@ DocumentParty "$CON"
 ```
 
 Views: **`Addresses`**, **`Phones`**.  
-`SetIndividualPhone` / `SetIndividualAddress` follow the same soft-stop pattern as email (schema helpers; not separate PG procedures).
+`SetIndividualAddress` is a Bash helper. There is no PostgreSQL procedure. It links the address and sets `stop` on the other open address of that type. `SetIndividualPhone` does the same for a phone.
 
 ---
 

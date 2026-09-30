@@ -43,10 +43,12 @@ Existing live files are **not** overwritten by bootstrap.
 | Piece | What it is |
 |-------|------------|
 | **Business schema** | A history-friendly (“NoCRUD”) SQL model: people/companies, parts, bills (wish -> cart -> quote -> order -> invoice -> receipt), double-entry books, email lists, and more |
-| **`business.sqlite3`** | Ready-made SQLite template (schema + **Static/** seeds + GeoNames postal sample + wiki addresses/ledger) - Grok copies this to your live shop path. Rebuild: `make rebuild-business-sqlite3` |
+| **`business.sqlite3`** | Ready-made SQLite template (schema + **Static/** seeds + GeoNames postal sample + wiki addresses/ledger). Download the latest release file: [business.sqlite3](https://github.com/jazd/Business/releases/latest/download/business.sqlite3). Grok copies it to your live shop path. Rebuild from source: `make rebuild-business-sqlite3` |
 | **Grok skill `business-bookkeeper`** | Instructions so Grok Build uses the schema the intended way (shop, books, lists) |
 | **Grok skill `business-sites`** | Multi-domain **HTTP sites**: sessions, claim-by-email, subscriptions, mail tokens (PostgreSQL **0.2.11+**, `/business-sites`) |
-| **`Bash/sqlite/` scripts** | Command-line helpers for common Get/Put operations against SQLite |
+| **`Bash/sqlite/` scripts** | Command-line helpers for common Get/Put operations against SQLite. Put this directory on `PATH`. `CreateBill`, `MoveCargo`, `MoveCargoToChild`, and `Book` are these scripts |
+| **`sqlite3`** | SQLite command-line tool. The live file is `SQLITE_DB` (default `~/business-shop/business.sqlite3`) |
+| **`reportlab`** | Python package `InvoicePDF` uses to write an invoice PDF |
 | **Wiki** | Human docs and examples: [Business wiki](https://github.com/jazd/Business/wiki) |
 
 You do **not** need PostgreSQL to get started. SQLite is enough for a one-person shop on a laptop.
@@ -242,7 +244,7 @@ When the user opens this repo (or a release unpack) and starts working, the agen
 2. **Export `SQLITE_DB`** for the session; use it for every `sqlite3` / bash helper call.
 3. **Announce once:** “Recording into `~/business-shop/business.sqlite3` (from template …).”
 4. Follow **`/business-bookkeeper`** for mutations; snapshot per skill rules.
-5. Prefer **bash Get\*/Put\*** when available; for CreateBill / MoveCargo / Book use SQL only if those entry points exist in the SQLite build, otherwise use wiki/PostgreSQL procedures or explain the gap.
+5. Use the Bash helpers in `Bash/sqlite` for `CreateBill`, `MoveCargo`, `MoveCargoToChild`, and `Book`. Those commands are scripts on SQLite.
 
 ---
 
@@ -251,6 +253,8 @@ When the user opens this repo (or a release unpack) and starts working, the agen
 This schema is **NoCRUD**: normal operations **append history** (and often set
 `stop`) instead of deleting. Grok can usually **compensate** a mistake
 (another book entry, soft-stop a price, unsubscribe, etc.) without erasing the past.
+`SetIndividualAddress` is a Bash helper (there is no PostgreSQL procedure). It
+links the new address and sets `stop` on the previous address of that type.
 
 For a solo shop, **file snapshots** are still the easy “go back to 10 minutes
 ago” tool-especially after experiments or CSV imports.
@@ -260,7 +264,7 @@ ago” tool-especially after experiments or CSV imports.
 ```text
 ~/business-shop/
   business.sqlite3                 # live books
-  business.sqlite3.pristine-0.2.10  # release template restore (optional)
+  business.sqlite3.pristine-0.2.12  # release template restore (optional)
   snapshots/
     20260805-141502-session-start.sqlite3
     20260805-142230-pre-csv.sqlite3

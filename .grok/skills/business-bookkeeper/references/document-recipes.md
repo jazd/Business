@@ -23,7 +23,7 @@ Prefer these for invoice/PDF/SQL exports (added for commerce demos; portable SQL
 Older **`Bills`** still **INNER JOIN Entities only** - person-only parties need **`BillDocuments`**.  
 `InvoicePDF` uses the new views when present, else falls back to Bills/LineItems joins.
 
-PG upgrade: `PostgreSQL/0.2.9-0.2.10.sql`. Fresh SQLite: `make rebuild-business-sqlite3`.
+Fresh SQLite builds these views from `schema.xml` (`make rebuild-business-sqlite3`). An existing database applies `PostgreSQL/0.2.12-0.2.13.sql` or `SQLite/0.2.12-0.2.13.sql`.
 
 ## Bash helpers
 
@@ -132,8 +132,7 @@ Python entry point: `scripts/invoice_pdf.py` (reportlab). Reads **Bills**,
 **LineItems**, party emails/phones/addresses (`Individual*` + **Addresses** /
 **Phones**), and **BillReference** (PO / Sales Order).
 
-Optional shop views (not required by the script):  
-`sqlite3 "$SQLITE_DB" < SQLite/views-invoice.sql` -> `InvoiceDocument`, `InvoiceLineDetail`.
+`InvoiceLineDetail` and the other invoice views come from `schema.xml` on a fresh shop. `SQLite/views-invoice.sql` is a pointer at that source.
 
 **Layout (QB-like):** company header + green INVOICE title, invoice # / date /
 due (Net 30) / balance due banner, Bill To / Ship To, line table

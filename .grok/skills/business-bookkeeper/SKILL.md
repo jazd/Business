@@ -83,13 +83,14 @@ manual `cp` instructions unless bootstrap fails).
    (`export SQLITE_DB=…`).
 3. Else **zero-config create defaults:**
    - Find template: `$PWD/business.sqlite3`, repo root `business.sqlite3`
-     (walk up from cwd), or an obvious release download path.
+     (walk up from cwd), or the latest release file
+     `https://github.com/jazd/Business/releases/latest/download/business.sqlite3`.
    - If found:
      ```bash
      mkdir -p "$HOME/business-shop/snapshots"
      cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3"
-     test -f "$HOME/business-shop/business.sqlite3.pristine-0.2.10" \
-       || cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3.pristine-0.2.10"
+     test -f "$HOME/business-shop/business.sqlite3.pristine-0.2.12" \
+       || cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3.pristine-0.2.12"
      export SQLITE_DB=$HOME/business-shop/business.sqlite3
      ```
    - **Do not overwrite** an existing `~/business-shop/business.sqlite3`.
@@ -120,6 +121,8 @@ matches wiki/procedure behavior; say what is unavailable.
   `GetIndividualEmail('a@b.c')`, `GetEmail(...)`.
 - Contacts: `GetPhone`, `GetPostal`, `GetAddress`, `SetIndividualEmail` /
   `SetIndividualPhone` / `SetIndividualAddress`, `DocumentParty`.
+  `SetIndividualAddress` is Bash only (no PostgreSQL procedure). It sets `stop`
+  on the previous address of that type.
 - Wiki pattern: supplier **Bunnies-R-Us**, consignee **Toys for Tots**.
 
 Map user language: “my customer Alice” -> entity/person + email + address;
@@ -419,7 +422,7 @@ cp -a "$SNAP_DIR/latest.sqlite3" "$SQLITE_DB"
 - Do not delete old snapshots unless the user asks; if the directory grows
   large, suggest pruning with their OK (e.g. keep last 20 or last 7 days).
 - Distinguish **pristine release image**
-  (`business.sqlite3.pristine-0.2.10`) from **session snapshots**.
+  (`business.sqlite3.pristine-0.2.12`) from **session snapshots**.
 
 ## Agent workflow (every request)
 

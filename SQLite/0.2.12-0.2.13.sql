@@ -24,9 +24,13 @@
 --
 --  1) JournalReport: two-decimal text amounts, no scientific notation; Total row last
 --  2) No column change. Bash Book and Post round each new journal amount to 4 decimal places.
---  3) Accounts, Ledgers, LedgerBalance, and LedgerReport.
---     LedgerReport sums journal lines onto the chart account of the same type
---     (Asset, Liability, Income, Expenses). Amounts are two-decimal text. Total is last.
+--  3) Accounts, Ledgers, and LedgerBalance match schema.xml. A 0.2.12 shop
+--     did not emit those views, so this hop creates them.
+--     LedgerReport is the SQLite form: two-decimal text, Total last.
+--     It sums journal lines onto the chart account of the same type
+--     (Asset, Liability, Income, Expenses).
+--     Books, EdgeIndividuals, IndividualURL, and IndividualEmailAddress
+--     are the schema.xml views. TimePeriod and Certificates stay omitted.
 --  4) Bash Book and BookBalance write created as YYYY-MM-DD on each new journal line.
 --     An omitted date is today in the given time zone, or the local zone when the
 --     time zone is omitted. An explicit date is stored as given.
@@ -104,6 +108,8 @@ LIMIT -1;
 -- journal lines (posted IS NULL) onto the chart account of the same type.
 -- Amounts on LedgerReport are text with two decimal places. Total is last.
 -- SQLite keeps ORDER BY on a view only when LIMIT is present; LIMIT -1 returns every row.
+-- Books depends on Accounts, so drop it before Accounts.
+DROP VIEW IF EXISTS Books;
 DROP VIEW IF EXISTS LedgerReport;
 DROP VIEW IF EXISTS LedgerBalance;
 DROP VIEW IF EXISTS Ledgers;
@@ -221,6 +227,118 @@ GROUP BY ledger,
 ) AS LedgerReportLines
 ORDER BY ledger, sortTotal, sequence
 LIMIT -1;
+
+-- Books, EdgeIndividuals, IndividualURL, and IndividualEmailAddress match schema.xml.
+DROP VIEW IF EXISTS Books;
+CREATE VIEW Books AS
+SELECT BookName.book,
+ I18NSentence.value AS name,
+ BookName.journal,
+ Journals.name AS journalName,
+ COALESCE(BookAccount.split, 1) AS split,
+ BookAccount.increase,
+ Increase.name AS increaseName,
+ Increase.type AS increaseType,
+ Increase.credit AS increaseCredit,
+ Increase.debitIncrease  AS increaseDebitIncrease,
+ Increase.debitDecrease  AS increaseDebitDecrease,
+ Increase.creditIncrease AS increaseCreditIncrease,
+ Increase.creditDecrease  AS increaseCreditDecrease,
+ BookAccount.decrease,
+ Decrease.name AS decreaseName,
+ Decrease.type AS decreaseType,
+ Decrease.credit AS decreaseCredit,
+ Decrease.debitIncrease  AS decreaseDebitIncrease,
+ Decrease.debitDecrease  AS decreaseDebitDecrease,
+ Decrease.creditIncrease AS decreaseCreditIncrease,
+ Decrease.creditDecrease AS decreaseCreditDecrease
+FROM BookName
+JOIN I18NSentence ON I18NSentence.id = BookName.name
+JOIN Journals ON Journals.journal = BookName.journal
+JOIN BookAccount ON BookAccount.book = BookName.book
+LEFT JOIN Accounts AS Increase ON Increase.account = BookAccount.increase
+LEFT JOIN Accounts AS Decrease  ON Decrease.account  = BookAccount.decrease;
+
+DROP VIEW IF EXISTS EdgeIndividuals;
+CREATE VIEW EdgeIndividuals AS
+SELECT Edge.id AS edge,
+ StartVertexNameString.value AS startName,
+ StopVertexNameString.value AS stopName,
+ StartIndividualVertex.individual AS startIndividual,
+ StartType.value AS startType,
+ COALESCE(StartPeople.fullname, StartEntities.name) AS startIndividualName,
+ StopIndividualVertex.individual AS stopIndividual,
+ COALESCE(StopPeople.fullname, StopEntities.name) AS stopIndividualName,
+ StopType.value AS stopType,
+ hops,
+ entry,
+ direct,
+ exit,
+ start,
+ Edge.stop
+FROM Edge
+JOIN VertexName AS StartVertexName ON StartVertexName.vertex = Edge.start
+JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
+LEFT JOIN I18NSentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
+LEFT JOIN I18NSentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
+LEFT JOIN IndividualVertex AS StartIndividualVertex ON StartIndividualVertex.vertex = Edge.start
+LEFT JOIN People AS StartPeople ON StartPeople.individual = StartIndividualVertex.individual
+LEFT JOIN Entities AS StartEntities ON StartEntities.individual = StartIndividualVertex.individual
+LEFT JOIN Word AS StartType ON StartType.id = StartIndividualVertex.type
+ AND StartType.culture IS NULL
+LEFT JOIN IndividualVertex AS StopIndividualVertex ON StopIndividualVertex.vertex = Edge.stop
+LEFT JOIN People AS StopPeople ON StopPeople.individual = StopIndividualVertex.individual
+LEFT JOIN Entities AS StopEntities ON StopEntities.individual = StopIndividualVertex.individual
+LEFT JOIN Word AS StopType ON StopType.id = StopIndividualVertex.type
+ AND StopType.culture IS NULL;
+
+DROP VIEW IF EXISTS IndividualURL;
+CREATE VIEW IndividualURL AS
+WITH latest (individual,type,created) AS (
+ SELECT individual, type, MAX(created) AS created
+ FROM IndividualPath
+ WHERE IndividualPath.stop IS NULL
+ GROUP BY individual, type
+)
+SELECT latest.individual, latest.type, Path.id AS path, Path.protocol, Path.host,
+ Path.protocol ||
+ CASE WHEN secure = 1 THEN 's' ELSE '' END ||
+ '://' || host ||
+ CASE WHEN port IS NOT NULL THEN ':' || port ELSE '' END ||
+ '/' ||
+ COALESCE(Path.value,'') ||
+ CASE WHEN COALESCE(Path.get,IndividualPath.track) IS NULL
+ THEN ''
+ ELSE '?' ||
+ COALESCE(Path.get,'') ||
+ COALESCE(CASE WHEN (Path.get IS NOT NULL AND IndividualPath.track IS NOT  NULL) THEN '&' ELSE '' END ||  IndividualPath.track, '')
+ END AS value,
+ latest.created
+FROM latest
+JOIN IndividualPath ON IndividualPath.individual = latest.individual
+ AND IndividualPath.type = latest.type
+ AND IndividualPath.created = latest.created
+JOIN Individual ON Individual.id = latest.individual
+ AND Individual.nameChange IS NULL
+JOIN Path ON Path.id = IndividualPath.path;
+
+DROP VIEW IF EXISTS IndividualEmailAddress;
+CREATE VIEW IndividualEmailAddress AS
+WITH latest (individual,type,created) AS (
+ SELECT individual, type, MAX(created) AS created
+ FROM IndividualEmail
+ WHERE IndividualEmail.stop IS NULL
+ GROUP BY individual, type
+)
+SELECT latest.individual, latest.type, IndividualEmail.email, EmailAddress.username,
+ EmailAddress.plus, EmailAddress.host, EmailAddress.value, latest.created
+FROM latest
+JOIN Individual ON Individual.id = latest.individual
+ AND Individual.nameChange IS NULL
+JOIN IndividualEmail ON IndividualEmail.individual = latest.individual
+ AND IndividualEmail.type = latest.type
+ AND IndividualEmail.created = latest.created
+JOIN EmailAddress ON EmailAddress.email = IndividualEmail.email;
 
 -- Chart account 6 is Fixed Assets (sentence 224). Sentence 78 stays on account 103
 -- and on the Equipment book. Sentence 225 is the Capital book only, not an AccountName.

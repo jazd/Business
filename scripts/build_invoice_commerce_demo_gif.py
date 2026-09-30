@@ -194,7 +194,7 @@ def seed_demo() -> dict:
     """Create parts, order, invoice, PDF, payment. Return paths and outputs."""
     template = ROOT / "business.sqlite3"
     if not template.exists():
-        template = Path.home() / "business-shop" / "business.sqlite3.pristine-0.2.9"
+        template = Path.home() / "business-shop" / "business.sqlite3.pristine-0.2.12"
     shutil.copy2(template, DEMO_DB)
     env = bash_env()
 
