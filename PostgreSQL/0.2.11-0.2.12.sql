@@ -2,9 +2,9 @@
 -- Business schema upgrade: 0.2.11 -> 0.2.12 (PostgreSQL)
 -- =============================================================================
 --
--- Living upgrade path while 0.2.12 is unreleased. Keep this file in sync with
--- develop (procedures.d, schema.xml, post.sql, Static seeds) so a database
--- installed at 0.2.11 can reach the same end state as a fresh 0.2.12 build.
+-- Released hop 0.2.11 -> 0.2.12 (freeze after release). Living work for the next
+-- version is PostgreSQL/0.2.12-0.2.13.sql (and SQLite/0.2.12-0.2.13.sql).
+-- A database installed at 0.2.11 reaches the same end state as a fresh 0.2.12 build.
 --
 -- Fresh installs: make pgsqldb (pre + schema + procedures + post + Static).
 -- Do not use this script for a greenfield install.
@@ -1306,7 +1306,6 @@ INSERT INTO ContentEdition (id, content) SELECT 10, 10 WHERE NOT EXISTS (SELECT 
 INSERT INTO ContentElement (edition, sequence, sentence) SELECT 10, 1, 80110 WHERE NOT EXISTS (SELECT 1 FROM ContentElement WHERE edition=10 AND sequence=1);
 INSERT INTO ContentElement (edition, sequence, word, argument) SELECT 10, 2, 80110, 80111 WHERE NOT EXISTS (SELECT 1 FROM ContentElement WHERE edition=10 AND sequence=2);
 
--- Mark schema upgraded to 0.2.12 when the hop body is ready for the release.
--- Until then, leave this commented so a partial living script is not stamped
--- as 0.2.12 on production by mistake.
+-- Released hop stamps Business 0.2.12. The next living hop leaves its stamp
+-- commented until that release is tagged.
 SELECT SetSchemaVersion('Business', '0', '2', '12');
