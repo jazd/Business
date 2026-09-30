@@ -2,6 +2,7 @@
 
 # Usage: Post <debit_account> <amount> <credit_account> [YYYY-MM-DD]
 # Balanced General journal entry. Prints entry_id.
+# The amount is ROUND(..., 4), matching numeric(19,4). Rows already stored are not rewritten.
 # Parity with PG Post(debit, amount, credit, timestamp) — correct debit/credit sides.
 
 source ~/bin/sqlite/common
@@ -61,9 +62,9 @@ entry_id=$(sqlite3 "$SQLITE_DB" "
 
 sqlite_run "
  INSERT INTO JournalEntry (journal, entry, account, credit, amount, created)
- VALUES ($journal_id, $entry_id, $credit_id, 1, $AMOUNT, '$esc_when');
+ VALUES ($journal_id, $entry_id, $credit_id, 1, ROUND($AMOUNT, 4), '$esc_when');
  INSERT INTO JournalEntry (journal, entry, account, credit, amount, created)
- VALUES ($journal_id, $entry_id, $debit_id, 0, $AMOUNT, '$esc_when');
+ VALUES ($journal_id, $entry_id, $debit_id, 0, ROUND($AMOUNT, 4), '$esc_when');
 " >/dev/null
 
 echo "$entry_id"

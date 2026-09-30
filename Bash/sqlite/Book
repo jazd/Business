@@ -3,6 +3,7 @@
 # Usage: Book <book_name> <amount>
 # Parity with PostgreSQL Book(varchar, numeric) in procedures.d/90-accounting.sql.
 # Posts balanced JournalEntry lines for a named book (Rent, Sale, Equipment, Loan, Salary, …).
+# Each written amount is ROUND(..., 4), matching numeric(19,4). Rows already stored are not rewritten.
 # Prints: entry_id
 #
 # Named books come from static General Ledger (BookName / BookAccount).
@@ -59,7 +60,7 @@ FROM (
   SELECT
     ba.increase AS account,
     CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 0 ELSE 1 END AS credit,
-    ($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+    ROUND(($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName inc ON inc.account = ba.increase
   WHERE ba.book = $book_id AND (ba.stop IS NULL)
@@ -71,7 +72,7 @@ FROM (
   SELECT
     ba.increase AS account,
     CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 ELSE 0 END AS credit,
-    ($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+    ROUND(($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName inc ON inc.account = ba.increase
   WHERE ba.book = $book_id AND (ba.stop IS NULL)
@@ -83,7 +84,7 @@ FROM (
   SELECT
     ba.decrease AS account,
     CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 0 ELSE 1 END AS credit,
-    ($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+    ROUND(($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName dec ON dec.account = ba.decrease
   WHERE ba.book = $book_id AND (ba.stop IS NULL)
@@ -95,7 +96,7 @@ FROM (
   SELECT
     ba.decrease AS account,
     CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 ELSE 0 END AS credit,
-    ($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+    ROUND(($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName dec ON dec.account = ba.decrease
   WHERE ba.book = $book_id AND (ba.stop IS NULL)

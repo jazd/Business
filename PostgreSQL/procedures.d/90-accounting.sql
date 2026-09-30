@@ -26,6 +26,9 @@ DECLARE
  entry_id integer;
  journal_id integer;
 BEGIN
+ -- numeric(19,4). New amounts are rounded here. Rows already stored are not rewritten.
+ inAmount := round(inAmount, 4);
+
  -- Pickup book and journal to use
  SELECT book, journal
  INTO book_id, journal_id
@@ -43,7 +46,7 @@ BEGIN
   entry_id AS entry,
   increase AS account,
   NOT increaseCredit AS credit,
-  (inAmount * increaseCreditIncrease) * split AS amount
+  round((inAmount * increaseCreditIncrease) * split, 4) AS amount
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * increaseCreditIncrease IS NOT NULL
@@ -53,7 +56,7 @@ BEGIN
   entry_id AS entry,
   increase AS account,
   increaseCredit AS credit,
-  (inAmount * increaseDebitIncrease) * split AS amount
+  round((inAmount * increaseDebitIncrease) * split, 4) AS amount
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * increaseDebitIncrease IS NOT NULL
@@ -63,7 +66,7 @@ BEGIN
   entry_id AS entry,
   decrease AS account,
   NOT decreaseCredit AS credit,
-  (inAmount * decreaseCreditDecrease) * split AS amount
+  round((inAmount * decreaseCreditDecrease) * split, 4) AS amount
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * decreaseCreditDecrease IS NOT NULL
@@ -73,7 +76,7 @@ BEGIN
   entry_id AS entry,
   decrease AS account,
   decreaseCredit AS credit,
-  (inAmount * decreaseDebitDecrease) * split AS amount
+  round((inAmount * decreaseDebitDecrease) * split, 4) AS amount
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * decreaseDebitDecrease IS NOT NULL
@@ -111,6 +114,7 @@ BEGIN
   LIMIT 1
  );
 
+ -- Book rounds inAmount to 4 decimal places before insert.
  SELECT * INTO journal_id, entry_id FROM Book(inBook, inAmount);
 
  RETURN QUERY
@@ -164,6 +168,9 @@ DECLARE
  debit_account_id integer;
  entry_id integer;
 BEGIN
+ -- numeric(19,4). New amounts are rounded here. Rows already stored are not rewritten.
+ inAmount := round(inAmount, 4);
+
  journal_name := 'General';
 
  IF inDateTime IS NULL THEN

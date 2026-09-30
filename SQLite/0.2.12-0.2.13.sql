@@ -23,6 +23,7 @@
 -- ---------------------------------------------------------------------------
 --
 --  1) JournalReport: two-decimal text amounts, no scientific notation; Total row last
+--  2) No column change. Bash Book and Post round each new journal amount to 4 decimal places.
 --
 -- SQLite does not enforce varchar(n). Width-only ALTERs are no-ops here.
 --

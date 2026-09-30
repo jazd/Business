@@ -2,6 +2,7 @@
 
 # Usage: BookBalance <book_name> <amount>
 # Runs Book then prints account balances for accounts touched (posted IS NULL).
+# Book rounds the amount to 4 decimal places before insert.
 # Soft parity with PG BookBalance (tabular stdout).
 
 source ~/bin/sqlite/common

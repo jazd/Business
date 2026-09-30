@@ -108,7 +108,7 @@ matches wiki/procedure behavior; say what is unavailable.
 
 1. **Find-or-insert** via `Get*` / `CreateBill` / `AddCargo` / `Book` / `Post` / list subscribe helpers - not “INSERT customer row #1”.
 2. **History is append + `stop`**, not UPDATE of past truth (prices, emails, list membership).
-3. **Money** is decimal/`numeric` semantics (not float cents games). Quantities may stay float where schema says so (`Cargo.count`, schedule rate bands).
+3. **Money** is `numeric(19,4)`, not integer cents. `Book` and `Post` round each new journal amount to 4 decimal places. Amounts already stored are left as written. `JournalReport` prints two decimals. Quantities may stay float where the schema says so (`Cargo.count`, schedule rate bands).
 4. **Reads** go through **views** the wiki uses (`LineItems`, `JournalReport`, …).
 5. **Culture** for reports: `ClientCulture()` / `inject_culture` (1033 en-US, 2058 es-MX, 1036 fr-FR) - see wiki Accounting I18N.
 
