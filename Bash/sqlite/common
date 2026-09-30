@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Shared utilities for SQLite business logic
-# ln -s ~/sandbox/Business/Bash/sqlite/ ~/bin/
+# Shared utilities for SQLite business logic.
+# Scripts in this directory source this file and call siblings beside themselves.
 
 set -euo pipefail
 
@@ -21,6 +21,40 @@ sqlite_query_one() {
 sql_escape() {
  local s="$1"
  echo "${s//\'/''}"
+}
+
+# AccountName.account for a Post or AccountLedger argument.
+# An all-digit argument is the account id and is not also matched by name.
+# Any other argument matches Sentence.value in any culture.
+# One account may have several cultures. More than one account prints nothing and returns 2.
+lookup_account() {
+ local name="$1"
+ local esc count
+ if [[ "$name" =~ ^[0-9]+$ ]]; then
+  sqlite_query_one "SELECT account FROM AccountName WHERE account = $name LIMIT 1;"
+  return 0
+ fi
+ esc=$(sql_escape "$name")
+ count=$(sqlite_query_one "
+  SELECT COUNT(DISTINCT an.account)
+  FROM AccountName an
+  JOIN Sentence s ON s.id = an.name
+  WHERE s.value = '$esc';
+ ")
+ if [[ "${count:-0}" -gt 1 ]]; then
+  return 2
+ fi
+ if [[ "${count:-0}" -eq 0 ]]; then
+  return 0
+ fi
+ sqlite_query_one "
+  SELECT an.account
+  FROM AccountName an
+  JOIN Sentence s ON s.id = an.name
+  WHERE s.value = '$esc'
+  ORDER BY CASE WHEN s.culture = 1033 THEN 0 ELSE 1 END, an.account
+  LIMIT 1;
+ "
 }
 
 # NULL-safe integer token for SQL (empty → NULL)

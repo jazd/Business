@@ -7,7 +7,8 @@
 #   RemoveAssemblyPart <assembly_id> '' <designator>
 # Sets AssemblyPart.stop = now on matching rows where stop IS NULL.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 ASSEMBLY_ID="${1:-}"
 PART_ARG="${2-}"
@@ -29,7 +30,7 @@ fi
 
 des_clause="1=1"
 if [[ -n "$DESIGNATOR" && "$DESIGNATOR" != "NULL" && "$DESIGNATOR" != "null" ]]; then
-  designator_id=$(~/bin/sqlite/GetWord "$DESIGNATOR")
+  designator_id=$("$HERE/GetWord" "$DESIGNATOR")
   if [[ -z "$designator_id" ]]; then
     echo "Error: Could not resolve designator '$DESIGNATOR'" >&2
     exit 1

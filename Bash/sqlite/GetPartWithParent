@@ -2,7 +2,8 @@
 
 # Usage: GetPartWithParent <part_name> <part_version_name> <parent_name> <parent_version_name>
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 PART_NAME="${1:-}"
 PART_VER_NAME="${2:-}"
@@ -15,10 +16,10 @@ if [[ -z "$PART_NAME" || -z "$PART_VER_NAME" || -z "$PARENT_NAME" || -z "$PARENT
 fi
 
 # Resolve IDs using existing Get* scripts
-part_name_id=$(~/bin/sqlite/GetSentence "$PART_NAME")
-part_version_id=$(~/bin/sqlite/GetVersionName "$PART_VER_NAME")
-parent_name_id=$(~/bin/sqlite/GetSentence "$PARENT_NAME")
-parent_version_id=$(~/bin/sqlite/GetVersionName "$PARENT_VER_NAME")
+part_name_id=$("$HERE/GetSentence" "$PART_NAME")
+part_version_id=$("$HERE/GetVersionName" "$PART_VER_NAME")
+parent_name_id=$("$HERE/GetSentence" "$PARENT_NAME")
+parent_version_id=$("$HERE/GetVersionName" "$PARENT_VER_NAME")
 
 if [[ -z "$part_name_id" || -z "$part_version_id" || -z "$parent_name_id" || -z "$parent_version_id" ]]; then
  echo ""
@@ -38,7 +39,7 @@ parent_id=$(sqlite_query_one "
 
 # If not found, create it (this calls your existing GetPart with version)
 if [[ -z "$parent_id" ]]; then
- parent_id=$(~/bin/sqlite/GetPart "$PARENT_NAME" "$PARENT_VER_NAME")
+ parent_id=$("$HERE/GetPart" "$PARENT_NAME" "$PARENT_VER_NAME")
  if [[ -z "$parent_id" ]]; then
   echo ""
   exit 0

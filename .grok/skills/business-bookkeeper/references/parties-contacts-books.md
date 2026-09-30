@@ -43,7 +43,7 @@ Do **not** DELETE parties; soft-stop contact links instead.
 
 ```bash
 GetPostal USA 10504 Armonk NY 'New York'
-ADDR=$(GetAddress '1 New Orchard Road' 10504 1716)
+ADDR=$(GetAddress '18 Cottonwood Lane' 10504 1716)
 SetIndividualAddress "$CON" "$ADDR" shipping
 PH=$(GetPhone USA 914 4991900)
 SetIndividualPhone "$CON" "$PH" main
@@ -51,7 +51,7 @@ DocumentParty "$CON"
 ```
 
 Views: **`Addresses`**, **`Phones`**.  
-`SetIndividualPhone` / `SetIndividualAddress` follow the same soft-stop pattern as email (schema helpers; not separate PG procedures).
+`SetIndividualAddress` is a Bash helper. There is no PostgreSQL procedure. It links the address and sets `stop` on the other open address of that type. `SetIndividualPhone` does the same for a phone.
 
 ---
 
@@ -68,7 +68,7 @@ ListBooks
 | **Rent** | Paid rent in cash |
 | **Sale** | Cash sale |
 | **Sales Credit** | Sales credit / reverse cash sale |
-| **Equipment** | Bought equipment cash |
+| **Equipment** | Bought equipment cash. The chart row is Fixed Assets. `Post Equipment` uses this posting account. |
 | **Equipment Return** | Returned equipment |
 | **Loan** | Borrowed cash |
 | **Loan Payment** | Paid down loan |
@@ -81,10 +81,16 @@ ListBooks
 | **AR Payment** | Customer paid AR (Cash / Receivable) - Receipt path |
 | **Sale Jane Doe** / **Sale John Doe** | Commission split sales (wiki complex books) |
 | **AP Donation** / **Donation Payment** | Donation AP path if used |
+| **Capital** | Owner cash in: debit Cash, credit Equity. `Post Capital` is the Equity account (es-MX name Capital), not this book. |
+| **Card Sale** | Card receipt: debit Checking, credit Sales |
+| **Hosting** | Hosting paid from cash: debit Hosting, credit Cash |
 
 ```bash
 Book Rent 100
 Book 'AR Sale' 14.99   # usually via MoveCargoToChild … AR Sale
+Book Capital 100
+Book 'Card Sale' 50
+Book Hosting 25
 Post Cash 500 Sales 2024-01-10   # manual General journal
 BookBalance Sale 50              # Book + show lines for that entry
 JournalReport
@@ -106,7 +112,7 @@ C=$(GetIndividualEntity 'City Library')
 # C=$(GetIndividualPerson Alex '' Ng 1985-01-15)
 SetIndividualEmail "$C" 'orders@citylib.example' work
 GetPostal USA 20500 Washington DC 'District of Columbia'
-A=$(GetAddress '1600 Pennsylvania Avenue NW' 20500 0005)
+A=$(GetAddress '42 Storybook Court NW' 20500 0005)
 SetIndividualAddress "$C" "$A" billing
 DocumentParty "$C"
 ```

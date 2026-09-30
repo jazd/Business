@@ -3,7 +3,8 @@
 # Usage: DocumentParty <individual_id>
 # Party name + active emails/phones/addresses for invoice header.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 IND="${1:-}"
 if [[ -z "$IND" ]]; then

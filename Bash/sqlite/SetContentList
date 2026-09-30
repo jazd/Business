@@ -2,8 +2,8 @@
 
 # Usage: SetContentList <list_name> <content_id> [sequence]
 
-source ~/bin/sqlite/common
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 LIST="${1:-}"
 CONTENT="${2:-}"
 SEQUENCE="${3:-}"
@@ -11,7 +11,7 @@ if [[ -z "$LIST" || -z "$CONTENT" ]]; then
  echo "Usage: SetContentList <list_name> <content_id> [sequence]" >&2
  exit 1
 fi
-list_id=$("$ROOT/GetWord" "$LIST")
+list_id=$("$HERE/GetWord" "$LIST")
 if [[ -z "$SEQUENCE" ]]; then
  SEQUENCE=$(sqlite_query_one "SELECT COALESCE(MAX(sequence),0)+1 FROM ContentList WHERE listName = $list_id AND stop IS NULL;")
 fi

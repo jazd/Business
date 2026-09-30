@@ -2,9 +2,14 @@
 
 # Usage: Post <debit_account> <amount> <credit_account> [YYYY-MM-DD]
 # Balanced General journal entry. Prints entry_id.
+# The amount is ROUND(..., 4), matching numeric(19,4). Rows already stored are not rewritten.
 # Parity with PG Post(debit, amount, credit, timestamp) — correct debit/credit sides.
+# A name matches Sentence.value in any culture. More than one account with that
+# name exits non-zero and writes nothing. An all-digit argument is the account id.
+# Equity's es-MX value is Capital, and that name matches one account.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 DEBIT="${1:-}"
 AMOUNT="${2:-}"
@@ -29,20 +34,14 @@ journal_id=$(sqlite_query_one "
  LIMIT 1;
 ")
 
-debit_id=$(sqlite_query_one "
- SELECT an.account
- FROM AccountName an
- JOIN Sentence s ON s.id = an.name
- WHERE s.value = '$(sql_escape "$DEBIT")' AND s.culture = 1033
- LIMIT 1;
-")
-credit_id=$(sqlite_query_one "
- SELECT an.account
- FROM AccountName an
- JOIN Sentence s ON s.id = an.name
- WHERE s.value = '$(sql_escape "$CREDIT")' AND s.culture = 1033
- LIMIT 1;
-")
+if ! debit_id=$(lookup_account "$DEBIT"); then
+ echo "Error: account name '$DEBIT' matches more than one account" >&2
+ exit 1
+fi
+if ! credit_id=$(lookup_account "$CREDIT"); then
+ echo "Error: account name '$CREDIT' matches more than one account" >&2
+ exit 1
+fi
 
 if [[ -z "$journal_id" || -z "$debit_id" || -z "$credit_id" ]]; then
   echo "Error: could not resolve General journal or accounts ('$DEBIT'/'$CREDIT')" >&2
@@ -61,9 +60,9 @@ entry_id=$(sqlite3 "$SQLITE_DB" "
 
 sqlite_run "
  INSERT INTO JournalEntry (journal, entry, account, credit, amount, created)
- VALUES ($journal_id, $entry_id, $credit_id, 1, $AMOUNT, '$esc_when');
+ VALUES ($journal_id, $entry_id, $credit_id, 1, ROUND($AMOUNT, 4), '$esc_when');
  INSERT INTO JournalEntry (journal, entry, account, credit, amount, created)
- VALUES ($journal_id, $entry_id, $debit_id, 0, $AMOUNT, '$esc_when');
+ VALUES ($journal_id, $entry_id, $debit_id, 0, ROUND($AMOUNT, 4), '$esc_when');
 " >/dev/null
 
 echo "$entry_id"

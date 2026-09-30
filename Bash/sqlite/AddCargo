@@ -8,7 +8,8 @@
 # Parity with PG AddCargo overloads (procedures.d/95-inventory.sql).
 # Prints: cargo_id
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 UNIT_MODE=0
 if [[ "${1:-}" == "--unit" ]]; then
@@ -76,7 +77,7 @@ if [[ -n "$BOOK" ]]; then
     ")
   fi
   if [[ -n "$amount" && "$amount" != "" ]]; then
-    entry_id=$(~/bin/sqlite/Book "$BOOK" "$amount") || exit 1
+    entry_id=$("$HERE/Book" "$BOOK" "$amount") || exit 1
     journal_id=$(journal_for_entry "$entry_id")
     journal_sql=$(sql_int_or_null "$journal_id")
     entry_sql=$(sql_int_or_null "$entry_id")

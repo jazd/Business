@@ -3,8 +3,8 @@
 # Usage: SetCampaignAttachment <campaign_id> <path_id> [type] [target] [sequence]
 # Empty target means every output.
 
-source ~/bin/sqlite/common
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 CAMPAIGN="${1:-}"
 PATH_ID="${2:-}"
 TYPE="${3:-}"
@@ -16,8 +16,8 @@ if [[ -z "$CAMPAIGN" || -z "$PATH_ID" ]]; then
 fi
 type_sql="NULL"
 target_sql="NULL"
-[[ -n "$TYPE" ]] && type_sql=$("$ROOT/GetWord" "$TYPE")
-[[ -n "$TARGET" ]] && target_sql=$("$ROOT/GetWord" "$TARGET")
+[[ -n "$TYPE" ]] && type_sql=$("$HERE/GetWord" "$TYPE")
+[[ -n "$TARGET" ]] && target_sql=$("$HERE/GetWord" "$TARGET")
 if [[ -z "$SEQUENCE" ]]; then
  SEQUENCE=$(sqlite_query_one "SELECT COALESCE(MAX(sequence),0)+1 FROM CampaignAttachment WHERE campaign = $CAMPAIGN AND stop IS NULL;")
 fi

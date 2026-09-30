@@ -4,7 +4,8 @@
 # Oldest open bill (no received/loaded/clean/dirty). May print empty if none.
 # Parity with PG GetOutstandingBill.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 SUP="${1:-}"
 CON="${2:-}"
@@ -15,7 +16,7 @@ if [[ -z "$SUP" || -z "$CON" || -z "$TYPE" ]]; then
   exit 1
 fi
 
-type_id=$(~/bin/sqlite/GetWord "$TYPE")
+type_id=$("$HERE/GetWord" "$TYPE")
 if [[ -z "$type_id" ]]; then
   echo ""
   exit 0

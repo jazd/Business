@@ -4,6 +4,7 @@
 # Usage:
 #   export SQLITE_DB=$HOME/business-shop/business.sqlite3
 #   ./scripts/upgrade-sqlite.sh 0.2.11 0.2.12
+#   ./scripts/upgrade-sqlite.sh 0.2.12 0.2.13
 #
 # Preconditions: active SchemaVersion Business = <from>.
 # After SQL file succeeds: SetSchemaVersion Business to <to>.

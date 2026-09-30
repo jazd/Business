@@ -3,7 +3,8 @@
 # Usage: StopCampaign <campaign_id>
 # Fills stop on the open run only.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 CAMPAIGN="${1:-}"
 if [[ -z "$CAMPAIGN" ]]; then
  echo "Usage: StopCampaign <campaign_id>" >&2

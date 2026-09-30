@@ -226,3 +226,11 @@ INSERT INTO Sentence (id,culture,value,length) VALUES (220,1033,'Donations',9);
 -- Journal "Charity" reuses Sentence id 95 (already seeded above with i18n)
 INSERT INTO Sentence (id,culture,value,length) VALUES (222,1033,'AP Donation',11);
 INSERT INTO Sentence (id,culture,value,length) VALUES (223,1033,'Donation Payment',16);
+-- Chart account 6. Account 103 and the Equipment book keep sentence 78.
+INSERT INTO Sentence (id,culture,value,length) VALUES (224,1033,'Fixed Assets',12);
+-- Capital book only. Not an AccountName. Sentence 74 es-MX is also Capital, on Equity.
+INSERT INTO Sentence (id,culture,value,length) VALUES (225,1033,'Capital',7);
+-- Card Sale book only.
+INSERT INTO Sentence (id,culture,value,length) VALUES (226,1033,'Card Sale',9);
+-- Hosting book and Hosting expense account.
+INSERT INTO Sentence (id,culture,value,length) VALUES (227,1033,'Hosting',7);

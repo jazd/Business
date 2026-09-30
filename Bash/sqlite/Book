@@ -1,25 +1,90 @@
 #!/usr/bin/env bash
 
-# Usage: Book <book_name> <amount>
-# Parity with PostgreSQL Book(varchar, numeric) in procedures.d/90-accounting.sql.
+# Usage: Book <book_name> <amount> [YYYY-MM-DD] [time_zone]
+# Parity with PostgreSQL Book in procedures.d/90-accounting.sql.
 # Posts balanced JournalEntry lines for a named book (Rent, Sale, Equipment, Loan, Salary, …).
+# Each written amount is ROUND(..., 4), matching numeric(19,4).
+# A new line stores created as YYYY-MM-DD and no time.
+# An omitted date is today in the time zone, or the local zone when the time zone is omitted.
+# An explicit date is stored as given. The time zone does not shift an explicit date.
+# Rows already stored are not rewritten.
 # Prints: entry_id
 #
 # Named books come from static General Ledger (BookName / BookAccount).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
+
+# GNU date exits 0 for an unknown TZ. A zone counts only when it is a regular
+# file under /usr/share/zoneinfo.
+zone_today() {
+  local zone="$1" root zpath
+  if [[ -z "$zone" || "$zone" == /* || "$zone" == *..* ]]; then
+    echo "Error: unknown time zone '$zone'" >&2
+    return 1
+  fi
+  root=$(realpath -e /usr/share/zoneinfo 2>/dev/null) || {
+    echo "Error: unknown time zone '$zone'" >&2
+    return 1
+  }
+  zpath=$(realpath -e "$root/$zone" 2>/dev/null) || {
+    echo "Error: unknown time zone '$zone'" >&2
+    return 1
+  }
+  if [[ ! -f "$zpath" ]]; then
+    echo "Error: unknown time zone '$zone'" >&2
+    return 1
+  fi
+  case "$zpath" in
+    "$root"/*) ;;
+    *)
+      echo "Error: unknown time zone '$zone'" >&2
+      return 1
+      ;;
+  esac
+  TZ="$zone" date +%Y-%m-%d
+}
+
+if [[ $# -gt 4 ]]; then
+  echo "Usage: Book <book_name> <amount> [YYYY-MM-DD] [time_zone]" >&2
+  exit 1
+fi
 
 BOOK_NAME="${1:-}"
 AMOUNT="${2:-}"
+WHEN="${3-}"
+ZONE="${4-}"
+ZONE="${ZONE#"${ZONE%%[![:space:]]*}"}"
+ZONE="${ZONE%"${ZONE##*[![:space:]]}"}"
 
 if [[ -z "$BOOK_NAME" || -z "$AMOUNT" ]]; then
-  echo "Usage: Book <book_name> <amount>" >&2
+  echo "Usage: Book <book_name> <amount> [YYYY-MM-DD] [time_zone]" >&2
   exit 1
 fi
 
 if ! [[ "$AMOUNT" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
   echo "Error: amount must be a non-negative number" >&2
   exit 1
+fi
+
+if [[ -n "$WHEN" ]]; then
+  if ! [[ "$WHEN" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+    echo "Error: date must be YYYY-MM-DD" >&2
+    exit 1
+  fi
+  norm=$(date -d "$WHEN" +%Y-%m-%d 2>/dev/null) || {
+    echo "Error: date must be YYYY-MM-DD" >&2
+    exit 1
+  }
+  if [[ "$norm" != "$WHEN" ]]; then
+    echo "Error: date is not a calendar day ($WHEN)" >&2
+    exit 1
+  fi
+  ENTRY_DATE="$WHEN"
+elif [[ -n "$ZONE" ]]; then
+  ENTRY_DATE=$(zone_today "$ZONE") || exit 1
+else
+  ENTRY_DATE=$(date +%Y-%m-%d)
 fi
 
 esc_name=$(sql_escape "$BOOK_NAME")
@@ -52,14 +117,14 @@ fi
 # decreaseCreditDecrease = 1 when NOT account.credit, decreaseDebitDecrease when credit
 # credit flag on insert: NOT account.credit | account.credit per branch (see 90-accounting.sql)
 sqlite3 "$SQLITE_DB" "
-INSERT INTO JournalEntry (journal, book, entry, account, credit, amount)
-SELECT $journal_id, $book_id, $entry_id, account, credit, amount
+INSERT INTO JournalEntry (journal, book, entry, account, credit, amount, created)
+SELECT $journal_id, $book_id, $entry_id, account, credit, amount, '$ENTRY_DATE'
 FROM (
   -- increase: amount * creditIncrease; credit flag = NOT account.credit
   SELECT
     ba.increase AS account,
     CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 0 ELSE 1 END AS credit,
-    ($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+    ROUND(($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName inc ON inc.account = ba.increase
   WHERE ba.book = $book_id AND (ba.stop IS NULL)
@@ -71,7 +136,7 @@ FROM (
   SELECT
     ba.increase AS account,
     CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 ELSE 0 END AS credit,
-    ($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+    ROUND(($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName inc ON inc.account = ba.increase
   WHERE ba.book = $book_id AND (ba.stop IS NULL)
@@ -83,7 +148,7 @@ FROM (
   SELECT
     ba.decrease AS account,
     CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 0 ELSE 1 END AS credit,
-    ($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+    ROUND(($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName dec ON dec.account = ba.decrease
   WHERE ba.book = $book_id AND (ba.stop IS NULL)
@@ -95,7 +160,7 @@ FROM (
   SELECT
     ba.decrease AS account,
     CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 ELSE 0 END AS credit,
-    ($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1) AS amount
+    ROUND(($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName dec ON dec.account = ba.decrease
   WHERE ba.book = $book_id AND (ba.stop IS NULL)

@@ -288,7 +288,7 @@ def load_invoice(conn: sqlite3.Connection, bill_id: int) -> dict:
                 "unit": r[3] if r[3] is not None else r[4],
                 "total": r[5],
                 "outstanding": r[6],
-                "version": r[7],
+                "description": r[7] or r[1] or "",
             }
             for r in lines
         ]
@@ -310,7 +310,7 @@ def load_invoice(conn: sqlite3.Connection, bill_id: int) -> dict:
                 "unit": r[3] if r[3] is not None else r[4],
                 "total": r[5],
                 "outstanding": r[6],
-                "version": r[7],
+                "description": r[1] or "",
             }
             for r in lines
         ]
@@ -578,7 +578,7 @@ def build_pdf(data: dict, out_path: Path) -> None:
     ]
     table_data = [header_row]
     for i, ln in enumerate(data["lines"], start=1):
-        desc = ln["version"] or ""
+        desc = ln["description"] or ""
         item = ln["item"] or ""
         table_data.append(
             [

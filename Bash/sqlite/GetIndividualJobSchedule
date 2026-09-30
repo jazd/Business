@@ -3,7 +3,8 @@
 # Usage: GetIndividualJobSchedule <individual_id> <job_id> <schedule_id>
 # Find-or-insert active IndividualJob. Parity with PG (uses inSchedule, not the PG typo).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 IND="${1:-}"
 JOB="${2:-}"

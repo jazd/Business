@@ -2,8 +2,8 @@
 
 # Usage: StopCampaignAttachment <campaign_id> <path_id> [type] [target]
 
-source ~/bin/sqlite/common
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 CAMPAIGN="${1:-}"
 PATH_ID="${2:-}"
 TYPE="${3:-}"
@@ -14,8 +14,8 @@ if [[ -z "$CAMPAIGN" || -z "$PATH_ID" ]]; then
 fi
 type_sql="NULL"
 target_sql="NULL"
-[[ -n "$TYPE" ]] && type_sql=$("$ROOT/GetWord" "$TYPE")
-[[ -n "$TARGET" ]] && target_sql=$("$ROOT/GetWord" "$TARGET")
+[[ -n "$TYPE" ]] && type_sql=$("$HERE/GetWord" "$TYPE")
+[[ -n "$TARGET" ]] && target_sql=$("$HERE/GetWord" "$TARGET")
 sqlite_run "
  UPDATE CampaignAttachment SET stop = datetime('now')
  WHERE campaign = $CAMPAIGN AND path = $PATH_ID

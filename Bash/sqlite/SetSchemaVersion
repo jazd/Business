@@ -4,7 +4,8 @@
 # Inserts SchemaVersion row and sets stop on other active rows for that schema.
 # Parity with PG SetSchemaVersion (Version row with name NULL).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 SCHEMA_NAME="${1:-}"
 MAJOR="${2:-}"
@@ -16,10 +17,10 @@ if [[ -z "$SCHEMA_NAME" || -z "$MAJOR" || -z "$MINOR" || -z "$PATCH" ]]; then
   exit 1
 fi
 
-schema_id=$(~/bin/sqlite/GetWord "$SCHEMA_NAME")
-major_id=$(~/bin/sqlite/GetWord "$MAJOR")
-minor_id=$(~/bin/sqlite/GetWord "$MINOR")
-patch_id=$(~/bin/sqlite/GetWord "$PATCH")
+schema_id=$("$HERE/GetWord" "$SCHEMA_NAME")
+major_id=$("$HERE/GetWord" "$MAJOR")
+minor_id=$("$HERE/GetWord" "$MINOR")
+patch_id=$("$HERE/GetWord" "$PATCH")
 
 if [[ -z "$schema_id" || -z "$major_id" || -z "$minor_id" || -z "$patch_id" ]]; then
   echo "Error: could not resolve schema/version words" >&2

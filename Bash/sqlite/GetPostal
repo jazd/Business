@@ -7,7 +7,8 @@
 #       find-or-insert full postal row (city required for insert)
 # Parity with PG GetPostal overloads (simplified lat/long: omitted → NULL location).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 if [[ $# -eq 1 ]]; then
   ZIP="$1"
@@ -52,12 +53,12 @@ if [[ -z "$cc_id" ]]; then
   exit 1
 fi
 
-city_id=$(~/bin/sqlite/GetWord "$CITY")
-state_abbr_id=$(~/bin/sqlite/GetWord "$STATE_ABBR")
-state_id=$(~/bin/sqlite/GetWord "$STATE")
+city_id=$("$HERE/GetWord" "$CITY")
+state_abbr_id=$("$HERE/GetWord" "$STATE_ABBR")
+state_id=$("$HERE/GetWord" "$STATE")
 county_sql="NULL"
 if [[ -n "$COUNTY" ]]; then
-  county_id=$(~/bin/sqlite/GetWord "$COUNTY")
+  county_id=$("$HERE/GetWord" "$COUNTY")
   county_sql=$(sql_int_or_null "$county_id")
 fi
 

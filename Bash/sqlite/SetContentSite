@@ -3,7 +3,8 @@
 # Usage: SetContentSite <site_id> <content_id> [sequence]
 # Omit sequence to append. Existing unstopped pair is left in place.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 SITE="${1:-}"
 CONTENT="${2:-}"

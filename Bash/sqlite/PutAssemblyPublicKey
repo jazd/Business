@@ -4,7 +4,8 @@
 # Soft-stops prior active keys for assembly, then inserts pem.
 # PEM may be a literal or @/path/to/file
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 ASSEMBLY_ID="${1:-}"
 PEM_ARG="${2:-}"

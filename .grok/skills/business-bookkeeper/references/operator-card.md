@@ -34,9 +34,10 @@ Wiki: `Business.wiki/Examples.md` (**Parts**, **Inventory Movement**).
 | Export invoice lines | `DocumentLineItems <bill> tsv` |
 | Invoice PDF (QB-style) | `InvoicePDF <bill_id>` -> `~/business-shop/invoices/` |
 | List named books | `ListBooks` |
-| Paid rent / cash sale / … | `Book Rent\|Sale\|… <amt>` |
+| Paid rent / cash sale / … | `Book Rent\|Sale\|… <amt> [YYYY-MM-DD] [zone]` |
 | Credit / return (books) | `Sales Credit`, `AR Sale Credit`, `Equipment Return`, `Supply Return` |
-| Manual journal | `Post <debit> <amount> <credit> [date]` |
+| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` |
+| Grokipedia cash ledger | three `Post` lines below, then `AccountLedger Cash` |
 | Show journal | `JournalReport` |
 | Report in French / Spanish | inject culture **1036** / **2058**; clear after |
 | Mailing list on/off | `ListSubscribeEmail` / `ListUnSubscribe` |
@@ -77,6 +78,14 @@ Show the journal / does it balance? -> JournalReport
 Now in Spanish                  -> JournalReport es
 Now in French                   -> JournalReport fr
 # Total debit 21350 = credit 21350 (true double-entry, all three languages)
+
+# Grokipedia cash ledger (wiki Post to General Journal). Capital prints as Equity.
+Post Cash 10000 Capital 2024-01-01
+Post Equipment 2000 Cash 2024-01-05
+Post Cash 500 Sales 2024-01-10
+AccountLedger Cash
+# Jan 1 Equity 10000.00 balance 10000.00; Jan 5 Equipment credit 2000.00 balance 8000.00
+# Jan 10 Sales 500.00 balance 8500.00; Total 10500.00 / 2000.00
 ```
 
 ## Environment
@@ -85,7 +94,7 @@ Now in French                   -> JournalReport fr
 |------|----------------|
 | Live DB | `~/business-shop/business.sqlite3` (agent creates from template if missing) |
 | Template | Repo/release `business.sqlite3` - never the live write target |
-| Bash helpers | `Bash/sqlite/` (link as `~/bin/sqlite`) |
+| Bash helpers | `Bash/sqlite/` on `PATH` (`~/bin/sqlite` link optional) |
 | Postgres | procedures in `PostgreSQL/procedures.d/`; views in schema |
 | Money | decimal/`numeric` - not float pennies |
 | History | append + `stop`; no DELETE “fixes” |

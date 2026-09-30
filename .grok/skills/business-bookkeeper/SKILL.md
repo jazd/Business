@@ -46,7 +46,7 @@ Canonical product examples live in sibling **`Business.wiki`**
 
 | Layer | Role |
 |-------|------|
-| **SQLite + `Bash/sqlite/`** | Default for local Grok Build sessions (`SQLITE_DB`, scripts on `PATH` via `~/bin/sqlite` -> repo `Bash/sqlite`) |
+| **SQLite + `Bash/sqlite/`** | Default local shop (`SQLITE_DB`). Put `Bash/sqlite` on `PATH`; each helper finds siblings beside itself. `~/bin/sqlite` is an optional link. |
 | **PostgreSQL procedures** | Same semantics when the user points at a live Business DB |
 | **Views** | `LineItems`, `BillDocuments`, `InvoiceLineDetail`, `PartyAddresses`, `PartyPhones`, `BillReferences`, `JournalReport`, `LedgerReport`, `People`, `Entities`, `List`, `Parts`, `Assemblies`, … |
 
@@ -83,18 +83,20 @@ manual `cp` instructions unless bootstrap fails).
    (`export SQLITE_DB=…`).
 3. Else **zero-config create defaults:**
    - Find template: `$PWD/business.sqlite3`, repo root `business.sqlite3`
-     (walk up from cwd), or an obvious release download path.
+     (walk up from cwd), or the latest release file
+     `https://github.com/jazd/Business/releases/latest/download/business.sqlite3`.
    - If found:
      ```bash
      mkdir -p "$HOME/business-shop/snapshots"
      cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3"
-     test -f "$HOME/business-shop/business.sqlite3.pristine-0.2.10" \
-       || cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3.pristine-0.2.10"
+     test -f "$HOME/business-shop/business.sqlite3.pristine-0.2.12" \
+       || cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3.pristine-0.2.12"
      export SQLITE_DB=$HOME/business-shop/business.sqlite3
      ```
    - **Do not overwrite** an existing `~/business-shop/business.sqlite3`.
-4. Ensure `PATH` includes bash helpers when present:  
-   `export PATH="$REPO/Bash/sqlite:$HOME/bin/sqlite:$PATH"`.
+4. Ensure `PATH` includes `Bash/sqlite` when those scripts are present:  
+   `export PATH="$REPO/Bash/sqlite:$PATH"`.  
+   A `~/bin/sqlite` link is optional. Each helper finds `common` and siblings beside itself.
 5. **Tell the user once** which live file you are using (default or override).
 6. If no template and no live DB -> stop and explain what is missing.
 
@@ -108,7 +110,7 @@ matches wiki/procedure behavior; say what is unavailable.
 
 1. **Find-or-insert** via `Get*` / `CreateBill` / `AddCargo` / `Book` / `Post` / list subscribe helpers - not “INSERT customer row #1”.
 2. **History is append + `stop`**, not UPDATE of past truth (prices, emails, list membership).
-3. **Money** is decimal/`numeric` semantics (not float cents games). Quantities may stay float where schema says so (`Cargo.count`, schedule rate bands).
+3. **Money** is `numeric(19,4)`, not integer cents. `Book` and `Post` round each new journal amount to 4 decimal places. Amounts already stored are left as written. `JournalReport` prints two decimals. Quantities may stay float where the schema says so (`Cargo.count`, schedule rate bands).
 4. **Reads** go through **views** the wiki uses (`LineItems`, `JournalReport`, …).
 5. **Culture** for reports: `ClientCulture()` / `inject_culture` (1033 en-US, 2058 es-MX, 1036 fr-FR) - see wiki Accounting I18N.
 
@@ -119,6 +121,8 @@ matches wiki/procedure behavior; say what is unavailable.
   `GetIndividualEmail('a@b.c')`, `GetEmail(...)`.
 - Contacts: `GetPhone`, `GetPostal`, `GetAddress`, `SetIndividualEmail` /
   `SetIndividualPhone` / `SetIndividualAddress`, `DocumentParty`.
+  `SetIndividualAddress` is Bash only (no PostgreSQL procedure). It sets `stop`
+  on the previous address of that type.
 - Wiki pattern: supplier **Bunnies-R-Us**, consignee **Toys for Tots**.
 
 Map user language: “my customer Alice” -> entity/person + email + address;
@@ -146,13 +150,13 @@ Full SQL skeletons and AR books: **`references/inventory-bom-builds.md` § B1**.
 | Invoice | Child **`Invoice`** + move cargo (quoted `unitprice` stays; don’t overwrite lines) |
 | Pay / receipt | Child **`Receipt`**; move cargo with book **`AR Payment`** |
 | Show lines / totals | `InvoiceLineDetail` / `LineItems` / `BillDocuments` for that bill |
-| Price list for a customer | `GetIndividualJobSchedule` + `Schedule` bands + `AssemblyIndividualJobPrice` |
+| Price list for a customer | `GetIndividualJobSchedule` + `SetSchedule` (count band) + `SetPrice` (quote unit price). `Schedule.rate` is not that unit price. |
 | Buy parts from a vendor | `CreateBill(vendor, shop, 'Order')` + `AddCargo` / `AddCargo --unit …` + `GetBillReference` for vendor SO/PO # |
 | Attach PO / tracking # | `GetBillReference(bill, 'Sales Order'\|'Tracking'\|…, value)` |
 
 **Bash commerce (SQLite shop):** `CreateBill`, `GetOutstandingBill`, `AddCargo`,
 `MoveCargo`, `MoveCargoToChild`, `GetJob`, `GetSchedule`,
-`GetIndividualJobSchedule`, `PutAssemblyJobPrice`, `GetBillReference`,
+`GetIndividualJobSchedule`, `SetSchedule`, `SetPrice`, `PutAssemblyJobPrice`, `GetBillReference`,
 `DocumentLineItems`.
 
 **Books (sales path from wiki):** **`AR Sale`** when order cargo is booked;
@@ -200,11 +204,12 @@ on cargo/`LineItems` + assembly views.
 
 | User says | Approach |
 |-----------|----------|
-| Record a simple book entry | `Book <name> <amount>` (bash) or `Book('Name', amount)` (SQL) |
-| What books exist? | `ListBooks` - Rent, Sale, Sales Credit, Equipment/Return, Loan/Payment, Salary, Supply/Return, Petty Cash, AR Sale/Credit/Payment, commission books, … |
+| Record a simple book entry | `Book <name> <amount> [YYYY-MM-DD] [time_zone]` (bash) or `Book('Name', amount)` / `Book('Name', amount, date, zone)` (SQL). An omitted date is today in that zone (local if omitted; session TimeZone on PostgreSQL). Stored as YYYY-MM-DD with no time. Zone only: `Book Rent 100 '' America/New_York` or `Book('Rent', 100, NULL, 'America/New_York')`. |
+| What books exist? | `ListBooks` - Rent, Sale, Sales Credit, Equipment/Return, Loan/Payment, Salary, Supply/Return, Petty Cash, AR Sale/Credit/Payment, commission books, Capital, Card Sale, Hosting, … |
 | Split / commission style | `Book 'Sale Jane Doe' 1000` when seeded |
-| Manual journal | `Post <debit> <amount> <credit> [date]` - debit left, credit right |
-| Book + show lines | `BookBalance <name> <amount>` |
+| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` - debit left, credit right. A name on more than one account is an error. An all-digit argument is the account id. |
+| Grokipedia cash ledger | `AccountLedger Cash` after the three `Post` lines in the section below |
+| Book + show lines | `BookBalance <name> <amount> [YYYY-MM-DD] [time_zone]` (same trailing date and zone as Book) |
 | Return / credit memo (books) | `Sales Credit`, `AR Sale Credit`, `Equipment Return`, `Supply Return` - not free-form DELETE |
 | P&L-ish / T-accounts | `LedgerReport` |
 | Journal detail | `JournalReport` (bash or view; order by entry / rightSide) |
@@ -236,7 +241,7 @@ When the user narrates **ordinary business events** (not accounting jargon), map
 | “Now in Spanish” / “en español” / “es-MX” | `JournalReport 1 es` (or `JournalReport es`) |
 | “Now in French” / “en français” / “fr-FR” | `JournalReport 1 fr` (or `JournalReport fr`) |
 
-Spanish/French labels match wiki Accounting I18N (`es-MX` 2058, `fr-FR` 1036): e.g. Rent->Alquiler/Louer, Cash->Dinero en efectivo/encaisser. Amounts and **Total 21350/21350** stay the same. On PostgreSQL, culture inject (`inject_culture`) also works with the view; on SQLite use **`JournalReport` with culture** (I18N views are fixed to en-US).
+Spanish/French labels match wiki Accounting I18N (`es-MX` 2058, `fr-FR` 1036): e.g. Rent->Alquiler/Louer, Cash->Dinero en efectivo/encaisser. Amounts and **Total 21350.00 / 21350.00** stay the same. On PostgreSQL, culture inject (`inject_culture`) also works with the view; on SQLite use **`JournalReport` with culture** (I18N views are fixed to en-US).
 
 **Demo flow for videos/gifs** (open with title + tagline on screen or voiceover):
 
@@ -244,11 +249,33 @@ Spanish/French labels match wiki Accounting I18N (`es-MX` 2058, `fr-FR` 1036): e
 2. Optional snapshot `pre-wiki-demo`.
 3. Accept five natural-language events (wiki order: rent->sale->equipment->loan->salary).
 4. Run the five `Book` commands (or SQL `SELECT Book(...)`).
-5. “Show the journal - do debits equal credits?” -> **JournalReport** (en-US), Total **21350/21350** - prove **true double-entry** (debits = credits).
+5. “Show the journal - do debits equal credits?” -> **JournalReport** (en-US), Total **21350.00 / 21350.00** - prove **true double-entry** (debits = credits).
 6. “Now in Spanish” -> **JournalReport es** (same numbers, Spanish names/types).
 7. “Now in French” -> **JournalReport fr**.
 
 Do **not** make the user say “debit expense credit cash”; translate plain language into the named books above. If they use different amounts, still use the matching book names and their amounts; only the classic wiki amounts yield Total 21350.
+
+### General journal cash ledger (Grokipedia)
+
+Wiki **Post to General Journal** is the cash ledger in [Grokipedia - Ledger Posting and Balancing](https://grokipedia.com/page/Double-entry_bookkeeping#ledger-posting-and-balancing). Use `Post`, then `AccountLedger`. Do not paste the wiki `SELECT Post(...)` into SQLite.
+
+Debit is the first name, credit is the third. Dates are `YYYY-MM-DD`. The article's Capital account is Equity: the en-US sentence is Equity and the es-MX sentence is Capital. `Post` accepts either name. `AccountLedger` prints the en-US contra name, so that line's details cell is Equity.
+
+```text
+Post Cash 10000 Capital 2024-01-01
+Post Equipment 2000 Cash 2024-01-05
+Post Cash 500 Sales 2024-01-10
+AccountLedger Cash
+```
+
+| date | details | debit | credit | balance |
+|------|---------|-------|--------|---------|
+| Jan 1 | Equity | 10000.00 | | 10000.00 |
+| Jan 5 | Equipment | | 2000.00 | 8000.00 |
+| Jan 10 | Sales | 500.00 | | 8500.00 |
+| | Total | 10500.00 | 2000.00 | |
+
+Those are the article's 10,000 / 2,000 / 500 lines and 8,500 debit balance. `AccountLedger` reads the General journal only, so the Wikipedia `Book` demo stays out of this report. On PostgreSQL the same three calls are `Post('Cash', 10000, 'Capital', '2024-01-01')` and the cash-ledger query in the wiki.
 
 ### Near future: bank / credit-card CSV
 
@@ -305,7 +332,7 @@ Rebuild commerce GIF: `python3 scripts/build_invoice_commerce_demo_gif.py`
 
 1. **Seed SQLite like PG** - template must load `Static/` + GeoNames postal + addresses; empty Postal breaks `GetAddress`. Rebuild: `make rebuild-business-sqlite3`.
 2. **Classic `Bills` is entity-only** - INNER JOIN `Entities`. Person customers need **`BillDocuments`** (COALESCE entity/person names).
-3. **Price schedule before Quote move** - `GetIndividualJobSchedule` + `PutAssemblyJobPrice` (and optional `Schedule` bands); otherwise unit prices stay null.
+3. **Unit price before Quote move** - `GetIndividualJobSchedule` + `SetPrice` (or `PutAssemblyJobPrice`). A `SetSchedule` count band does not fill that price, and `Schedule.rate` is not the quote unit price. Without a job price, unit prices stay null.
 4. **AR books on cargo move** - Order move with **`AR Sale`** (Receivable/Sales); Receipt move with **`AR Payment`** (Cash/Receivable). Multi-line orders may post one journal entry per cargo line; totals still balance.
 5. **PDF is a projection** - source of truth remains Bill + LineItems + Journal; store under **`~/business-shop/invoices/`**.
 6. **Contacts before pretty PDF** - set supplier/customer address + email or header is name-only.
@@ -395,7 +422,7 @@ cp -a "$SNAP_DIR/latest.sqlite3" "$SQLITE_DB"
 - Do not delete old snapshots unless the user asks; if the directory grows
   large, suggest pruning with their OK (e.g. keep last 20 or last 7 days).
 - Distinguish **pristine release image**
-  (`business.sqlite3.pristine-0.2.10`) from **session snapshots**.
+  (`business.sqlite3.pristine-0.2.12`) from **session snapshots**.
 
 ## Agent workflow (every request)
 
@@ -421,7 +448,7 @@ cp -a "$SNAP_DIR/latest.sqlite3" "$SQLITE_DB"
 
 ## Bash quick map (local SQLite)
 
-When `Bash/sqlite` is available (`PATH` includes repo `Bash/sqlite` or `~/bin/sqlite`):
+When `Bash/sqlite` is on `PATH` (each helper finds siblings beside itself; a `~/bin/sqlite` link is optional):
 
 | Area | Scripts |
 |------|---------|
@@ -430,8 +457,8 @@ When `Bash/sqlite` is available (`PATH` includes repo `Bash/sqlite` or `~/bin/sq
 | Contacts | `GetPhone`, `GetPostal`, `GetAddress`, `SetIndividualPhone`, `SetIndividualAddress`, `DocumentParty` |
 | Parts/BOM | `GetPart*`, `GetPartbySerial`, `PutAssemblyPart`, `RemoveAssemblyPart`, `DocumentBOM` |
 | Commerce | `CreateBill`, `GetOutstandingBill`, `AddCargo`, `MoveCargo`, `MoveCargoToChild`, `GetBillReference` |
-| Pricing | `GetJob`, `GetSchedule`, `GetIndividualJobSchedule`, `PutAssemblyJobPrice` |
-| Accounting | `Book`, `BookBalance`, `Post`, `ListBooks`, `JournalReport` |
+| Pricing | `GetJob`, `GetSchedule`, `SetSchedule`, `GetIndividualJobSchedule`, `SetPrice`, `PutAssemblyJobPrice` |
+| Accounting | `Book`, `BookBalance`, `Post`, `ListBooks`, `JournalReport`, `LedgerReport`, `AccountLedger` |
 | Documents | `DocumentLineItems`, `DocumentBOM`, `DocumentParty`, **`InvoicePDF`** |
 | EST | `PutAssemblyPublicKey`, `PutCertificateSigningRequest`, `PutAssemblyCertificateSigningRequest`, `PutCertificate` |
 

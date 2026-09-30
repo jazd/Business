@@ -56,7 +56,7 @@ schema.mysql: schema.xml container
 	$(SQLT) -f XML-SQLFairy -t MySQL $(DROP_TABLE) $<.excludeSomeViews | sed -e "s/\`//g" | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -E 's|([^_])exit|\1`exit`|g' | sed -e "s/'NOW()'/CURRENT_TIMESTAMP/g" | sed -e 's|lock|`lock`|g' | sed -E 's|([ \(])release([^_])|\1`release`\2|g' | sed -E 's/\sRelease([^_])/ `Release`\1/g' | sed -e 's|get text|`get` text|g' | sed -e "s/'false'/'0'/g" | sed -e "s/ interval / float /g" | sed -e 's|inet|varchar|g' | sed -e 's/WITHOUT TIME ZONE//g' | sed -e 's/integer integer/`integer` integer/g' | sed -e 's/float float/`float` float/g' | sed -e 's| schema | `schema` |g' | sed -e 's/get varchar/`get` varchar/g' | sed -e '/sentence_id_culture_value/ s/value)/value(256))/' | sed -e '/paragraph_id_culture_value/ s/value)/value(256))/' >> $@
 	chmod -w $@
 
-SQLITE_UNSUPORTED_VIEWS = TimePeriod Accounts Ledgers Books LedgerBalance LedgerReport EdgeIndividuals IndividualURL IndividualEmailAddress Certificates
+SQLITE_UNSUPORTED_VIEWS = TimePeriod Certificates
 schema.sqlite: schema.xml container
 	@echo Creating SQLite file $@
 	scripts/excludeView.pl $< $(SQLITE_UNSUPORTED_VIEWS) > $<.excludeSomeViews
@@ -158,10 +158,12 @@ rebuild-business-sqlite3: schema.sqlite
 	FORCE=1 ./scripts/build-business-sqlite3.sh business.sqlite3
 
 # Shop SQLite hop (living while target unreleased). Example:
-#   SQLITE_DB=$$HOME/business-shop/business.sqlite3 make upgrade-sqlite-0.2.11-0.2.12
+#   SQLITE_DB=$$HOME/business-shop/business.sqlite3 make upgrade-sqlite-0.2.12-0.2.13
 # Stamp version when hop is complete: STAMP_VERSION=1 make ...
-.PHONY: upgrade-sqlite-0.2.10-0.2.11 upgrade-sqlite-0.2.11-0.2.12
+.PHONY: upgrade-sqlite-0.2.10-0.2.11 upgrade-sqlite-0.2.11-0.2.12 upgrade-sqlite-0.2.12-0.2.13
 upgrade-sqlite-0.2.10-0.2.11:
 	./scripts/upgrade-sqlite.sh 0.2.10 0.2.11
 upgrade-sqlite-0.2.11-0.2.12:
 	./scripts/upgrade-sqlite.sh 0.2.11 0.2.12
+upgrade-sqlite-0.2.12-0.2.13:
+	./scripts/upgrade-sqlite.sh 0.2.12 0.2.13

@@ -4,7 +4,8 @@
 # Inserts when no matching row has stop IS NULL. If designator is set and another
 # active row differs in part or quantity, sets stop on those rows first.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 ASSEMBLY_ID="${1:-}"
 PART_ID="${2:-}"
@@ -33,7 +34,7 @@ fi
 
 designator_id=""
 if [[ -n "$DESIGNATOR" ]]; then
-    designator_id=$(~/bin/sqlite/GetWord "$DESIGNATOR")
+    designator_id=$("$HERE/GetWord" "$DESIGNATOR")
     if [[ -z "$designator_id" ]]; then
         echo "Error: Could not resolve designator '$DESIGNATOR'" >&2
         exit 1

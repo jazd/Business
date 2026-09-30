@@ -6,7 +6,8 @@
 #   GetEmail <username> <plus> <host>    # empty plus => NULL (same as PG)
 # Returns: email id (find-or-insert)
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 if [[ $# -eq 1 ]]; then
   EMAIL="${1:-}"

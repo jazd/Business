@@ -4,7 +4,8 @@
 # Birth required (parity with PG). Empty middle: pass ''.
 # Returns individual id (find-or-insert by first+last+birth).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 FIRST="${1:-}"
 MIDDLE="${2-}"
@@ -34,10 +35,10 @@ if [[ -n "$existing" ]]; then
   exit 0
 fi
 
-name_id=$(~/bin/sqlite/GetName "$FIRST" "$MIDDLE" "$LAST")
+name_id=$("$HERE/GetName" "$FIRST" "$MIDDLE" "$LAST")
 goes_sql="NULL"
 if [[ -n "$GOESBY" ]]; then
-  goes_id=$(~/bin/sqlite/GetGiven "$GOESBY")
+  goes_id=$("$HERE/GetGiven" "$GOESBY")
   goes_sql=$(sql_int_or_null "$goes_id")
 fi
 

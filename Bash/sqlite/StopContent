@@ -3,7 +3,8 @@
 # Usage: StopContent <content_id>
 # Closes the open edition. The next SetContentElement starts a new one.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 CONTENT="${1:-}"
 if [[ -z "$CONTENT" ]]; then

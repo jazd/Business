@@ -3,8 +3,8 @@
 # Usage: GetFile <host> <pathValue> <fileGet>
 # Wrapper: GetPath file 0 ...  Parity with PG GetFile.
 
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 HOST="${1:-}"
 PATH_VALUE="${2:-}"
 FILE_GET="${3:-}"
-exec "$ROOT/GetPath" file 0 "$HOST" "$PATH_VALUE" "$FILE_GET"
+exec "$HERE/GetPath" file 0 "$HOST" "$PATH_VALUE" "$FILE_GET"

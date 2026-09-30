@@ -3,7 +3,8 @@
 # Usage: StartCampaign <campaign_id>
 # Inserts a run when none is open.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 CAMPAIGN="${1:-}"
 if [[ -z "$CAMPAIGN" ]]; then
  echo "Usage: StartCampaign <campaign_id>" >&2

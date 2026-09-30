@@ -2,7 +2,8 @@
 
 # Usage: GetAssemblyApplicationRelease <assembly_id> <application_release_id> [<parent_id>]
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 ASSEMBLY_ID="${1:-}"
 APP_RELEASE_ID="${2:-}"

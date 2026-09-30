@@ -3,7 +3,8 @@
 # Usage: DocumentBOM <assembly_part_id> [tsv|csv|column]
 # Export AssemblyParts for a catalog BOM (serial-null assembly version id).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 ASM="${1:-}"
 FMT="${2:-column}"

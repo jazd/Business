@@ -3,7 +3,8 @@
 # Usage: SetIndividualPhone <individual_id> <phone_id> [type_word]
 # Schema helper (same soft-stop pattern as SetIndividualEmail; no PG procedure yet).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 IND="${1:-}"
 PHONE="${2:-}"
@@ -16,7 +17,7 @@ fi
 
 type_sql="NULL"
 if [[ -n "$TYPE" ]]; then
-  type_id=$(~/bin/sqlite/GetWord "$TYPE")
+  type_id=$("$HERE/GetWord" "$TYPE")
   type_sql=$(sql_int_or_null "$type_id")
 fi
 

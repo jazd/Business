@@ -334,9 +334,8 @@ SELECT MoveCargoToChild(
 SELECT GetIndividualJobSchedule(
   GetIndividualEntity('Toys for Tots'),
   GetJob('Default'), GetSchedule('Default'));
--- INSERT INTO Schedule (schedule, fromCount, toCount, rate) … as needed
-INSERT INTO AssemblyIndividualJobPrice (assembly, individualJob, price)
-VALUES (
+SELECT SetSchedule(GetSchedule('Default'), 0, 99, 100, NULL);
+SELECT SetPrice(
   GetPart('Bunny'),
   GetIndividualJobSchedule(
     GetIndividualEntity('Toys for Tots'),
@@ -393,7 +392,8 @@ AddCargo "$WISH" "$(GetPart Bunny)" 1
 CART=$(CreateBill "$SUP" "$CON" Cart "$WISH")
 MoveCargoToChild "$WISH"
 IJ=$(GetIndividualJobSchedule "$CON" "$(GetJob Default)" "$(GetSchedule Default)")
-PutAssemblyJobPrice "$(GetPart Bunny)" "$IJ" 14.99
+SetSchedule "$(GetSchedule Default)" 0 99 100
+SetPrice "$(GetPart Bunny)" "$IJ" 14.99
 QUOTE=$(CreateBill "$SUP" "$CON" Quote "$CART")
 MoveCargoToChild "$CART" '' '' "$IJ"
 ORDER=$(CreateBill "$SUP" "$CON" Order "$QUOTE")
@@ -534,7 +534,7 @@ If the user needs a **customer-facing packing list / invoice PDF**, generate tha
 | Firmware link | `GetAssemblyApplicationRelease` (wiki Application Release) |
 | Sales docs | `CreateBill`, `AddCargo`, `MoveCargo` / `MoveCargoToChild`, `GetOutstandingBill` |
 | PO / tracking | `GetBillReference` |
-| Prices | `GetJob`, `GetSchedule`, `GetIndividualJobSchedule`, `PutAssemblyJobPrice` |
+| Prices | `GetJob`, `GetSchedule`, `SetSchedule`, `GetIndividualJobSchedule`, `SetPrice`, `PutAssemblyJobPrice` |
 | Books | `Book`, `ListBooks`, **`AR Sale`**, **`AR Payment`**, … |
 | Documents | `DocumentLineItems`, `DocumentBOM`, `DocumentParty` |
 | Reports | `LineItems`, `JournalReport`, `LedgerReport`, `Parts`, `Assemblies`, `AssemblyParts` |

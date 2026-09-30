@@ -2,7 +2,8 @@
 
 # Usage: StopCampaignContent <campaign_id> <content_id>
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 CAMPAIGN="${1:-}"
 CONTENT="${2:-}"
 if [[ -z "$CAMPAIGN" || -z "$CONTENT" ]]; then

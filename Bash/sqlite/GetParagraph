@@ -3,7 +3,8 @@
 # Usage: GetParagraph <paragraph_value> [<culture>]
 # Find-or-insert. Same idea as GetSentence. Paragraph has no length column.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 PARAGRAPH_VALUE="${1:-}"
 CULTURE="${2:-en-US}"

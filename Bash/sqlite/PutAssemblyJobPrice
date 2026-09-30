@@ -3,7 +3,8 @@
 # Usage: PutAssemblyJobPrice <assembly_part_id> <individual_job_id> <price>
 # INSERT into AssemblyIndividualJobPrice (wiki price schedule line).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 ASM="${1:-}"
 IJ="${2:-}"

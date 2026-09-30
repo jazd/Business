@@ -3,7 +3,8 @@
 # Usage: ListBooks
 # Seeded BookName labels (en-US culture 1033) for operator catalog.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 sqlite3 -header -column "$SQLITE_DB" "
  SELECT BookName.book AS id, Sentence.value AS name, JournalName.journal AS journal

@@ -4,7 +4,8 @@
 # Find-or-insert BillReference (e.g. type 'Sales Order', value PO#).
 # Returns reference id. Parity with PG GetBillReference.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 BILL="${1:-}"
 TYPE="${2:-}"
@@ -23,7 +24,7 @@ if [[ -z "$VALUE" ]]; then
   exit 0
 fi
 
-type_id=$(~/bin/sqlite/GetIdentifier "$TYPE")
+type_id=$("$HERE/GetIdentifier" "$TYPE")
 if [[ -z "$type_id" ]]; then
   echo "Error: could not resolve reference type '$TYPE'" >&2
   exit 1

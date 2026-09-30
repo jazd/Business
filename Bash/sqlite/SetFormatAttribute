@@ -3,8 +3,8 @@
 # Usage: SetFormatAttribute <format_id> <name> [value] [target]
 # target empty means every output. Parity with PG SetFormatAttribute.
 
-source ~/bin/sqlite/common
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 FORMAT="${1:-}"
 NAME="${2:-}"
@@ -16,14 +16,14 @@ if [[ -z "$FORMAT" || -z "$NAME" ]]; then
  exit 1
 fi
 
-name_id=$("$ROOT/GetWord" "$NAME")
+name_id=$("$HERE/GetWord" "$NAME")
 value_sql="NULL"
 target_sql="NULL"
 if [[ -n "$VALUE" ]]; then
- value_sql=$("$ROOT/GetWord" "$VALUE")
+ value_sql=$("$HERE/GetWord" "$VALUE")
 fi
 if [[ -n "$TARGET" ]]; then
- target_sql=$("$ROOT/GetWord" "$TARGET")
+ target_sql=$("$HERE/GetWord" "$TARGET")
 fi
 
 exists=$(sqlite_query_one "

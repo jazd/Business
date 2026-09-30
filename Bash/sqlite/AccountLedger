@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+
+# Usage: AccountLedger <account_name_or_id>
+# Running balance of one account on the General journal (posted IS NULL).
+# Details are the other account on the same entry, en-US name.
+# A name matches Sentence.value in any culture. More than one account exits non-zero.
+# An all-digit argument is the account id.
+# Amounts print with two decimal places. An empty side is blank. Total is last.
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
+
+ACCOUNT="${1:-}"
+
+if [[ $# -ne 1 || -z "$ACCOUNT" ]]; then
+  echo "Usage: AccountLedger <account_name_or_id>" >&2
+  exit 1
+fi
+
+journal_id=$(sqlite_query_one "
+ SELECT jn.journal
+ FROM JournalName jn
+ JOIN Sentence s ON s.id = jn.name
+ WHERE s.value = 'General' AND s.culture = 1033
+ LIMIT 1;
+")
+
+if ! account_id=$(lookup_account "$ACCOUNT"); then
+  echo "Error: account name '$ACCOUNT' matches more than one account" >&2
+  exit 1
+fi
+
+if [[ -z "$journal_id" || -z "$account_id" ]]; then
+  echo "Error: could not resolve General journal or account '$ACCOUNT'" >&2
+  exit 1
+fi
+
+sqlite3 -header -column "$SQLITE_DB" "
+WITH lines AS (
+ SELECT
+  substr('JanFebMarAprMayJunJulAugSepOctNovDec',
+   3 * (CAST(strftime('%m', je.created) AS INTEGER) - 1) + 1, 3)
+   || ' ' || CAST(strftime('%d', je.created) AS INTEGER) AS date,
+  contra_s.value AS details,
+  CASE WHEN NOT je.credit THEN je.amount END AS debit,
+  CASE WHEN je.credit THEN je.amount END AS credit,
+  ROW_NUMBER() OVER (ORDER BY je.created, je.entry, je.id) AS sequence
+ FROM JournalEntry je
+ JOIN JournalEntry contra
+  ON contra.journal = je.journal
+ AND contra.entry = je.entry
+ AND contra.credit != je.credit
+ AND contra.id != je.id
+ JOIN AccountName contra_an ON contra_an.account = contra.account
+ JOIN Sentence contra_s ON contra_s.id = contra_an.name AND contra_s.culture = 1033
+ WHERE je.journal = $journal_id
+  AND je.account = $account_id
+  AND je.posted IS NULL
+),
+running AS (
+ SELECT
+  date,
+  details,
+  debit,
+  credit,
+  sequence,
+  SUM(COALESCE(debit, 0) - COALESCE(credit, 0))
+   OVER (ORDER BY sequence ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS balance
+ FROM lines
+),
+detail_rows AS (
+ SELECT date, details, debit, credit, balance, sequence, 0 AS sortTotal
+ FROM running
+),
+totals AS (
+ SELECT
+  NULL AS date,
+  'Total' AS details,
+  SUM(debit) AS debit,
+  SUM(credit) AS credit,
+  NULL AS balance,
+  NULL AS sequence,
+  1 AS sortTotal
+ FROM detail_rows
+)
+SELECT
+ COALESCE(date, '') AS date,
+ details,
+ CASE
+  WHEN sortTotal = 1 THEN printf('%.2f', COALESCE(debit, 0))
+  WHEN debit IS NULL THEN ''
+  ELSE printf('%.2f', debit)
+ END AS debit,
+ CASE
+  WHEN sortTotal = 1 THEN printf('%.2f', COALESCE(credit, 0))
+  WHEN credit IS NULL THEN ''
+  ELSE printf('%.2f', credit)
+ END AS credit,
+ CASE
+  WHEN balance IS NULL THEN ''
+  ELSE printf('%.2f', balance)
+ END AS balance
+FROM (
+ SELECT * FROM detail_rows
+ UNION ALL
+ SELECT * FROM totals
+)
+ORDER BY sortTotal, sequence;
+"

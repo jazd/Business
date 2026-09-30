@@ -3501,6 +3501,18 @@ GROUP BY Ledgers.ledger,
 SELECT journal,
  journalName,
  entry,
+ account,
+ type,
+ ledger,
+ ledgerName,
+ debit,
+ credit,
+ rightSide,
+ created
+FROM (
+SELECT journal,
+ journalName,
+ entry,
  accountName AS account,
  typeName AS type,
  ledger,
@@ -3508,7 +3520,8 @@ SELECT journal,
  debit,
  credit,
  rightSide,
- created
+ created,
+ 0 AS sortTotal
 FROM JournalEntries
 WHERE posted IS NULL
 UNION ALL
@@ -3522,9 +3535,12 @@ SELECT NULL AS journal,
  SUM(debit) AS debit,
  SUM(credit) AS credit,
  NULL AS rightSide,
- NULL AS created
+ NULL AS created,
+ 1 AS sortTotal
 FROM JournalEntries
 WHERE posted IS NULL
+) AS JournalReportLines
+ORDER BY sortTotal, entry, rightSide
   </sql>
  </view>
 
@@ -3852,7 +3868,30 @@ SELECT
  li.bill,
  li.line,
  li.item AS product,
- li.version AS description,
+ CASE
+  WHEN (
+   SELECT para.value
+   FROM PartDescription pd
+   JOIN I18NParagraph AS para ON para.id = pd.description
+   WHERE pd.part = li.part
+    AND pd.stop IS NULL
+    AND para.value IS NOT NULL
+    AND para.value != !apos;!apos;
+   ORDER BY pd.created DESC
+   LIMIT 1
+  ) IS NULL THEN li.item
+  ELSE li.item || !apos; - !apos; || (
+   SELECT para.value
+   FROM PartDescription pd
+   JOIN I18NParagraph AS para ON para.id = pd.description
+   WHERE pd.part = li.part
+    AND pd.stop IS NULL
+    AND para.value IS NOT NULL
+    AND para.value != !apos;!apos;
+   ORDER BY pd.created DESC
+   LIMIT 1
+  )
+ END AS description,
  COALESCE(li.count, 1) AS qty,
  li.unitPrice AS rate,
  li.currentUnitPrice,

@@ -2,9 +2,10 @@
 -- Business schema upgrade: 0.2.11 -> 0.2.12 (SQLite shop)
 -- =============================================================================
 --
--- Living upgrade path while 0.2.12 is unreleased. Apply to a shop DB that was
--- built or upgraded to 0.2.11 so it reaches the same end state as a fresh
--- 0.2.12 business.sqlite3 template (DDL + seeds that Static would add).
+-- Released hop 0.2.11 -> 0.2.12 (freeze after release). Living work for the next
+-- version is SQLite/0.2.12-0.2.13.sql (and PostgreSQL/0.2.12-0.2.13.sql).
+-- Apply to a shop DB that was built or upgraded to 0.2.11 so it reaches the
+-- same end state as a fresh 0.2.12 business.sqlite3 template.
 --
 -- Fresh shops: make business.sqlite3 / make rebuild-business-sqlite3.
 -- Do not use this script for a greenfield create.

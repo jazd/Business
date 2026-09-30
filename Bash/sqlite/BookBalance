@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
 
-# Usage: BookBalance <book_name> <amount>
+# Usage: BookBalance <book_name> <amount> [YYYY-MM-DD] [time_zone]
 # Runs Book then prints account balances for accounts touched (posted IS NULL).
+# Book rounds the amount to 4 decimal places and stores a civil date.
+# An omitted date is today in the time zone, or the local zone when the time zone is omitted.
 # Soft parity with PG BookBalance (tabular stdout).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 BOOK_NAME="${1:-}"
 AMOUNT="${2:-}"
+DATE="${3-}"
+ZONE="${4-}"
 
-if [[ -z "$BOOK_NAME" || -z "$AMOUNT" ]]; then
-  echo "Usage: BookBalance <book_name> <amount>" >&2
+if [[ $# -gt 4 || -z "$BOOK_NAME" || -z "$AMOUNT" ]]; then
+  echo "Usage: BookBalance <book_name> <amount> [YYYY-MM-DD] [time_zone]" >&2
   exit 1
 fi
 
-entry_id=$(~/bin/sqlite/Book "$BOOK_NAME" "$AMOUNT") || exit 1
+entry_id=$("$HERE/Book" "$BOOK_NAME" "$AMOUNT" "$DATE" "$ZONE") || exit 1
 
 sqlite3 -header -column "$SQLITE_DB" "
  SELECT
