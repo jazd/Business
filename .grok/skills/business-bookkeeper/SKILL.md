@@ -202,9 +202,9 @@ on cargo/`LineItems` + assembly views.
 | User says | Approach |
 |-----------|----------|
 | Record a simple book entry | `Book <name> <amount> [YYYY-MM-DD] [time_zone]` (bash) or `Book('Name', amount)` / `Book('Name', amount, date, zone)` (SQL). An omitted date is today in that zone (local if omitted; session TimeZone on PostgreSQL). Stored as YYYY-MM-DD with no time. Zone only: `Book Rent 100 '' America/New_York` or `Book('Rent', 100, NULL, 'America/New_York')`. |
-| What books exist? | `ListBooks` - Rent, Sale, Sales Credit, Equipment/Return, Loan/Payment, Salary, Supply/Return, Petty Cash, AR Sale/Credit/Payment, commission books, … |
+| What books exist? | `ListBooks` - Rent, Sale, Sales Credit, Equipment/Return, Loan/Payment, Salary, Supply/Return, Petty Cash, AR Sale/Credit/Payment, commission books, Capital, Card Sale, Hosting, … |
 | Split / commission style | `Book 'Sale Jane Doe' 1000` when seeded |
-| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` - debit left, credit right |
+| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` - debit left, credit right. A name on more than one account is an error. An all-digit argument is the account id. |
 | Grokipedia cash ledger | `AccountLedger Cash` after the three `Post` lines in the section below |
 | Book + show lines | `BookBalance <name> <amount> [YYYY-MM-DD] [time_zone]` (same trailing date and zone as Book) |
 | Return / credit memo (books) | `Sales Credit`, `AR Sale Credit`, `Equipment Return`, `Supply Return` - not free-form DELETE |

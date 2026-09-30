@@ -30,6 +30,11 @@
 --     An omitted date is today in the time zone, or the session TimeZone when
 --     the time zone is omitted. An explicit date is stored as given.
 --     Rows already stored are not rewritten.
+--  4) Account 6 name points at sentence 224 (Fixed Assets). Sentence 78 stays
+--     on account 103 and on the Equipment book. JournalEntry rows are not rewritten.
+--     Books Capital, Card Sale, and Hosting are inserted when those rows are missing.
+--     Post raises invalid_parameter_value when a name matches more than one account.
+--     An all-digit argument is an account id.
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '13') - last substantive step
@@ -304,6 +309,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Post rounds each new journal amount to numeric(19,4). The 3-argument Post calls this one.
+-- A name matches Sentence.value in any culture.
+-- More than one account with that name raises invalid_parameter_value and writes nothing.
+-- An all-digit argument is AccountName.account.
 CREATE OR REPLACE FUNCTION Post (
  inDebitAccount varchar,
  inAmount numeric,
@@ -315,6 +323,8 @@ DECLARE
  journal_id integer;
  credit_account_id integer;
  debit_account_id integer;
+ credit_name_count integer;
+ debit_name_count integer;
  entry_id integer;
 BEGIN
  inAmount := round(inAmount, 4);
@@ -333,21 +343,55 @@ BEGIN
  LIMIT 1
  ;
 
- SELECT account
- INTO credit_account_id
- FROM AccountName
- JOIN Sentence ON Sentence.id = AccountName.name
- WHERE Sentence.value = inCreditAccount
- LIMIT 1
- ;
+ IF inCreditAccount ~ '^[0-9]+$' THEN
+  SELECT account
+  INTO credit_account_id
+  FROM AccountName
+  WHERE account = inCreditAccount::integer;
+ ELSE
+  SELECT COUNT(DISTINCT AccountName.account)
+  INTO credit_name_count
+  FROM AccountName
+  JOIN Sentence ON Sentence.id = AccountName.name
+  WHERE Sentence.value = inCreditAccount;
 
- SELECT account
- INTO debit_account_id
- FROM AccountName
- JOIN Sentence ON Sentence.id = AccountName.name
- WHERE Sentence.value = inDebitAccount
- LIMIT 1
- ;
+  IF credit_name_count > 1 THEN
+   RAISE EXCEPTION 'account name % matches more than one account', inCreditAccount
+    USING ERRCODE = 'invalid_parameter_value';
+  END IF;
+
+  SELECT account
+  INTO credit_account_id
+  FROM AccountName
+  JOIN Sentence ON Sentence.id = AccountName.name
+  WHERE Sentence.value = inCreditAccount
+  LIMIT 1;
+ END IF;
+
+ IF inDebitAccount ~ '^[0-9]+$' THEN
+  SELECT account
+  INTO debit_account_id
+  FROM AccountName
+  WHERE account = inDebitAccount::integer;
+ ELSE
+  SELECT COUNT(DISTINCT AccountName.account)
+  INTO debit_name_count
+  FROM AccountName
+  JOIN Sentence ON Sentence.id = AccountName.name
+  WHERE Sentence.value = inDebitAccount;
+
+  IF debit_name_count > 1 THEN
+   RAISE EXCEPTION 'account name % matches more than one account', inDebitAccount
+    USING ERRCODE = 'invalid_parameter_value';
+  END IF;
+
+  SELECT account
+  INTO debit_account_id
+  FROM AccountName
+  JOIN Sentence ON Sentence.id = AccountName.name
+  WHERE Sentence.value = inDebitAccount
+  LIMIT 1;
+ END IF;
 
  IF journal_id IS NOT NULL AND credit_account_id IS NOT NULL AND debit_account_id IS NOT NULL THEN
   INSERT INTO Entry (assemblyApplicationRelease,credential) VALUES (NULL, NULL) RETURNING id INTO entry_id;
@@ -361,6 +405,39 @@ BEGIN
  RETURN ROW(journal_id, entry_id);
 END;
 $$ LANGUAGE plpgsql;
+
+-- Chart account 6 is Fixed Assets (sentence 224). Sentence 78 stays on account 103
+-- and on the Equipment book. Sentence 225 is the Capital book only, not an AccountName.
+-- Sentence 226 is the Card Sale book only. Sentence 227 is the Hosting book and
+-- expense account 109. JournalEntry rows are not rewritten.
+INSERT INTO Sentence (id,culture,value,length) SELECT 224,1033,'Fixed Assets',12 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id = 224 AND culture = 1033);
+INSERT INTO Sentence (id,culture,value,length) SELECT 225,1033,'Capital',7 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id = 225 AND culture = 1033);
+INSERT INTO Sentence (id,culture,value,length) SELECT 226,1033,'Card Sale',9 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id = 226 AND culture = 1033);
+INSERT INTO Sentence (id,culture,value,length) SELECT 227,1033,'Hosting',7 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id = 227 AND culture = 1033);
+
+UPDATE AccountName SET name = 224 WHERE account = 6 AND name = 78;
+
+INSERT INTO AccountName (account, name, type, credit) SELECT 109, 227, 70004, false WHERE NOT EXISTS (SELECT 1 FROM AccountName WHERE account = 109);
+
+INSERT INTO BookName (book, name, journal) SELECT 24, 225, 4 WHERE NOT EXISTS (SELECT 1 FROM BookName WHERE book = 24);
+INSERT INTO BookName (book, name, journal) SELECT 25, 226, 2 WHERE NOT EXISTS (SELECT 1 FROM BookName WHERE book = 25);
+INSERT INTO BookName (book, name, journal) SELECT 26, 227, 6 WHERE NOT EXISTS (SELECT 1 FROM BookName WHERE book = 26);
+
+INSERT INTO BookAccount (book, increase, decrease)
+SELECT 24, 100, 5
+WHERE NOT EXISTS (
+ SELECT 1 FROM BookAccount WHERE book = 24 AND increase = 100 AND decrease = 5 AND stop IS NULL
+);
+INSERT INTO BookAccount (book, increase, decrease)
+SELECT 25, 110, 102
+WHERE NOT EXISTS (
+ SELECT 1 FROM BookAccount WHERE book = 25 AND increase = 110 AND decrease = 102 AND stop IS NULL
+);
+INSERT INTO BookAccount (book, increase, decrease)
+SELECT 26, 109, 100
+WHERE NOT EXISTS (
+ SELECT 1 FROM BookAccount WHERE book = 26 AND increase = 109 AND decrease = 100 AND stop IS NULL
+);
 
 -- Mark schema upgraded to 0.2.13 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped

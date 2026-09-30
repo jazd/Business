@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-# Usage: AccountLedger <account_name>
+# Usage: AccountLedger <account_name_or_id>
 # Running balance of one account on the General journal (posted IS NULL).
 # Details are the other account on the same entry, en-US name.
-# A name matches Sentence.value in any culture. en-US (1033) is preferred.
+# A name matches Sentence.value in any culture. More than one account exits non-zero.
+# An all-digit argument is the account id.
 # Amounts print with two decimal places. An empty side is blank. Total is last.
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -12,11 +13,9 @@ source "$HERE/common"
 ACCOUNT="${1:-}"
 
 if [[ $# -ne 1 || -z "$ACCOUNT" ]]; then
-  echo "Usage: AccountLedger <account_name>" >&2
+  echo "Usage: AccountLedger <account_name_or_id>" >&2
   exit 1
 fi
-
-esc_name=$(sql_escape "$ACCOUNT")
 
 journal_id=$(sqlite_query_one "
  SELECT jn.journal
@@ -26,14 +25,10 @@ journal_id=$(sqlite_query_one "
  LIMIT 1;
 ")
 
-account_id=$(sqlite_query_one "
- SELECT an.account
- FROM AccountName an
- JOIN Sentence s ON s.id = an.name
- WHERE s.value = '$esc_name'
- ORDER BY CASE WHEN s.culture = 1033 THEN 0 ELSE 1 END, an.account
- LIMIT 1;
-")
+if ! account_id=$(lookup_account "$ACCOUNT"); then
+  echo "Error: account name '$ACCOUNT' matches more than one account" >&2
+  exit 1
+fi
 
 if [[ -z "$journal_id" || -z "$account_id" ]]; then
   echo "Error: could not resolve General journal or account '$ACCOUNT'" >&2

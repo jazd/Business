@@ -68,7 +68,7 @@ ListBooks
 | **Rent** | Paid rent in cash |
 | **Sale** | Cash sale |
 | **Sales Credit** | Sales credit / reverse cash sale |
-| **Equipment** | Bought equipment cash |
+| **Equipment** | Bought equipment cash. The chart row is Fixed Assets. `Post Equipment` uses this posting account. |
 | **Equipment Return** | Returned equipment |
 | **Loan** | Borrowed cash |
 | **Loan Payment** | Paid down loan |
@@ -81,10 +81,16 @@ ListBooks
 | **AR Payment** | Customer paid AR (Cash / Receivable) - Receipt path |
 | **Sale Jane Doe** / **Sale John Doe** | Commission split sales (wiki complex books) |
 | **AP Donation** / **Donation Payment** | Donation AP path if used |
+| **Capital** | Owner cash in: debit Cash, credit Equity. `Post Capital` is the Equity account (es-MX name Capital), not this book. |
+| **Card Sale** | Card receipt: debit Checking, credit Sales |
+| **Hosting** | Hosting paid from cash: debit Hosting, credit Cash |
 
 ```bash
 Book Rent 100
 Book 'AR Sale' 14.99   # usually via MoveCargoToChild … AR Sale
+Book Capital 100
+Book 'Card Sale' 50
+Book Hosting 25
 Post Cash 500 Sales 2024-01-10   # manual General journal
 BookBalance Sale 50              # Book + show lines for that entry
 JournalReport

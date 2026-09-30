@@ -4,8 +4,9 @@
 # Balanced General journal entry. Prints entry_id.
 # The amount is ROUND(..., 4), matching numeric(19,4). Rows already stored are not rewritten.
 # Parity with PG Post(debit, amount, credit, timestamp) — correct debit/credit sides.
-# A name matches Sentence.value in any culture. en-US (1033) is preferred.
-# Equity's es-MX value is Capital. The lowest account id is used when several rows match.
+# A name matches Sentence.value in any culture. More than one account with that
+# name exits non-zero and writes nothing. An all-digit argument is the account id.
+# Equity's es-MX value is Capital, and that name matches one account.
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 source "$HERE/common"
@@ -33,22 +34,14 @@ journal_id=$(sqlite_query_one "
  LIMIT 1;
 ")
 
-debit_id=$(sqlite_query_one "
- SELECT an.account
- FROM AccountName an
- JOIN Sentence s ON s.id = an.name
- WHERE s.value = '$(sql_escape "$DEBIT")'
- ORDER BY CASE WHEN s.culture = 1033 THEN 0 ELSE 1 END, an.account
- LIMIT 1;
-")
-credit_id=$(sqlite_query_one "
- SELECT an.account
- FROM AccountName an
- JOIN Sentence s ON s.id = an.name
- WHERE s.value = '$(sql_escape "$CREDIT")'
- ORDER BY CASE WHEN s.culture = 1033 THEN 0 ELSE 1 END, an.account
- LIMIT 1;
-")
+if ! debit_id=$(lookup_account "$DEBIT"); then
+ echo "Error: account name '$DEBIT' matches more than one account" >&2
+ exit 1
+fi
+if ! credit_id=$(lookup_account "$CREDIT"); then
+ echo "Error: account name '$CREDIT' matches more than one account" >&2
+ exit 1
+fi
 
 if [[ -z "$journal_id" || -z "$debit_id" || -z "$credit_id" ]]; then
   echo "Error: could not resolve General journal or accounts ('$DEBIT'/'$CREDIT')" >&2

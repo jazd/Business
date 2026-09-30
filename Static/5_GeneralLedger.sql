@@ -6,7 +6,7 @@ INSERT INTO AccountName (account, name, type, credit) VALUES (2, 71, 70001, true
 INSERT INTO AccountName (account, name, type, credit) VALUES (3, 72, 70003, true);  -- Income
 INSERT INTO AccountName (account, name, type, credit) VALUES (4, 73, 70004, false); -- Expense
 INSERT INTO AccountName (account, name, type, credit) VALUES (5, 74, 70002, true);  -- Equity
-INSERT INTO AccountName (account, name, type, credit) VALUES (6, 78, 70000, false); -- Equipment
+INSERT INTO AccountName (account, name, type, credit) VALUES (6, 224, 70000, false); -- Fixed Assets
 INSERT INTO AccountName (account, name, type, credit) VALUES (7, 89, 70001, true);  -- Payable
 --
 INSERT INTO LedgerName (ledger, name) VALUES (1, 84);
@@ -67,6 +67,7 @@ INSERT INTO AccountName (account, name, type, credit) VALUES (105, 81,  70004, f
 INSERT INTO AccountName (account, name, type, credit) VALUES (106, 100, 70004, false); -- Supply
 INSERT INTO AccountName (account, name, type, credit) VALUES (107, 121, 70000, false); -- Petty Cash
 INSERT INTO AccountName (account, name, type, credit) VALUES (108, 90,  70000, false); -- Receivable
+INSERT INTO AccountName (account, name, type, credit) VALUES (109, 227, 70004, false); -- Hosting
 -- Sub Accounts
 INSERT INTO AccountName (account, name, type, credit) VALUES (110, 215, 70000, false); -- Checking
 INSERT INTO AccountName (account, name, type, credit) VALUES (111, 216, 70000, false); -- Savings
@@ -123,3 +124,10 @@ INSERT INTO BookAccount (book, increase, decrease, split) VALUES (23, NULL, 110,
 INSERT INTO BookAccount (book, increase, decrease, split) VALUES (23, 210, NULL, .50);  -- Donation Food Bank: 50%
 INSERT INTO BookAccount (book, increase, decrease, split) VALUES (23, 211, NULL, .10);  -- Donation Humane Society: 10%
 INSERT INTO BookAccount (book, increase, decrease, split) VALUES (23, 212, NULL, .40);  -- Donation Fisher House: 40%
+-- Shop books. Capital's sentence is not an AccountName.
+INSERT INTO BookName (book, name, journal) VALUES (24, 225, 4); -- Capital, Receipts
+INSERT INTO BookName (book, name, journal) VALUES (25, 226, 2); -- Card Sale, Sales
+INSERT INTO BookName (book, name, journal) VALUES (26, 227, 6); -- Hosting, Payments
+INSERT INTO BookAccount (book, increase, decrease) VALUES (24, 100, 5);   -- Capital: Cash, Equity
+INSERT INTO BookAccount (book, increase, decrease) VALUES (25, 110, 102); -- Card Sale: Checking, Sales
+INSERT INTO BookAccount (book, increase, decrease) VALUES (26, 109, 100); -- Hosting: Hosting, Cash

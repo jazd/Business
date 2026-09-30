@@ -238,7 +238,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Post a balanced General Journal entry
+-- Post a balanced General Journal entry.
+-- A name matches Sentence.value in any culture.
+-- More than one account with that name raises invalid_parameter_value and writes nothing.
+-- An all-digit argument is AccountName.account.
 CREATE OR REPLACE FUNCTION Post (
  inDebitAccount varchar,
  inAmount numeric,
@@ -250,6 +253,8 @@ DECLARE
  journal_id integer;
  credit_account_id integer;
  debit_account_id integer;
+ credit_name_count integer;
+ debit_name_count integer;
  entry_id integer;
 BEGIN
  -- numeric(19,4). New amounts are rounded here. Rows already stored are not rewritten.
@@ -269,21 +274,55 @@ BEGIN
  LIMIT 1
  ;
 
- SELECT account
- INTO credit_account_id
- FROM AccountName
- JOIN Sentence ON Sentence.id = AccountName.name
- WHERE Sentence.value = inCreditAccount
- LIMIT 1
- ;
+ IF inCreditAccount ~ '^[0-9]+$' THEN
+  SELECT account
+  INTO credit_account_id
+  FROM AccountName
+  WHERE account = inCreditAccount::integer;
+ ELSE
+  SELECT COUNT(DISTINCT AccountName.account)
+  INTO credit_name_count
+  FROM AccountName
+  JOIN Sentence ON Sentence.id = AccountName.name
+  WHERE Sentence.value = inCreditAccount;
 
- SELECT account
- INTO debit_account_id
- FROM AccountName
- JOIN Sentence ON Sentence.id = AccountName.name
- WHERE Sentence.value = inDebitAccount
- LIMIT 1
- ;
+  IF credit_name_count > 1 THEN
+   RAISE EXCEPTION 'account name % matches more than one account', inCreditAccount
+    USING ERRCODE = 'invalid_parameter_value';
+  END IF;
+
+  SELECT account
+  INTO credit_account_id
+  FROM AccountName
+  JOIN Sentence ON Sentence.id = AccountName.name
+  WHERE Sentence.value = inCreditAccount
+  LIMIT 1;
+ END IF;
+
+ IF inDebitAccount ~ '^[0-9]+$' THEN
+  SELECT account
+  INTO debit_account_id
+  FROM AccountName
+  WHERE account = inDebitAccount::integer;
+ ELSE
+  SELECT COUNT(DISTINCT AccountName.account)
+  INTO debit_name_count
+  FROM AccountName
+  JOIN Sentence ON Sentence.id = AccountName.name
+  WHERE Sentence.value = inDebitAccount;
+
+  IF debit_name_count > 1 THEN
+   RAISE EXCEPTION 'account name % matches more than one account', inDebitAccount
+    USING ERRCODE = 'invalid_parameter_value';
+  END IF;
+
+  SELECT account
+  INTO debit_account_id
+  FROM AccountName
+  JOIN Sentence ON Sentence.id = AccountName.name
+  WHERE Sentence.value = inDebitAccount
+  LIMIT 1;
+ END IF;
 
  IF journal_id IS NOT NULL AND credit_account_id IS NOT NULL AND debit_account_id IS NOT NULL THEN
   -- Get a new unique entry_id

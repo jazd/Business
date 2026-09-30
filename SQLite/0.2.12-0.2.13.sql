@@ -31,6 +31,11 @@
 --     An omitted date is today in the given time zone, or the local zone when the
 --     time zone is omitted. An explicit date is stored as given.
 --     Rows already stored are not rewritten. No column change.
+--  5) Account 6 name points at sentence 224 (Fixed Assets). Sentence 78 stays
+--     on account 103 and on the Equipment book. JournalEntry rows are not rewritten.
+--     Books Capital, Card Sale, and Hosting are inserted when those rows are missing.
+--     Bash Post exits non-zero when a name matches more than one account.
+--     An all-digit argument is an account id.
 --
 -- SQLite does not enforce varchar(n). Width-only ALTERs are no-ops here.
 --
@@ -212,3 +217,36 @@ GROUP BY ledger,
 ) AS LedgerReportLines
 ORDER BY ledger, sortTotal, sequence
 LIMIT -1;
+
+-- Chart account 6 is Fixed Assets (sentence 224). Sentence 78 stays on account 103
+-- and on the Equipment book. Sentence 225 is the Capital book only, not an AccountName.
+-- Sentence 226 is the Card Sale book only. Sentence 227 is the Hosting book and
+-- expense account 109. JournalEntry rows are not rewritten.
+INSERT INTO Sentence (id,culture,value,length) SELECT 224,1033,'Fixed Assets',12 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id = 224 AND culture = 1033);
+INSERT INTO Sentence (id,culture,value,length) SELECT 225,1033,'Capital',7 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id = 225 AND culture = 1033);
+INSERT INTO Sentence (id,culture,value,length) SELECT 226,1033,'Card Sale',9 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id = 226 AND culture = 1033);
+INSERT INTO Sentence (id,culture,value,length) SELECT 227,1033,'Hosting',7 WHERE NOT EXISTS (SELECT 1 FROM Sentence WHERE id = 227 AND culture = 1033);
+
+UPDATE AccountName SET name = 224 WHERE account = 6 AND name = 78;
+
+INSERT INTO AccountName (account, name, type, credit) SELECT 109, 227, 70004, false WHERE NOT EXISTS (SELECT 1 FROM AccountName WHERE account = 109);
+
+INSERT INTO BookName (book, name, journal) SELECT 24, 225, 4 WHERE NOT EXISTS (SELECT 1 FROM BookName WHERE book = 24);
+INSERT INTO BookName (book, name, journal) SELECT 25, 226, 2 WHERE NOT EXISTS (SELECT 1 FROM BookName WHERE book = 25);
+INSERT INTO BookName (book, name, journal) SELECT 26, 227, 6 WHERE NOT EXISTS (SELECT 1 FROM BookName WHERE book = 26);
+
+INSERT INTO BookAccount (book, increase, decrease)
+SELECT 24, 100, 5
+WHERE NOT EXISTS (
+ SELECT 1 FROM BookAccount WHERE book = 24 AND increase = 100 AND decrease = 5 AND stop IS NULL
+);
+INSERT INTO BookAccount (book, increase, decrease)
+SELECT 25, 110, 102
+WHERE NOT EXISTS (
+ SELECT 1 FROM BookAccount WHERE book = 25 AND increase = 110 AND decrease = 102 AND stop IS NULL
+);
+INSERT INTO BookAccount (book, increase, decrease)
+SELECT 26, 109, 100
+WHERE NOT EXISTS (
+ SELECT 1 FROM BookAccount WHERE book = 26 AND increase = 109 AND decrease = 100 AND stop IS NULL
+);
