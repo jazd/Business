@@ -27,6 +27,10 @@
 --  3) Accounts, Ledgers, LedgerBalance, and LedgerReport.
 --     LedgerReport sums journal lines onto the chart account of the same type
 --     (Asset, Liability, Income, Expenses). Amounts are two-decimal text. Total is last.
+--  4) Bash Book and BookBalance write created as YYYY-MM-DD on each new journal line.
+--     An omitted date is today in the given time zone, or the local zone when the
+--     time zone is omitted. An explicit date is stored as given.
+--     Rows already stored are not rewritten. No column change.
 --
 -- SQLite does not enforce varchar(n). Width-only ALTERs are no-ops here.
 --

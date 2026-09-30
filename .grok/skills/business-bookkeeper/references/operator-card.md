@@ -34,7 +34,7 @@ Wiki: `Business.wiki/Examples.md` (**Parts**, **Inventory Movement**).
 | Export invoice lines | `DocumentLineItems <bill> tsv` |
 | Invoice PDF (QB-style) | `InvoicePDF <bill_id>` -> `~/business-shop/invoices/` |
 | List named books | `ListBooks` |
-| Paid rent / cash sale / … | `Book Rent\|Sale\|… <amt>` |
+| Paid rent / cash sale / … | `Book Rent\|Sale\|… <amt> [YYYY-MM-DD] [zone]` |
 | Credit / return (books) | `Sales Credit`, `AR Sale Credit`, `Equipment Return`, `Supply Return` |
 | Manual journal | `Post <debit> <amount> <credit> [date]` |
 | Show journal | `JournalReport` |

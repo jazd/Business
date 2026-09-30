@@ -16,18 +16,33 @@ CREATE TYPE JournalEntryResult AS (
 );
 
 --
--- Book single amounts into double entry Journal
+-- Book single amounts into double entry Journal.
+-- Book(varchar, numeric) and Book(varchar, numeric, date) call this function.
+-- A new line stores created as a civil date and no time. An omitted date is
+-- today in inTimeZone, or in the session TimeZone when inTimeZone is omitted.
+-- An explicit date is stored as given. Rows already stored are not rewritten.
 CREATE OR REPLACE FUNCTION Book (
  inBook varchar,
- inAmount numeric
+ inAmount numeric,
+ inDate date,
+ inTimeZone varchar
 ) RETURNS JournalEntryResult AS $$
 DECLARE
  book_id integer;
  entry_id integer;
  journal_id integer;
+ entry_date date;
 BEGIN
  -- numeric(19,4). New amounts are rounded here. Rows already stored are not rewritten.
  inAmount := round(inAmount, 4);
+
+ IF inDate IS NOT NULL THEN
+  entry_date := inDate;
+ ELSIF inTimeZone IS NULL OR btrim(inTimeZone) = '' THEN
+  entry_date := CAST(NOW() AS date);
+ ELSE
+  entry_date := CAST((NOW() AT TIME ZONE inTimeZone) AS date);
+ END IF;
 
  -- Pickup book and journal to use
  SELECT book, journal
@@ -40,13 +55,14 @@ BEGIN
  -- Get a new unique entry_id
  INSERT INTO Entry (assemblyApplicationRelease,credential) VALUES (NULL, NULL) RETURNING id INTO entry_id;
 
- INSERT INTO JournalEntry (journal, book, entry,  account, credit, amount)
+ INSERT INTO JournalEntry (journal, book, entry, account, credit, amount, created)
  SELECT journal,
   book,
   entry_id AS entry,
   increase AS account,
   NOT increaseCredit AS credit,
-  round((inAmount * increaseCreditIncrease) * split, 4) AS amount
+  round((inAmount * increaseCreditIncrease) * split, 4) AS amount,
+  entry_date
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * increaseCreditIncrease IS NOT NULL
@@ -56,7 +72,8 @@ BEGIN
   entry_id AS entry,
   increase AS account,
   increaseCredit AS credit,
-  round((inAmount * increaseDebitIncrease) * split, 4) AS amount
+  round((inAmount * increaseDebitIncrease) * split, 4) AS amount,
+  entry_date
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * increaseDebitIncrease IS NOT NULL
@@ -66,7 +83,8 @@ BEGIN
   entry_id AS entry,
   decrease AS account,
   NOT decreaseCredit AS credit,
-  round((inAmount * decreaseCreditDecrease) * split, 4) AS amount
+  round((inAmount * decreaseCreditDecrease) * split, 4) AS amount,
+  entry_date
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * decreaseCreditDecrease IS NOT NULL
@@ -76,7 +94,8 @@ BEGIN
   entry_id AS entry,
   decrease AS account,
   decreaseCredit AS credit,
-  round((inAmount * decreaseDebitDecrease) * split, 4) AS amount
+  round((inAmount * decreaseDebitDecrease) * split, 4) AS amount,
+  entry_date
  FROM Books
  WHERE Books.book = book_id
   AND inAmount * decreaseDebitDecrease IS NOT NULL
@@ -86,10 +105,32 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Book and return new balances
-CREATE OR REPLACE FUNCTION BookBalance (
+CREATE OR REPLACE FUNCTION Book (
+ inBook varchar,
+ inAmount numeric,
+ inDate date
+) RETURNS JournalEntryResult AS $$
+BEGIN
+ RETURN Book(inBook, inAmount, inDate, NULL::varchar);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION Book (
  inBook varchar,
  inAmount numeric
+) RETURNS JournalEntryResult AS $$
+BEGIN
+ RETURN Book(inBook, inAmount, NULL::date, NULL::varchar);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Book and return new balances. Date and time zone follow the amount and
+-- are passed to Book. BookBalance(varchar, numeric) calls this function.
+CREATE OR REPLACE FUNCTION BookBalance (
+ inBook varchar,
+ inAmount numeric,
+ inDate date,
+ inTimeZone varchar
 ) RETURNS TABLE (
  book integer,
  entry integer,
@@ -114,8 +155,8 @@ BEGIN
   LIMIT 1
  );
 
- -- Book rounds inAmount to 4 decimal places before insert.
- SELECT * INTO journal_id, entry_id FROM Book(inBook, inAmount);
+ -- Book rounds inAmount to 4 decimal places before insert and stores a civil date.
+ SELECT * INTO journal_id, entry_id FROM Book(inBook, inAmount, inDate, inTimeZone);
 
  RETURN QUERY
   SELECT book_id AS book,
@@ -151,6 +192,49 @@ BEGIN
    AND Sentence.culture = 1033
   GROUP BY Transactions.account, AccountName.name, AccountName.credit, AccountName.type, Word.value, Sentence.value
   ;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION BookBalance (
+ inBook varchar,
+ inAmount numeric,
+ inDate date
+) RETURNS TABLE (
+ book integer,
+ entry integer,
+ account integer,
+ nameId integer,
+ name varchar,
+ rightside boolean,
+ type integer,
+ typeName varchar,
+ debit numeric,
+ credit numeric
+) AS $$
+BEGIN
+ RETURN QUERY
+  SELECT * FROM BookBalance(inBook, inAmount, inDate, NULL::varchar);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION BookBalance (
+ inBook varchar,
+ inAmount numeric
+) RETURNS TABLE (
+ book integer,
+ entry integer,
+ account integer,
+ nameId integer,
+ name varchar,
+ rightside boolean,
+ type integer,
+ typeName varchar,
+ debit numeric,
+ credit numeric
+) AS $$
+BEGIN
+ RETURN QUERY
+  SELECT * FROM BookBalance(inBook, inAmount, NULL::date, NULL::varchar);
 END;
 $$ LANGUAGE plpgsql;
 

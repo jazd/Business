@@ -196,6 +196,7 @@ Ship / bill of lading headings in the wiki are still stubs - track fulfilment vi
 ### Accounting
 
 - Named **books** (e.g. Rent, Sale) post balanced journal lines.
+- **Book** and **BookBalance** take an optional date and time zone after the amount. An omitted date is today in that zone, or the local zone. A new line stores `YYYY-MM-DD` with no time. `Book Rent 100` still works.
 - **JournalReport** / **LedgerReport** for statements.
 - French/Spanish labels: culture inject (es-MX / fr-FR) then the same report views.
 
