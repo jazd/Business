@@ -432,7 +432,7 @@ When `Bash/sqlite` is on `PATH` (each helper finds siblings beside itself; a `~/
 | Parts/BOM | `GetPart*`, `GetPartbySerial`, `PutAssemblyPart`, `RemoveAssemblyPart`, `DocumentBOM` |
 | Commerce | `CreateBill`, `GetOutstandingBill`, `AddCargo`, `MoveCargo`, `MoveCargoToChild`, `GetBillReference` |
 | Pricing | `GetJob`, `GetSchedule`, `GetIndividualJobSchedule`, `PutAssemblyJobPrice` |
-| Accounting | `Book`, `BookBalance`, `Post`, `ListBooks`, `JournalReport` |
+| Accounting | `Book`, `BookBalance`, `Post`, `ListBooks`, `JournalReport`, `LedgerReport` |
 | Documents | `DocumentLineItems`, `DocumentBOM`, `DocumentParty`, **`InvoicePDF`** |
 | EST | `PutAssemblyPublicKey`, `PutCertificateSigningRequest`, `PutAssemblyCertificateSigningRequest`, `PutCertificate` |
 

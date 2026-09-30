@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+
+# Usage: LedgerReport [ledger_id] [culture]
+#   culture: en | en-US | 1033 (default)
+#            es | es-MX | spanish | 2058
+#            fr | fr-FR | french  | 1036
+# Chart-header balances for one ledger: the chart account whose type matches
+# each open journal line (Asset, Liability, Income, Expenses). Not posting
+# accounts (Cash, Equipment, Loan).
+# Amounts print with two decimal places. Total is the last row.
+# Uses Sentence rows for the requested culture (fallback en-US 1033).
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
+
+LEDGER="${1:-1}"
+CULTURE_ARG="${2:-en}"
+
+if [[ "$LEDGER" =~ ^(en|en-US|es|es-MX|spanish|fr|fr-FR|french|1033|2058|1036)$ ]]; then
+  CULTURE_ARG="$LEDGER"
+  LEDGER=1
+fi
+
+if ! [[ "$LEDGER" =~ ^[0-9]+$ ]]; then
+  echo "Usage: LedgerReport [ledger_id] [en|es|fr|1033|2058|1036]" >&2
+  exit 1
+fi
+
+case "$(echo "$CULTURE_ARG" | tr '[:upper:]' '[:lower:]')" in
+  en|en-us|1033|"") CULTURE=1033 ;;
+  es|es-mx|spanish|2058) CULTURE=2058 ;;
+  fr|fr-fr|french|1036) CULTURE=1036 ;;
+  *)
+    if [[ "$CULTURE_ARG" =~ ^[0-9]+$ ]]; then
+      CULTURE="$CULTURE_ARG"
+    else
+      echo "Error: unknown culture '$CULTURE_ARG' (use en, es, fr, or LCID)" >&2
+      exit 1
+    fi
+    ;;
+esac
+
+sqlite3 -header -column "$SQLITE_DB" "
+WITH lines AS (
+ SELECT
+  COALESCE(led_c.value, led_en.value) AS ledgerName,
+  la.sequence AS sequence,
+  COALESCE(acc_c.value, acc_en.value) AS accountName,
+  CASE WHEN NOT je.credit THEN je.amount END AS debit,
+  CASE WHEN je.credit THEN je.amount END AS credit
+ FROM JournalEntry je
+ JOIN AccountName posting ON posting.account = je.account
+ JOIN LedgerJournal lj ON lj.journal = je.journal AND lj.ledger = $LEDGER
+ JOIN LedgerName ln ON ln.ledger = lj.ledger
+ JOIN Sentence led_en ON led_en.id = ln.name AND led_en.culture = 1033
+ LEFT JOIN Sentence led_c ON led_c.id = ln.name AND led_c.culture = $CULTURE
+ JOIN LedgerAccount la ON la.ledger = ln.ledger
+ JOIN AccountName an ON an.account = la.account AND an.type = posting.type
+ JOIN Sentence acc_en ON acc_en.id = an.name AND acc_en.culture = 1033
+ LEFT JOIN Sentence acc_c ON acc_c.id = an.name AND acc_c.culture = $CULTURE
+ WHERE je.posted IS NULL
+),
+grouped AS (
+ SELECT ledgerName, sequence, accountName,
+  SUM(debit) AS debit,
+  SUM(credit) AS credit,
+  0 AS sortTotal
+ FROM lines
+ GROUP BY ledgerName, sequence, accountName
+),
+totals AS (
+ SELECT ledgerName,
+  NULL AS sequence,
+  'Total' AS accountName,
+  SUM(debit) AS debit,
+  SUM(credit) AS credit,
+  1 AS sortTotal
+ FROM grouped
+ GROUP BY ledgerName
+)
+SELECT ledgerName AS ledger,
+ accountName AS account,
+ CASE
+  WHEN sortTotal = 1 THEN printf('%.2f', COALESCE(debit, 0))
+  WHEN debit IS NULL THEN ''
+  ELSE printf('%.2f', debit)
+ END AS debit,
+ CASE
+  WHEN sortTotal = 1 THEN printf('%.2f', COALESCE(credit, 0))
+  WHEN credit IS NULL THEN ''
+  ELSE printf('%.2f', credit)
+ END AS credit
+FROM (
+ SELECT * FROM grouped
+ UNION ALL
+ SELECT * FROM totals
+)
+ORDER BY sortTotal, sequence;
+"

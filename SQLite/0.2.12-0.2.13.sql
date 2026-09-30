@@ -24,6 +24,9 @@
 --
 --  1) JournalReport: two-decimal text amounts, no scientific notation; Total row last
 --  2) No column change. Bash Book and Post round each new journal amount to 4 decimal places.
+--  3) Accounts, Ledgers, LedgerBalance, and LedgerReport.
+--     LedgerReport sums journal lines onto the chart account of the same type
+--     (Asset, Liability, Income, Expenses). Amounts are two-decimal text. Total is last.
 --
 -- SQLite does not enforce varchar(n). Width-only ALTERs are no-ops here.
 --
@@ -82,4 +85,126 @@ FROM JournalEntries
 WHERE posted IS NULL
 ) AS JournalReportLines
 ORDER BY sortTotal, entry, rightSide
+LIMIT -1;
+
+-- Chart accounts and the ledger that lists them. LedgerReport sums open
+-- journal lines (posted IS NULL) onto the chart account of the same type.
+-- Amounts on LedgerReport are text with two decimal places. Total is last.
+-- SQLite keeps ORDER BY on a view only when LIMIT is present; LIMIT -1 returns every row.
+DROP VIEW IF EXISTS LedgerReport;
+DROP VIEW IF EXISTS LedgerBalance;
+DROP VIEW IF EXISTS Ledgers;
+DROP VIEW IF EXISTS Accounts;
+
+CREATE VIEW Accounts AS
+SELECT AccountName.account,
+ I18NSentence.value AS name,
+ AccountName.type,
+ TypeName.value AS typeName,
+ IndividualAccount.individual,
+ COALESCE(People.fullname, Entities.name) AS individualName,
+ IndividualAccount.type AS individualAccountType,
+ IndividualAccountType.value AS individualAccountTypeName,
+ AccountName.credit,
+ CASE WHEN NOT AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS debitIncrease,
+ CASE WHEN AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS debitDecrease,
+ CASE WHEN AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS creditIncrease,
+ CASE WHEN NOT AccountName.credit THEN
+  1
+ ELSE
+  NULL
+ END AS creditDecrease
+FROM AccountName
+JOIN I18NSentence ON I18NSentence.id = AccountName.name
+JOIN I18NWord AS TypeName ON TypeName.id = AccountName.type
+LEFT JOIN IndividualAccount ON IndividualAccount.account = AccountName.account
+ AND IndividualAccount.stop IS NULL
+LEFT JOIN People ON People.individual = IndividualAccount.individual
+LEFT JOIN Entities ON Entities.individual = IndividualAccount.individual
+LEFT JOIN I18NWord AS IndividualAccountType ON IndividualAccountType.id = IndividualAccount.type;
+
+CREATE VIEW Ledgers AS
+SELECT LedgerName.ledger,
+ I18NSentence.value AS name,
+ LedgerAccount.sequence,
+ Accounts.account,
+ Accounts.name AS accountName,
+ Accounts.type,
+ Accounts.typeName,
+ Accounts.credit,
+ Accounts.debitIncrease,
+ Accounts.debitDecrease,
+ Accounts.creditIncrease,
+ Accounts.creditDecrease
+FROM LedgerName
+JOIN I18NSentence ON I18NSentence.id = LedgerName.name
+JOIN LedgerAccount ON LedgerAccount.ledger = LedgerName.ledger
+JOIN Accounts ON Accounts.account = LedgerAccount.account;
+
+CREATE VIEW LedgerBalance AS
+SELECT Ledgers.ledger,
+ Ledgers.name AS ledgerName,
+ Ledgers.sequence,
+ Ledgers.account,
+ Ledgers.accountName,
+ Ledgers.type,
+ Ledgers.typeName,
+ SUM(JournalEntries.debit) AS debit,
+ SUM(JournalEntries.credit) AS credit
+FROM JournalEntries
+JOIN Ledgers ON Ledgers.ledger = JournalEntries.ledger
+ AND Ledgers.type = JournalEntries.type
+WHERE JournalEntries.posted IS NULL
+GROUP BY Ledgers.ledger,
+ Ledgers.name,
+ Ledgers.sequence,
+ Ledgers.account,
+ Ledgers.accountName,
+ Ledgers.type,
+ Ledgers.typeName;
+
+CREATE VIEW LedgerReport AS
+SELECT ledger,
+ sequence,
+ ledgerName,
+ accountName,
+ typeName,
+ CASE WHEN debit IS NULL THEN NULL ELSE printf('%.2f', debit) END AS debit,
+ CASE WHEN credit IS NULL THEN NULL ELSE printf('%.2f', credit) END AS credit
+FROM (
+SELECT ledger,
+ sequence,
+ ledgerName,
+ accountName,
+ typeName,
+ debit,
+ credit,
+ 0 AS sortTotal
+FROM LedgerBalance
+UNION ALL
+SELECT ledger,
+ NULL AS sequence,
+ ledgerName,
+ 'Total' AS accountName,
+ NULL AS typeName,
+ COALESCE(SUM(debit), 0) AS debit,
+ COALESCE(SUM(credit), 0) AS credit,
+ 1 AS sortTotal
+FROM LedgerBalance
+GROUP BY ledger,
+ ledgerName
+) AS LedgerReportLines
+ORDER BY ledger, sortTotal, sequence
 LIMIT -1;
