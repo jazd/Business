@@ -36,7 +36,8 @@ Wiki: `Business.wiki/Examples.md` (**Parts**, **Inventory Movement**).
 | List named books | `ListBooks` |
 | Paid rent / cash sale / … | `Book Rent\|Sale\|… <amt> [YYYY-MM-DD] [zone]` |
 | Credit / return (books) | `Sales Credit`, `AR Sale Credit`, `Equipment Return`, `Supply Return` |
-| Manual journal | `Post <debit> <amount> <credit> [date]` |
+| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` |
+| Grokipedia cash ledger | three `Post` lines below, then `AccountLedger Cash` |
 | Show journal | `JournalReport` |
 | Report in French / Spanish | inject culture **1036** / **2058**; clear after |
 | Mailing list on/off | `ListSubscribeEmail` / `ListUnSubscribe` |
@@ -77,6 +78,14 @@ Show the journal / does it balance? -> JournalReport
 Now in Spanish                  -> JournalReport es
 Now in French                   -> JournalReport fr
 # Total debit 21350 = credit 21350 (true double-entry, all three languages)
+
+# Grokipedia cash ledger (wiki Post to General Journal). Capital prints as Equity.
+Post Cash 10000 Capital 2024-01-01
+Post Equipment 2000 Cash 2024-01-05
+Post Cash 500 Sales 2024-01-10
+AccountLedger Cash
+# Jan 1 Equity 10000.00 balance 10000.00; Jan 5 Equipment credit 2000.00 balance 8000.00
+# Jan 10 Sales 500.00 balance 8500.00; Total 10500.00 / 2000.00
 ```
 
 ## Environment

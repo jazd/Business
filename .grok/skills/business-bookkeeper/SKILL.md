@@ -204,7 +204,8 @@ on cargo/`LineItems` + assembly views.
 | Record a simple book entry | `Book <name> <amount> [YYYY-MM-DD] [time_zone]` (bash) or `Book('Name', amount)` / `Book('Name', amount, date, zone)` (SQL). An omitted date is today in that zone (local if omitted; session TimeZone on PostgreSQL). Stored as YYYY-MM-DD with no time. Zone only: `Book Rent 100 '' America/New_York` or `Book('Rent', 100, NULL, 'America/New_York')`. |
 | What books exist? | `ListBooks` - Rent, Sale, Sales Credit, Equipment/Return, Loan/Payment, Salary, Supply/Return, Petty Cash, AR Sale/Credit/Payment, commission books, … |
 | Split / commission style | `Book 'Sale Jane Doe' 1000` when seeded |
-| Manual journal | `Post <debit> <amount> <credit> [date]` - debit left, credit right |
+| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` - debit left, credit right |
+| Grokipedia cash ledger | `AccountLedger Cash` after the three `Post` lines in the section below |
 | Book + show lines | `BookBalance <name> <amount> [YYYY-MM-DD] [time_zone]` (same trailing date and zone as Book) |
 | Return / credit memo (books) | `Sales Credit`, `AR Sale Credit`, `Equipment Return`, `Supply Return` - not free-form DELETE |
 | P&L-ish / T-accounts | `LedgerReport` |
@@ -250,6 +251,28 @@ Spanish/French labels match wiki Accounting I18N (`es-MX` 2058, `fr-FR` 1036): e
 7. “Now in French” -> **JournalReport fr**.
 
 Do **not** make the user say “debit expense credit cash”; translate plain language into the named books above. If they use different amounts, still use the matching book names and their amounts; only the classic wiki amounts yield Total 21350.
+
+### General journal cash ledger (Grokipedia)
+
+Wiki **Post to General Journal** is the cash ledger in [Grokipedia - Ledger Posting and Balancing](https://grokipedia.com/page/Double-entry_bookkeeping#ledger-posting-and-balancing). Use `Post`, then `AccountLedger`. Do not paste the wiki `SELECT Post(...)` into SQLite.
+
+Debit is the first name, credit is the third. Dates are `YYYY-MM-DD`. The article's Capital account is Equity: the en-US sentence is Equity and the es-MX sentence is Capital. `Post` accepts either name. `AccountLedger` prints the en-US contra name, so that line's details cell is Equity.
+
+```text
+Post Cash 10000 Capital 2024-01-01
+Post Equipment 2000 Cash 2024-01-05
+Post Cash 500 Sales 2024-01-10
+AccountLedger Cash
+```
+
+| date | details | debit | credit | balance |
+|------|---------|-------|--------|---------|
+| Jan 1 | Equity | 10000.00 | | 10000.00 |
+| Jan 5 | Equipment | | 2000.00 | 8000.00 |
+| Jan 10 | Sales | 500.00 | | 8500.00 |
+| | Total | 10500.00 | 2000.00 | |
+
+Those are the article's 10,000 / 2,000 / 500 lines and 8,500 debit balance. `AccountLedger` reads the General journal only, so the Wikipedia `Book` demo stays out of this report. On PostgreSQL the same three calls are `Post('Cash', 10000, 'Capital', '2024-01-01')` and the cash-ledger query in the wiki.
 
 ### Near future: bank / credit-card CSV
 
@@ -432,7 +455,7 @@ When `Bash/sqlite` is on `PATH` (each helper finds siblings beside itself; a `~/
 | Parts/BOM | `GetPart*`, `GetPartbySerial`, `PutAssemblyPart`, `RemoveAssemblyPart`, `DocumentBOM` |
 | Commerce | `CreateBill`, `GetOutstandingBill`, `AddCargo`, `MoveCargo`, `MoveCargoToChild`, `GetBillReference` |
 | Pricing | `GetJob`, `GetSchedule`, `GetIndividualJobSchedule`, `PutAssemblyJobPrice` |
-| Accounting | `Book`, `BookBalance`, `Post`, `ListBooks`, `JournalReport`, `LedgerReport` |
+| Accounting | `Book`, `BookBalance`, `Post`, `ListBooks`, `JournalReport`, `LedgerReport`, `AccountLedger` |
 | Documents | `DocumentLineItems`, `DocumentBOM`, `DocumentParty`, **`InvoicePDF`** |
 | EST | `PutAssemblyPublicKey`, `PutCertificateSigningRequest`, `PutAssemblyCertificateSigningRequest`, `PutCertificate` |
 
