@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 NAME="${1:-}"
 MAJOR="${2:-}"
@@ -13,10 +14,10 @@ if [[ -z "$NAME" ]]; then
 fi
 
 # Get word IDs
-name_id=$(~/bin/sqlite/GetWord "$NAME")
-major_id=$( [[ -n "$MAJOR" ]] && ~/bin/sqlite/GetWord "$MAJOR" || echo "" )
-minor_id=$( [[ -n "$MINOR" ]] && ~/bin/sqlite/GetWord "$MINOR" || echo "" )
-patch_id=$( [[ -n "$PATCH" ]] && ~/bin/sqlite/GetWord "$PATCH" || echo "" )
+name_id=$("$HERE/GetWord" "$NAME")
+major_id=$( [[ -n "$MAJOR" ]] && "$HERE/GetWord" "$MAJOR" || echo "" )
+minor_id=$( [[ -n "$MINOR" ]] && "$HERE/GetWord" "$MINOR" || echo "" )
+patch_id=$( [[ -n "$PATCH" ]] && "$HERE/GetWord" "$PATCH" || echo "" )
 
 # Build dynamic WHERE conditions for NULL handling
 major_cond="major $( [[ -n "$major_id" ]] && echo "= $major_id" || echo "IS NULL" )"

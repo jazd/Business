@@ -8,7 +8,8 @@
 # pem: literal or @/path/to/file
 # Returns: certificate id
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 CAPOLICY="${1:-}"
 TYPE="${2:-}"
@@ -66,7 +67,7 @@ fi
 
 type_id=""
 if [[ -n "$TYPE" ]]; then
-  type_id=$(~/bin/sqlite/GetWord "$TYPE")
+  type_id=$("$HERE/GetWord" "$TYPE")
   if [[ -z "$type_id" ]]; then
     echo "Error: Could not resolve type '$TYPE'" >&2
     exit 1

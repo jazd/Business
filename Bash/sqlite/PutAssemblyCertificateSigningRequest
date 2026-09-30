@@ -3,7 +3,8 @@
 # Usage: PutAssemblyCertificateSigningRequest <assembly_id> <csr_id>
 # Soft-stops prior active assembly–CSR links, then inserts the new link.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 ASSEMBLY_ID="${1:-}"
 CSR_ID="${2:-}"

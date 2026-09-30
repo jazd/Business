@@ -5,7 +5,8 @@
 # The amount is ROUND(..., 4), matching numeric(19,4). Rows already stored are not rewritten.
 # Parity with PG Post(debit, amount, credit, timestamp) — correct debit/credit sides.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 DEBIT="${1:-}"
 AMOUNT="${2:-}"

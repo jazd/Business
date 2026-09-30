@@ -4,7 +4,8 @@
 # Requires an existing Postal row for zip (use GetPostal full form first if empty).
 # Parity with PG GetAddress(street, zip, plus).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 STREET="${1:-}"
 ZIP="${2:-}"
@@ -15,7 +16,7 @@ if [[ -z "$STREET" || -z "$ZIP" ]]; then
   exit 1
 fi
 
-zip_id=$(~/bin/sqlite/GetPostal "$ZIP")
+zip_id=$("$HERE/GetPostal" "$ZIP")
 if [[ -z "$zip_id" ]]; then
   echo "Error: no Postal for zip '$ZIP' — run GetPostal <country> <zip> <city> <state_abbr> <state> first" >&2
   exit 1

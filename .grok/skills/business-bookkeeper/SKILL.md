@@ -46,7 +46,7 @@ Canonical product examples live in sibling **`Business.wiki`**
 
 | Layer | Role |
 |-------|------|
-| **SQLite + `Bash/sqlite/`** | Default for local Grok Build sessions (`SQLITE_DB`, scripts on `PATH` via `~/bin/sqlite` -> repo `Bash/sqlite`) |
+| **SQLite + `Bash/sqlite/`** | Default local shop (`SQLITE_DB`). Put `Bash/sqlite` on `PATH`; each helper finds siblings beside itself. `~/bin/sqlite` is an optional link. |
 | **PostgreSQL procedures** | Same semantics when the user points at a live Business DB |
 | **Views** | `LineItems`, `BillDocuments`, `InvoiceLineDetail`, `PartyAddresses`, `PartyPhones`, `BillReferences`, `JournalReport`, `LedgerReport`, `People`, `Entities`, `List`, `Parts`, `Assemblies`, … |
 
@@ -93,8 +93,9 @@ manual `cp` instructions unless bootstrap fails).
      export SQLITE_DB=$HOME/business-shop/business.sqlite3
      ```
    - **Do not overwrite** an existing `~/business-shop/business.sqlite3`.
-4. Ensure `PATH` includes bash helpers when present:  
-   `export PATH="$REPO/Bash/sqlite:$HOME/bin/sqlite:$PATH"`.
+4. Ensure `PATH` includes `Bash/sqlite` when those scripts are present:  
+   `export PATH="$REPO/Bash/sqlite:$PATH"`.  
+   A `~/bin/sqlite` link is optional. Each helper finds `common` and siblings beside itself.
 5. **Tell the user once** which live file you are using (default or override).
 6. If no template and no live DB -> stop and explain what is missing.
 
@@ -421,7 +422,7 @@ cp -a "$SNAP_DIR/latest.sqlite3" "$SQLITE_DB"
 
 ## Bash quick map (local SQLite)
 
-When `Bash/sqlite` is available (`PATH` includes repo `Bash/sqlite` or `~/bin/sqlite`):
+When `Bash/sqlite` is on `PATH` (each helper finds siblings beside itself; a `~/bin/sqlite` link is optional):
 
 | Area | Scripts |
 |------|---------|

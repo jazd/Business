@@ -2,7 +2,8 @@
 
 # Usage: GetPart <part_name> [<version>]
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 PART_NAME="${1:-}"
 VERSION_ARG="${2:-}"
@@ -13,7 +14,7 @@ if [[ -z "$PART_NAME" ]]; then
 fi
 
 # Get sentence ID for the part name
-name_id=$(~/bin/sqlite/GetSentence "$PART_NAME")
+name_id=$("$HERE/GetSentence" "$PART_NAME")
 
 if [[ -z "$name_id" ]]; then
  echo ""
@@ -63,7 +64,7 @@ if [[ "$VERSION_ARG" =~ ^[0-9]+$ ]]; then
     version_value="$VERSION_ARG"
 else
     # String so resolve to version id via GetVersionName
-    version_value=$(~/bin/sqlite/GetVersionName "$VERSION_ARG")
+    version_value=$("$HERE/GetVersionName" "$VERSION_ARG")
     if [[ -z "$version_value" ]]; then
         echo "Error: Could not resolve version name '$VERSION_ARG'" >&2
         exit 1
@@ -96,7 +97,7 @@ else
 
     # Fallback: get/create root part
     if [[ -z "$parent_id" ]]; then
-        parent_id=$(~/bin/sqlite/GetPart "$PART_NAME")
+        parent_id=$("$HERE/GetPart" "$PART_NAME")
         if [[ -z "$parent_id" ]]; then
             echo "" >&2
             exit 1

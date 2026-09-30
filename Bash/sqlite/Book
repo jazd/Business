@@ -8,7 +8,8 @@
 #
 # Named books come from static General Ledger (BookName / BookAccount).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 BOOK_NAME="${1:-}"
 AMOUNT="${2:-}"

@@ -3,7 +3,8 @@
 # Usage: GetGiven <given_name>
 # Parity with PostgreSQL GetGiven.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 VALUE="${1:-}"
 if [[ -z "$VALUE" ]]; then

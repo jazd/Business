@@ -3,7 +3,8 @@
 # Usage: GetSchedule <schedule_name>
 # Parity with PG GetSchedule.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 NAME="${1:-}"
 if [[ -z "$NAME" ]]; then
@@ -11,7 +12,7 @@ if [[ -z "$NAME" ]]; then
   exit 0
 fi
 
-name_id=$(~/bin/sqlite/GetSentence "$NAME")
+name_id=$("$HERE/GetSentence" "$NAME")
 if [[ -z "$name_id" ]]; then
   echo ""
   exit 0

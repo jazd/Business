@@ -6,7 +6,8 @@
 # PEM may be literal or @/path/to/file
 # Returns: csr id
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 PEM_ARG="${1:-}"
 INDIVIDUAL="${2:-}"

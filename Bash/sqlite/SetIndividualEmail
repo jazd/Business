@@ -3,7 +3,8 @@
 # Usage: SetIndividualEmail <individual_id> <email_id|addr@host> [type_word]
 # Parity with PG SetIndividualEmail. Soft-stops other active emails of same type.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 IND="${1:-}"
 EMAIL_ARG="${2:-}"
@@ -17,7 +18,7 @@ fi
 if [[ "$EMAIL_ARG" =~ ^[0-9]+$ ]]; then
   email_id="$EMAIL_ARG"
 else
-  email_id=$(~/bin/sqlite/GetEmail "$EMAIL_ARG")
+  email_id=$("$HERE/GetEmail" "$EMAIL_ARG")
 fi
 if [[ -z "$email_id" ]]; then
   echo "Error: could not resolve email" >&2
@@ -26,7 +27,7 @@ fi
 
 type_sql="NULL"
 if [[ -n "$TYPE" ]]; then
-  type_id=$(~/bin/sqlite/GetWord "$TYPE")
+  type_id=$("$HERE/GetWord" "$TYPE")
   type_sql=$(sql_int_or_null "$type_id")
 fi
 

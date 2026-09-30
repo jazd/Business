@@ -5,7 +5,8 @@
 # Book rounds the amount to 4 decimal places before insert.
 # Soft parity with PG BookBalance (tabular stdout).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 BOOK_NAME="${1:-}"
 AMOUNT="${2:-}"
@@ -15,7 +16,7 @@ if [[ -z "$BOOK_NAME" || -z "$AMOUNT" ]]; then
   exit 1
 fi
 
-entry_id=$(~/bin/sqlite/Book "$BOOK_NAME" "$AMOUNT") || exit 1
+entry_id=$("$HERE/Book" "$BOOK_NAME" "$AMOUNT") || exit 1
 
 sqlite3 -header -column "$SQLITE_DB" "
  SELECT

@@ -80,9 +80,14 @@ cp /path/to/Business/business.sqlite3 ~/business-shop/business.sqlite3
 export SQLITE_DB=$HOME/business-shop/business.sqlite3
 ```
 
-Optional bash PATH:
+Bash helpers:
 
 ```bash
+# Helpers find common and each other next to the script.
+# Putting this directory on PATH is enough:
+export PATH="/path/to/Business/Bash/sqlite:$PATH"
+
+# Optional convenience link:
 mkdir -p ~/bin
 ln -sfn /path/to/Business/Bash/sqlite ~/bin/sqlite
 export PATH="$HOME/bin/sqlite:$PATH"

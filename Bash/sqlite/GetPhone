@@ -3,7 +3,8 @@
 # Usage: GetPhone <country_code> <area> <number>
 # Digits only in area/number (no dashes). Parity with PG GetPhone.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 CC="${1:-}"
 AREA="${2:-}"

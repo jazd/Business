@@ -3,5 +3,5 @@
 # Usage: GetURL <secure> <host> <value> <get> [port]
 # Wrapper: GetPath http ...  Parity with PG GetURL.
 
-ROOT="$(cd "$(dirname "$0")" && pwd)"
-exec "$ROOT/GetPath" http "$@"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+exec "$HERE/GetPath" http "$@"

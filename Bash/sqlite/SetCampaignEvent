@@ -3,8 +3,8 @@
 # Usage: SetCampaignEvent <campaign_id> <individual_id> <kind> [path_id] [run_id]
 # Always appends. kind examples: sent, read, bounce, delivered, returned.
 
-source ~/bin/sqlite/common
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 CAMPAIGN="${1:-}"
 INDIVIDUAL="${2:-}"
 KIND="${3:-}"
@@ -14,7 +14,7 @@ if [[ -z "$CAMPAIGN" || -z "$INDIVIDUAL" || -z "$KIND" ]]; then
  echo "Usage: SetCampaignEvent <campaign_id> <individual_id> <kind> [path_id] [run_id]" >&2
  exit 1
 fi
-kind_id=$("$ROOT/GetWord" "$KIND")
+kind_id=$("$HERE/GetWord" "$KIND")
 path_sql=$(sql_int_or_null "$PATH_ID")
 run_sql=$(sql_int_or_null "$RUN")
 sqlite_run "INSERT INTO CampaignEvent (campaign, individual, kind, path, run) VALUES ($CAMPAIGN, $INDIVIDUAL, $kind_id, $path_sql, $run_sql);" >/dev/null

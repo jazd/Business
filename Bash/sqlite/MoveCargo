@@ -4,7 +4,8 @@
 # Moves outstanding cargo (or one item) from from_bill to to_bill via AddCargo.
 # Parity with PG MoveCargo. Prints to_bill id.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 FROM_BILL="${1:-}"
 TO_BILL="${2:-}"
@@ -27,7 +28,7 @@ if [[ -z "$ITEM" || "$ITEM" == "NULL" || "$ITEM" == "null" ]]; then
     [[ -z "$cargo_id" ]] && continue
     use_job="${job_arg:-$job_id}"
     # AddCargo bill assembly count job fromCargo book
-    ~/bin/sqlite/AddCargo "$TO_BILL" "$assembly" "$outstanding" "${use_job:-}" "$cargo_id" "${book_arg:-}" >/dev/null
+    "$HERE/AddCargo" "$TO_BILL" "$assembly" "$outstanding" "${use_job:-}" "$cargo_id" "${book_arg:-}" >/dev/null
   done < <(sqlite3 -separator '|' "$SQLITE_DB" "
    SELECT c.id,
     c.assembly,
@@ -58,7 +59,7 @@ else
   while IFS='|' read -r cargo_id assembly job_id; do
     [[ -z "$cargo_id" ]] && continue
     use_job="${job_arg:-$job_id}"
-    ~/bin/sqlite/AddCargo "$TO_BILL" "$assembly" "$COUNT" "${use_job:-}" "$cargo_id" "${book_arg:-}" >/dev/null
+    "$HERE/AddCargo" "$TO_BILL" "$assembly" "$COUNT" "${use_job:-}" "$cargo_id" "${book_arg:-}" >/dev/null
   done < <(sqlite3 -separator '|' "$SQLITE_DB" "
    SELECT c.id, c.assembly, c.individualJob
    FROM Cargo c

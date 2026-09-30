@@ -5,7 +5,8 @@
 #          Creates it if it does not exist by copying name/version from parent
 # serial_number is required (non-empty).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 PARENT_ID="${1:-}"
 SERIAL="${2:-}"

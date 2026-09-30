@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Shared utilities for SQLite business logic
-# ln -s ~/sandbox/Business/Bash/sqlite/ ~/bin/
+# Shared utilities for SQLite business logic.
+# Scripts in this directory source this file and call siblings beside themselves.
 
 set -euo pipefail
 

@@ -85,7 +85,7 @@ Now in French                   -> JournalReport fr
 |------|----------------|
 | Live DB | `~/business-shop/business.sqlite3` (agent creates from template if missing) |
 | Template | Repo/release `business.sqlite3` - never the live write target |
-| Bash helpers | `Bash/sqlite/` (link as `~/bin/sqlite`) |
+| Bash helpers | `Bash/sqlite/` on `PATH` (`~/bin/sqlite` link optional) |
 | Postgres | procedures in `PostgreSQL/procedures.d/`; views in schema |
 | Money | decimal/`numeric` - not float pennies |
 | History | append + `stop`; no DELETE “fixes” |

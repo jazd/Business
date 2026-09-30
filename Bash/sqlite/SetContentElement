@@ -5,8 +5,8 @@
 # argument is a Word name for a render-time count. Only stored when word_id is set.
 # Opens an edition when none is current. Repeated sequence on that edition is a no-op.
 
-source ~/bin/sqlite/common
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 CONTENT="${1:-}"
 SEQUENCE="${2:-}"
@@ -36,7 +36,7 @@ paragraph_sql=$(sql_int_or_null "$PARAGRAPH")
 format_sql=$(sql_int_or_null "$FORMAT")
 argument_sql="NULL"
 if [[ -n "$WORD" && -n "$ARGUMENT" ]]; then
- argument_sql=$("$ROOT/GetWord" "$ARGUMENT")
+ argument_sql=$("$HERE/GetWord" "$ARGUMENT")
 fi
 
 edition=$(sqlite_query_one "SELECT id FROM ContentEdition WHERE content = $CONTENT AND stop IS NULL LIMIT 1;")

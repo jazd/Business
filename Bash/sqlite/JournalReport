@@ -9,7 +9,8 @@
 # amounts, then printed once. Uses Sentence/Word rows for the requested
 # culture (fallback en-US 1033).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 LEDGER="${1:-1}"
 CULTURE_ARG="${2:-en}"

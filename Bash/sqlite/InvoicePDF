@@ -6,7 +6,8 @@
 #
 # Requires: python3 + reportlab, SQLITE_DB pointing at shop DB.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 BILL="${1:-}"
 OUT="${2-}"
@@ -16,18 +17,12 @@ if [[ -z "$BILL" ]]; then
   exit 1
 fi
 
-# Locate repo scripts/ relative to this file or common paths
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# scripts/invoice_pdf.py is two directories above this file.
+# BUSINESS_ROOT overrides that directory.
+REPO_ROOT="${BUSINESS_ROOT:-$(cd "$HERE/../.." && pwd -P)}"
 PY="$REPO_ROOT/scripts/invoice_pdf.py"
-if [[ ! -f "$PY" ]]; then
-  PY="$(dirname "$SQLITE_DB")/../sandbox/Business/scripts/invoice_pdf.py"
-fi
-if [[ ! -f "$PY" ]]; then
-  # walk from cwd
-  if [[ -f ./scripts/invoice_pdf.py ]]; then
-    PY=./scripts/invoice_pdf.py
-  fi
+if [[ ! -f "$PY" && -f ./scripts/invoice_pdf.py ]]; then
+  PY=./scripts/invoice_pdf.py
 fi
 if [[ ! -f "$PY" ]]; then
   echo "Error: cannot find scripts/invoice_pdf.py" >&2

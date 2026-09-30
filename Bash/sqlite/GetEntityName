@@ -3,7 +3,8 @@
 # Usage: GetEntityName <company_name>
 # Parity with PostgreSQL GetEntityName.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 NAME="${1:-}"
 if [[ -z "$NAME" ]]; then

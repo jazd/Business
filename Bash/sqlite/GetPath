@@ -5,7 +5,8 @@
 # Port 80 with insecure or 443 with secure is stored as NULL (same as PG).
 # Parity with PG GetPath.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 PROTOCOL="${1:-}"
 SECURE="${2:-}"

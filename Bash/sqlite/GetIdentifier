@@ -4,7 +4,8 @@
 # Word row with culture IS NULL (bill reference types, DAG types, etc.)
 # Parity with PostgreSQL GetIdentifier in procedures.d/10-i18n.sql.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 VALUE="${1:-}"
 

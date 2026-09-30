@@ -4,7 +4,8 @@
 # Returns: individual id linked to email (creates Individual + IndividualEmail if needed)
 # Parity with PG GetIndividualEmail.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 EMAIL="${1:-}"
 
@@ -13,7 +14,7 @@ if [[ -z "$EMAIL" ]]; then
   exit 0
 fi
 
-email_id=$(~/bin/sqlite/GetEmail "$EMAIL")
+email_id=$("$HERE/GetEmail" "$EMAIL")
 if [[ -z "$email_id" ]]; then
   echo ""
   exit 0

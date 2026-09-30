@@ -3,8 +3,8 @@
 # Usage: SetCampaign <name> <list_name> [list_set] [channel] [period_id]
 # Find-or-insert by name. Later calls do not change list, channel, or period.
 
-source ~/bin/sqlite/common
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 NAME="${1:-}"
 LIST="${2:-}"
 SETNAME="${3:-}"
@@ -14,13 +14,13 @@ if [[ -z "$NAME" || -z "$LIST" ]]; then
  echo "Usage: SetCampaign <name> <list_name> [list_set] [channel] [period_id]" >&2
  exit 1
 fi
-name_id=$("$ROOT/GetSentence" "$NAME")
-list_id=$("$ROOT/GetWord" "$LIST")
+name_id=$("$HERE/GetSentence" "$NAME")
+list_id=$("$HERE/GetWord" "$LIST")
 set_sql="NULL"
 channel_sql="NULL"
 period_sql=$(sql_int_or_null "$PERIOD")
-[[ -n "$SETNAME" ]] && set_sql=$("$ROOT/GetWord" "$SETNAME")
-[[ -n "$CHANNEL" ]] && channel_sql=$("$ROOT/GetWord" "$CHANNEL")
+[[ -n "$SETNAME" ]] && set_sql=$("$HERE/GetWord" "$SETNAME")
+[[ -n "$CHANNEL" ]] && channel_sql=$("$HERE/GetWord" "$CHANNEL")
 campaign_id=$(sqlite_query_one "SELECT id FROM Campaign WHERE name = $name_id LIMIT 1;")
 if [[ -z "$campaign_id" ]]; then
  sqlite_run "INSERT INTO Campaign (name, listName, listSet, channel, period) SELECT $name_id, $list_id, $set_sql, $channel_sql, $period_sql WHERE NOT EXISTS (SELECT 1 FROM Campaign WHERE name = $name_id);" >/dev/null

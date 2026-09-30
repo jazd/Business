@@ -3,7 +3,8 @@
 # Usage: DocumentLineItems <bill_id> [tsv|csv|column]
 # Export LineItems for a bill (invoice / packing-list source). Default: column.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 BILL="${1:-}"
 FMT="${2:-column}"

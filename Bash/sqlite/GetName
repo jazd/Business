@@ -3,7 +3,8 @@
 # Usage: GetName <first> <middle> <last>
 # Empty middle/first/last allowed (pass '' for null). Parity with PG GetName.
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 FIRST="${1-}"
 MIDDLE="${2-}"
@@ -15,9 +16,9 @@ if [[ -z "$FIRST" && -z "$MIDDLE" && -z "$LAST" ]]; then
 fi
 
 first_id=""; middle_id=""; last_id=""
-[[ -n "$FIRST" ]] && first_id=$(~/bin/sqlite/GetGiven "$FIRST")
-[[ -n "$MIDDLE" ]] && middle_id=$(~/bin/sqlite/GetGiven "$MIDDLE")
-[[ -n "$LAST" ]] && last_id=$(~/bin/sqlite/GetFamily "$LAST")
+[[ -n "$FIRST" ]] && first_id=$("$HERE/GetGiven" "$FIRST")
+[[ -n "$MIDDLE" ]] && middle_id=$("$HERE/GetGiven" "$MIDDLE")
+[[ -n "$LAST" ]] && last_id=$("$HERE/GetFamily" "$LAST")
 
 fs=$(sql_int_or_null "$first_id")
 ms=$(sql_int_or_null "$middle_id")

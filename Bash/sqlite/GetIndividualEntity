@@ -3,7 +3,8 @@
 # Usage: GetIndividualEntity <company_name>
 # Find-or-insert Individual for a named Entity. Parity with PG GetIndividualEntity(name).
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 NAME="${1:-}"
 if [[ -z "$NAME" ]]; then
@@ -11,7 +12,7 @@ if [[ -z "$NAME" ]]; then
   exit 0
 fi
 
-entity_id=$(~/bin/sqlite/GetEntityName "$NAME")
+entity_id=$("$HERE/GetEntityName" "$NAME")
 if [[ -z "$entity_id" ]]; then
   echo ""
   exit 0

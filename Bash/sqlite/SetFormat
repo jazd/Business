@@ -3,8 +3,8 @@
 # Usage: SetFormat <name>
 # Find-or-insert Format by sentence name. Parity with PG SetFormat.
 
-source ~/bin/sqlite/common
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 NAME="${1:-}"
 if [[ -z "$NAME" ]]; then
@@ -12,7 +12,7 @@ if [[ -z "$NAME" ]]; then
  exit 1
 fi
 
-name_id=$("$ROOT/GetSentence" "$NAME")
+name_id=$("$HERE/GetSentence" "$NAME")
 if [[ -z "$name_id" ]]; then
  echo ""
  exit 0

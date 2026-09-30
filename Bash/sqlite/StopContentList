@@ -2,14 +2,14 @@
 
 # Usage: StopContentList <list_name> <content_id>
 
-source ~/bin/sqlite/common
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 LIST="${1:-}"
 CONTENT="${2:-}"
 if [[ -z "$LIST" || -z "$CONTENT" ]]; then
  echo "Usage: StopContentList <list_name> <content_id>" >&2
  exit 1
 fi
-list_id=$("$ROOT/GetWord" "$LIST")
+list_id=$("$HERE/GetWord" "$LIST")
 sqlite_run "UPDATE ContentList SET stop = datetime('now') WHERE listName = $list_id AND content = $CONTENT AND stop IS NULL;" >/dev/null
 echo "$CONTENT"

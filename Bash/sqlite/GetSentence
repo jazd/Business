@@ -2,7 +2,8 @@
 
 # Usage: GetSentence.sh <sentence_value> [<culture>]
 
-source ~/bin/sqlite/common
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
 
 SENTENCE_VALUE="${1:-}"
 CULTURE="${2:-en-US}"
