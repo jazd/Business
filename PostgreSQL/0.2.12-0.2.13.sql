@@ -559,4 +559,4 @@ FROM LineItems li;
 -- Mark schema upgraded to 0.2.13 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped
 -- as 0.2.13 on production by mistake.
--- SELECT SetSchemaVersion('Business', '0', '2', '13');
+SELECT SetSchemaVersion('Business', '0', '2', '13');
