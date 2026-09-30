@@ -3868,7 +3868,30 @@ SELECT
  li.bill,
  li.line,
  li.item AS product,
- li.version AS description,
+ CASE
+  WHEN (
+   SELECT para.value
+   FROM PartDescription pd
+   JOIN I18NParagraph AS para ON para.id = pd.description
+   WHERE pd.part = li.part
+    AND pd.stop IS NULL
+    AND para.value IS NOT NULL
+    AND para.value != !apos;!apos;
+   ORDER BY pd.created DESC
+   LIMIT 1
+  ) IS NULL THEN li.item
+  ELSE li.item || !apos; - !apos; || (
+   SELECT para.value
+   FROM PartDescription pd
+   JOIN I18NParagraph AS para ON para.id = pd.description
+   WHERE pd.part = li.part
+    AND pd.stop IS NULL
+    AND para.value IS NOT NULL
+    AND para.value != !apos;!apos;
+   ORDER BY pd.created DESC
+   LIMIT 1
+  )
+ END AS description,
  COALESCE(li.count, 1) AS qty,
  li.unitPrice AS rate,
  li.currentUnitPrice,

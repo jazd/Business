@@ -147,13 +147,13 @@ Full SQL skeletons and AR books: **`references/inventory-bom-builds.md` § B1**.
 | Invoice | Child **`Invoice`** + move cargo (quoted `unitprice` stays; don’t overwrite lines) |
 | Pay / receipt | Child **`Receipt`**; move cargo with book **`AR Payment`** |
 | Show lines / totals | `InvoiceLineDetail` / `LineItems` / `BillDocuments` for that bill |
-| Price list for a customer | `GetIndividualJobSchedule` + `Schedule` bands + `AssemblyIndividualJobPrice` |
+| Price list for a customer | `GetIndividualJobSchedule` + `SetSchedule` (count band) + `SetPrice` (quote unit price). `Schedule.rate` is not that unit price. |
 | Buy parts from a vendor | `CreateBill(vendor, shop, 'Order')` + `AddCargo` / `AddCargo --unit …` + `GetBillReference` for vendor SO/PO # |
 | Attach PO / tracking # | `GetBillReference(bill, 'Sales Order'\|'Tracking'\|…, value)` |
 
 **Bash commerce (SQLite shop):** `CreateBill`, `GetOutstandingBill`, `AddCargo`,
 `MoveCargo`, `MoveCargoToChild`, `GetJob`, `GetSchedule`,
-`GetIndividualJobSchedule`, `PutAssemblyJobPrice`, `GetBillReference`,
+`GetIndividualJobSchedule`, `SetSchedule`, `SetPrice`, `PutAssemblyJobPrice`, `GetBillReference`,
 `DocumentLineItems`.
 
 **Books (sales path from wiki):** **`AR Sale`** when order cargo is booked;
@@ -329,7 +329,7 @@ Rebuild commerce GIF: `python3 scripts/build_invoice_commerce_demo_gif.py`
 
 1. **Seed SQLite like PG** - template must load `Static/` + GeoNames postal + addresses; empty Postal breaks `GetAddress`. Rebuild: `make rebuild-business-sqlite3`.
 2. **Classic `Bills` is entity-only** - INNER JOIN `Entities`. Person customers need **`BillDocuments`** (COALESCE entity/person names).
-3. **Price schedule before Quote move** - `GetIndividualJobSchedule` + `PutAssemblyJobPrice` (and optional `Schedule` bands); otherwise unit prices stay null.
+3. **Unit price before Quote move** - `GetIndividualJobSchedule` + `SetPrice` (or `PutAssemblyJobPrice`). A `SetSchedule` count band does not fill that price, and `Schedule.rate` is not the quote unit price. Without a job price, unit prices stay null.
 4. **AR books on cargo move** - Order move with **`AR Sale`** (Receivable/Sales); Receipt move with **`AR Payment`** (Cash/Receivable). Multi-line orders may post one journal entry per cargo line; totals still balance.
 5. **PDF is a projection** - source of truth remains Bill + LineItems + Journal; store under **`~/business-shop/invoices/`**.
 6. **Contacts before pretty PDF** - set supplier/customer address + email or header is name-only.
@@ -454,7 +454,7 @@ When `Bash/sqlite` is on `PATH` (each helper finds siblings beside itself; a `~/
 | Contacts | `GetPhone`, `GetPostal`, `GetAddress`, `SetIndividualPhone`, `SetIndividualAddress`, `DocumentParty` |
 | Parts/BOM | `GetPart*`, `GetPartbySerial`, `PutAssemblyPart`, `RemoveAssemblyPart`, `DocumentBOM` |
 | Commerce | `CreateBill`, `GetOutstandingBill`, `AddCargo`, `MoveCargo`, `MoveCargoToChild`, `GetBillReference` |
-| Pricing | `GetJob`, `GetSchedule`, `GetIndividualJobSchedule`, `PutAssemblyJobPrice` |
+| Pricing | `GetJob`, `GetSchedule`, `SetSchedule`, `GetIndividualJobSchedule`, `SetPrice`, `PutAssemblyJobPrice` |
 | Accounting | `Book`, `BookBalance`, `Post`, `ListBooks`, `JournalReport`, `LedgerReport`, `AccountLedger` |
 | Documents | `DocumentLineItems`, `DocumentBOM`, `DocumentParty`, **`InvoicePDF`** |
 | EST | `PutAssemblyPublicKey`, `PutCertificateSigningRequest`, `PutAssemblyCertificateSigningRequest`, `PutCertificate` |

@@ -15,7 +15,7 @@ Prefer these for invoice/PDF/SQL exports (added for commerce demos; portable SQL
 | View | Purpose |
 |------|---------|
 | **`BillDocuments`** | Wish…Receipt bills with entity **or person** names, `subtotal`, `invoiceNumber` (`INV-` + id) |
-| **`InvoiceLineDetail`** | Friendly `LineItems` projection (product, qty, rate, amount) |
+| **`InvoiceLineDetail`** | Friendly `LineItems` projection. `description` is the part name, plus the part description when one is stored. It is not the part version. |
 | **`PartyAddresses`** | Active addresses per individual + type (Billing/Shipping/…) |
 | **`PartyPhones`** | Active phones per individual + type |
 | **`BillReferences`** | Active PO / Sales Order / Tracking refs on a bill |

@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+# Usage: SetPrice <assembly_id> <individual_job_id> <price>
+# Inserts AssemblyIndividualJobPrice, which LineItems reads as the quote unit price.
+# The same assembly, job, and price is not inserted again.
+# A different price for that assembly and job exits non-zero and writes nothing.
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
+
+ASM="${1:-}"
+IJ="${2:-}"
+PRICE="${3:-}"
+
+if [[ $# -ne 3 || -z "$ASM" || -z "$IJ" || -z "$PRICE" ]]; then
+  echo "Usage: SetPrice <assembly_id> <individual_job_id> <price>" >&2
+  exit 1
+fi
+
+if ! [[ "$ASM" =~ ^[0-9]+$ && "$IJ" =~ ^[0-9]+$ ]]; then
+  echo "Error: assembly and individual job must be ids" >&2
+  exit 1
+fi
+
+if ! [[ "$PRICE" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  echo "Error: price must be numeric" >&2
+  exit 1
+fi
+
+other=$(sqlite_query_one "
+ SELECT COUNT(*) FROM AssemblyIndividualJobPrice
+ WHERE assembly = $ASM AND individualJob = $IJ
+  AND ROUND(price, 4) != ROUND($PRICE, 4);
+")
+if [[ "${other:-0}" != "0" ]]; then
+  echo "Error: assembly $ASM job $IJ already has a different price" >&2
+  exit 1
+fi
+
+same=$(sqlite_query_one "
+ SELECT COUNT(*) FROM AssemblyIndividualJobPrice
+ WHERE assembly = $ASM AND individualJob = $IJ
+  AND ROUND(price, 4) = ROUND($PRICE, 4);
+")
+if [[ "${same:-0}" != "0" ]]; then
+  echo "$IJ"
+  exit 0
+fi
+
+sqlite_run "
+ INSERT INTO AssemblyIndividualJobPrice (assembly, individualJob, price)
+ VALUES ($ASM, $IJ, ROUND($PRICE, 4));
+" >/dev/null
+
+echo "$IJ"

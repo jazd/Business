@@ -522,6 +522,78 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Insert a Schedule band. The same schedule, from, to, rate, and price is not inserted again.
+-- An existing band is not updated. inRate is Schedule.rate. inPrice is Schedule.price.
+-- A quote unit price is AssemblyIndividualJobPrice.price (SetPrice), not Schedule.rate.
+CREATE OR REPLACE FUNCTION SetSchedule (
+ inSchedule integer,
+ inFromCount float,
+ inToCount float,
+ inRate float,
+ inPrice numeric
+) RETURNS integer AS $$
+BEGIN
+ IF inSchedule IS NULL THEN
+  RETURN NULL;
+ END IF;
+ IF inPrice IS NOT NULL THEN
+  inPrice := round(inPrice, 4);
+ END IF;
+ IF EXISTS (
+  SELECT 1
+  FROM Schedule
+  WHERE schedule = inSchedule
+   AND fromCount IS NOT DISTINCT FROM inFromCount
+   AND toCount IS NOT DISTINCT FROM inToCount
+   AND rate IS NOT DISTINCT FROM inRate
+   AND price IS NOT DISTINCT FROM inPrice
+ ) THEN
+  RETURN inSchedule;
+ END IF;
+ INSERT INTO Schedule (schedule, fromCount, toCount, rate, price)
+ VALUES (inSchedule, inFromCount, inToCount, inRate, inPrice);
+ RETURN inSchedule;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Insert AssemblyIndividualJobPrice. LineItems reads that price as the quote unit price.
+-- The same assembly, job, and price is not inserted again.
+-- A different price for that pair raises invalid_parameter_value and writes nothing.
+CREATE OR REPLACE FUNCTION SetPrice (
+ inAssembly integer,
+ inIndividualJob integer,
+ inPrice numeric
+) RETURNS integer AS $$
+BEGIN
+ IF inAssembly IS NULL OR inIndividualJob IS NULL OR inPrice IS NULL THEN
+  RETURN NULL;
+ END IF;
+ inPrice := round(inPrice, 4);
+ IF EXISTS (
+  SELECT 1
+  FROM AssemblyIndividualJobPrice
+  WHERE assembly = inAssembly
+   AND individualJob = inIndividualJob
+   AND price IS DISTINCT FROM inPrice
+ ) THEN
+  RAISE EXCEPTION 'assembly % job % already has a different price', inAssembly, inIndividualJob
+   USING ERRCODE = 'invalid_parameter_value';
+ END IF;
+ IF EXISTS (
+  SELECT 1
+  FROM AssemblyIndividualJobPrice
+  WHERE assembly = inAssembly
+   AND individualJob = inIndividualJob
+   AND price = inPrice
+ ) THEN
+  RETURN inIndividualJob;
+ END IF;
+ INSERT INTO AssemblyIndividualJobPrice (assembly, individualJob, price)
+ VALUES (inAssembly, inIndividualJob, inPrice);
+ RETURN inIndividualJob;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION GetJob (
  inJobName varchar
 ) RETURNS integer AS $$

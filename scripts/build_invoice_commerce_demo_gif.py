@@ -208,8 +208,8 @@ def seed_demo() -> dict:
     sh("SetIndividualEmail $(GetIndividualEntity 'City Library') 'orders@citylibrary.example' Work")
     sh("GetPostal USA 10504 Armonk NY 'New York'")
     sh("GetPostal USA 20500 Washington DC 'District of Columbia'")
-    sh("SetIndividualAddress $(GetIndividualEntity 'Bunnies-R-Us') $(GetAddress '1 New Orchard Road' 10504 1716) Primary")
-    sh("SetIndividualAddress $(GetIndividualEntity 'City Library') $(GetAddress '1600 Pennsylvania Avenue NW' 20500 0005) Billing")
+    sh("SetIndividualAddress $(GetIndividualEntity 'Bunnies-R-Us') $(GetAddress '18 Cottonwood Lane' 10504 1716) Primary")
+    sh("SetIndividualAddress $(GetIndividualEntity 'City Library') $(GetAddress '42 Storybook Court NW' 20500 0005) Billing")
     sh("SetIndividualPhone $(GetIndividualEntity 'Bunnies-R-Us') $(GetPhone USA 914 4991900) Work")
     sh("SetIndividualPhone $(GetIndividualEntity 'City Library') $(GetPhone USA 202 4561111) Work")
 
@@ -236,9 +236,9 @@ def seed_demo() -> dict:
     job = sh("GetJob Default")
     sch = sh("GetSchedule Default")
     ij = sh(f"GetIndividualJobSchedule {con} {job} {sch}")
-    sh(f"""sqlite3 "$SQLITE_DB" "INSERT INTO Schedule (schedule, fromCount, toCount, rate) SELECT {sch}, 0, 999, 100 WHERE NOT EXISTS (SELECT 1 FROM Schedule WHERE schedule={sch} LIMIT 1);" """)
-    sh(f"PutAssemblyJobPrice {w_a} {ij} 12.50")
-    sh(f"PutAssemblyJobPrice {g_b} {ij} 49.00")
+    sh(f"SetSchedule {sch} 0 999 100")
+    sh(f"SetPrice {w_a} {ij} 12.50")
+    sh(f"SetPrice {g_b} {ij} 49.00")
 
     quote = sh(f"CreateBill {sup} {con} Quote {cart}")
     sh(f"MoveCargoToChild {cart} '' '' {ij}")

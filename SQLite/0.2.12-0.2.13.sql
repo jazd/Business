@@ -36,6 +36,10 @@
 --     Books Capital, Card Sale, and Hosting are inserted when those rows are missing.
 --     Bash Post exits non-zero when a name matches more than one account.
 --     An all-digit argument is an account id.
+--  6) InvoiceLineDetail.description is the part name, plus the part description
+--     when PartDescription has one. It is not the part version.
+--     Bash SetSchedule inserts a Schedule band and does not update an existing band.
+--     Bash SetPrice inserts AssemblyIndividualJobPrice. That price is the quote unit price.
 --
 -- SQLite does not enforce varchar(n). Width-only ALTERs are no-ops here.
 --
@@ -250,3 +254,44 @@ SELECT 26, 109, 100
 WHERE NOT EXISTS (
  SELECT 1 FROM BookAccount WHERE book = 26 AND increase = 109 AND decrease = 100 AND stop IS NULL
 );
+
+-- description is the part name, plus the part description when PartDescription has one.
+DROP VIEW IF EXISTS InvoiceLineDetail;
+CREATE VIEW InvoiceLineDetail AS
+SELECT
+ li.bill,
+ li.line,
+ li.item AS product,
+ CASE
+  WHEN (
+   SELECT para.value
+   FROM PartDescription pd
+   JOIN I18NParagraph AS para ON para.id = pd.description
+   WHERE pd.part = li.part
+    AND pd.stop IS NULL
+    AND para.value IS NOT NULL
+    AND para.value != ''
+   ORDER BY pd.created DESC
+   LIMIT 1
+  ) IS NULL THEN li.item
+  ELSE li.item || ' - ' || (
+   SELECT para.value
+   FROM PartDescription pd
+   JOIN I18NParagraph AS para ON para.id = pd.description
+   WHERE pd.part = li.part
+    AND pd.stop IS NULL
+    AND para.value IS NOT NULL
+    AND para.value != ''
+   ORDER BY pd.created DESC
+   LIMIT 1
+  )
+ END AS description,
+ COALESCE(li.count, 1) AS qty,
+ li.unitPrice AS rate,
+ li.currentUnitPrice,
+ li.totalPrice AS amount,
+ li.outstanding,
+ li.typeName,
+ li.supplierName,
+ li.consigneeName
+FROM LineItems li;

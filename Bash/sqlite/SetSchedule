@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+# Usage: SetSchedule <schedule_id> <from_count> <to_count> <rate> [price]
+# Inserts one Schedule band. to_count, rate, and price may be empty (NULL).
+# The same band (schedule, from, to, rate, price) is not inserted again.
+# An existing band is not updated.
+# rate is Schedule.rate. price is Schedule.price (per count).
+# A quote unit price is AssemblyIndividualJobPrice.price (SetPrice).
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
+
+SCH="${1:-}"
+FROM="${2-}"
+TO="${3-}"
+RATE="${4-}"
+PRICE="${5-}"
+
+if [[ $# -lt 4 || $# -gt 5 || -z "$SCH" || -z "$FROM" ]]; then
+  echo "Usage: SetSchedule <schedule_id> <from_count> <to_count> <rate> [price]" >&2
+  exit 1
+fi
+
+num_or_null() {
+  local v="${1-}"
+  if [[ -z "$v" ]]; then
+    echo "NULL"
+    return 0
+  fi
+  if ! [[ "$v" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+    echo "Error: '$v' must be numeric" >&2
+    exit 1
+  fi
+  echo "$v"
+}
+
+if ! [[ "$SCH" =~ ^[0-9]+$ && "$FROM" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  echo "Error: schedule id and from_count must be numeric" >&2
+  exit 1
+fi
+
+to_sql=$(num_or_null "$TO")
+rate_sql=$(num_or_null "$RATE")
+if [[ -n "$PRICE" ]]; then
+  if ! [[ "$PRICE" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+    echo "Error: price must be numeric" >&2
+    exit 1
+  fi
+  price_sql="ROUND($PRICE, 4)"
+else
+  price_sql="NULL"
+fi
+
+if [[ "$rate_sql" == "NULL" && "$price_sql" == "NULL" ]]; then
+  echo "Error: rate or price is required" >&2
+  exit 1
+fi
+
+found=$(sqlite_query_one "
+ SELECT schedule FROM Schedule
+ WHERE schedule = $SCH
+  AND fromCount = $FROM
+  AND ((toCount = $to_sql) OR (toCount IS NULL AND $to_sql IS NULL))
+  AND ((rate = $rate_sql) OR (rate IS NULL AND $rate_sql IS NULL))
+  AND ((ROUND(price, 4) = $price_sql) OR (price IS NULL AND $price_sql IS NULL))
+ LIMIT 1;
+")
+if [[ -n "$found" ]]; then
+  echo "$found"
+  exit 0
+fi
+
+sqlite_run "
+ INSERT INTO Schedule (schedule, fromCount, toCount, rate, price)
+ VALUES ($SCH, $FROM, $to_sql, $rate_sql, $price_sql);
+" >/dev/null
+
+echo "$SCH"

@@ -43,7 +43,7 @@ Do **not** DELETE parties; soft-stop contact links instead.
 
 ```bash
 GetPostal USA 10504 Armonk NY 'New York'
-ADDR=$(GetAddress '1 New Orchard Road' 10504 1716)
+ADDR=$(GetAddress '18 Cottonwood Lane' 10504 1716)
 SetIndividualAddress "$CON" "$ADDR" shipping
 PH=$(GetPhone USA 914 4991900)
 SetIndividualPhone "$CON" "$PH" main
@@ -112,7 +112,7 @@ C=$(GetIndividualEntity 'City Library')
 # C=$(GetIndividualPerson Alex '' Ng 1985-01-15)
 SetIndividualEmail "$C" 'orders@citylib.example' work
 GetPostal USA 20500 Washington DC 'District of Columbia'
-A=$(GetAddress '1600 Pennsylvania Avenue NW' 20500 0005)
+A=$(GetAddress '42 Storybook Court NW' 20500 0005)
 SetIndividualAddress "$C" "$A" billing
 DocumentParty "$C"
 ```
