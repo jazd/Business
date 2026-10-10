@@ -71,8 +71,54 @@ func TestSetSessionTimeoutZeroIsNoRows(t *testing.T) {
 	}
 }
 
+func TestClientCultureCallsProcedure(t *testing.T) {
+	sqldb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer sqldb.Close()
+	mock.ExpectQuery(`SELECT ClientCulture\(\$1::varchar\)`).
+		WithArgs("fr-FR").
+		WillReturnRows(sqlmock.NewRows([]string{"clientculture"}).AddRow(1036))
+	d := &DB{SQL: sqldb}
+	code, err := d.ClientCulture(context.Background(), "fr-FR")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if code != 1036 {
+		t.Fatalf("code=%d", code)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestContentBodyCallsProcedure(t *testing.T) {
+	sqldb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer sqldb.Close()
+	mock.ExpectQuery(`FROM ContentBody`).
+		WithArgs(7, "html").
+		WillReturnRows(sqlmock.NewRows([]string{
+			"sequence", "kind", "element", "value", "format", "argument", "name", "attribute",
+		}).AddRow(1, "sentence", 4, "DbFit line", 2, nil, "class", "htmltok"))
+	d := &DB{SQL: sqldb}
+	rows, err := d.ContentBody(context.Background(), 7, "html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 1 || rows[0].Attribute != "htmltok" || rows[0].Value != "DbFit line" {
+		t.Fatalf("rows=%+v", rows)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestNoTableWrites(t *testing.T) {
-	files := []string{"db.go", "get.go", "session.go", "path.go"}
+	files := []string{"db.go", "get.go", "session.go", "path.go", "content.go"}
 	for _, name := range files {
 		b, err := os.ReadFile(name)
 		if err != nil {
@@ -98,5 +144,3 @@ func TestBoostExpired(t *testing.T) {
 		t.Fatal("past the timeout")
 	}
 }
-
-

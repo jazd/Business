@@ -55,6 +55,17 @@ func (d *DB) queryInt64(ctx context.Context, q string, args ...any) (int64, erro
 	return id.Int64, nil
 }
 
+func (d *DB) queryString(ctx context.Context, q string, args ...any) (string, error) {
+	var s sql.NullString
+	if err := d.SQL.QueryRowContext(ctx, q, args...).Scan(&s); err != nil {
+		return "", err
+	}
+	if !s.Valid {
+		return "", sql.ErrNoRows
+	}
+	return s.String, nil
+}
+
 func nullInt(p *int) any {
 	if p == nil {
 		return nil

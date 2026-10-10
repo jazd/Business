@@ -1,0 +1,73 @@
+SiteContent and ListContent
+
+One sentence on one content id. A null-target class applies to every output.
+The html target uses a different class token. ClientCulture reads the same
+sentence id in another culture.
+
+!|Query|SELECT SetContent('DbFit body')|
+|setcontent?|
+|>>cid|
+
+!|Query|SELECT GetSentence('DbFit line')|
+|getsentence?|
+|>>sid|
+
+!|Query|INSERT INTO Sentence (id, culture, value) SELECT _:sid::INT, code, 'Ligne DbFit' FROM Culture WHERE name = 'fr-FR' RETURNING id|
+|id|
+|<<sid|
+
+!|Query|SELECT SetFormat('DbFit format')|
+|setformat?|
+|>>fmt|
+
+!|Query|SELECT SetFormatAttribute(_:fmt::INT, 'class', 'shared', NULL)|
+|setformatattribute|
+|<<fmt|
+
+!|Query|SELECT SetFormatAttribute(_:fmt::INT, 'class', 'htmltok', 'html')|
+|setformatattribute|
+|<<fmt|
+
+!|Query|SELECT SetContentElement(_:cid::INT, 1, _:fmt::INT, NULL, _:sid::INT, NULL, NULL)|
+|setcontentelement|
+|<<cid|
+
+!|Query|SELECT GetSite('DbFit Body Site')|
+|getsite?|
+|>>site|
+
+!|Query|SELECT SetContentSite(_:site::INT, _:cid::INT)|
+|setcontentsite|
+|<<cid|
+
+!|Query|SELECT SetContentList('DbFitList', _:cid::INT)|
+|setcontentlist|
+|<<cid|
+
+!|Query|SELECT value, name, attribute FROM SiteContent(_:site::INT, 'html')|
+|value|name|attribute|
+|DbFit line|class|htmltok|
+
+!|Query|SELECT ClientCulture('fr-FR')|
+|clientculture|
+|1036|
+
+!|Query|SELECT value, name, attribute FROM SiteContent(_:site::INT, 'html')|
+|value|name|attribute|
+|Ligne DbFit|class|htmltok|
+
+!|Query|SELECT value, name, attribute FROM SiteContent(_:site::INT, 'document')|
+|value|name|attribute|
+|Ligne DbFit|class|shared|
+
+!|Query|SELECT value, name, attribute FROM ListContent('DbFitList', 'html')|
+|value|name|attribute|
+|Ligne DbFit|class|htmltok|
+
+!|Query|SELECT value, name, attribute FROM ListContent('DbFitList', 'document')|
+|value|name|attribute|
+|Ligne DbFit|class|shared|
+
+!|Query|SELECT ClientCulture(NULL)|
+|clientculture|
+|1033|

@@ -17,7 +17,9 @@ metadata:
 Procedures write. Views read. End a fact with `stop`. Do not DELETE history.
 
 PostgreSQL procedures live in `PostgreSQL/procedures.d/45-content.sql` and
-`10-i18n.sql`. Shop SQLite uses the same names under `Bash/sqlite/`.
+`10-i18n.sql`. Shop SQLite uses the writer names under `Bash/sqlite/`.
+`ClientCulture(name)`, `FormatFor`, `ContentBody`, `SiteContent`, and
+`ListContent` are PostgreSQL.
 
 Sessions and list membership: `/business-sites`. Sending a campaign:
 `/business-campaigns`.
@@ -37,25 +39,26 @@ INSERT INTO Paragraph (id, culture, value)
 SELECT 42, (SELECT code FROM Culture WHERE name = 'es-MX'), 'Texto traducido.';
 ```
 
-Read through `I18NWord`, `I18NSentence`, `I18NParagraph`. Those views use `ClientCulture()` (default 1033 / en-US). For a database session, after `SELECT ClientCulture();` has created `inject_culture`:
+Read through `I18NWord`, `I18NSentence`, `I18NParagraph`. Those views use `ClientCulture()` (default 1033 / en-US). Set the connection culture with the name. NULL clears it, so reads fall back to 1033.
 
 ```sql
-DELETE FROM inject_culture;
-INSERT INTO inject_culture (value)
-SELECT code FROM Culture WHERE name = 'es-MX';
+SELECT ClientCulture('es-MX');
+SELECT ClientCulture(NULL);
 ```
 
 A person's chosen language is `Credential.culture`. A visitor's choice is `Session.culture` (NULL means en-US). `SetSessionCulture(session, 'es-MX')` sets it. `SetSessionCulture(session, NULL)` clears it. `SetSession` does not change it. `IndividualSessions.culture` is that code.
 
-`ContentCultures` lists cultures that can show every element of the current edition. 1033 is always included. A site language menu is that view for the content on the site. Set `inject_culture` from the chosen code before reading `ContentElements`. Do not copy translated text into a second content id.
+`ContentCultures` lists cultures that can show every element of the current edition. 1033 is always included. A site language menu is that view for the content on the site. Call `ClientCulture` with the chosen name before `SiteContent`, `ListContent`, or `ContentBody`. Do not copy translated text into a second content id.
 
 ## Format
 
 `SetFormat('Body copy')` returns a format id (sentence name).
 
-`SetFormatAttribute(format, name, value, target)` — `target` NULL is global (every output). A target Word (`txt`, `markdown`, `document`, `html`) is the rare override. `StopFormatAttribute` ends that row only.
+`SetFormatAttribute(format, name, value, target)` — `target` NULL is global (every output). A target Word (`txt`, `document`, `html`) is that output only. `StopFormatAttribute` ends that row only.
 
-`FormatAttributes` is the unstopped list. When rendering one target, use the row for that target if present, otherwise the row with `target` NULL and the same name.
+`class` is the attribute name. The value is the token a stylesheet or a template already knows (`lede`, `heading`). A target row wins over the null-target row with the same name. `FormatFor(format, target)` returns the winning name and value. HTML, MIME, and the document file stay in the application.
+
+`FormatAttributes` is the unstopped list, including both a null target and a specific target. `ContentElementAttributes` places those rows on the current edition.
 
 ## Content
 
@@ -86,6 +89,7 @@ The count is not stored on the element. Name the count with `argument` (`items`,
 | View | Rows |
 |------|------|
 | `ContentElements` | Current edition, `sequence` order, `value` in the client culture |
+| `ContentElementAttributes` | That edition plus every unstopped attribute (null target and specific target) |
 | `ContentHistory` | Every edition, including `stop` |
 | `ContentSites` | Unstopped site placements, `sequence` order |
 | `ContentLists` | Unstopped list placements (notification bodies tied to a list name) |
@@ -101,18 +105,30 @@ SELECT StopContentList('Example', contentId);
 
 A second `SetContentSite` for the same pair does not move `sequence`. Stop it and set it again to place it in a new slot.
 
-Page for a site, in the session language:
+Page for a site, in the session language. `name` and `attribute` are the winning token for that target. An element with no format has a null attribute.
 
 ```sql
-SELECT e.sequence, e.kind, e.value, e.format
-FROM ContentSites s
-JOIN ContentElements e ON e.content = s.content
-WHERE s.site = $1
-ORDER BY s.sequence, e.sequence;
+SELECT ClientCulture(cultureName);
+SELECT place, sequence, kind, element, value, argument, name, attribute
+FROM SiteContent(siteId, 'html');
 ```
 
-Notification body for a list is the same join on `ContentLists`.
+One content id, without a site placement:
+
+```sql
+SELECT sequence, kind, element, value, argument, name, attribute
+FROM ContentBody(contentId, 'html');
+```
+
+Notification body or document body for a list:
+
+```sql
+SELECT place, sequence, kind, value, name, attribute
+FROM ListContent('Example', 'txt');
+```
+
+`argument` is the count name. The count is not stored. Pass it to `PluralWord(element, count)` when `kind` is `word`.
 
 ## What this skill does not do
 
-It does not render HTML or MIME, start a campaign, or pick a postal address. Those steps are `/business-campaigns` and the application.
+It does not render HTML, MIME, or the document file, start a campaign, or pick a postal address. Those steps are `/business-campaigns` and the application.

@@ -15,6 +15,11 @@ person when that mailbox is not already on IndividualEmail. `GetSite` stores
 a Sentence id because `Site.name` links to Sentence. See
 `docs/0.2.14-downstream.md`.
 
+`ClientCulture` sets the connection culture. `ContentBody`, `SiteContent`,
+and `ListContent` return the current edition for one target (`html`, `txt`,
+or `document`). A target attribute wins over the null-target row with the
+same name.
+
 `Sample/PostgreSQL/Go` is the older AnonymousSession sample. New callers use
 this package.
 

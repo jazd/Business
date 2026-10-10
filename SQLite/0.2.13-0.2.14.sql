@@ -23,6 +23,8 @@
 --
 --  1) Email.username and Email.plus are varchar(64) in schema.xml.
 --     Email.host stays varchar(96).
+--  2) ContentElementAttributes lists unstopped format attributes on the
+--     current edition. The read procedures are PostgreSQL.
 --
 -- SQLite does not enforce varchar(n). Email.username and Email.plus 30->64
 -- need no table rebuild; stored values stay.
@@ -34,3 +36,18 @@
 -- =============================================================================
 
 PRAGMA foreign_keys = ON;
+
+DROP VIEW IF EXISTS ContentElementAttributes;
+CREATE VIEW ContentElementAttributes AS
+SELECT ContentElements.content,
+ ContentElements.edition,
+ ContentElements.sequence,
+ ContentElements.kind,
+ ContentElements.element,
+ ContentElements.value,
+ ContentElements.format,
+ FormatAttributes.name,
+ FormatAttributes.value AS attribute,
+ FormatAttributes.target
+FROM ContentElements
+JOIN FormatAttributes ON FormatAttributes.format = ContentElements.format;

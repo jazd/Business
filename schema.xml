@@ -2322,6 +2322,24 @@ WHERE ContentEdition.stop IS NULL
  </sql>
  </view>
 
+ <view name="ContentElementAttributes" fields="content,edition,sequence,kind,element,value,format,name,attribute,target">
+ <comments>Current edition. Unstopped attributes only. A null target applies to every output. A target row is that output only.</comments>
+ <sql>
+SELECT ContentElements.content,
+ ContentElements.edition,
+ ContentElements.sequence,
+ ContentElements.kind,
+ ContentElements.element,
+ ContentElements.value,
+ ContentElements.format,
+ FormatAttributes.name,
+ FormatAttributes.value AS attribute,
+ FormatAttributes.target
+FROM ContentElements
+JOIN FormatAttributes ON FormatAttributes.format = ContentElements.format
+ </sql>
+ </view>
+
  <view name="ContentHistory" fields="content,edition,sequence,kind,element,value,format,stop,created">
  <comments>Every edition, including stopped ones.</comments>
  <sql>

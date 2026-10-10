@@ -33,6 +33,9 @@
 --  3) Sessions and IndividualSessions gain SessionToken.timeout at the end.
 --  4) GetSite, GetSiteApplicationRelease, GetCredential, PutPassword, and
 --     SetSessionTimeout are created or replaced.
+--  5) ContentElementAttributes lists unstopped format attributes on the
+--     current edition. ClientCulture(varchar), FormatFor, ContentBody,
+--     SiteContent, and ListContent are created or replaced.
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '14') - last substantive step
@@ -407,6 +410,220 @@ BEGIN
   AND timeout IS NULL;
  GET DIAGNOSTICS filled = ROW_COUNT;
  RETURN filled;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP VIEW IF EXISTS ContentElementAttributes;
+CREATE VIEW ContentElementAttributes AS
+SELECT ContentElements.content,
+ ContentElements.edition,
+ ContentElements.sequence,
+ ContentElements.kind,
+ ContentElements.element,
+ ContentElements.value,
+ ContentElements.format,
+ FormatAttributes.name,
+ FormatAttributes.value AS attribute,
+ FormatAttributes.target
+FROM ContentElements
+JOIN FormatAttributes ON FormatAttributes.format = ContentElements.format;
+
+-- ClientCulture(name varchar) sets inject_culture for this connection.
+-- NULL clears it. An unknown name leaves the current culture in place.
+CREATE OR REPLACE FUNCTION ClientCulture (
+ inName varchar
+) RETURNS smallint AS $$
+DECLARE
+ culture_code smallint;
+BEGIN
+ SET LOCAL client_min_messages=warning;
+ CREATE TEMP TABLE IF NOT EXISTS inject_culture (
+  value smallint
+ );
+ RESET client_min_messages;
+ IF inName IS NULL THEN
+  DELETE FROM inject_culture;
+ ELSE
+  SELECT code INTO culture_code
+  FROM Culture
+  WHERE UPPER(name) = UPPER(inName);
+  IF culture_code IS NOT NULL THEN
+   DELETE FROM inject_culture;
+   INSERT INTO inject_culture (value) VALUES (culture_code);
+  END IF;
+ END IF;
+ RETURN ClientCulture();
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- FormatFor(format integer, target varchar).
+-- A row whose target word matches inTarget wins over a null target of the same name.
+CREATE OR REPLACE FUNCTION FormatFor (
+ inFormat integer,
+ inTarget varchar
+) RETURNS TABLE (
+ name varchar,
+ value varchar
+) AS $$
+BEGIN
+ IF inFormat IS NULL THEN
+  RETURN;
+ END IF;
+ RETURN QUERY
+ SELECT AttrName.value,
+  AttrValue.value
+ FROM FormatAttribute
+ LEFT JOIN I18NWord AS AttrName ON AttrName.id = FormatAttribute.name
+ LEFT JOIN I18NWord AS AttrValue ON AttrValue.id = FormatAttribute.value
+ LEFT JOIN I18NWord AS AttrTarget ON AttrTarget.id = FormatAttribute.target
+ WHERE FormatAttribute.format = inFormat
+  AND FormatAttribute.stop IS NULL
+  AND (
+   (
+    inTarget IS NOT NULL
+    AND FormatAttribute.target IS NOT NULL
+    AND UPPER(AttrTarget.value) = UPPER(inTarget)
+   )
+   OR (
+    FormatAttribute.target IS NULL
+    AND (
+     inTarget IS NULL
+     OR NOT EXISTS (
+      SELECT 1
+      FROM FormatAttribute AS specific
+      LEFT JOIN I18NWord AS SpecificTarget ON SpecificTarget.id = specific.target
+      WHERE specific.format = FormatAttribute.format
+       AND specific.name = FormatAttribute.name
+       AND specific.stop IS NULL
+       AND specific.target IS NOT NULL
+       AND UPPER(SpecificTarget.value) = UPPER(inTarget)
+     )
+    )
+   )
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- ContentBody(content integer, target varchar).
+-- Current edition. An element with no winning attribute is one row with a null name.
+CREATE OR REPLACE FUNCTION ContentBody (
+ inContent integer,
+ inTarget varchar
+) RETURNS TABLE (
+ sequence integer,
+ kind varchar,
+ element integer,
+ value varchar,
+ format integer,
+ argument varchar,
+ name varchar,
+ attribute varchar
+) AS $$
+BEGIN
+ RETURN QUERY
+ SELECT ContentElements.sequence,
+  ContentElements.kind::varchar,
+  ContentElements.element,
+  ContentElements.value::varchar,
+  ContentElements.format,
+  ContentElements.argument::varchar,
+  winning.name,
+  winning.attribute
+ FROM ContentElements
+ LEFT JOIN LATERAL (
+  SELECT FormatFor.name,
+   FormatFor.value AS attribute
+  FROM FormatFor(ContentElements.format, inTarget)
+ ) AS winning ON true
+ WHERE ContentElements.content = inContent
+ ORDER BY ContentElements.sequence, winning.name;
+END;
+$$ LANGUAGE plpgsql;
+
+-- SiteContent(site integer, target varchar).
+-- Unstopped ContentSite rows, placement sequence then element sequence.
+CREATE OR REPLACE FUNCTION SiteContent (
+ inSite integer,
+ inTarget varchar
+) RETURNS TABLE (
+ place integer,
+ content integer,
+ sequence integer,
+ kind varchar,
+ element integer,
+ value varchar,
+ format integer,
+ argument varchar,
+ name varchar,
+ attribute varchar
+) AS $$
+BEGIN
+ RETURN QUERY
+ SELECT ContentSites.sequence,
+  ContentSites.content,
+  body.sequence,
+  body.kind,
+  body.element,
+  body.value,
+  body.format,
+  body.argument,
+  body.name,
+  body.attribute
+ FROM ContentSites
+ JOIN LATERAL ContentBody(ContentSites.content, inTarget) AS body ON true
+ WHERE ContentSites.site = inSite
+ ORDER BY ContentSites.sequence, body.sequence, body.name;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ListContent(list name varchar, target varchar).
+-- Unstopped ContentList rows for that list name. Does not create the word.
+CREATE OR REPLACE FUNCTION ListContent (
+ inListName varchar,
+ inTarget varchar
+) RETURNS TABLE (
+ place integer,
+ content integer,
+ sequence integer,
+ kind varchar,
+ element integer,
+ value varchar,
+ format integer,
+ argument varchar,
+ name varchar,
+ attribute varchar
+) AS $$
+DECLARE
+ list_id integer;
+BEGIN
+ IF inListName IS NULL THEN
+  RETURN;
+ END IF;
+ SELECT Word.id INTO list_id
+ FROM Word
+ WHERE Word.culture = 1033
+  AND UPPER(Word.value) = UPPER(inListName)
+ LIMIT 1;
+ IF list_id IS NULL THEN
+  RETURN;
+ END IF;
+ RETURN QUERY
+ SELECT ContentList.sequence,
+  ContentList.content,
+  body.sequence,
+  body.kind,
+  body.element,
+  body.value,
+  body.format,
+  body.argument,
+  body.name,
+  body.attribute
+ FROM ContentList
+ JOIN LATERAL ContentBody(ContentList.content, inTarget) AS body ON true
+ WHERE ContentList.listName = list_id
+  AND ContentList.stop IS NULL
+ ORDER BY ContentList.sequence, body.sequence, body.name;
 END;
 $$ LANGUAGE plpgsql;
 

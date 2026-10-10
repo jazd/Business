@@ -339,3 +339,31 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- ClientCulture(name varchar) sets inject_culture for this connection.
+-- NULL clears it. An unknown name leaves the current culture in place.
+CREATE OR REPLACE FUNCTION ClientCulture (
+ inName varchar
+) RETURNS smallint AS $$
+DECLARE
+ culture_code smallint;
+BEGIN
+ SET LOCAL client_min_messages=warning;
+ CREATE TEMP TABLE IF NOT EXISTS inject_culture (
+  value smallint
+ );
+ RESET client_min_messages;
+ IF inName IS NULL THEN
+  DELETE FROM inject_culture;
+ ELSE
+  SELECT code INTO culture_code
+  FROM Culture
+  WHERE UPPER(name) = UPPER(inName);
+  IF culture_code IS NOT NULL THEN
+   DELETE FROM inject_culture;
+   INSERT INTO inject_culture (value) VALUES (culture_code);
+  END IF;
+ END IF;
+ RETURN ClientCulture();
+END;
+$$ LANGUAGE plpgsql;
+
