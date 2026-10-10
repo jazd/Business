@@ -1,0 +1,61 @@
+Entitlement
+
+A second grant returns the same id. EntitlementSet stops that row and inserts
+the next. A reference named subscription keeps its value. EntitlementCurrent
+omits a row whose ends is before ClientNow and keeps a row with a null ends.
+
+!|Query|SELECT CreateIndividual()|
+|createindividual?|
+|>>ind|
+
+!|Query|SELECT EntitlementGrant(_:ind::BIGINT, 'DbFitList', 'Pro', 'comp', 'active', '2026-01-01', NULL, NULL)|
+|entitlementgrant?|
+|>>e1|
+
+!|Query|SELECT EntitlementGrant(_:ind::BIGINT, 'DbFitList', 'Pro', 'comp', 'active', '2026-01-01', NULL, NULL)|
+|entitlementgrant|
+|<<e1|
+
+!|Query|SELECT EntitlementReference(_:e1::INT, 'subscription', 'sub_dbfit_1')|
+|entitlementreference?|
+|>>ref|
+
+!|Query|SELECT EntitlementReference(_:e1::INT, 'subscription', 'other')|
+|entitlementreference|
+|<<ref|
+
+!|Query|SELECT value FROM EntitlementReference WHERE id = _:ref::INT|
+|value|
+|sub_dbfit_1|
+
+!|Query|SELECT EntitlementSet(_:ind::BIGINT, 'DbFitList', 'Pro', 'comp', 'active', '2026-02-01', NULL, NULL)|
+|entitlementset?|
+|>>e2|
+
+!|Query|SELECT (_:e1::INT = _:e2::INT) AS same|
+|same|
+|false|
+
+!|Query|SELECT value FROM I18NWord WHERE id = (SELECT stopReason FROM Entitlement WHERE id = _:e1::INT)|
+|value|
+|replaced|
+
+!|Query|SELECT value FROM EntitlementReference WHERE entitlement = _:e1::INT AND name = (SELECT GetWord('subscription'))|
+|value|
+|sub_dbfit_1|
+
+!|Query|SELECT EntitlementGrant(_:ind::BIGINT, 'DbFitList', NULL, 'grant', 'active', '2026-01-01', '2026-02-01', NULL)|
+|entitlementgrant?|
+|>>ended|
+
+!|Query|SELECT ClientNow('2026-03-01 00:00:00+00')|
+|clientnow?|
+|>>clock|
+
+!|Query|SELECT COUNT(*) AS n FROM EntitlementCurrent WHERE id = _:ended::INT|
+|n|
+|0|
+
+!|Query|SELECT COUNT(*) AS n FROM EntitlementCurrent WHERE id = _:e2::INT|
+|n|
+|1|

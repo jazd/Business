@@ -60,6 +60,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS campaigncontent_campaign_content_open
  ON CampaignContent (campaign, content)
  WHERE stop IS NULL;
 
+-- One current entitlement per individual, list name, list set, and source.
+-- A null list set is its own key.
+CREATE UNIQUE INDEX IF NOT EXISTS entitlement_current_set
+ ON Entitlement (individual, listName, listSet, source)
+ WHERE stopped IS NULL AND listSet IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS entitlement_current_noset
+ ON Entitlement (individual, listName, source)
+ WHERE stopped IS NULL AND listSet IS NULL;
+
 -- Update the next in sequence for id
 UPDATE sqlite_sequence SET seq = 1000 WHERE name = 'WordPlural';
 UPDATE sqlite_sequence SET seq = 10000 WHERE name = 'Edge';

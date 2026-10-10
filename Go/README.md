@@ -20,6 +20,10 @@ and `ListContent` return the current edition for one target (`html`, `txt`,
 or `document`). A target attribute wins over the null-target row with the
 same name.
 
+`EntitlementGrant` returns the current period for one individual, list, set,
+and source. `EntitlementSet` stops that row with reason `replaced` and inserts
+the next version. `EntitlementReference` stores an outside id on one version.
+
 `Sample/PostgreSQL/Go` is the older AnonymousSession sample. New callers use
 this package.
 

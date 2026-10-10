@@ -117,8 +117,31 @@ func TestContentBodyCallsProcedure(t *testing.T) {
 	}
 }
 
+func TestEntitlementGrantCallsProcedure(t *testing.T) {
+	sqldb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer sqldb.Close()
+	starts := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	mock.ExpectQuery(`SELECT EntitlementGrant`).
+		WithArgs(int64(8), "Example", "Pro", "comp", "active", starts, nil, nil).
+		WillReturnRows(sqlmock.NewRows([]string{"entitlementgrant"}).AddRow(15))
+	d := &DB{SQL: sqldb}
+	id, err := d.EntitlementGrant(context.Background(), 8, "Example", "Pro", "comp", "active", starts, nil, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if id != 15 {
+		t.Fatalf("id=%d", id)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestNoTableWrites(t *testing.T) {
-	files := []string{"db.go", "get.go", "session.go", "path.go", "content.go"}
+	files := []string{"db.go", "get.go", "session.go", "path.go", "content.go", "entitlement.go"}
 	for _, name := range files {
 		b, err := os.ReadFile(name)
 		if err != nil {

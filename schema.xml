@@ -353,6 +353,56 @@
 </constraints>
 </table>
 
+<table name="Entitlement" order="32">
+<comments>One version of a period for one individual, list name, list set, and source. stopped IS NULL is the current version.</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="individual" data_type="bigint" size="20" is_nullable="0" order="2" />
+ <field name="listName" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="listSet" data_type="integer" size="" is_nullable="1" order="4" />
+ <field name="source" data_type="integer" size="" is_nullable="0" order="5" />
+ <field name="status" data_type="integer" size="" is_nullable="0" order="6" />
+ <field name="starts" data_type="timestamp" size="0" is_nullable="0" order="7" />
+ <field name="ends" data_type="timestamp" size="0" is_nullable="1" order="8" />
+ <field name="batch" data_type="integer" size="" is_nullable="1" order="9" />
+ <field name="stopReason" data_type="integer" size="" is_nullable="1" order="10" />
+ <field name="stopped" data_type="timestamp" size="0" is_nullable="1" order="11">
+  <comments>This version is no longer current. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="entitlement_individual" type="NORMAL" fields="individual" />
+</indices>
+<constraints>
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="individual" reference_table="Individual" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="listName" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="listSet" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid3" type="FOREIGN KEY" fields="source" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid4" type="FOREIGN KEY" fields="status" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid5" type="FOREIGN KEY" fields="stopReason" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid6" type="FOREIGN KEY" fields="batch" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="EntitlementReference" order="33">
+<comments>An outside id on one entitlement version. name is a Word. value is text.</comments>
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="entitlement" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="name" data_type="integer" size="" is_nullable="0" order="3" />
+ <field name="value" data_type="text" size="" is_nullable="0" order="4" />
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+ <index name="entitlementreference_entitlement_name" type="UNIQUE" fields="entitlement,name" />
+</indices>
+<constraints>
+ <constraint name="entitlementreference_entitlement" type="FOREIGN KEY" fields="entitlement" reference_table="Entitlement" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 <table name="IndividualPath" order="50">
 <comments>Web Site, Social page, feed etc.</comments>
 <fields>
@@ -4010,6 +4060,70 @@ JOIN CA ON CA.id = CAPolicy.ca
 LEFT JOIN CACertificate ON CACertificate.certificate = Certificate.id
    </sql>
  </view>
+ <view name="EntitlementHistory" fields="id,individual,listName,listNameValue,listSet,listSetValue,source,sourceValue,status,statusValue,stopReason,stopReasonValue,starts,ends,batch,batchValue,stopped,created">
+ <comments>Every entitlement version. Word and Sentence values follow ClientCulture().</comments>
+ <sql>
+SELECT Entitlement.id,
+ Entitlement.individual,
+ Entitlement.listName,
+ ListName.value AS listNameValue,
+ Entitlement.listSet,
+ ListSet.value AS listSetValue,
+ Entitlement.source,
+ Source.value AS sourceValue,
+ Entitlement.status,
+ Status.value AS statusValue,
+ Entitlement.stopReason,
+ StopReason.value AS stopReasonValue,
+ Entitlement.starts,
+ Entitlement.ends,
+ Entitlement.batch,
+ Batch.value AS batchValue,
+ Entitlement.stopped,
+ Entitlement.created
+FROM Entitlement
+LEFT JOIN I18NWord AS ListName ON ListName.id = Entitlement.listName
+LEFT JOIN I18NWord AS ListSet ON ListSet.id = Entitlement.listSet
+LEFT JOIN I18NWord AS Source ON Source.id = Entitlement.source
+LEFT JOIN I18NWord AS Status ON Status.id = Entitlement.status
+LEFT JOIN I18NWord AS StopReason ON StopReason.id = Entitlement.stopReason
+LEFT JOIN I18NSentence AS Batch ON Batch.id = Entitlement.batch
+ </sql>
+ </view>
+
+ <view name="EntitlementCurrent" fields="id,individual,listName,listNameValue,listSet,listSetValue,source,sourceValue,status,statusValue,stopReason,stopReasonValue,starts,ends,batch,batchValue,stopped,created">
+ <comments>stopped IS NULL and ends IS NULL or ends is after ClientNow(). Status is not filtered.</comments>
+ <sql>
+SELECT Entitlement.id,
+ Entitlement.individual,
+ Entitlement.listName,
+ ListName.value AS listNameValue,
+ Entitlement.listSet,
+ ListSet.value AS listSetValue,
+ Entitlement.source,
+ Source.value AS sourceValue,
+ Entitlement.status,
+ Status.value AS statusValue,
+ Entitlement.stopReason,
+ StopReason.value AS stopReasonValue,
+ Entitlement.starts,
+ Entitlement.ends,
+ Entitlement.batch,
+ Batch.value AS batchValue,
+ Entitlement.stopped,
+ Entitlement.created
+FROM Entitlement
+LEFT JOIN I18NWord AS ListName ON ListName.id = Entitlement.listName
+LEFT JOIN I18NWord AS ListSet ON ListSet.id = Entitlement.listSet
+LEFT JOIN I18NWord AS Source ON Source.id = Entitlement.source
+LEFT JOIN I18NWord AS Status ON Status.id = Entitlement.status
+LEFT JOIN I18NWord AS StopReason ON StopReason.id = Entitlement.stopReason
+LEFT JOIN I18NSentence AS Batch ON Batch.id = Entitlement.batch
+WHERE Entitlement.stopped IS NULL
+ AND (Entitlement.ends IS NULL OR Entitlement.ends &gt; ClientNow())
+ </sql>
+ </view>
+
 </views>
 <triggers></triggers>
 <procedures></procedures>

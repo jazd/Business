@@ -274,9 +274,21 @@ Current members: view `List` (`unlist IS NULL`). History including stopped:
 view **`SiteMembership`** (`unlist` populated). Never use only `List` when you
 need “were they Pro last month.”
 
-Paid vs free is **list set `Pro`** (or your set name). Do not add a
-subscriptions table that duplicates lists. Stripe customer ids, if any, are
-application data — not required for plan.
+List membership stays `ListSubscribeEmail`. A paid or complimentary period is
+`Entitlement`. The entitlement procedures do not subscribe or unlist.
+
+```sql
+SELECT EntitlementGrant(individualId, 'Example', 'Pro', 'comp', 'active', TIMESTAMP '2026-01-01', NULL, NULL);
+SELECT EntitlementReference(entitlementId, 'subscription', outsideId);
+SELECT EntitlementSet(individualId, 'Example', 'Pro', 'comp', 'active', TIMESTAMP '2026-02-01', NULL, NULL);
+SELECT EntitlementStop(individualId, 'Example', 'Pro', 'comp', 'revoked');
+```
+
+`source`, `status`, and the stop reason are Words. The table does not list the allowed values. `ends` NULL means the period does not expire on its own. `EntitlementSet` stops the current row with reason `replaced` and inserts the next version. A second `EntitlementGrant` for the same individual, list, set, and source returns the current id.
+
+`EntitlementReference` stores an outside id on that version. `name` is a Word (`subscription`, `customer`, or a later name). `value` is text. The same name on that version returns the existing row. A new version does not copy the old refs.
+
+Current rows: view `EntitlementCurrent` (`stopped` is null, and `ends` is null or after `ClientNow()`). Status is not filtered. Every version: `EntitlementHistory`.
 
 ---
 
@@ -353,6 +365,8 @@ Filter in `WHERE`; do not bake a product name into a new view.
 | **IndividualPaths** / **IndividualPathHistory** | Person-owned URLs |
 | **SessionPaths** / **SessionPathHistory** / **SessionURL** | Anonymous session URLs |
 | **List** | Current list members only |
+| **EntitlementCurrent** | Current period. `stopped` is null, and `ends` is null or after `ClientNow()`. |
+| **EntitlementHistory** | Every version of a period |
 
 Do not `SELECT` mailbox values into git, chat, or public pages unless the
 operator asked for that row.
@@ -396,8 +410,8 @@ cookie name, Secure flag.
 | Any HTML / API | `Identify`: cookie token → `SetSession` → JSON `{plan, email?, terms?}` from lists + IndividualSessions |
 | `POST /api/watch` or product equivalent | `GetPath`/`GetURL` + `SetSessionPath` while anonymous; after email, `SetIndividualPath` |
 | `POST /api/signup` | email + token → `ClaimSession` + `ListSubscribeEmail` (product set + Terms if they checked) |
-| `POST /api/checkout` success / webhook | `ListSubscribeEmail(..., 'Pro', email)`; optional ClaimSession if cookie present |
-| `POST /api/cancel` | `ListUnSubscribe(..., 'Pro', individual)` |
+| `POST /api/checkout` success / webhook | `ListSubscribeEmail(..., 'Pro', email)` for the list, and `EntitlementGrant` or `EntitlementSet` for the period. Outside id: `EntitlementReference`. |
+| `POST /api/cancel` | `EntitlementStop` for the period. `ListUnSubscribe(..., 'Pro', individual)` when they also leave the list. |
 | `POST /api/restore` | if already Pro (or has product list), mint mail token, send link; generic 200 so you do not leak membership |
 | `GET /t/{token}` or `/l/{token}` | Adopt cookie and/or ClaimSession bind |
 
@@ -405,7 +419,7 @@ cookie name, Secure flag.
 
 1. Token from cookie else new random (32–128 chars).
 2. `SetSession(token, sar, …, type 'session')`.
-3. Plan = `Pro` if `SiteMembership` (or `List`) has list set Pro and `unlist` IS NULL; else free.
+3. On the list: `SiteMembership` (or `List`) with `unlist` IS NULL. Paid period: `EntitlementCurrent` for that individual, list, and set.
 4. Caps from plan (application constants), counts from `IndividualPaths` /
    `SessionPaths`.
 
@@ -491,7 +505,10 @@ Do not DELETE runs.
 | `SetSessionPath` / `StopSessionPath` | Anonymous paths |
 | `SetIndividualPath` / `StopIndividualPath` | Claimed paths |
 | `ClaimSession` | Email owns this session (`GetIndividualEmail` inside) |
-| `ListSubscribeEmail` / `ListUnSubscribe` | Membership. Unlist needs individual id |
+| `ListSubscribeEmail` / `ListUnSubscribe` | List membership. Unlist needs individual id |
+| `EntitlementGrant` / `EntitlementSet` / `EntitlementStop` | Period. Set stops the current row with `replaced` |
+| `EntitlementReference` | Outside id on one version |
+| `EntitlementCurrent` / `EntitlementHistory` | Current period, and every version |
 | `SetPathPassword` / `RevokePathPassword` | Secret on a Path |
 | `AnonymousSession` | Optional UA-parsed hit without a token |
 

@@ -104,6 +104,15 @@ CREATE UNIQUE INDEX campaigncontent_campaign_content_open
  ON CampaignContent (campaign, content)
  WHERE stop IS NULL;
 
+-- One current entitlement per individual, list name, list set, and source.
+-- A null list set is its own key.
+CREATE UNIQUE INDEX entitlement_current_set
+ ON Entitlement (individual, listName, listSet, source)
+ WHERE stopped IS NULL AND listSet IS NOT NULL;
+CREATE UNIQUE INDEX entitlement_current_noset
+ ON Entitlement (individual, listName, source)
+ WHERE stopped IS NULL AND listSet IS NULL;
+
 -- Do not allow duplicate country codes
 CREATE UNIQUE INDEX country_code ON Country (UPPER(code));
 
