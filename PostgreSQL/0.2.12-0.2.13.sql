@@ -2,9 +2,9 @@
 -- Business schema upgrade: 0.2.12 -> 0.2.13 (PostgreSQL)
 -- =============================================================================
 --
--- Living upgrade path while 0.2.13 is unreleased. Keep this file in sync with
--- develop (procedures.d, schema.xml, post.sql, Static seeds) so a database
--- installed at 0.2.12 can reach the same end state as a fresh 0.2.13 build.
+-- Released hop 0.2.12 -> 0.2.13 (freeze after release). Living work for the next
+-- version is PostgreSQL/0.2.13-0.2.14.sql (and SQLite/0.2.13-0.2.14.sql).
+-- A database installed at 0.2.12 reaches the same end state as a fresh 0.2.13 build.
 --
 -- Fresh installs: make pgsqldb (pre + schema + procedures + post + Static).
 -- Do not use this script for a greenfield install.
@@ -556,7 +556,6 @@ SELECT
  li.consigneeName
 FROM LineItems li;
 
--- Mark schema upgraded to 0.2.13 when the hop body is ready for the release.
--- Until then, leave this commented so a partial living script is not stamped
--- as 0.2.13 on production by mistake.
+-- Released hop stamps Business 0.2.13. The next living hop leaves its stamp
+-- commented until that release is tagged.
 SELECT SetSchemaVersion('Business', '0', '2', '13');
