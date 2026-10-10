@@ -3084,6 +3084,26 @@ LEFT JOIN I18NWord AS patch ON patch.id = Version.patch
   </sql>
  </view>
 
+ <view name="SchemaVersions" fields="build,schema,schemaName,version,stop,created,name,value,major,minor,patch">
+ <comments>SchemaVersion rows joined to Versions on version. schemaName is the I18NWord for schema.</comments>
+ <sql>
+SELECT SchemaVersion.build,
+ SchemaVersion.schema,
+ SchemaName.value AS schemaName,
+ SchemaVersion.version,
+ SchemaVersion.stop,
+ SchemaVersion.created,
+ Versions.name,
+ Versions.value,
+ Versions.major,
+ Versions.minor,
+ Versions.patch
+FROM SchemaVersion
+JOIN Versions ON SchemaVersion.version = Versions.version
+LEFT JOIN I18NWord AS SchemaName ON SchemaName.id = SchemaVersion.schema
+ </sql>
+ </view>
+
  <view name="Applications" fields="application,name,goesby,path">
    <sql>
    SELECT Application.id AS application,

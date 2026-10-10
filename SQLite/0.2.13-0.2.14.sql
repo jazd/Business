@@ -27,6 +27,8 @@
 --     current edition. The read procedures are PostgreSQL.
 --  3) Entitlement and EntitlementReference, plus EntitlementHistory and
 --     EntitlementCurrent. The writer procedures are PostgreSQL.
+--  4) SchemaVersions joins SchemaVersion to Versions. schemaName is the
+--     I18NWord for schema. The version column is SchemaVersion.version.
 --
 -- SQLite does not enforce varchar(n). Email.username and Email.plus 30->64
 -- need no table rebuild; stored values stay.
@@ -144,3 +146,20 @@ LEFT JOIN I18NWord AS StopReason ON StopReason.id = Entitlement.stopReason
 LEFT JOIN I18NSentence AS Batch ON Batch.id = Entitlement.batch
 WHERE Entitlement.stopped IS NULL
  AND (Entitlement.ends IS NULL OR Entitlement.ends > ClientNow());
+
+DROP VIEW IF EXISTS SchemaVersions;
+CREATE VIEW SchemaVersions AS
+SELECT SchemaVersion.build,
+ SchemaVersion.schema,
+ SchemaName.value AS schemaName,
+ SchemaVersion.version,
+ SchemaVersion.stop,
+ SchemaVersion.created,
+ Versions.name,
+ Versions.value,
+ Versions.major,
+ Versions.minor,
+ Versions.patch
+FROM SchemaVersion
+JOIN Versions ON SchemaVersion.version = Versions.version
+LEFT JOIN I18NWord AS SchemaName ON SchemaName.id = SchemaVersion.schema;

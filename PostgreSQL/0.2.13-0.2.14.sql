@@ -39,6 +39,8 @@
 --  6) Entitlement and EntitlementReference, views EntitlementHistory and
 --     EntitlementCurrent, and EntitlementGrant, EntitlementSet,
 --     EntitlementStop, and EntitlementReference.
+--  7) SchemaVersions joins SchemaVersion to Versions. schemaName is the
+--     I18NWord for schema. The version column is SchemaVersion.version.
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '14') - last substantive step
@@ -959,6 +961,23 @@ BEGIN
  RETURN reference_id;
 END;
 $$ LANGUAGE plpgsql;
+
+DROP VIEW IF EXISTS SchemaVersions;
+CREATE VIEW SchemaVersions AS
+SELECT SchemaVersion.build,
+ SchemaVersion.schema,
+ SchemaName.value AS schemaName,
+ SchemaVersion.version,
+ SchemaVersion.stop,
+ SchemaVersion.created,
+ Versions.name,
+ Versions.value,
+ Versions.major,
+ Versions.minor,
+ Versions.patch
+FROM SchemaVersion
+JOIN Versions ON SchemaVersion.version = Versions.version
+LEFT JOIN I18NWord AS SchemaName ON SchemaName.id = SchemaVersion.schema;
 
 -- Mark schema upgraded to 0.2.14 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped
