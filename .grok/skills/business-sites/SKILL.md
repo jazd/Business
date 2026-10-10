@@ -38,7 +38,7 @@ One official join, reused on every host:
 
 ```text
 browser token
-  → SessionToken (site via SiteApplicationRelease, type session|mail|trial)
+  → SessionToken (site via SiteApplicationRelease, type session|mail|trial|checkout)
   → Session
   → SessionCredential (fromAddress, referring Path, optional Credential)
   → Credential → Individual + Email
@@ -66,9 +66,9 @@ is not the same kind of fact as a party, a bill, or a session.
    work hangs on **SessionPath** until `ClaimSession`.
 6. Do **not** store user hosts or webhook URLs in `SessionToken.items` (bytea
    bag). Use Path / SessionPath / IndividualPath.
-7. `Word.value` is **varchar(25)**. Site names, list names, list sets, and
-   SessionToken types must fit. Hostnames longer than 25 are **Path.host**
-   (varchar 96), not Word.
+7. `Word.value` is **varchar(25)**. List names, list sets, and SessionToken
+   types fit Word. `Site.name` is a Sentence (`GetSite`). Hostnames are
+   `Path.host` (varchar 96).
 
 ---
 
@@ -140,10 +140,10 @@ replace with the real product and apex.
 
 | Fact | How |
 |------|-----|
-| Site | `Site.name` → Word. Use a **short** host label ≤ 25 chars (usually the apex without `www.`). There is **no** `GetSite(varchar)` procedure yet: `GetWord(host)` then find-or-insert `Site` (same Dual/LEFT JOIN shape as `GetApplication`). |
+| Site | `Site.name` links to Sentence. `GetSite(name)` calls `GetSentence`, then find-or-inserts Site. See `docs/0.2.14-downstream.md`. |
 | Application | `GetApplication('Example')` |
 | ApplicationRelease | `GetApplicationRelease(application, NULL)` until you seed a real Release |
-| SiteApplicationRelease (SAR) | find-or-insert `(site, applicationrelease)` — this integer is passed to every `SetSession` |
+| SiteApplicationRelease (SAR) | `GetSiteApplicationRelease(site, applicationRelease)`. This integer is passed to every `SetSession`. |
 | List name | Word: product name ≤ 25 (`Example`) |
 | List sets | `Pro`, `Terms`, plus one product set (`Watch`, `Webhook`, `Feature notify`, …). `GetWord` creates them on first subscribe. |
 
@@ -161,24 +161,22 @@ what Business stores.
 |---------|-------|-----|
 | 18 | `session` | Browser cookie or localStorage. NULL type on old rows means this. |
 | 19 | `mail` | Mailed restore link. Prefer `timeout` NULL (does not expire). |
-| 20 | `trial` | Time-limited mailed token. Set `SessionToken.timeout` to seconds from `created`. |
+| 20 | `trial` | Time-limited mailed token. `SetSessionTimeout` fills seconds from `created`. |
+
+`checkout` is another SessionToken type when a public reference is needed.
+`SetSession` creates that Word. There is no seeded id for it.
 
 Pass `inType` on **insert** of a new token (`SetSession(..., inType)`). An
 existing token is not rewritten; `SetSession` only touches `Session.touched`
 and may append `SessionCredential`.
 
-There is **no** `SetSessionTimeout` procedure. Filling NULL timeout is
-allowed:
+`SetSessionTimeout(token, siteApplicationRelease, seconds)` fills
+`SessionToken.timeout` when it is still NULL and returns how many rows it
+filled. A second call returns 0.
 
 ```sql
-UPDATE SessionToken
-   SET timeout = 172800   -- 2 days, example
- WHERE token = $1
-   AND siteApplicationRelease = $2
-   AND timeout IS NULL;
+SELECT SetSessionTimeout($token, $sar, 172800);
 ```
-
-Do not overwrite a non-NULL timeout in place.
 
 Mint tokens as **unguessable** random strings (32–128 chars). Unique is
 `(token, siteApplicationRelease)`. `ClaimSession(token, email)` looks up token
@@ -198,17 +196,15 @@ Mint tokens as **unguessable** random strings (32–128 chars). Unique is
 5. Load identity from views (not ad-hoc joins) when you need email/plan:
 
 ```sql
-SELECT s.individual, s.email, s.tokenType, s.credential, w.value AS site
-FROM IndividualSessions s
-JOIN site st ON st.id = s.site
-JOIN word w ON w.id = st.name
-WHERE s.token = $1 AND s.site = $2
+SELECT individual, email, tokenType, credential, siteName, timeout
+FROM IndividualSessions
+WHERE token = $1
+  AND siteApplicationRelease = $2
 LIMIT 1;
 ```
 
-Do **not** use `IndividualSessions.siteName`. `Site.name` is a **Word** id;
-that column joins Sentence by the same integer and collides with unrelated
-sentences. Always `site` → `word`.
+`siteName` is the sentence for `ClientCulture()`. `Sessions` includes
+anonymous hits and the same `timeout` column.
 
 Anonymous browsers **will not** appear in `IndividualSessions` (no
 credential). They still have a `Session` / `SessionToken` / `Sessions` row.
@@ -302,8 +298,9 @@ On click, either:
 Keep `/t/{token}` and `/l/{token}` as **application routes**. Business only
 stores the token string. Do not invent a second view-key table.
 
-Trial: type `'trial'` and fill `timeout` once. Application rejects the token
-when `created + timeout seconds` is past.
+Trial: type `'trial'`, then `SetSessionTimeout` once. Application rejects the token
+when `created + timeout seconds` is past. The credential on that token is
+`GetCredential(individual, email)`.
 
 ---
 
@@ -330,7 +327,7 @@ Public webhook URLs, signing secrets, and similar hang on **Path**, not on a
 tenant table.
 
 1. `GetURL` / `GetPath` for the public URL (`Path.value` may hold the public id).
-2. Insert `Password` (`value` = secret; `revoked` NULL). Never commit secrets.
+2. `PutPassword(secret)` returns the Password id. Never commit secrets.
 3. `SetPathPassword(pathId, passwordId)`.
 4. Rotate: `RevokePathPassword` then Set a new Password + SetPathPassword.
 
@@ -350,8 +347,8 @@ Filter in `WHERE`; do not bake a product name into a new view.
 
 | View | What |
 |------|------|
-| **IndividualSessions** | Individual ↔ session, token, tokenType, site, email, credential, touched. Omits anonymous hits. **Ignore `siteName`** (Word vs Sentence); join `site`+`word`. |
-| **Sessions** | Hit log including anonymous SessionCredential |
+| **IndividualSessions** | Individual, session, token, tokenType, site, siteName (the sentence), email, credential, touched, timeout. Omits anonymous hits. |
+| **Sessions** | Hit log including anonymous rows. `timeout` is `SessionToken.timeout`. |
 | **SiteMembership** | individual, email, listNameValue, listSetValue, **unlist**, created (from ListIndividual, not the current-only `List` view) |
 | **IndividualPaths** / **IndividualPathHistory** | Person-owned URLs |
 | **SessionPaths** / **SessionPathHistory** / **SessionURL** | Anonymous session URLs |
@@ -444,8 +441,8 @@ dropped first, then rebuilt.
 - `CreateIndividual()` on first GET /.
 - Host:port stuffed into `Path.host` after 0.2.11.
 - Leading `/` on `Path.value` (double slash in the URL view).
-- `IndividualSessions.siteName` as the DNS host (join `site`+`word`).
-- Site / list names longer than 25 characters (use Path.host for FQDNs).
+- Joining `Site.name` to Word. `GetSite` stores a Sentence id. `IndividualSessions.siteName` is that sentence.
+- List names or SessionToken types longer than 25 characters. Site names are sentences. DNS hosts are `Path.host`.
 - DELETE of watches to enforce a free cap.
 - Treating `List` as history (stopped Pro disappears).
 - Putting Stripe or TLS probe columns on Path or Individual.
@@ -483,7 +480,11 @@ Do not DELETE runs.
 | Call | Role |
 |------|------|
 | `GetWord` / `GetEmail` / `GetIndividualEmail` | Find-or-insert words, mailbox, person |
+| `GetSite` / `GetSiteApplicationRelease` | Site (sentence name) and SAR |
 | `GetApplication` / `GetApplicationRelease` | App + release |
+| `GetCredential` | Unrevoked credential for one individual and email |
+| `PutPassword` | New Password row |
+| `SetSessionTimeout` | Fill a NULL timeout once |
 | `GetPath` / `GetURL` | Path id (`inPort` on 0.2.11) |
 | `GetSentence` / `GetPart` / `GetPartbySerial` | Process names, QA assembly serials |
 | `SetSession` | Cookie token ↔ session; optional credential + type |
@@ -501,6 +502,8 @@ Do not DELETE runs.
 - `/business-bookkeeper` — parties, lists (shop), books, bills
 - `/contribute-pr` — PRs into jazd/Business `develop`
 - `Sample/SQL/Session/Client.sql`
+- `Go/` — procedure client. Each method is `SELECT` of a procedure.
+- `docs/0.2.14-downstream.md` — which name columns store a Word, Sentence, or Paragraph id
 - `Sample/PostgreSQL/Go/business/session.go` — older AnonymousSession helper
 - `PostgreSQL/procedures.d/70-session.sql`, `40-contacts.sql`, `50-lists.sql`
 - `PostgreSQL/0.2.10-0.2.11.sql` — 0.2.10 → 0.2.11 hop

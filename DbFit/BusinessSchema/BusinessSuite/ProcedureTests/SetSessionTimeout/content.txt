@@ -1,0 +1,27 @@
+SetSessionTimeout
+
+Fills SessionToken.timeout when it is still NULL. A second call fills nothing.
+
+!|Query|SELECT SetSession('dbfit-timeout-tok', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'trial')|
+|setsession?|
+|>>sid|
+
+!|Query|SELECT SetSessionTimeout('dbfit-timeout-tok', NULL, 3600)|
+|setsessiontimeout|
+|1|
+
+!|Query|SELECT timeout FROM SessionToken WHERE token = 'dbfit-timeout-tok'|
+|timeout|
+|3600|
+
+!|Query|SELECT SetSessionTimeout('dbfit-timeout-tok', NULL, 7200)|
+|setsessiontimeout|
+|0|
+
+!|Query|SELECT timeout FROM SessionToken WHERE token = 'dbfit-timeout-tok'|
+|timeout|
+|3600|
+
+!|Query|SELECT timeout FROM Sessions WHERE token = 'dbfit-timeout-tok'|
+|timeout|
+|3600|

@@ -3087,7 +3087,7 @@ LEFT JOIN Versions AS AgentVersion ON AgentVersion.version = AgentRelease.versio
   </sql>
  </view>
 
- <view name="Sessions" fields="session,token,siteapplicationrelease,agentstring,deviceid,device,osid,os,agentid,agent,referring,referrringurl,fromaddress,credential,individual,username,email,created,touched">
+ <view name="Sessions" fields="session,token,siteapplicationrelease,agentstring,deviceid,device,osid,os,agentid,agent,referring,referrringurl,fromaddress,credential,individual,username,email,created,touched,timeout">
   <sql>
 SELECT Session.id AS session,
  SessionToken.token, SessionToken.siteapplicationrelease,
@@ -3097,7 +3097,8 @@ SELECT Session.id AS session,
  SessionCredential.fromaddress,
  SessionCredential.credential, Credential.individual,  Credential.username,
  EmailAddress.value AS email,
- COALESCE(SessionToken.created, Session.created) AS created, Session.touched
+ COALESCE(SessionToken.created, Session.created) AS created, Session.touched,
+ SessionToken.timeout
 FROM Session
 CROSS JOIN SessionCredential
 LEFT JOIN SessionToken ON SessionToken.session = Session.id
@@ -3109,7 +3110,7 @@ WHERE Session.id = SessionCredential.session
   </sql>
  </view>
 
- <view name="IndividualSessions" fields="individual,individualName,session,token,tokenType,siteApplicationRelease,site,sessionCredential,credential,username,email,bound,touched,created,siteName,culture">
+ <view name="IndividualSessions" fields="individual,individualName,session,token,tokenType,siteApplicationRelease,site,sessionCredential,credential,username,email,bound,touched,created,siteName,culture,timeout">
   <comments>
    Current individual to session across all sites. Unrevoked credential,
    bound via IndividualSessionCreated and/or Credential.individual.
@@ -3142,7 +3143,8 @@ SELECT
  Session.touched,
  COALESCE(SessionToken.created, Session.created) AS created,
  SiteName.value AS siteName,
- Session.culture
+ Session.culture,
+ SessionToken.timeout
 FROM bound
 JOIN SessionCredential ON SessionCredential.id = bound.sessionCredential
 JOIN Session ON Session.id = SessionCredential.session

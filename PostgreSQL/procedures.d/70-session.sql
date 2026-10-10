@@ -781,3 +781,29 @@ BEGIN
  RETURN (SELECT ClaimSession(session_id, inEmail));
 END;
 $$ LANGUAGE plpgsql;
+
+-- SetSessionTimeout fills SessionToken.timeout when it is still NULL.
+-- Returns the number of rows filled.
+CREATE OR REPLACE FUNCTION SetSessionTimeout (
+ inToken varchar,
+ inSiteApplicationRelease integer,
+ inSeconds integer
+) RETURNS integer AS $$
+DECLARE
+ filled integer;
+BEGIN
+ IF inToken IS NULL OR inSeconds IS NULL THEN
+  RETURN 0;
+ END IF;
+ UPDATE SessionToken
+ SET timeout = inSeconds
+ WHERE token = inToken
+  AND (
+   (siteApplicationRelease = inSiteApplicationRelease)
+    OR (siteApplicationRelease IS NULL AND inSiteApplicationRelease IS NULL)
+  )
+  AND timeout IS NULL;
+ GET DIAGNOSTICS filled = ROW_COUNT;
+ RETURN filled;
+END;
+$$ LANGUAGE plpgsql;

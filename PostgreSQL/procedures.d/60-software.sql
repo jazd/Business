@@ -260,6 +260,89 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- GetSite(name varchar). Site.name is a Sentence id.
+CREATE OR REPLACE FUNCTION GetSite (
+ inName varchar
+) RETURNS integer AS $$
+DECLARE
+ name_id integer;
+ site_id integer;
+BEGIN
+ IF inName IS NOT NULL THEN
+  name_id := (SELECT GetSentence(inName));
+  SELECT id INTO site_id
+  FROM Site
+  WHERE name = name_id
+  LIMIT 1;
+  IF site_id IS NULL THEN
+   PERFORM pg_advisory_lock(name_id);
+   BEGIN
+   INSERT INTO Site (name) (
+    SELECT name_id AS name
+    FROM Dual
+    LEFT JOIN Site AS exists ON exists.name = name_id
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(name_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(name_id);
+     RAISE;
+   END;
+   SELECT id INTO site_id
+   FROM Site
+   WHERE name = name_id
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN site_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- GetSiteApplicationRelease(site integer, applicationRelease integer)
+CREATE OR REPLACE FUNCTION GetSiteApplicationRelease (
+ inSite integer,
+ inApplicationRelease integer
+) RETURNS integer AS $$
+DECLARE
+ siteApplicationRelease_id integer;
+BEGIN
+ IF inSite IS NOT NULL AND inApplicationRelease IS NOT NULL THEN
+  SELECT id INTO siteApplicationRelease_id
+  FROM SiteApplicationRelease
+  WHERE site = inSite
+   AND applicationRelease = inApplicationRelease
+  LIMIT 1;
+  IF siteApplicationRelease_id IS NULL THEN
+   PERFORM pg_advisory_lock(inSite);
+   BEGIN
+   INSERT INTO SiteApplicationRelease (site, applicationRelease) (
+    SELECT inSite AS site, inApplicationRelease AS applicationRelease
+    FROM Dual
+    LEFT JOIN SiteApplicationRelease AS exists
+     ON exists.site = inSite
+     AND exists.applicationRelease = inApplicationRelease
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inSite);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(inSite);
+     RAISE;
+   END;
+   SELECT id INTO siteApplicationRelease_id
+   FROM SiteApplicationRelease
+   WHERE site = inSite
+    AND applicationRelease = inApplicationRelease
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN siteApplicationRelease_id;
+END;
+$$ LANGUAGE plpgsql;
+
 -- GetPart(name varchar)
 -- Getting a Part without a version returns a root part with a null parent, version and serial
 CREATE OR REPLACE FUNCTION GetPart (

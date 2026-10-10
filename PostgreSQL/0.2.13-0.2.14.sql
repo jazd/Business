@@ -30,6 +30,9 @@
 --     the views are replaced and the type change is applied again.
 --  2) email_username_plus_host is recreated on UPPER(username), UPPER(plus),
 --     UPPER(host). View and index owners are the owners from before the drop.
+--  3) Sessions and IndividualSessions gain SessionToken.timeout at the end.
+--  4) GetSite, GetSiteApplicationRelease, GetCredential, PutPassword, and
+--     SetSessionTimeout are created or replaced.
 --
 -- N) Schema version
 --    * SetSchemaVersion('Business', '0', '2', '14') - last substantive step
@@ -179,7 +182,8 @@ SELECT Session.id AS session,
  SessionCredential.fromaddress,
  SessionCredential.credential, Credential.individual, Credential.username,
  EmailAddress.value AS email,
- COALESCE(SessionToken.created, Session.created) AS created, Session.touched
+ COALESCE(SessionToken.created, Session.created) AS created, Session.touched,
+ SessionToken.timeout
 FROM Session
 CROSS JOIN SessionCredential
 LEFT JOIN SessionToken ON SessionToken.session = Session.id
@@ -216,7 +220,8 @@ SELECT
  Session.touched,
  COALESCE(SessionToken.created, Session.created) AS created,
  SiteName.value AS siteName,
- Session.culture
+ Session.culture,
+ SessionToken.timeout
 FROM bound
 JOIN SessionCredential ON SessionCredential.id = bound.sessionCredential
 JOIN Session ON Session.id = SessionCredential.session
@@ -243,6 +248,167 @@ BEGIN
   END IF;
  END LOOP;
 END $$;
+
+-- GetSite stores a Sentence id in Site.name.
+CREATE OR REPLACE FUNCTION GetSite (
+ inName varchar
+) RETURNS integer AS $$
+DECLARE
+ name_id integer;
+ site_id integer;
+BEGIN
+ IF inName IS NOT NULL THEN
+  name_id := (SELECT GetSentence(inName));
+  SELECT id INTO site_id
+  FROM Site
+  WHERE name = name_id
+  LIMIT 1;
+  IF site_id IS NULL THEN
+   PERFORM pg_advisory_lock(name_id);
+   BEGIN
+   INSERT INTO Site (name) (
+    SELECT name_id AS name
+    FROM Dual
+    LEFT JOIN Site AS exists ON exists.name = name_id
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(name_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(name_id);
+     RAISE;
+   END;
+   SELECT id INTO site_id
+   FROM Site
+   WHERE name = name_id
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN site_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetSiteApplicationRelease (
+ inSite integer,
+ inApplicationRelease integer
+) RETURNS integer AS $$
+DECLARE
+ siteApplicationRelease_id integer;
+BEGIN
+ IF inSite IS NOT NULL AND inApplicationRelease IS NOT NULL THEN
+  SELECT id INTO siteApplicationRelease_id
+  FROM SiteApplicationRelease
+  WHERE site = inSite
+   AND applicationRelease = inApplicationRelease
+  LIMIT 1;
+  IF siteApplicationRelease_id IS NULL THEN
+   PERFORM pg_advisory_lock(inSite);
+   BEGIN
+   INSERT INTO SiteApplicationRelease (site, applicationRelease) (
+    SELECT inSite AS site, inApplicationRelease AS applicationRelease
+    FROM Dual
+    LEFT JOIN SiteApplicationRelease AS exists
+     ON exists.site = inSite
+     AND exists.applicationRelease = inApplicationRelease
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inSite);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(inSite);
+     RAISE;
+   END;
+   SELECT id INTO siteApplicationRelease_id
+   FROM SiteApplicationRelease
+   WHERE site = inSite
+    AND applicationRelease = inApplicationRelease
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN siteApplicationRelease_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION PutPassword (
+ inValue text
+) RETURNS integer AS $$
+DECLARE
+ password_id integer;
+BEGIN
+ INSERT INTO Password (value) VALUES (inValue) RETURNING id INTO password_id;
+ RETURN password_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetCredential (
+ inIndividual bigint,
+ inEmail integer
+) RETURNS integer AS $$
+DECLARE
+ credential_id integer;
+BEGIN
+ IF inIndividual IS NOT NULL AND inEmail IS NOT NULL THEN
+  SELECT id INTO credential_id
+  FROM Credential
+  WHERE individual = inIndividual
+   AND email = inEmail
+   AND revoked IS NULL
+  LIMIT 1;
+  IF credential_id IS NULL THEN
+   PERFORM pg_advisory_lock(inIndividual);
+   BEGIN
+   INSERT INTO Credential (individual, email) (
+    SELECT inIndividual, inEmail
+    FROM Dual
+    LEFT JOIN Credential AS exists ON exists.individual = inIndividual
+     AND exists.email = inEmail
+     AND exists.revoked IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inIndividual);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(inIndividual);
+     RAISE;
+   END;
+   SELECT id INTO credential_id
+   FROM Credential
+   WHERE individual = inIndividual
+    AND email = inEmail
+    AND revoked IS NULL
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN credential_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetSessionTimeout (
+ inToken varchar,
+ inSiteApplicationRelease integer,
+ inSeconds integer
+) RETURNS integer AS $$
+DECLARE
+ filled integer;
+BEGIN
+ IF inToken IS NULL OR inSeconds IS NULL THEN
+  RETURN 0;
+ END IF;
+ UPDATE SessionToken
+ SET timeout = inSeconds
+ WHERE token = inToken
+  AND (
+   (siteApplicationRelease = inSiteApplicationRelease)
+    OR (siteApplicationRelease IS NULL AND inSiteApplicationRelease IS NULL)
+  )
+  AND timeout IS NULL;
+ GET DIAGNOSTICS filled = ROW_COUNT;
+ RETURN filled;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Mark schema upgraded to 0.2.14 when the hop body is ready for the release.
 -- Until then, leave this commented so a partial living script is not stamped

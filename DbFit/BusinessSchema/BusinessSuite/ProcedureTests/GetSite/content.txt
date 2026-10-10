@@ -1,0 +1,31 @@
+GetSite
+
+Site.name is a Sentence id. A second call returns the same site.
+
+!|Query|SELECT GetSite('DbFit Site')|
+|getsite?|
+|>>site|
+
+!|Query|SELECT GetSite('DbFit Site')|
+|getsite|
+|<<site|
+
+!|Query|SELECT value FROM Sentence WHERE id = (SELECT name FROM Site WHERE id = _:site::INT) AND culture = 1033|
+|value|
+|DbFit Site|
+
+!|Query|SELECT GetApplication('DbFitApp')|
+|getapplication?|
+|>>app|
+
+!|Query|SELECT GetApplicationRelease(_:app::INT, NULL)|
+|getapplicationrelease?|
+|>>ar|
+
+!|Query|SELECT GetSiteApplicationRelease(_:site::INT, _:ar::INT)|
+|getsiteapplicationrelease?|
+|>>sar|
+
+!|Query|SELECT GetSiteApplicationRelease(_:site::INT, _:ar::INT)|
+|getsiteapplicationrelease|
+|<<sar|

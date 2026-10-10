@@ -237,6 +237,63 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- PutPassword inserts a new Password row. A later rotate is another row.
+CREATE OR REPLACE FUNCTION PutPassword (
+ inValue text
+) RETURNS integer AS $$
+DECLARE
+ password_id integer;
+BEGIN
+ INSERT INTO Password (value) VALUES (inValue) RETURNING id INTO password_id;
+ RETURN password_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- GetCredential returns the unrevoked Credential for this individual and email.
+CREATE OR REPLACE FUNCTION GetCredential (
+ inIndividual bigint,
+ inEmail integer
+) RETURNS integer AS $$
+DECLARE
+ credential_id integer;
+BEGIN
+ IF inIndividual IS NOT NULL AND inEmail IS NOT NULL THEN
+  SELECT id INTO credential_id
+  FROM Credential
+  WHERE individual = inIndividual
+   AND email = inEmail
+   AND revoked IS NULL
+  LIMIT 1;
+  IF credential_id IS NULL THEN
+   PERFORM pg_advisory_lock(inIndividual);
+   BEGIN
+   INSERT INTO Credential (individual, email) (
+    SELECT inIndividual, inEmail
+    FROM Dual
+    LEFT JOIN Credential AS exists ON exists.individual = inIndividual
+     AND exists.email = inEmail
+     AND exists.revoked IS NULL
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inIndividual);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(inIndividual);
+     RAISE;
+   END;
+   SELECT id INTO credential_id
+   FROM Credential
+   WHERE individual = inIndividual
+    AND email = inEmail
+    AND revoked IS NULL
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN credential_id;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Get Individual associated with an email
 CREATE OR REPLACE FUNCTION GetIndividualEmail (
   inEmail varchar

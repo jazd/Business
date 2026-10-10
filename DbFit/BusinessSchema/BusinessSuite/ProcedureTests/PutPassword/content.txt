@@ -1,0 +1,15 @@
+PutPassword
+
+Each call inserts a new Password row.
+
+!|Query|SELECT PutPassword('dbfit-put-password')|
+|putpassword?|
+|>>p1|
+
+!|Query|SELECT PutPassword('dbfit-put-password')|
+|putpassword?|
+|>>p2|
+
+!|Query|SELECT (_:p1::INT = _:p2::INT) AS same|
+|same|
+|false|

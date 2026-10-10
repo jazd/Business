@@ -1,0 +1,19 @@
+GetCredential
+
+An unrevoked credential for this individual and email. A second call returns the same id.
+
+!|Query|SELECT GetIndividualEmail('dbfit-getcred@example.com')|
+|getindividualemail?|
+|>>ind|
+
+!|Query|SELECT GetEmail('dbfit-getcred@example.com')|
+|getemail?|
+|>>em|
+
+!|Query|SELECT GetCredential(_:ind::BIGINT, _:em::INT)|
+|getcredential?|
+|>>cred|
+
+!|Query|SELECT GetCredential(_:ind::BIGINT, _:em::INT)|
+|getcredential|
+|<<cred|
