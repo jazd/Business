@@ -145,6 +145,11 @@ dbfit: Containerfile.dbfit
 	podman build -f Containerfile.dbfit -t localhost/jazd/dbfit:dev $(DBFIT_HOME)
 	podman compose -f compose.dbfit.yml up -d business-dbfit
 
+# Stops every service in compose.dbfit.yml. Named volumes stay.
+.PHONY: dbfit-stop
+dbfit-stop:
+	podman compose -f compose.dbfit.yml stop
+
 # PL/pgSQL sources live in PostgreSQL/procedures.d/ (ordered 00-99); assemble into procedures.sql
 .PHONY: procedures
 procedures: PostgreSQL/procedures.sql
