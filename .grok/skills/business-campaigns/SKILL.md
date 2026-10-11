@@ -49,6 +49,8 @@ If primary is null and the person has exactly one unstopped email (any type), us
 
 Channel `email` uses the email. Channel `mail` uses the address (US mail of the same rendered content).
 
+A paid period is `EntitlementCurrent` (`/business-sites`). It does not add a person to `CampaignRecipients`. Recipients are current list members.
+
 ## Language
 
 Render with `/business-cms`. For a known person, set `inject_culture` from `Credential.culture`. For the browser, use `Session.culture` (`SetSessionCulture`). Then read `ContentElements`. The content id does not change per language. `ContentCultures` is the language menu. Missing translation falls back to en-US (1033). The thank-you sample is content id 10 in `Static/6_Content.sql`.

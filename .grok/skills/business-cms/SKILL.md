@@ -19,7 +19,7 @@ Procedures write. Views read. End a fact with `stop`. Do not DELETE history.
 PostgreSQL procedures live in `PostgreSQL/procedures.d/45-content.sql` and
 `10-i18n.sql`. Shop SQLite uses the writer names under `Bash/sqlite/`.
 `ClientCulture(name)`, `FormatFor`, `ContentBody`, `SiteContent`, and
-`ListContent` are PostgreSQL.
+`ListContent` are PostgreSQL. The Go client is `Go/content.go`.
 
 Sessions and list membership: `/business-sites`. Sending a campaign:
 `/business-campaigns`.
@@ -109,21 +109,21 @@ Page for a site, in the session language. `name` and `attribute` are the winning
 
 ```sql
 SELECT ClientCulture(cultureName);
-SELECT place, sequence, kind, element, value, argument, name, attribute
+SELECT place, content, sequence, kind, element, value, format, argument, name, attribute
 FROM SiteContent(siteId, 'html');
 ```
 
 One content id, without a site placement:
 
 ```sql
-SELECT sequence, kind, element, value, argument, name, attribute
+SELECT sequence, kind, element, value, format, argument, name, attribute
 FROM ContentBody(contentId, 'html');
 ```
 
 Notification body or document body for a list:
 
 ```sql
-SELECT place, sequence, kind, value, name, attribute
+SELECT place, content, sequence, kind, element, value, format, argument, name, attribute
 FROM ListContent('Example', 'txt');
 ```
 

@@ -17,9 +17,13 @@ metadata:
 **Audience:** Grok Build, skills, and other agents implementing **public HTTP
 sites**. This file is **not** customer copy. Do not paste it onto HTML or mail.
 
-**Requires Business 0.2.11** (`PostgreSQL/0.2.10-0.2.11.sql`). 0.2.10 has
-Session / SessionToken / lists but **not** SessionPath, ClaimSession,
-SessionToken.type, Path.port, PathPassword, or the report views below.
+**Requires Business 0.2.11** for sessions (`PostgreSQL/0.2.10-0.2.11.sql`).
+0.2.10 has Session / SessionToken / lists but **not** SessionPath,
+ClaimSession, SessionToken.type, Path.port, PathPassword, or the report
+views below. The current schema also has `Email.username` and `Email.plus`
+at `varchar(64)`, view `SchemaVersions`, and the entitlement objects below.
+A database still on 0.2.13 gets those from `PostgreSQL/0.2.13-0.2.14.sql`.
+That hop leaves `SetSchemaVersion` commented until the release is stamped.
 
 **PostgreSQL only** for the session join (`SetSession`, `ClaimSession`,
 `AnonymousSession`). SQLite has Bash helpers for Path / IndividualPath /
@@ -109,6 +113,8 @@ Current members: view `List`. History including `unlist`: **`SiteMembership`**.
 | `SessionToken.token` | varchar(128) | Cookie, UUID, or mail key. Unique with SAR. |
 | `Path.host` | varchar(96) | DNS host **without** `:port` |
 | `Path.port` | smallint NULL | NULL means 80 (insecure) or 443 (secure). Set only when not the default. |
+| `Email.username` | varchar(64) | Local part, before `@` or `+` |
+| `Email.plus` | varchar(64) NULL | Tag after `+`. NULL when there is no tag |
 | `Email.host` | varchar(96) | Domain part of the mailbox |
 
 `GetPath(protocol, secure, host, value, get, port)` and `GetURL(secure, host,
@@ -524,4 +530,6 @@ Do not DELETE runs.
 - `Sample/PostgreSQL/Go/business/session.go` — older AnonymousSession helper
 - `PostgreSQL/procedures.d/70-session.sql`, `40-contacts.sql`, `50-lists.sql`
 - `PostgreSQL/0.2.10-0.2.11.sql` — 0.2.10 → 0.2.11 hop
+- `PostgreSQL/0.2.13-0.2.14.sql` — mailbox widths, `SchemaVersions`, entitlement
+- View `SchemaVersions`: `schemaName` is the schema word, `value` is the version string
 - Wiki Sessions (human); this skill wins on 0.2.11 identity for agents

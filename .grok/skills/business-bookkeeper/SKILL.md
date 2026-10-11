@@ -47,7 +47,7 @@ Canonical product examples live in sibling **`Business.wiki`**
 | Layer | Role |
 |-------|------|
 | **SQLite + `Bash/sqlite/`** | Default local shop (`SQLITE_DB`). Put `Bash/sqlite` on `PATH`; each helper finds siblings beside itself. `~/bin/sqlite` is an optional link. |
-| **PostgreSQL procedures** | Same semantics when the user points at a live Business DB |
+| **PostgreSQL procedures** | Same semantics when the user points at a live Business DB. A local server is `make pgsqldb` (`Developer.md`). That is not the shop file. |
 | **Views** | `LineItems`, `BillDocuments`, `InvoiceLineDetail`, `PartyAddresses`, `PartyPhones`, `BillReferences`, `JournalReport`, `LedgerReport`, `People`, `Entities`, `List`, `Parts`, `Assemblies`, … |
 
 ### Database location: defaults work with zero user setup; overrides always win
