@@ -47,10 +47,6 @@ http://127.0.0.1:8085/BusinessSchema.MySqlSuite?suite
 http://127.0.0.1:8085/BusinessSchema.SqlServerSuite?suite
 ```
 
-The query is `suite` with nothing after it. FitNesse treats the whole query
-as the responder name, so a trailing period asks for a responder named
-`suite.` and answers `No responder for suite.`
-
 The FitNesse container connects as user `test`, password `dbfit`, database
 `MyCo`. PostgreSQL uses compose service `business-pgsql`. MySQL uses
 `business-mysql`. SQL Server uses `business-mssql` and sets

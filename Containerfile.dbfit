@@ -54,5 +54,8 @@ RUN set -eu; \
     test ! -e /dbfit/lib/mysql-connector-java-5.1.36.jar; \
     rm -f /tmp/fitnesse-init.log
 
+# Query suite. uses the same responder as suite.
+RUN printf '\nResponders=suite.:fitnesse.responders.run.SuiteResponder\n' >> /dbfit/plugins.properties
+
 EXPOSE 8085
 CMD ["./startFitnesse.sh"]
