@@ -142,7 +142,7 @@ func TestEntitlementGrantCallsProcedure(t *testing.T) {
 }
 
 func TestNoTableWrites(t *testing.T) {
-	files := []string{"db.go", "get.go", "session.go", "path.go", "content.go", "compose.go", "entitlement.go"}
+	files := []string{"db.go", "get.go", "session.go", "path.go", "content.go", "compose.go", "example.go", "entitlement.go"}
 	for _, name := range files {
 		b, err := os.ReadFile(name)
 		if err != nil {

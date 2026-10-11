@@ -84,7 +84,9 @@ The count is not stored on the element. Name the count with `argument` (`items`,
 
 `ContentElements.argument` is that name. `ContentElementPlurals` lists singular, zero, two, few, and many for the current edition so a renderer can pick without calling `PluralWord`. Sentences and paragraphs are not pluralized.
 
-"Thank you for your subscription" is two elements, not one sentence with a brace. See `Sample/SQL/Content/thank-you.sql` and `Static/6_Content.sql` (content id 10). Element 1 is sentence 80110. Element 2 is word 80110 (`subscription`) with argument 80111 (`subscriptions`). Cultures on those ids: en-US, fr-FR, pl-PL, es-MX.
+"Thank you for your subscription" is two elements, not one sentence with a brace. See `Sample/SQL/Content/thank-you.sql` and `Static/6_Content.sql` (content id 10). Element 1 is sentence 80110. Element 2 is word 80110 (`subscription`) with argument 80111 (`subscriptions`). Cultures on those ids: en-US, fr-FR, pl-PL, es-MX. That edition stays a sentence plus a word.
+
+`Sample/SQL/Content/notice.sql` is a second template on its own content id. The edition is a heading sentence, a dynamic `link`, a lede sentence, and a dynamic `count`. fr-FR is stored on the two sentences only. Running it again closes the open edition and writes this edition.
 
 `StopContent(content)` closes the edition. The next `SetContentElement` starts a new edition. Old elements stay on the stopped edition.
 
@@ -129,11 +131,11 @@ FROM ListContent('Example', 'txt', 'fr-FR');
 
 `ComposeContent`, `ComposeSite`, and `ComposeList` walk the rows once. Order is placement, then element. A dynamic element calls `Dynamic(name, kind)`. `name` is the identifier. `kind` is the identifier type. Those strings are not on the piece. `ok` false skips that piece. A nil `Dynamic` skips every dynamic element. Static text is the culture's word, sentence, or paragraph.
 
-`Attr` and `Token` on a piece are the winning format attribute. When several attributes share an element, the one named `class` is the one kept. The stylesheet defines what that class looks like. The package does not ship CSS.
+`Attr` and `Token` on a piece are the winning format attribute. When several attributes share an element, the one named `class` is the one kept. The same `class` token is what a stylesheet defines. The package does not ship CSS.
 
 An empty `Culture` uses `ClientCulture`. A culture name is passed to the three-argument read and does not change `ClientCulture`.
 
-A nil renderer uses the target:
+A nil renderer uses the target identifier:
 
 | Target | Result |
 |--------|--------|
@@ -141,7 +143,7 @@ A nil renderer uses the target:
 | `mime` | `MIME` |
 | `txt` | piece texts joined with newlines |
 
-`HTML` escapes the text. Each piece is one line. It does not emit a style element.
+`HTML` and the HTML part inside `MIME` read one attribute name, `class`, and these tokens. `heading`, `lede`, and `note` match any case, and the class in the tag is lowercase. Any other token is copied as stored. Text is escaped. Each piece is one line. There is no style element.
 
 | Token | Tag |
 |-------|-----|
@@ -151,7 +153,16 @@ A nil renderer uses the target:
 | any other token | `<p class="that-token">` |
 | no class | `<p>` |
 
-A dynamic piece uses the same tags. The text inside the tag is the function's text, escaped. `MIME` is `multipart/alternative`: the plain texts, then the `HTML` part. It sets no subject and no address. `HTML` and `MIME` are exported. Pass either one, or another function. That function receives the pieces, and its return value is the result.
+A dynamic piece uses the same tags. The text inside the tag is the function's text, escaped. `MIME` is `multipart/alternative`. The first part is `text/plain`. The second part is `text/html` from `HTML`, so it uses the same `class` tokens. `MIME` sets no subject and no address. `HTML` and `MIME` are exported. Pass either one, or another function. That function receives the pieces, and its return value is the result.
+
+`ExampleFill` is the notice fill-in. It matches the identifier and the type:
+
+| Identifier | Type | Text |
+|------------|------|------|
+| `link` | `url` | `https://example.test/notice` |
+| `count` | `number` | `2` |
+
+Any other pair is skipped. The renderer does not read `link`, `url`, `count`, or `number`. The fill-in function does.
 
 ## What this skill does not do
 

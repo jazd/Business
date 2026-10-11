@@ -25,7 +25,13 @@ An empty culture uses `ClientCulture`. A culture name is passed to the
 three-argument read. A dynamic element calls the function
 `Dynamic(name, kind)`; a nil function skips it. A nil renderer uses `HTML`
 for `html`, `MIME` for `mime`, and newline-joined text for `txt`. `HTML`
-and `MIME` are exported. CSS stays with the caller.
+and `MIME` are exported. `HTML` reads the class tokens `heading`, `lede`,
+and `note`. `MIME` is multipart/alternative: `text/plain`, then that HTML.
+CSS stays with the caller.
+
+`Sample/SQL/Content/notice.sql` stores a heading sentence, a `link`, a lede
+sentence, and a `count`. `ExampleFill` returns a fixed URL for `link`/`url`
+and `2` for `count`/`number`.
 
 `EntitlementGrant` returns the current period for one individual, list, set,
 and source. `EntitlementSet` stops that row with reason `replaced` and inserts
