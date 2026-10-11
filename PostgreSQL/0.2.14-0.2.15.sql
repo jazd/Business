@@ -25,6 +25,10 @@
 --  1) GetSite returns an existing site whose name is the sentence id, or a
 --     Word id with the same text. It does not rewrite Site.name and it does
 --     not insert a second site for that name.
+--  2) ContentElement.name and ContentElement.type are integer columns.
+--     Each is a GetIdentifier id (Word.culture is null). They are set
+--     together, and only when word, sentence, and paragraph are all null.
+--     This hop adds the columns. It does not write them yet.
 --
 -- Version stamp stays commented until 0.2.15 is released.
 --
@@ -55,6 +59,9 @@ BEGIN
   RAISE EXCEPTION 'Not Schema Version 0.2.14';
  END IF;
 END $$;
+
+ALTER TABLE contentelement ADD COLUMN IF NOT EXISTS name integer;
+ALTER TABLE contentelement ADD COLUMN IF NOT EXISTS type integer;
 
 CREATE OR REPLACE FUNCTION GetSite (
  inName varchar

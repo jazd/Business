@@ -838,7 +838,7 @@
 </table>
 
 <table name="ContentElement" order="216">
-<comments>Exactly one of word, sentence, or paragraph is set. That value is the concept id, not a culture row.</comments>
+<comments>A translated element has exactly one of word, sentence, or paragraph. That value is the concept id, not a culture row. name and type are GetIdentifier ids, culture null, set together, and only when word, sentence, and paragraph are all null.</comments>
 <fields>
  <field name="edition" data_type="integer" size="" is_nullable="0" order="1" />
  <field name="sequence" data_type="integer" size="" is_nullable="0" order="2" />
@@ -848,6 +848,12 @@
  <field name="format" data_type="integer" size="" is_nullable="1" order="6" />
  <field name="argument" data_type="integer" size="" is_nullable="1" order="7">
   <comments>Word name of a render-time count. NULL means do not pluralize. Only used when word is set.</comments>
+ </field>
+ <field name="name" data_type="integer" size="" is_nullable="1" order="8">
+  <comments>GetIdentifier id. Set with type. Only when word, sentence, and paragraph are null.</comments>
+ </field>
+ <field name="type" data_type="integer" size="" is_nullable="1" order="9">
+  <comments>GetIdentifier id. Set with name. Only when word, sentence, and paragraph are null.</comments>
  </field>
  <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
 </fields>
@@ -859,6 +865,8 @@
  <constraint name="contentelement_format" type="FOREIGN KEY" fields="format" reference_table="Format" reference_fields="id" deferrable="1" />
  <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="word" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid3" type="FOREIGN KEY" fields="argument" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid4" type="FOREIGN KEY" fields="name" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+ <comments invalid=""><constraint name="invalid5" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid1" type="FOREIGN KEY" fields="sentence" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
  <comments invalid=""><constraint name="invalid2" type="FOREIGN KEY" fields="paragraph" reference_table="Paragraph" reference_fields="id" deferrable="1" /></comments>
 </constraints>

@@ -27,6 +27,10 @@
 --     ClientNow().
 --  2) JournalReport and LedgerReport totals sum cent-rounded row amounts.
 --     Stored JournalEntry.amount values stay at 4 decimal places.
+--  3) ContentElement.name and ContentElement.type are integer columns.
+--     Each is a GetIdentifier id (Word.culture is null). They are set
+--     together, and only when word, sentence, and paragraph are all null.
+--     This hop adds the columns. It does not write them yet.
 --
 -- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
 -- after this file runs successfully (Business 0.2.15) when STAMP_VERSION=1.
@@ -35,6 +39,9 @@
 -- =============================================================================
 
 PRAGMA foreign_keys = ON;
+
+ALTER TABLE ContentElement ADD COLUMN name integer;
+ALTER TABLE ContentElement ADD COLUMN type integer;
 
 DROP VIEW IF EXISTS EntitlementCurrent;
 CREATE VIEW EntitlementCurrent AS
