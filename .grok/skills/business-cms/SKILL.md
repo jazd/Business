@@ -19,7 +19,7 @@ Procedures write. Views read. End a fact with `stop`. Do not DELETE history.
 PostgreSQL procedures live in `PostgreSQL/procedures.d/45-content.sql` and
 `10-i18n.sql`. Shop SQLite uses the writer names under `Bash/sqlite/`.
 `ClientCulture(name)`, `FormatFor`, `ContentBody`, `SiteContent`, and
-`ListContent` are PostgreSQL. The Go client is `Go/content.go`.
+`ListContent` are PostgreSQL. The Go package under `Go/` reads them and renders.
 
 Sessions and list membership: `/business-sites`. Sending a campaign:
 `/business-campaigns`.
@@ -56,7 +56,7 @@ A person's chosen language is `Credential.culture`. A visitor's choice is `Sessi
 
 `SetFormatAttribute(format, name, value, target)` — `target` NULL is global (every output). A target (`txt`, `document`, `html`, `mime`) is that output only. Name, value, and target are `GetIdentifier` words: one row, `culture` null. `StopFormatAttribute` ends that row only.
 
-`class` is the attribute name. The value is the token a stylesheet or a template already knows (`lede`, `heading`). A target row wins over the null-target row with the same name. `FormatFor(format, target)` returns the winning name and value. `FormatAttributes` and `FormatFor` read name, value, and target from `Word` where `culture` is null. HTML, MIME, and the document file stay in the application.
+`class` is the attribute name. The value is the token a stylesheet or a template already knows (`lede`, `heading`, `note`). A target row wins over the null-target row with the same name. `FormatFor(format, target)` returns the winning name and value. `FormatAttributes` and `FormatFor` read name, value, and target from `Word` where `culture` is null. CSS stays in the site. A document file stays in the application.
 
 `FormatAttributes` is the unstopped list, including both a null target and a specific target. `ContentElementAttributes` places those rows on the current edition.
 
@@ -125,6 +125,34 @@ FROM ListContent('Example', 'txt', 'fr-FR');
 
 `argument` is the count name. The count is not stored. Pass it to `PluralWord(element, count)` when `kind` is `word`.
 
+## Render
+
+`ComposeContent`, `ComposeSite`, and `ComposeList` walk the rows once. Order is placement, then element. A dynamic element calls `Dynamic(name, kind)`. `name` is the identifier. `kind` is the identifier type. Those strings are not on the piece. `ok` false skips that piece. A nil `Dynamic` skips every dynamic element. Static text is the culture's word, sentence, or paragraph.
+
+`Attr` and `Token` on a piece are the winning format attribute. When several attributes share an element, the one named `class` is the one kept. The stylesheet defines what that class looks like. The package does not ship CSS.
+
+An empty `Culture` uses `ClientCulture`. A culture name is passed to the three-argument read and does not change `ClientCulture`.
+
+A nil renderer uses the target:
+
+| Target | Result |
+|--------|--------|
+| `html` | `HTML` |
+| `mime` | `MIME` |
+| `txt` | piece texts joined with newlines |
+
+`HTML` escapes the text. Each piece is one line. It does not emit a style element.
+
+| Token | Tag |
+|-------|-----|
+| `heading` | `<h2 class="heading">` |
+| `lede` | `<p class="lede">` |
+| `note` | `<p class="note">` |
+| any other token | `<p class="that-token">` |
+| no class | `<p>` |
+
+A dynamic piece uses the same tags. The text inside the tag is the function's text, escaped. `MIME` is `multipart/alternative`: the plain texts, then the `HTML` part. It sets no subject and no address. `HTML` and `MIME` are exported. Pass either one, or another function. That function receives the pieces, and its return value is the result.
+
 ## What this skill does not do
 
-It does not render HTML, MIME, or the document file, start a campaign, or pick a postal address. Those steps are `/business-campaigns` and the application.
+It does not ship CSS, build a document file, start a campaign, or pick a postal address. Sending mail is `/business-campaigns`.

@@ -7,15 +7,19 @@ import (
 
 // ContentElement is one current-edition element and its winning attribute.
 // Name and Attribute are empty when the element has no winning attribute.
+// Identifier and IdentifierType are the culture-null words on a dynamic element.
+// Element is 0 when the row has no word, sentence, or paragraph.
 type ContentElement struct {
-	Sequence  int
-	Kind      string
-	Element   int
-	Value     string
-	Format    *int
-	Argument  string
-	Name      string
-	Attribute string
+	Sequence       int
+	Kind           string
+	Element        int
+	Value          string
+	Format         *int
+	Argument       string
+	Name           string
+	Attribute      string
+	Identifier     string
+	IdentifierType string
 }
 
 // PlacedContent is a ContentElement on a site or a list, in placement order.
@@ -125,11 +129,22 @@ func (d *DB) FormatFor(ctx context.Context, format int, target string) ([]Format
 	return out, rows.Err()
 }
 
+const elementCols = `sequence, kind, element, value, format, argument, name, attribute, identifier, identifierType`
+
 // ContentBody returns the current edition of one content id for a target.
+// The read uses ClientCulture.
 func (d *DB) ContentBody(ctx context.Context, content int, target string) ([]ContentElement, error) {
-	rows, err := d.SQL.QueryContext(ctx, `
-		SELECT sequence, kind, element, value, format, argument, name, attribute
-		FROM ContentBody($1, $2::varchar)`, content, nullStr(target))
+	return d.contentElements(ctx, content, target, "")
+}
+
+func (d *DB) contentElements(ctx context.Context, content int, target, culture string) ([]ContentElement, error) {
+	q := `SELECT ` + elementCols + ` FROM ContentBody($1, $2::varchar)`
+	args := []any{content, nullStr(target)}
+	if culture != "" {
+		q = `SELECT ` + elementCols + ` FROM ContentBody($1, $2::varchar, $3::varchar)`
+		args = append(args, culture)
+	}
+	rows, err := d.SQL.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -146,10 +161,19 @@ func (d *DB) ContentBody(ctx context.Context, content int, target string) ([]Con
 }
 
 // SiteContent returns unstopped site placements and their elements for a target.
+// The read uses ClientCulture.
 func (d *DB) SiteContent(ctx context.Context, site int, target string) ([]PlacedContent, error) {
-	rows, err := d.SQL.QueryContext(ctx, `
-		SELECT place, content, sequence, kind, element, value, format, argument, name, attribute
-		FROM SiteContent($1, $2::varchar)`, site, nullStr(target))
+	return d.siteElements(ctx, site, target, "")
+}
+
+func (d *DB) siteElements(ctx context.Context, site int, target, culture string) ([]PlacedContent, error) {
+	q := `SELECT place, content, ` + elementCols + ` FROM SiteContent($1, $2::varchar)`
+	args := []any{site, nullStr(target)}
+	if culture != "" {
+		q = `SELECT place, content, ` + elementCols + ` FROM SiteContent($1, $2::varchar, $3::varchar)`
+		args = append(args, culture)
+	}
+	rows, err := d.SQL.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -158,10 +182,19 @@ func (d *DB) SiteContent(ctx context.Context, site int, target string) ([]Placed
 }
 
 // ListContent returns unstopped list placements and their elements for a target.
+// The read uses ClientCulture.
 func (d *DB) ListContent(ctx context.Context, list, target string) ([]PlacedContent, error) {
-	rows, err := d.SQL.QueryContext(ctx, `
-		SELECT place, content, sequence, kind, element, value, format, argument, name, attribute
-		FROM ListContent($1, $2::varchar)`, list, nullStr(target))
+	return d.listElements(ctx, list, target, "")
+}
+
+func (d *DB) listElements(ctx context.Context, list, target, culture string) ([]PlacedContent, error) {
+	q := `SELECT place, content, ` + elementCols + ` FROM ListContent($1, $2::varchar)`
+	args := []any{list, nullStr(target)}
+	if culture != "" {
+		q = `SELECT place, content, ` + elementCols + ` FROM ListContent($1, $2::varchar, $3::varchar)`
+		args = append(args, culture)
+	}
+	rows, err := d.SQL.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -175,16 +208,24 @@ type rowScanner interface {
 
 func scanContentElement(rows rowScanner) (ContentElement, error) {
 	var el ContentElement
-	var value, argument, name, attribute sql.NullString
-	var format sql.NullInt64
-	err := rows.Scan(&el.Sequence, &el.Kind, &el.Element, &value, &format, &argument, &name, &attribute)
+	var value, argument, name, attribute, identifier, identifierType sql.NullString
+	var element, format sql.NullInt64
+	err := rows.Scan(
+		&el.Sequence, &el.Kind, &element, &value, &format, &argument, &name, &attribute,
+		&identifier, &identifierType,
+	)
 	if err != nil {
 		return ContentElement{}, err
+	}
+	if element.Valid {
+		el.Element = int(element.Int64)
 	}
 	el.Value = value.String
 	el.Argument = argument.String
 	el.Name = name.String
 	el.Attribute = attribute.String
+	el.Identifier = identifier.String
+	el.IdentifierType = identifierType.String
 	if format.Valid {
 		v := int(format.Int64)
 		el.Format = &v
@@ -196,19 +237,25 @@ func scanPlaced(rows *sql.Rows) ([]PlacedContent, error) {
 	var out []PlacedContent
 	for rows.Next() {
 		var row PlacedContent
-		var value, argument, name, attribute sql.NullString
-		var format sql.NullInt64
+		var value, argument, name, attribute, identifier, identifierType sql.NullString
+		var element, format sql.NullInt64
 		err := rows.Scan(
 			&row.Place, &row.Content,
-			&row.Sequence, &row.Kind, &row.Element, &value, &format, &argument, &name, &attribute,
+			&row.Sequence, &row.Kind, &element, &value, &format, &argument, &name, &attribute,
+			&identifier, &identifierType,
 		)
 		if err != nil {
 			return nil, err
+		}
+		if element.Valid {
+			row.Element = int(element.Int64)
 		}
 		row.Value = value.String
 		row.Argument = argument.String
 		row.Name = name.String
 		row.Attribute = attribute.String
+		row.Identifier = identifier.String
+		row.IdentifierType = identifierType.String
 		if format.Valid {
 			v := int(format.Int64)
 			row.Format = &v

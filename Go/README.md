@@ -17,9 +17,15 @@ holds a Word id for the same text is returned unchanged. See
 `docs/0.2.15-downstream.md`.
 
 `ClientCulture` sets the connection culture. `ContentBody`, `SiteContent`,
-and `ListContent` return the current edition for one target (`html`, `txt`,
-or `document`). A target attribute wins over the null-target row with the
-same name.
+and `ListContent` return the current edition for one target. A target
+attribute wins over the null-target row with the same name.
+
+`ComposeContent`, `ComposeSite`, and `ComposeList` walk those rows once.
+An empty culture uses `ClientCulture`. A culture name is passed to the
+three-argument read. A dynamic element calls the function
+`Dynamic(name, kind)`; a nil function skips it. A nil renderer uses `HTML`
+for `html`, `MIME` for `mime`, and newline-joined text for `txt`. `HTML`
+and `MIME` are exported. CSS stays with the caller.
 
 `EntitlementGrant` returns the current period for one individual, list, set,
 and source. `EntitlementSet` stops that row with reason `replaced` and inserts

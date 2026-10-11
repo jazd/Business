@@ -103,7 +103,8 @@ func TestContentBodyCallsProcedure(t *testing.T) {
 		WithArgs(7, "html").
 		WillReturnRows(sqlmock.NewRows([]string{
 			"sequence", "kind", "element", "value", "format", "argument", "name", "attribute",
-		}).AddRow(1, "sentence", 4, "DbFit line", 2, nil, "class", "htmltok"))
+			"identifier", "identifierType",
+		}).AddRow(1, "sentence", 4, "DbFit line", 2, nil, "class", "htmltok", nil, nil))
 	d := &DB{SQL: sqldb}
 	rows, err := d.ContentBody(context.Background(), 7, "html")
 	if err != nil {
@@ -141,7 +142,7 @@ func TestEntitlementGrantCallsProcedure(t *testing.T) {
 }
 
 func TestNoTableWrites(t *testing.T) {
-	files := []string{"db.go", "get.go", "session.go", "path.go", "content.go", "entitlement.go"}
+	files := []string{"db.go", "get.go", "session.go", "path.go", "content.go", "compose.go", "entitlement.go"}
 	for _, name := range files {
 		b, err := os.ReadFile(name)
 		if err != nil {
