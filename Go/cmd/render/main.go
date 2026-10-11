@@ -13,6 +13,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -57,8 +58,17 @@ func run(args []string, getenv func(string) string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(stdout, text)
+	writeRender(stdout, text)
 	return nil
+}
+
+// writeRender prints a rendered page. An empty result, including spaces
+// and newlines, writes nothing.
+func writeRender(stdout io.Writer, text string) {
+	if strings.TrimSpace(text) == "" {
+		return
+	}
+	fmt.Fprintln(stdout, text)
 }
 
 func optionsFrom(args []string, getenv func(string) string) (options, error) {

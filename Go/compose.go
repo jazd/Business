@@ -69,6 +69,9 @@ func (d *DB) ComposeList(ctx context.Context, list string, r Render) (string, er
 // paragraph with that class. No class is a paragraph. Text is escaped.
 // The result has no style element. Each piece is one line.
 func HTML(pieces []Piece) (string, error) {
+	if len(pieces) == 0 {
+		return "", nil
+	}
 	lines := make([]string, len(pieces))
 	for i, p := range pieces {
 		lines[i] = htmlPiece(p)
@@ -79,6 +82,9 @@ func HTML(pieces []Piece) (string, error) {
 // MIME renders multipart/alternative. The first part is the piece texts.
 // The second part is HTML. The result sets no subject and no address.
 func MIME(pieces []Piece) (string, error) {
+	if len(pieces) == 0 {
+		return "", nil
+	}
 	plain := joinText(pieces)
 	page, err := HTML(pieces)
 	if err != nil {

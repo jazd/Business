@@ -282,6 +282,20 @@ func TestComposeMIMEDefault(t *testing.T) {
 	}
 }
 
+func TestEmptyPiecesRenderNothing(t *testing.T) {
+	page, err := HTML(nil)
+	if err != nil || page != "" {
+		t.Fatalf("html %q %v", page, err)
+	}
+	body, err := MIME(nil)
+	if err != nil || body != "" {
+		t.Fatalf("mime %q %v", body, err)
+	}
+	if joinText(nil) != "" {
+		t.Fatal("txt")
+	}
+}
+
 func TestUnknownTargetRequiresRenderer(t *testing.T) {
 	_, err := renderPieces(nil, Render{Target: "document"})
 	if err == nil {

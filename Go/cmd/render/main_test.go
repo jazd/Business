@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"bytes"
+	"testing"
+)
 
 func emptyEnv(string) string { return "" }
 
@@ -35,6 +38,19 @@ func TestEnvAndFlagOverrideHost(t *testing.T) {
 	}
 	if opt.host != "10.1.1.1" || opt.target != "txt" || opt.culture != "fr-FR" || opt.content != "Notice" {
 		t.Fatalf("%+v", opt)
+	}
+}
+
+func TestEmptyRenderWritesNothing(t *testing.T) {
+	var buf bytes.Buffer
+	writeRender(&buf, "")
+	writeRender(&buf, " \n\t")
+	if buf.Len() != 0 {
+		t.Fatalf("wrote %q", buf.String())
+	}
+	writeRender(&buf, "<p>Hello</p>")
+	if buf.String() != "<p>Hello</p>\n" {
+		t.Fatalf("wrote %q", buf.String())
 	}
 }
 
