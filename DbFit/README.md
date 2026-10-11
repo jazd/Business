@@ -169,6 +169,8 @@ Suite setup is `DbFit/BusinessSchema/MySqlSuite/SetUp/content.txt`:
 
 http://localhost:8085/BusinessSchema.MySqlSuite?suite
 
+`MySqlSuite` links each `TableTests` page that passes on this load. It does not link `ProcedureTests`, `ViewTests`, or `XcepteionRequired`. These table pages stay unlinked: `Address` and `Postal` (the load does not create `GetAddress` or `GetPostal`), `Dual`, `Path`, `Release`, and `SchemaVersion` (MySQL reserved names), and `Entity`, `Family`, `Given`, `Sentence`, and `Word` (case-sensitive text, or an explicit id of 0).
+
 The connection page reads `VERSION()` and does not need the tables:
 
 http://localhost:8085/BusinessSchema.MySqlSuite.Connection
