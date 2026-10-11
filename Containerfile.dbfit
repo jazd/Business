@@ -1,26 +1,55 @@
-# Local FitNesse image for the Business suites.
-# Build context is the FitNesse install that contains startFitnesse.sh.
-#   podman build -f Containerfile.dbfit -t localhost/jazd/dbfit:dev <dbfit install directory>
+# FitNesse image for the Business suites.
+# The build downloads DbFit 3.2.0 and the JDBC jars. Compose mounts
+# DbFit/BusinessSchema at /dbfit/FitNesseRoot/BusinessSchema.
 FROM docker.io/library/eclipse-temurin:25-jre
 
 WORKDIR /dbfit
 
-COPY lib/*.jar /dbfit/lib/
-COPY plugins.properties /dbfit/plugins.properties
-COPY startFitnesse.sh /dbfit/startFitnesse.sh
-COPY FitNesseRoot/content.txt /dbfit/FitNesseRoot/content.txt
-COPY FitNesseRoot/properties /dbfit/FitNesseRoot/properties
-COPY FitNesseRoot/properties.xml /dbfit/FitNesseRoot/properties.xml
-COPY FitNesseRoot/FrontPage/ /dbfit/FitNesseRoot/FrontPage/
-COPY FitNesseRoot/PageFooter/ /dbfit/FitNesseRoot/PageFooter/
-COPY FitNesseRoot/files/css/ /dbfit/FitNesseRoot/files/css/
-COPY FitNesseRoot/files/javascript/ /dbfit/FitNesseRoot/files/javascript/
-COPY FitNesseRoot/files/images/ /dbfit/FitNesseRoot/files/images/
-COPY FitNesseRoot/files/data/ /dbfit/FitNesseRoot/files/data/
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl ca-certificates unzip \
+ && curl -fsSL -o /tmp/dbfit-complete-3.2.0.zip \
+      https://github.com/dbfit/dbfit/releases/download/v3.2.0/dbfit-complete-3.2.0.zip \
+ && echo 'efd5e82f2bbf8dd25f7fbc9b08cf97ef6412d8af  /tmp/dbfit-complete-3.2.0.zip' | sha1sum -c - \
+ && unzip -q /tmp/dbfit-complete-3.2.0.zip -d /dbfit \
+ && rm -f /tmp/dbfit-complete-3.2.0.zip \
+      /dbfit/lib/mysql-connector-java-5.1.36.jar \
+      /dbfit/lib/postgresql-9.3-1101-jdbc41.jar \
+ && curl -fsSL -o /dbfit/lib/mysql-connector-java-5.1.49.jar \
+      https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar \
+ && echo 'cf76d2e4c9c3782a85c15c87bec5772b34ffd0e5  /dbfit/lib/mysql-connector-java-5.1.49.jar' | sha1sum -c - \
+ && curl -fsSL -o /dbfit/lib/postgresql-42.2.5.jar \
+      https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.5/postgresql-42.2.5.jar \
+ && echo '951b7eda125f3137538a94e2cbdcf744088ad4c2  /dbfit/lib/postgresql-42.2.5.jar' | sha1sum -c - \
+ && ln -s postgresql-42.2.5.jar /dbfit/lib/postgres.jar \
+ && chmod +x /dbfit/startFitnesse.sh \
+ && apt-get purge -y curl unzip \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /dbfit/FitNesseRoot/BusinessSchema \
- && ln -s /dbfit/lib /dbfit/FitNesseRoot/lib \
- && chmod +x /dbfit/startFitnesse.sh
+# First start unpacks FitNesseRoot from the jars. lib is the symlink the
+# wiki classpath uses. BusinessSchema is the compose mount point.
+RUN set -eu; \
+    java -cp 'lib/dbfit-docs-3.2.0.jar:lib/fitnesse-20150424-standalone.jar' fitnesseMain.FitNesseMain -p 8085 > /tmp/fitnesse-init.log 2>&1 & \
+    pid=$!; \
+    ok=0; \
+    i=0; \
+    while [ "$i" -lt 90 ]; do \
+      if grep -q 'Files have been updated to a new version' /tmp/fitnesse-init.log; then ok=1; break; fi; \
+      if ! kill -0 "$pid" 2>/dev/null; then break; fi; \
+      i=$((i+1)); \
+      sleep 1; \
+    done; \
+    kill "$pid" 2>/dev/null || true; \
+    wait "$pid" 2>/dev/null || true; \
+    if [ "$ok" -ne 1 ]; then echo 'FitNesse did not start'; cat /tmp/fitnesse-init.log; exit 1; fi; \
+    rm -rf /dbfit/FitNesseRoot/lib /dbfit/FitNesseRoot/BusinessSchema; \
+    ln -s /dbfit/lib /dbfit/FitNesseRoot/lib; \
+    mkdir -p /dbfit/FitNesseRoot/BusinessSchema; \
+    test -L /dbfit/FitNesseRoot/lib; \
+    test -L /dbfit/lib/postgres.jar; \
+    test -d /dbfit/FitNesseRoot/files/css; \
+    test ! -e /dbfit/lib/mysql-connector-java-5.1.36.jar; \
+    rm -f /tmp/fitnesse-init.log
 
 EXPOSE 8085
 CMD ["./startFitnesse.sh"]

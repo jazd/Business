@@ -10,10 +10,6 @@ Suite page notes are in [DbFit/README.md](./DbFit/README.md).
 
 - podman, and `podman compose`
 - `psql` and the `mysql` client (`make pgsqldb` and `make mysqldb` use them)
-- A FitNesse install for `make dbfit`. `DBFIT_HOME` defaults to `~/dbfit`.
-  That directory supplies `startFitnesse.sh`, `plugins.properties`, and
-  `lib/*.jar`, including `mysql-connector-java-5.1.49.jar`. Connector/J
-  5.1.36 stays out of `lib/`.
 
 ## First load
 
@@ -34,10 +30,13 @@ make sqlserverdb
 make dbfit
 ```
 
-`make dbfit` builds `localhost/jazd/dbfit:dev` from `DBFIT_HOME` and starts
-`business-dbfit` on `127.0.0.1:8085`. That also starts `business-pgsql` and
-`business-mysql` when they are down. Load the schema with the targets above.
-Start SQL Server with `make sqlserverdb` or with the compose command below.
+`make dbfit` builds `localhost/jazd/dbfit:dev` and starts `business-dbfit`
+on `127.0.0.1:8085`. The image contains the FitNesse install: DbFit 3.2.0,
+Connector/J 5.1.49, PostgreSQL JDBC 42.2.5, `lib/postgres.jar` linked to
+that jar, and `FitNesseRoot/lib` linked to `/dbfit/lib`. That start also
+brings up `business-pgsql` and `business-mysql` when they are down. Load
+the schema with the targets above. Start SQL Server with `make sqlserverdb`
+or with the compose command below.
 
 Suites:
 
@@ -119,8 +118,9 @@ reloads `MyCo` on that host.
 
 ## Another FitNesse
 
-`make dbfit-stop` releases port 8085. Set `DBFIT_HOME` when the FitNesse
-install used as the image build context is not `~/dbfit`.
+`make dbfit-stop` releases port 8085. The container has its own install
+under `/dbfit`. A FitNesse process on the host can listen on 8085 after
+that stop.
 
 The committed suite `Connect` rows use `business-pgsql` and `business-mysql`.
 A FitNesse process outside the compose network needs a host it can resolve.

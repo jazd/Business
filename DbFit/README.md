@@ -2,13 +2,13 @@ dbfit http://dbfit.github.io/dbfit/
 
 # FitNesse
 
-`business-dbfit` serves the suites on `127.0.0.1:8085`. The image is built
-from the local FitNesse install. That directory contains `startFitnesse.sh`,
-`plugins.properties` (`Port=8085`), and `lib/mysql-connector-java-5.1.49.jar`.
-Connector/J 5.1.36 stays out of `lib/`.
+`business-dbfit` serves the suites on `127.0.0.1:8085`. The image downloads
+DbFit 3.2.0, then adds `mysql-connector-java-5.1.49.jar` and
+`postgresql-42.2.5.jar`. `lib/postgres.jar` points at that PostgreSQL jar.
+`FitNesseRoot/lib` points at `/dbfit/lib`. Connector/J 5.1.36 is not in `lib/`.
 
 ```
-podman build -f Containerfile.dbfit -t localhost/jazd/dbfit:dev <dbfit install directory>
+podman build -f Containerfile.dbfit -t localhost/jazd/dbfit:dev .
 podman compose -f compose.dbfit.yml up -d business-dbfit
 ```
 
