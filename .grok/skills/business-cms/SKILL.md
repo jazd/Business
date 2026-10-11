@@ -113,15 +113,15 @@ Kind is `word`, `sentence`, `paragraph`, or `dynamic`. A word with `argument` is
 
 ```sql
 SELECT place, content, sequence, kind, element, value, format, argument,
- name, attribute, identifier, identifierType
+ name, attribute, identifier, identifierType, squash
 FROM SiteContent(siteId, 'html', cultureName);
 
 SELECT sequence, kind, element, value, format, argument, name, attribute,
- identifier, identifierType
+ identifier, identifierType, squash
 FROM ContentBody(contentId, 'html', 'fr-FR');
 
 SELECT place, content, sequence, kind, element, value, format, argument,
- name, attribute, identifier, identifierType
+ name, attribute, identifier, identifierType, squash
 FROM ListContent('Example', 'txt', 'fr-FR');
 ```
 
@@ -153,7 +153,9 @@ A nil renderer uses the target identifier:
 | any other token | `<p class="that-token">` |
 | no class | `<p>` |
 
-A dynamic piece uses the same tags. The text inside the tag is the function's text, escaped. `MIME` is `multipart/alternative`. The first part is `text/plain`. The second part is `text/html` from `HTML`, so it uses the same `class` tokens. `MIME` sets no subject and no address. `HTML` and `MIME` are exported. Pass either one, or another function. That function receives the pieces, and its return value is the result.
+A dynamic piece uses the same tags. The text inside the tag is the function's text, escaped. `MIME` is `multipart/alternative`. The first part is `text/plain`. The second part is `text/html` from `HTML`, so it uses the same `class` tokens. `MIME` sets no subject and no address. `HTML` and `MIME` are exported. Pass either one, or another function. That function receives the pieces still separate, and its return value is the result.
+
+`Squash` on a piece is the culture-null word. Empty means the element renders alone. `Sequence`, `Place`, and `Content` are the join key. `Place` and `Content` are 0 for one content id. The default `HTML`, `MIME`, and `txt` renderers join a run when every piece has squash set, the class token is the same, the sequences are consecutive, and place and content match. The texts join with one space, in sequence order, inside that one class. Any squash word is a space for now. A marked piece with no partner stays its own tag.
 
 From `Go/`, `go run ./cmd/render -content Notice -target html -culture fr-FR` prints the rendering. With no flags for the server, it uses host `127.0.0.1`, port `5432`, user `test`, password `dbfit`, and database `MyCo`, the same server `make pgsqldb` and DbFit use.
 

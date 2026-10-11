@@ -20,6 +20,7 @@ type ContentElement struct {
 	Attribute      string
 	Identifier     string
 	IdentifierType string
+	Squash         string
 }
 
 // PlacedContent is a ContentElement on a site or a list, in placement order.
@@ -130,7 +131,7 @@ func (d *DB) FormatFor(ctx context.Context, format int, target string) ([]Format
 	return out, rows.Err()
 }
 
-const elementCols = `sequence, kind, element, value, format, argument, name, attribute, identifier, identifierType`
+const elementCols = `sequence, kind, element, value, format, argument, name, attribute, identifier, identifierType, squash`
 
 // ContentBody returns the current edition of one content id for a target.
 // The read uses ClientCulture.
@@ -209,11 +210,11 @@ type rowScanner interface {
 
 func scanContentElement(rows rowScanner) (ContentElement, error) {
 	var el ContentElement
-	var value, argument, name, attribute, identifier, identifierType sql.NullString
+	var value, argument, name, attribute, identifier, identifierType, squash sql.NullString
 	var element, format sql.NullInt64
 	err := rows.Scan(
 		&el.Sequence, &el.Kind, &element, &value, &format, &argument, &name, &attribute,
-		&identifier, &identifierType,
+		&identifier, &identifierType, &squash,
 	)
 	if err != nil {
 		return ContentElement{}, err
@@ -227,6 +228,7 @@ func scanContentElement(rows rowScanner) (ContentElement, error) {
 	el.Attribute = attribute.String
 	el.Identifier = identifier.String
 	el.IdentifierType = identifierType.String
+	el.Squash = squash.String
 	if format.Valid {
 		v := int(format.Int64)
 		el.Format = &v
@@ -238,12 +240,12 @@ func scanPlaced(rows *sql.Rows) ([]PlacedContent, error) {
 	var out []PlacedContent
 	for rows.Next() {
 		var row PlacedContent
-		var value, argument, name, attribute, identifier, identifierType sql.NullString
+		var value, argument, name, attribute, identifier, identifierType, squash sql.NullString
 		var element, format sql.NullInt64
 		err := rows.Scan(
 			&row.Place, &row.Content,
 			&row.Sequence, &row.Kind, &element, &value, &format, &argument, &name, &attribute,
-			&identifier, &identifierType,
+			&identifier, &identifierType, &squash,
 		)
 		if err != nil {
 			return nil, err
@@ -257,6 +259,7 @@ func scanPlaced(rows *sql.Rows) ([]PlacedContent, error) {
 		row.Attribute = attribute.String
 		row.Identifier = identifier.String
 		row.IdentifierType = identifierType.String
+		row.Squash = squash.String
 		if format.Valid {
 			v := int(format.Int64)
 			row.Format = &v

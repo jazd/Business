@@ -103,8 +103,8 @@ func TestContentBodyCallsProcedure(t *testing.T) {
 		WithArgs(7, "html").
 		WillReturnRows(sqlmock.NewRows([]string{
 			"sequence", "kind", "element", "value", "format", "argument", "name", "attribute",
-			"identifier", "identifierType",
-		}).AddRow(1, "sentence", 4, "DbFit line", 2, nil, "class", "htmltok", nil, nil))
+			"identifier", "identifierType", "squash",
+		}).AddRow(1, "sentence", 4, "DbFit line", 2, nil, "class", "htmltok", nil, nil, nil))
 	d := &DB{SQL: sqldb}
 	rows, err := d.ContentBody(context.Background(), 7, "html")
 	if err != nil {

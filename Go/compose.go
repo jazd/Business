@@ -18,11 +18,17 @@ type Renderer func(pieces []Piece) (string, error)
 // Piece is one element in read order.
 // Text is the culture's atom text, or the text Dynamic returned.
 // Attr and Token are the winning format attribute.
-// The identifier strings are not stored on a piece.
+// Squash is the culture-null squash word. Empty means the element renders alone.
+// Sequence, Place, and Content are the join key. Place and Content are 0 for one content id.
+// The dynamic identifier strings are not stored on a piece.
 type Piece struct {
-	Text  string
-	Attr  string
-	Token string
+	Text     string
+	Attr     string
+	Token    string
+	Squash   string
+	Sequence int
+	Place    int
+	Content  int
 }
 
 // Render chooses the target, culture, dynamic fill-in, and renderer.
@@ -69,6 +75,7 @@ func (d *DB) ComposeList(ctx context.Context, list string, r Render) (string, er
 // paragraph with that class. No class is a paragraph. Text is escaped.
 // The result has no style element. Each piece is one line.
 func HTML(pieces []Piece) (string, error) {
+	pieces = squashRuns(pieces)
 	if len(pieces) == 0 {
 		return "", nil
 	}
@@ -144,11 +151,57 @@ func rendererFor(target string) (Renderer, error) {
 }
 
 func joinText(pieces []Piece) string {
+	pieces = squashRuns(pieces)
 	parts := make([]string, len(pieces))
 	for i, p := range pieces {
 		parts[i] = p.Text
 	}
 	return strings.Join(parts, "\n")
+}
+
+// squashRuns joins a consecutive run into one piece. Any non-empty Squash
+// joins with one space. The pieces stay in sequence order.
+func squashRuns(pieces []Piece) []Piece {
+	if len(pieces) == 0 {
+		return pieces
+	}
+	var out []Piece
+	for i := 0; i < len(pieces); {
+		j := i
+		for j+1 < len(pieces) && canSquash(pieces[j], pieces[j+1]) {
+			j++
+		}
+		if j == i {
+			out = append(out, pieces[i])
+			i++
+			continue
+		}
+		joined := pieces[i]
+		texts := make([]string, 0, j-i+1)
+		for k := i; k <= j; k++ {
+			texts = append(texts, pieces[k].Text)
+		}
+		joined.Text = strings.Join(texts, " ")
+		out = append(out, joined)
+		i = j + 1
+	}
+	return out
+}
+
+func canSquash(a, b Piece) bool {
+	if a.Squash == "" || b.Squash == "" {
+		return false
+	}
+	if a.Place != b.Place || a.Content != b.Content {
+		return false
+	}
+	if b.Sequence != a.Sequence+1 {
+		return false
+	}
+	return strings.EqualFold(a.Attr, "class") &&
+		strings.EqualFold(b.Attr, "class") &&
+		a.Token != "" &&
+		strings.EqualFold(a.Token, b.Token)
 }
 
 func htmlPiece(p Piece) string {
@@ -221,7 +274,12 @@ func sameElement(a, b elementRow) bool {
 
 func pieceFrom(group []elementRow, dynamic Dynamic) (Piece, bool) {
 	first := group[0].el
-	var piece Piece
+	piece := Piece{
+		Sequence: first.Sequence,
+		Place:    group[0].place,
+		Content:  group[0].content,
+		Squash:   first.Squash,
+	}
 	for _, row := range group {
 		if strings.EqualFold(row.el.Name, "class") && row.el.Attribute != "" {
 			piece.Attr = row.el.Name

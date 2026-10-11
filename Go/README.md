@@ -27,7 +27,8 @@ three-argument read. A dynamic element calls the function
 for `html`, `MIME` for `mime`, and newline-joined text for `txt`. `HTML`
 and `MIME` are exported. `HTML` reads the class tokens `heading`, `lede`,
 and `note`. `MIME` is multipart/alternative: `text/plain`, then that HTML.
-CSS stays with the caller.
+A piece with `Squash` set joins with the next piece when the class matches
+and the sequences are consecutive. The join is one space. CSS stays with the caller.
 
 `Sample/SQL/Content/notice.sql` stores a heading sentence, a `link`, a lede
 sentence, and a `count`. `ExampleFill` returns a fixed URL for `link`/`url`
