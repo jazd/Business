@@ -12,8 +12,9 @@ id, err := db.GetWord(ctx, "Example")
 
 `GetEmail` on a stranger stores the mailbox. `GetIndividualEmail` creates a
 person when that mailbox is not already on IndividualEmail. `GetSite` stores
-a Sentence id because `Site.name` links to Sentence. See
-`docs/0.2.14-downstream.md`.
+a Sentence id because `Site.name` links to Sentence. A site that already
+holds a Word id for the same text is returned unchanged. See
+`docs/0.2.15-downstream.md`.
 
 `ClientCulture` sets the connection culture. `ContentBody`, `SiteContent`,
 and `ListContent` return the current edition for one target (`html`, `txt`,

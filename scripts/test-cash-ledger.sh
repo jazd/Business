@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Wiki Post to General Journal, checked against the Grokipedia cash ledger.
 # Capital is the es-MX name of Equity. AccountLedger prints Equity.
-# A Book entry on another journal stays out of the report.
+# Book lines are included. The post ledger is checked before Book Rent.
 #
 #   ./scripts/test-cash-ledger.sh [business.sqlite3]
 set -euo pipefail
@@ -43,7 +43,6 @@ sqlite3 "$DB" "SELECT id || '|' || COALESCE(created, '') FROM JournalEntry WHERE
 
 sqlite3 "$DB" "DELETE FROM JournalEntry WHERE journal = $general;"
 
-"$BOOK" Rent 100 >/dev/null
 "$POST" Cash 10000 Capital 2024-01-01 >/dev/null
 "$POST" Equipment 2000 Cash 2024-01-05 >/dev/null
 "$POST" Cash 500 Sales 2024-01-10 >/dev/null
@@ -83,6 +82,15 @@ PY
 
 if grep -q 'Capital' "$TMP/ledger.txt"; then
   fail "cash ledger printed Capital; the en-US name is Equity"
+fi
+
+"$BOOK" Rent 100 >/dev/null
+"$LEDGER" Cash > "$TMP/with-book.txt"
+if ! grep -q '100.00' "$TMP/with-book.txt"; then
+  fail "AccountLedger Cash omitted the Rent book line"
+fi
+if ! grep -q 'Rent' "$TMP/with-book.txt"; then
+  fail "AccountLedger Cash omitted Rent"
 fi
 
 rent=$(sqlite3 "$DB" "SELECT COUNT(*) FROM JournalEntry je JOIN AccountName an ON an.account = je.account JOIN Sentence s ON s.id = an.name AND s.culture = 1033 WHERE s.value = 'Rent' AND je.journal = $general;")

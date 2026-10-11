@@ -150,8 +150,8 @@ SELECT NULL AS journal,
  NULL AS type,
  MAX(ledger) AS ledger,
  MAX(ledgerName) AS ledgerName,
- COALESCE(SUM(debit), 0) AS debit,
- COALESCE(SUM(credit), 0) AS credit,
+ COALESCE(SUM(ROUND(debit, 2)), 0) AS debit,
+ COALESCE(SUM(ROUND(credit, 2)), 0) AS credit,
  NULL AS rightSide,
  NULL AS created,
  1 AS sortTotal
@@ -190,8 +190,8 @@ SELECT ledger,
  ledgerName,
  'Total' AS accountName,
  NULL AS typeName,
- COALESCE(SUM(debit), 0) AS debit,
- COALESCE(SUM(credit), 0) AS credit,
+ COALESCE(SUM(ROUND(debit, 2)), 0) AS debit,
+ COALESCE(SUM(ROUND(credit, 2)), 0) AS credit,
  1 AS sortTotal
 FROM LedgerBalance
 GROUP BY ledger,
@@ -199,3 +199,34 @@ GROUP BY ledger,
 ) AS LedgerReportLines
 ORDER BY ledger, sortTotal, sequence
 LIMIT -1;
+
+-- EntitlementCurrent on SQLite uses CURRENT_TIMESTAMP. ClientNow() is PostgreSQL.
+DROP VIEW IF EXISTS EntitlementCurrent;
+CREATE VIEW EntitlementCurrent AS
+SELECT Entitlement.id,
+ Entitlement.individual,
+ Entitlement.listName,
+ ListName.value AS listNameValue,
+ Entitlement.listSet,
+ ListSet.value AS listSetValue,
+ Entitlement.source,
+ Source.value AS sourceValue,
+ Entitlement.status,
+ Status.value AS statusValue,
+ Entitlement.stopReason,
+ StopReason.value AS stopReasonValue,
+ Entitlement.starts,
+ Entitlement.ends,
+ Entitlement.batch,
+ Batch.value AS batchValue,
+ Entitlement.stopped,
+ Entitlement.created
+FROM Entitlement
+LEFT JOIN I18NWord AS ListName ON ListName.id = Entitlement.listName
+LEFT JOIN I18NWord AS ListSet ON ListSet.id = Entitlement.listSet
+LEFT JOIN I18NWord AS Source ON Source.id = Entitlement.source
+LEFT JOIN I18NWord AS Status ON Status.id = Entitlement.status
+LEFT JOIN I18NWord AS StopReason ON StopReason.id = Entitlement.stopReason
+LEFT JOIN I18NSentence AS Batch ON Batch.id = Entitlement.batch
+WHERE Entitlement.stopped IS NULL
+ AND (Entitlement.ends IS NULL OR Entitlement.ends > CURRENT_TIMESTAMP);

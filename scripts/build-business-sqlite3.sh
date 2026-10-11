@@ -69,11 +69,11 @@ sqlite3 "$OUT" < "${ROOT}/SQLite/seed-addresses.sql"
 
 sqlite3 "$OUT" < "${ROOT}/SQLite/post.sql"
 
-# Stamp template schema version (matches current release series on develop)
+# Stamp template schema version for this release.
 export SQLITE_DB="$OUT"
 export PATH="$ROOT/Bash/sqlite:${PATH:-}"
 if [[ -x "$ROOT/Bash/sqlite/SetSchemaVersion" ]]; then
-  SetSchemaVersion Business 0 2 11 >/dev/null || true
+  SetSchemaVersion Business 0 2 15 >/dev/null || true
 fi
 
 # Quick counts for operators

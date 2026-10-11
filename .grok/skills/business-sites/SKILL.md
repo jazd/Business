@@ -23,7 +23,8 @@ ClaimSession, SessionToken.type, Path.port, PathPassword, or the report
 views below. The current schema also has `Email.username` and `Email.plus`
 at `varchar(64)`, view `SchemaVersions`, and the entitlement objects below.
 A database still on 0.2.13 gets those from `PostgreSQL/0.2.13-0.2.14.sql`.
-That hop leaves `SetSchemaVersion` commented until the release is stamped.
+That hop stamps Business 0.2.14. The next hop is `PostgreSQL/0.2.14-0.2.15.sql`.
+Its `SetSchemaVersion` line stays commented until 0.2.15 is released.
 
 **PostgreSQL only** for the session join (`SetSession`, `ClaimSession`,
 `AnonymousSession`). SQLite has Bash helpers for Path / IndividualPath /
@@ -146,7 +147,7 @@ replace with the real product and apex.
 
 | Fact | How |
 |------|-----|
-| Site | `Site.name` links to Sentence. `GetSite(name)` calls `GetSentence`, then find-or-inserts Site. See `docs/0.2.14-downstream.md`. |
+| Site | `Site.name` links to Sentence. `GetSite(name)` calls `GetSentence`, then find-or-inserts Site. A Word-named site with the same text is returned as that site. See `docs/0.2.15-downstream.md`. |
 | Application | `GetApplication('Example')` |
 | ApplicationRelease | `GetApplicationRelease(application, NULL)` until you seed a real Release |
 | SiteApplicationRelease (SAR) | `GetSiteApplicationRelease(site, applicationRelease)`. This integer is passed to every `SetSession`. |
@@ -294,7 +295,7 @@ SELECT EntitlementStop(individualId, 'Example', 'Pro', 'comp', 'revoked');
 
 `EntitlementReference` stores an outside id on that version. `name` is a Word (`subscription`, `customer`, or a later name). `value` is text. The same name on that version returns the existing row. A new version does not copy the old refs.
 
-Current rows: view `EntitlementCurrent` (`stopped` is null, and `ends` is null or after `ClientNow()`). Status is not filtered. Every version: `EntitlementHistory`.
+Current rows: view `EntitlementCurrent` (`stopped` is null, and `ends` is null or after `ClientNow()` on PostgreSQL, `CURRENT_TIMESTAMP` on SQLite). Status is not filtered. Every version: `EntitlementHistory`.
 
 ---
 

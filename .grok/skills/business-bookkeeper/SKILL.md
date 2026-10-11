@@ -89,8 +89,8 @@ manual `cp` instructions unless bootstrap fails).
      ```bash
      mkdir -p "$HOME/business-shop/snapshots"
      cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3"
-     test -f "$HOME/business-shop/business.sqlite3.pristine-0.2.12" \
-       || cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3.pristine-0.2.12"
+     test -f "$HOME/business-shop/business.sqlite3.pristine-0.2.15" \
+       || cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3.pristine-0.2.15"
      export SQLITE_DB=$HOME/business-shop/business.sqlite3
      ```
    - **Do not overwrite** an existing `~/business-shop/business.sqlite3`.
@@ -110,7 +110,7 @@ matches wiki/procedure behavior; say what is unavailable.
 
 1. **Find-or-insert** via `Get*` / `CreateBill` / `AddCargo` / `Book` / `Post` / list subscribe helpers - not “INSERT customer row #1”.
 2. **History is append + `stop`**, not UPDATE of past truth (prices, emails, list membership).
-3. **Money** is `numeric(19,4)`, not integer cents. `Book` and `Post` round each new journal amount to 4 decimal places. Amounts already stored are left as written. `JournalReport` prints two decimals. Quantities may stay float where the schema says so (`Cargo.count`, schedule rate bands).
+3. **Money** is `numeric(19,4)`, not integer cents. `Book` and `Post` round each new journal amount to 4 decimal places and write that text. Amounts already stored are left as written. `JournalReport` and `BookBalance` print two decimals. The report total adds those cent amounts. Quantities may stay float where the schema says so (`Cargo.count`, schedule rate bands).
 4. **Reads** go through **views** the wiki uses (`LineItems`, `JournalReport`, …).
 5. **Culture** for reports: `ClientCulture()` / `inject_culture` (1033 en-US, 2058 es-MX, 1036 fr-FR) - see wiki Accounting I18N.
 
@@ -275,7 +275,7 @@ AccountLedger Cash
 | Jan 10 | Sales | 500.00 | | 8500.00 |
 | | Total | 10500.00 | 2000.00 | |
 
-Those are the article's 10,000 / 2,000 / 500 lines and 8,500 debit balance. `AccountLedger` reads the General journal only, so the Wikipedia `Book` demo stays out of this report. On PostgreSQL the same three calls are `Post('Cash', 10000, 'Capital', '2024-01-01')` and the cash-ledger query in the wiki.
+Those are the article's 10,000 / 2,000 / 500 lines and 8,500 debit balance. `AccountLedger` also lists Book lines for that account, so a shop that already ran the Wikipedia books will see those cash lines too. On PostgreSQL the same three calls are `Post('Cash', 10000, 'Capital', '2024-01-01')` and the cash-ledger query in the wiki.
 
 ### Near future: bank / credit-card CSV
 
@@ -422,7 +422,7 @@ cp -a "$SNAP_DIR/latest.sqlite3" "$SQLITE_DB"
 - Do not delete old snapshots unless the user asks; if the directory grows
   large, suggest pruning with their OK (e.g. keep last 20 or last 7 days).
 - Distinguish **pristine release image**
-  (`business.sqlite3.pristine-0.2.12`) from **session snapshots**.
+  (`business.sqlite3.pristine-0.2.15`) from **session snapshots**. After copying a release `business.sqlite3`, read `SchemaVersions` where `stop` is null. The `value` column is the release. A file from the 0.2.14 download can still show 0.2.11; `./scripts/upgrade-sqlite.sh 0.2.14 0.2.15` accepts that file when `Entitlement` and `SchemaVersions` are already there.
 
 ## Agent workflow (every request)
 

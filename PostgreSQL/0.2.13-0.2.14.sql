@@ -2,8 +2,9 @@
 -- Business schema upgrade: 0.2.13 -> 0.2.14 (PostgreSQL)
 -- =============================================================================
 --
--- Living upgrade path while 0.2.14 is unreleased. A database installed at
+-- Released hop 0.2.13 -> 0.2.14. A database installed at
 -- 0.2.13 reaches the same Email column widths as a fresh 0.2.14 build.
+-- Living work for the next version is PostgreSQL/0.2.14-0.2.15.sql.
 --
 -- Fresh installs: make pgsqldb (pre + schema + procedures + post + Static).
 -- Do not use this script for a greenfield install.
@@ -979,9 +980,7 @@ FROM SchemaVersion
 JOIN Versions ON SchemaVersion.version = Versions.version
 LEFT JOIN I18NWord AS SchemaName ON SchemaName.id = SchemaVersion.schema;
 
--- Mark schema upgraded to 0.2.14 when the hop body is ready for the release.
--- Until then, leave this commented so a partial living script is not stamped
--- as 0.2.14 on production by mistake.
+-- Released hop stamps Business 0.2.14.
 SELECT SetSchemaVersion('Business', '0', '2', '14');
 
 COMMIT;

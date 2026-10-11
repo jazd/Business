@@ -80,7 +80,10 @@ Business/business.sqlite3     # PRISTINE template (do not write shop data here)
 mkdir -p ~/business-shop/snapshots
 cp /path/to/Business/business.sqlite3 ~/business-shop/business.sqlite3
 export SQLITE_DB=$HOME/business-shop/business.sqlite3
+sqlite3 "$SQLITE_DB" "SELECT value FROM SchemaVersions WHERE stop IS NULL;"
 ```
+
+`value` is the release on that file. A file from the 0.2.14 download can still show `0.2.11`. `./scripts/upgrade-sqlite.sh 0.2.14 0.2.15` accepts that file when `Entitlement` and `SchemaVersions` are already present.
 
 Bash helpers:
 
@@ -199,7 +202,9 @@ Ship / bill of lading headings in the wiki are still stubs - track fulfilment vi
 
 - Named **books** (e.g. Rent, Sale) post balanced journal lines.
 - **Book** and **BookBalance** take an optional date and time zone after the amount. An omitted date is today in that zone, or the local zone. A new line stores `YYYY-MM-DD` with no time. `Book Rent 100` still works.
-- **JournalReport** / **LedgerReport** for statements.
+- **JournalReport** / **LedgerReport** for statements. Amounts print with two decimal places. The total adds those cent amounts.
+- **AccountLedger** lists every unposted line for that account. A Book line and a Post line both appear.
+- **BookBalance** prints each amount with two decimal places.
 - French/Spanish labels: culture inject (es-MX / fr-FR) then the same report views.
 
 ### Lists
@@ -264,7 +269,7 @@ ago” tool-especially after experiments or CSV imports.
 ```text
 ~/business-shop/
   business.sqlite3                 # live books
-  business.sqlite3.pristine-0.2.12  # release template restore (optional)
+  business.sqlite3.pristine-0.2.15  # release template restore (optional)
   snapshots/
     20260805-141502-session-start.sqlite3
     20260805-142230-pre-csv.sqlite3

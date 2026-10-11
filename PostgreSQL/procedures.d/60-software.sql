@@ -274,6 +274,16 @@ BEGIN
   FROM Site
   WHERE name = name_id
   LIMIT 1;
+  -- A site created before Site.name held a Sentence id still stores a Word id.
+  -- Return that site. Do not rewrite Site.name.
+  IF site_id IS NULL THEN
+   SELECT Site.id INTO site_id
+   FROM Site
+   JOIN Word ON Word.id = Site.name
+   WHERE Word.value = inName
+   ORDER BY Site.id
+   LIMIT 1;
+  END IF;
   IF site_id IS NULL THEN
    PERFORM pg_advisory_lock(name_id);
    BEGIN

@@ -2,8 +2,9 @@
 -- Business schema upgrade: 0.2.13 -> 0.2.14 (SQLite shop)
 -- =============================================================================
 --
--- Living upgrade path while 0.2.14 is unreleased. Apply to a shop DB that was
+-- Released hop 0.2.13 -> 0.2.14. Apply to a shop DB that was
 -- built or upgraded to 0.2.13.
+-- Living work for the next version is SQLite/0.2.14-0.2.15.sql.
 --
 -- Fresh shops: make business.sqlite3 / make rebuild-business-sqlite3.
 -- Do not use this script for a greenfield create.
@@ -145,7 +146,7 @@ LEFT JOIN I18NWord AS Status ON Status.id = Entitlement.status
 LEFT JOIN I18NWord AS StopReason ON StopReason.id = Entitlement.stopReason
 LEFT JOIN I18NSentence AS Batch ON Batch.id = Entitlement.batch
 WHERE Entitlement.stopped IS NULL
- AND (Entitlement.ends IS NULL OR Entitlement.ends > ClientNow());
+ AND (Entitlement.ends IS NULL OR Entitlement.ends > CURRENT_TIMESTAMP);
 
 DROP VIEW IF EXISTS SchemaVersions;
 CREATE VIEW SchemaVersions AS

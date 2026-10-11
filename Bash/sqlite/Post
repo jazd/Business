@@ -60,9 +60,9 @@ entry_id=$(sqlite3 "$SQLITE_DB" "
 
 sqlite_run "
  INSERT INTO JournalEntry (journal, entry, account, credit, amount, created)
- VALUES ($journal_id, $entry_id, $credit_id, 1, ROUND($AMOUNT, 4), '$esc_when');
+ VALUES ($journal_id, $entry_id, $credit_id, 1, printf('%.4f', ROUND($AMOUNT, 4)), '$esc_when');
  INSERT INTO JournalEntry (journal, entry, account, credit, amount, created)
- VALUES ($journal_id, $entry_id, $debit_id, 0, ROUND($AMOUNT, 4), '$esc_when');
+ VALUES ($journal_id, $entry_id, $debit_id, 0, printf('%.4f', ROUND($AMOUNT, 4)), '$esc_when');
 " >/dev/null
 
 echo "$entry_id"

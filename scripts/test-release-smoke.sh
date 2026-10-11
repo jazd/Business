@@ -2,7 +2,7 @@
 # Wikipedia books and the Grokipedia cash ledger on a copy of a shop file.
 # JournalReport and the chart LedgerReport total 21350.00 / 21350.00.
 # Posting accounts net to 11050.00 / 11050.00.
-# AccountLedger Cash is the three General-journal posts.
+# AccountLedger Cash includes the Book lines. Cash ends at 750.00.
 # Does not write the source file. The copy starts with no journal lines.
 #
 #   ./scripts/test-release-smoke.sh [business.sqlite3]
@@ -46,6 +46,16 @@ book Sale 50
 book Equipment 5200
 book Loan 11000
 book Salary 5000
+
+"$ROOT/Bash/sqlite/AccountLedger" Cash > "$TMP/cash.txt"
+if ! grep -q '750.00' "$TMP/cash.txt"; then
+  fail "AccountLedger Cash balance is not 750.00"
+fi
+for name in Rent Sales Equipment Loan Salary; do
+  if ! grep -q "$name" "$TMP/cash.txt"; then
+    fail "AccountLedger Cash omitted $name"
+  fi
+done
 
 "$ROOT/Bash/sqlite/JournalReport" > "$TMP/journal.txt"
 if grep -E -q '[0-9][eE][+-][0-9]' "$TMP/journal.txt"; then

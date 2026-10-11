@@ -3,11 +3,15 @@
 #
 # Usage:
 #   export SQLITE_DB=$HOME/business-shop/business.sqlite3
-#   ./scripts/upgrade-sqlite.sh 0.2.11 0.2.12
-#   ./scripts/upgrade-sqlite.sh 0.2.12 0.2.13
+#   ./scripts/upgrade-sqlite.sh 0.2.13 0.2.14
+#   ./scripts/upgrade-sqlite.sh 0.2.14 0.2.15
 #
 # Preconditions: active SchemaVersion Business = <from>.
-# After SQL file succeeds: SetSchemaVersion Business to <to>.
+# A downloaded 0.2.14 business.sqlite3 can still report 0.2.11. When
+# Entitlement and SchemaVersions exist, this script treats that file as 0.2.14.
+# A downloaded 0.2.13 file that reports 0.2.11 needs ALLOW_MISSTAMP=1.
+# Released hops stamp <to>. The living 0.2.14 -> 0.2.15 hop does not,
+# unless STAMP_VERSION=1.
 # Optional backup: UPGRADE_BACKUP=1 (default) writes SQLITE_DB.bak.<timestamp>
 set -euo pipefail
 
@@ -61,8 +65,25 @@ active=$(sqlite3 "$SQLITE_DB" "
 
 if [[ -z "$active" ]]; then
   echo "Error: no active SchemaVersion for Business in $SQLITE_DB" >&2
-  echo "Stamp a 0.2.11 shop with: SetSchemaVersion Business 0 2 11" >&2
+  echo "Read SchemaVersions, then stamp the real release with SetSchemaVersion." >&2
   exit 1
+fi
+
+release_objects=$(sqlite3 "$SQLITE_DB" "
+ SELECT COUNT(*) FROM sqlite_master
+ WHERE name IN ('Entitlement', 'SchemaVersions');
+")
+restamp=0
+
+if [[ "$active" == "0.2.11" && "$FROM" == "0.2.14" && "$release_objects" == "2" ]]; then
+  echo "Active stamp is 0.2.11 and this file already has Entitlement and SchemaVersions."
+  echo "Treating it as Business 0.2.14."
+  active=0.2.14
+  restamp=1
+elif [[ "$active" == "0.2.11" && "$FROM" == "0.2.13" && "${ALLOW_MISSTAMP:-0}" == "1" ]]; then
+  echo "ALLOW_MISSTAMP=1: treating active 0.2.11 as Business 0.2.13."
+  active=0.2.13
+  restamp=1
 fi
 
 if [[ "$active" != "$FROM" ]]; then
@@ -77,14 +98,23 @@ if [[ "$UPGRADE_BACKUP" == "1" ]]; then
   echo "Backup: $bak"
 fi
 
+if [[ "$restamp" == "1" ]]; then
+  echo "SetSchemaVersion Business $FROM_MAJ $FROM_MIN $FROM_PAT ..."
+  SetSchemaVersion Business "$FROM_MAJ" "$FROM_MIN" "$FROM_PAT"
+fi
+
 echo "Applying $HOP ..."
 sqlite3 "$SQLITE_DB" < "$HOP"
 
-# While the hop is still living/empty, leave STAMP_VERSION=0 so a shop is not
-# marked as the next release without DDL. Set STAMP_VERSION=1 when the hop is
-# complete enough to record Business <to> (same idea as uncommenting
-# SetSchemaVersion in the PostgreSQL hop).
-: "${STAMP_VERSION:=0}"
+# Released hops record Business <to>. The living 0.2.14 -> 0.2.15 hop does not
+# until STAMP_VERSION=1.
+if [[ -z "${STAMP_VERSION+x}" ]]; then
+  if [[ "$FROM" == "0.2.14" && "$TO" == "0.2.15" ]]; then
+    STAMP_VERSION=0
+  else
+    STAMP_VERSION=1
+  fi
+fi
 if [[ "$STAMP_VERSION" == "1" ]]; then
   echo "SetSchemaVersion Business $TO_MAJ $TO_MIN $TO_PAT ..."
   build=$(SetSchemaVersion Business "$TO_MAJ" "$TO_MIN" "$TO_PAT")

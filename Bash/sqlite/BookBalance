@@ -27,8 +27,8 @@ sqlite3 -header -column "$SQLITE_DB" "
   $entry_id AS entry,
   t.account,
   s.value AS name,
-  CASE WHEN NOT t.credit THEN t.amount END AS debit,
-  CASE WHEN t.credit THEN t.amount END AS credit
+  CASE WHEN NOT t.credit THEN printf('%.2f', t.amount) END AS debit,
+  CASE WHEN t.credit THEN printf('%.2f', t.amount) END AS credit
  FROM JournalEntry t
  JOIN AccountName an ON an.account = t.account
  JOIN Sentence s ON s.id = an.name AND s.culture = 1033

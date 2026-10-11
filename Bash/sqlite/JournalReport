@@ -72,8 +72,8 @@ totals AS (
   NULL AS rightSide,
   NULL AS type,
   'Total' AS account,
-  SUM(debit) AS debit,
-  SUM(credit) AS credit,
+  SUM(ROUND(debit, 2)) AS debit,
+  SUM(ROUND(credit, 2)) AS credit,
   1 AS sort_group
  FROM detail
 )

@@ -124,7 +124,8 @@ FROM (
   SELECT
     ba.increase AS account,
     CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 0 ELSE 1 END AS credit,
-    ROUND(($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
+    CASE WHEN ROUND(($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1), 4) IS NOT NULL
+     THEN printf('%.4f', ROUND(($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1), 4)) END AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName inc ON inc.account = ba.increase
   WHERE ba.book = $book_id AND (ba.stop IS NULL)
@@ -136,7 +137,8 @@ FROM (
   SELECT
     ba.increase AS account,
     CASE WHEN COALESCE(inc.credit, 0) != 0 THEN 1 ELSE 0 END AS credit,
-    ROUND(($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
+    CASE WHEN ROUND(($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1), 4) IS NOT NULL
+     THEN printf('%.4f', ROUND(($AMOUNT * CASE WHEN COALESCE(inc.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1), 4)) END AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName inc ON inc.account = ba.increase
   WHERE ba.book = $book_id AND (ba.stop IS NULL)
@@ -148,7 +150,8 @@ FROM (
   SELECT
     ba.decrease AS account,
     CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 0 ELSE 1 END AS credit,
-    ROUND(($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
+    CASE WHEN ROUND(($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1), 4) IS NOT NULL
+     THEN printf('%.4f', ROUND(($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) = 0 THEN 1 END) * COALESCE(ba.split, 1), 4)) END AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName dec ON dec.account = ba.decrease
   WHERE ba.book = $book_id AND (ba.stop IS NULL)
@@ -160,7 +163,8 @@ FROM (
   SELECT
     ba.decrease AS account,
     CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 ELSE 0 END AS credit,
-    ROUND(($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1), 4) AS amount
+    CASE WHEN ROUND(($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1), 4) IS NOT NULL
+     THEN printf('%.4f', ROUND(($AMOUNT * CASE WHEN COALESCE(dec.credit, 0) != 0 THEN 1 END) * COALESCE(ba.split, 1), 4)) END AS amount
   FROM BookAccount ba
   LEFT JOIN AccountName dec ON dec.account = ba.decrease
   WHERE ba.book = $book_id AND (ba.stop IS NULL)

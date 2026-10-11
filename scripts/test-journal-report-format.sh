@@ -20,6 +20,8 @@ DB="$TMP/business.sqlite3"
 cp -a "$SRC" "$DB"
 
 sqlite3 "$DB" < "$ROOT/SQLite/0.2.12-0.2.13.sql"
+sqlite3 "$DB" < "$ROOT/SQLite/0.2.13-0.2.14.sql"
+sqlite3 "$DB" < "$ROOT/SQLite/0.2.14-0.2.15.sql"
 sqlite3 "$DB" "DELETE FROM JournalEntry;"
 
 export SQLITE_DB="$DB"
@@ -118,6 +120,29 @@ case "$odd_view_last" in
   *)
     echo "Error: view Total row is not last: $odd_view_last" >&2
     cat "$TMP/odd-view.txt" >&2
+    exit 1
+    ;;
+esac
+
+# Three stored 0.333 amounts print as 0.33. The total sums those cents.
+sqlite3 "$DB" "DELETE FROM JournalEntry;"
+"$ROOT/Bash/sqlite/Post" Cash 0.333 Capital >/dev/null
+"$ROOT/Bash/sqlite/Post" Cash 0.333 Capital >/dev/null
+"$ROOT/Bash/sqlite/Post" Cash 0.333 Capital >/dev/null
+"$ROOT/Bash/sqlite/JournalReport" > "$TMP/cents.txt"
+assert_line "$TMP/cents.txt" "0.33"
+if grep -F -q "1.00" "$TMP/cents.txt"; then
+  echo "Error: JournalReport totaled 0.333 three times as 1.00" >&2
+  cat "$TMP/cents.txt" >&2
+  exit 1
+fi
+assert_line "$TMP/cents.txt" "0.99"
+cents_last="$(awk 'NF { line = $0 } END { print line }' "$TMP/cents.txt")"
+case "$cents_last" in
+  *Total*0.99*0.99*) ;;
+  *)
+    echo "Error: cent total is not 0.99 / 0.99: $cents_last" >&2
+    cat "$TMP/cents.txt" >&2
     exit 1
     ;;
 esac
