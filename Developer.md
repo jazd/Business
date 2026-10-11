@@ -14,14 +14,16 @@ Suite page notes are in [DbFit/README.md](./DbFit/README.md).
 ## First load
 
 `make pgsqldb`, `make mysqldb`, and `make sqlserverdb` drop and reload
-database `MyCo` on the server they are pointed at. The committed host is
-`127.0.0.1`. That host, and `localhost`, start the matching container, wait
-until it is healthy, and then load.
+database `MyCo` on the server they are pointed at. `make oracledb` drops and
+reloads the tables for user `test` in service `FREEPDB1`. The committed host
+is `127.0.0.1`. That host, and `localhost`, start the matching container,
+wait until it is healthy, and then load.
 
 ```
 make pgsqldb
 make mysqldb
 make sqlserverdb
+make oracledb
 ```
 
 ## FitNesse
@@ -33,11 +35,13 @@ make dbfit
 `make dbfit` builds `localhost/jazd/dbfit:dev` and starts `business-dbfit`
 on `127.0.0.1:8085`. The image contains the FitNesse install: DbFit 3.2.0,
 Connector/J 5.1.49, PostgreSQL JDBC 42.2.5, Microsoft JDBC
-`mssql-jdbc-12.10.2.jre11.jar`, `lib/postgres.jar` linked to the PostgreSQL
-jar, and `FitNesseRoot/lib` linked to `/dbfit/lib`. That start also brings
-up `business-pgsql`, `business-mysql`, and `business-mssql` when they are
-down. It does not reload `MyCo`. Load the schema with the targets above.
-`make mssql` still writes `schema.sqlserver` and does not start a container.
+`mssql-jdbc-12.10.2.jre11.jar`, Oracle JDBC `ojdbc8-21.9.0.0.jar`,
+`lib/postgres.jar` linked to the PostgreSQL jar, and `FitNesseRoot/lib`
+linked to `/dbfit/lib`. That start also brings up `business-pgsql`,
+`business-mysql`, and `business-mssql` when they are down. It does not
+start `business-oracle` and it does not reload `MyCo`. Load the schema with
+the targets above. `make mssql` still writes `schema.sqlserver`. `make oracle`
+still writes `schema.oracle`. Neither starts a container.
 
 Suites:
 
@@ -45,6 +49,7 @@ Suites:
 http://127.0.0.1:8085/BusinessSchema.PostgreSqlSuite?suite
 http://127.0.0.1:8085/BusinessSchema.MySqlSuite?suite
 http://127.0.0.1:8085/BusinessSchema.SqlServerSuite?suite
+http://127.0.0.1:8085/BusinessSchema.OracleSuite?suite
 ```
 
 The FitNesse container connects as user `test`, password `dbfit`, database
@@ -68,9 +73,9 @@ podman compose -f compose.dbfit.yml up -d
 make dbfit-stop
 ```
 
-That stops `business-pgsql`, `business-mysql`, `business-mssql`, and
-`business-dbfit`. Named volumes stay. Other containers on the machine stay
-as they are.
+That stops `business-pgsql`, `business-mysql`, `business-mssql`,
+`business-oracle`, and `business-dbfit`. Named volumes stay. Other containers
+on the machine stay as they are.
 
 ## Connect
 
@@ -124,12 +129,35 @@ podman exec -it business-mssql bash -lc 'PATH="/opt/mssql-tools18/bin:$PATH" exe
 `-C` trusts the container certificate. A `sqlcmd` on the host uses the same
 login with `-S 127.0.0.1`.
 
+### Oracle
+
+`business-oracle` is `gvenzl/oracle-free:23.26.3-slim` on `127.0.0.1:1521`.
+Service `FREEPDB1`, user `test`, password `dbfit`. `SYS` and `SYSTEM` use
+`Dbfit_oracle1`. The first start initializes the database and takes several
+minutes. `make dbfit` does not start this service.
+
+`make oracle-start` starts the container and does not reload the schema.
+`make oracledb` loads tables. `make oracle` still writes `schema.oracle`.
+`make sqlplus` opens `sqlplus` in that container as `test`.
+
+```
+make oracle-start
+make sqlplus
+```
+
+The same client from the shell:
+
+```
+podman exec -it business-oracle sqlplus test/dbfit@//localhost/FREEPDB1
+```
+
 ## Another database host
 
 ```
 make pgsqldb PostgreSQLServer=<host>
 make mysqldb MySQLServer=<host>
 make sqlserverdb SQLServerServer=<host>
+make oracledb OracleServer=<host>
 ```
 
 Any host other than `127.0.0.1` and `localhost` is used as given, and the

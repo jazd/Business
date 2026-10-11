@@ -3,8 +3,9 @@ dbfit http://dbfit.github.io/dbfit/
 # FitNesse
 
 `business-dbfit` serves the suites on `127.0.0.1:8085`. The image downloads
-DbFit 3.2.0, then adds `mysql-connector-java-5.1.49.jar` and
-`postgresql-42.2.5.jar`. `lib/postgres.jar` points at that PostgreSQL jar.
+DbFit 3.2.0, then adds `mysql-connector-java-5.1.49.jar`,
+`postgresql-42.2.5.jar`, `mssql-jdbc-12.10.2.jre11.jar`, and
+`ojdbc8-21.9.0.0.jar`. `lib/postgres.jar` points at that PostgreSQL jar.
 `FitNesseRoot/lib` points at `/dbfit/lib`. Connector/J 5.1.36 is not in `lib/`.
 
 ```
@@ -14,8 +15,9 @@ podman compose -f compose.dbfit.yml up -d business-dbfit
 
 `make dbfit` builds that image and starts the service. That start also
 brings up `business-pgsql`, `business-mysql`, and `business-mssql` when they
-are down, and does not reload `MyCo`. `make dbfit-stop` stops every service
-in `compose.dbfit.yml` and leaves the named database volumes in place.
+are down, and does not reload `MyCo`. It does not start `business-oracle`.
+`make dbfit-stop` stops every service in `compose.dbfit.yml` and leaves the
+named database volumes in place.
 
 Compose mounts `DbFit/BusinessSchema` at the image's `FitNesseRoot/BusinessSchema`.
 The PostgreSQL suite connects to `business-pgsql`. The MySQL suite connects to
@@ -233,3 +235,58 @@ no rows), and `Entity`, `Family`, `Given`, `Sentence`, and `Word`
 
 `SQLServer/post.sql` reseeds those identity columns to the same floors as
 the PostgreSQL sequences.
+
+# Oracle
+
+`make oracledb` drops and reloads tables for user `test` in service
+`FREEPDB1`. The default host is `127.0.0.1`. That host, and `localhost`,
+start compose service `business-oracle` from `compose.dbfit.yml`, wait until
+it is healthy, and then load. A different `OracleServer` is used as given,
+and the Makefile leaves the containers alone. For that host the target prints
+the `sqlplus` connect string and does not run it.
+
+| | |
+|---|---|
+| Host | `127.0.0.1` |
+| Image | `docker.io/gvenzl/oracle-free:23.26.3-slim` |
+| Service | `FREEPDB1` |
+| User | `test` |
+| Password | `dbfit` |
+| SYS and SYSTEM | `Dbfit_oracle1` |
+
+The load creates tables, indexes, sequences, and insert triggers. It does
+not create views and it does not load procedures. `Oracle/post.sql` restarts
+the sequences used by the table tests so the next value is the same floor as
+the PostgreSQL sequences.
+
+`make oracle-start` starts the container and does not reload the schema.
+`make oracle` still writes `schema.oracle`. `make sqlplus` opens `sqlplus`
+in that container as `test`.
+
+```
+podman exec -it business-oracle sqlplus test/dbfit@//localhost/FREEPDB1
+```
+
+Suite setup is `DbFit/BusinessSchema/OracleSuite/SetUp/content.txt`:
+
+```
+!|dbfit.OracleTest|
+!|Connect|business-oracle:1521/FREEPDB1|test|dbfit|
+```
+
+http://127.0.0.1:8085/BusinessSchema.OracleSuite?suite
+
+The image includes `ojdbc8-21.9.0.0.jar`. The connect cell is the service
+name. A fourth cell would be read as an instance SID.
+
+`OracleSuite/TableTests` runs the shared table pages whose SQL already works,
+and local copies of the pages that used `LIMIT 1`. Those copies use
+`FETCH FIRST 1 ROW ONLY`. `SessionPath` and `SessionToken` quote `"SESSION"`.
+`SchemaVersion` quotes `"SCHEMA"`. `Session` quotes `"SESSION"`. `PeriodName`
+and `ListIndividualName` keep the insert and omit the check that expects a
+static row. These pages stay out: `Phone` (the insert names `number`),
+`Location` (the insert names `level`),
+`Address`, `DayOfWeek`, `Month`, `MonthDay`, `Period`, `Postal`, `TimeOfDay`,
+and `Timezone` (this load has no rows), and `Entity`, `Family`, `Given`,
+`Sentence`, and `Word` (case-sensitive text, or an explicit id of 0). `DUAL`
+is the built-in table.

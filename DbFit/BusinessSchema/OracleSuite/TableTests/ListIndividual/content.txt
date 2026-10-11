@@ -1,0 +1,4 @@
+!4 Verify ListIndividual table exists
+!|Query Stats                                               |
+|query                                |row count?|is empty? |
+|SELECT id FROM ListIndividual FETCH FIRST 1 ROW ONLY|1         |false     |

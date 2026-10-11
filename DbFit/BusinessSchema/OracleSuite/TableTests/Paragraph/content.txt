@@ -1,0 +1,5 @@
+!4 Verify Paragraph table exists
+Has no static records
+!|Query Stats                                         |
+|query                           |row count?|is empty?|
+|SELECT id FROM Paragraph FETCH FIRST 1 ROW ONLY|0         |true     |

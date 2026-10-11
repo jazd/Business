@@ -1,0 +1,8 @@
+!|Insert|ListIndividualName|
+|name|optinStyle|listindividual?|
+|1000|1|>>listindividualid|
+
+First inserted ListIndividualName.listindividual should be >= 2000000
+!|Query| SELECT listindividual FROM ListIndividualName WHERE listindividual >= 2000000 AND name = 1000|
+|listindividual|
+|<<listindividualid|

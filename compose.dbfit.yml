@@ -78,7 +78,29 @@ services:
       business-mssql:
         condition: service_healthy
 
+  business-oracle:
+    image: docker.io/gvenzl/oracle-free:23.26.3-slim
+    container_name: business-oracle
+    ports:
+      - "127.0.0.1:1521:1521"
+    environment:
+      ORACLE_PASSWORD: Dbfit_oracle1
+      APP_USER: test
+      APP_USER_PASSWORD: dbfit
+    volumes:
+      - business-oracle-data:/opt/oracle/oradata
+      - ./schema.oracle:/work/schema.oracle:Z
+      - ./Oracle:/work/Oracle:Z
+      - ./Static:/work/Static:Z
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 15s
+      timeout: 10s
+      retries: 80
+      start_period: 90s
+
 volumes:
   business-pgsql-data:
   business-mysql-data:
   business-mssql-data:
+  business-oracle-data:

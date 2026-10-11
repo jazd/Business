@@ -13,8 +13,8 @@ ifeq (,$(wildcard /usr/local/bin/sqlt))
 	SQLT := podman run --rm -v $(CURDIR):/app:Z jazd/sqlt:dev sqlt
 endif
 
-# 127.0.0.1 and localhost start business-pgsql, business-mysql, and business-mssql.
-# Any other host is used as given.
+# 127.0.0.1 and localhost start business-pgsql, business-mysql, business-mssql,
+# and, for oracledb, business-oracle. Any other host is used as given.
 PostgreSQLServer = 127.0.0.1
 
 MySQLServer = 127.0.0.1
@@ -24,9 +24,13 @@ SQLServerServer = 127.0.0.1
 # sa password meets the image policy. Login test uses dbfit with CHECK_POLICY off.
 MSSQL_SA_PASSWORD = Dbfit_sa1
 
+# business-oracle service FREEPDB1. User test uses dbfit. SYS and SYSTEM use Dbfit_oracle1.
+OracleServer = 127.0.0.1
+
 PGSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(PostgreSQLServer))
 MYSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(MySQLServer))
 MSSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(SQLServerServer))
+ORACLE_IS_CONTAINER := $(filter localhost 127.0.0.1,$(OracleServer))
 # sqlcmd in the 2022 image. -C trusts the container certificate.
 SQLCMD = podman exec -w /work business-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -b
 
@@ -111,7 +115,7 @@ schema.oracle: schema.xml sqlt-cmd
 	@echo Creating Oracle file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	$(SQLT) -f XML-SQLFairy -t Oracle $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
+	$(SQLT) -f XML-SQLFairy -t Oracle $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | awk -f scripts/oracle-ddl.awk >> $@
 	chmod -w $@
 
 schema.sybase: schema.xml sqlt-cmd
@@ -145,7 +149,7 @@ dbfit: Containerfile.dbfit
 
 # Stops every service in compose.dbfit.yml. Named volumes stay.
 # mssql stays the schema.sqlserver alias. mssql-start only brings the container up.
-.PHONY: dbfit-stop mssql-start sqlcmd
+.PHONY: dbfit-stop mssql-start sqlcmd oracle-start sqlplus
 dbfit-stop:
 	podman compose -f compose.dbfit.yml stop
 
@@ -156,6 +160,14 @@ mssql-start:
 # Interactive sqlcmd in business-mssql. -C trusts the container certificate.
 sqlcmd: mssql-start
 	podman exec -it business-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U test -P dbfit -d MyCo
+
+# Starts business-oracle and does not reload the test user.
+oracle-start:
+	podman compose -f compose.dbfit.yml up -d --wait business-oracle
+
+# Interactive sqlplus in business-oracle, service FREEPDB1.
+sqlplus: oracle-start
+	podman exec -it business-oracle sqlplus test/dbfit@//localhost/FREEPDB1
 
 # PL/pgSQL sources live in PostgreSQL/procedures.d/ (ordered 00-99); assemble into procedures.sql
 .PHONY: procedures
@@ -193,6 +205,29 @@ sqlserverdb: touch-xml schema.sqlserver
 	  echo sqlcmd -S localhost -E -d MyCo -i SQLServer/views.sql; \
 	  echo sqlcmd -S localhost -E -d MyCo -i SQLServer/procedures.sql; \
 	  echo sqlcmd -S localhost -E -d MyCo -i SQLServer/post.sql; \
+	fi
+
+# Plain INSERT seeds. GetAddress, GetSentence, and GetInterval stay out.
+# Phone.number is quoted below. The Phone table test stays out.
+ORACLE_STATIC = Static/0_Family.sql Static/0_Given.sql Static/0_Culture.sql Static/0_Word.sql \
+	Static/1_Country.sql Static/1_Entity.sql Static/1_Name.sql Static/1_Sentence.sql Static/1_Word_agent.sql \
+	Static/3_Email.sql Static/3_Individual.sql Static/3_Path.sql \
+	Static/4_IndividualEmail.sql Static/4_IndividualPath.sql Static/4_ListIndividual.sql Static/4_ListIndividualName.sql \
+	Static/4_Phone.sql
+
+oracledb: touch-xml schema.oracle
+	@if [ -n "$(ORACLE_IS_CONTAINER)" ]; then \
+	  podman compose -f compose.dbfit.yml up -d --wait business-oracle && \
+	  { cat Oracle/pre.sql; \
+	    awk -f scripts/oracle-skip-views.awk schema.oracle; \
+	    sed -e 's/, false)/, 0)/g' -e 's/, true)/, 1)/g' -e 's/[[:space:]]*--.*$$//' \
+	        -e 's/(id, country, area, number)/(id, country, area, "NUMBER")/g' $(ORACLE_STATIC); \
+	    cat Oracle/post.sql; \
+	  } | podman exec -i business-oracle sqlplus -s test/dbfit@//localhost/FREEPDB1; \
+	else \
+	  echo To create the Oracle schema with $@; \
+	  echo sqlplus test/dbfit@//$(OracleServer)/FREEPDB1; \
+	  echo Oracle/pre.sql, schema.oracle without CREATE VIEW, $(ORACLE_STATIC), Oracle/post.sql; \
 	fi
 
 mysqldb: export DROP_TABLE = --add-drop-table

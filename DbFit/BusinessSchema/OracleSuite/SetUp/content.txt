@@ -1,0 +1,5 @@
+!path lib/*.jar
+!|dbfit.OracleTest|
+Compose service business-oracle, user test, password dbfit, service FREEPDB1.
+
+!|Connect|business-oracle:1521/FREEPDB1|test|dbfit|

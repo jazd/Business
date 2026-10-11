@@ -1,0 +1,4 @@
+Just A simple connection test
+!|Query| select 'test' as works|
+|works|
+|test|
