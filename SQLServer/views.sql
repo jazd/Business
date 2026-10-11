@@ -1,3 +1,6 @@
+IF OBJECT_ID('Versions', 'V') IS NOT NULL
+ DROP VIEW Versions
+GO
 CREATE VIEW Versions AS
 SELECT Version.id AS version, name.value AS name,
  major.value +
@@ -19,6 +22,9 @@ LEFT JOIN Word AS patch ON patch.id = Version.patch
 ;
 GO
 
+IF OBJECT_ID('URL', 'V') IS NOT NULL
+ DROP VIEW URL
+GO
 CREATE VIEW URL AS
 SELECT id AS path, protocol, host,
  protocol +

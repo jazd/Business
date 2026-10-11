@@ -159,60 +159,42 @@ http://localhost:8085/BusinessSchema.MySqlSuite.Connection
 
 # SQL Server
 
-Enable the tcp/ip protocol using Sql Server Configuration Manager.
-Restart sqlserver.
+`make sqlserverdb` drops and reloads the Business schema in database `MyCo`.
+The default host is `127.0.0.1`. That host, and `localhost`, start compose
+service `business-mssql` from `compose.dbfit.yml`, wait until it is healthy,
+and then load. A different `SQLServerServer` is used as given, and the
+Makefile leaves the containers alone. For that host the target prints the
+`sqlcmd -E` commands and does not run them.
 
-Create the database and allow username and password logins.
+| | |
+|---|---|
+| Host | `127.0.0.1` |
+| Image | `mcr.microsoft.com/mssql/server:2022-latest` |
+| Database | `MyCo` |
+| User | `test` |
+| Password | `dbfit` |
+| sa password | `Dbfit_sa1` |
+| Schema | `Business` |
 
-```
-sqlcmd -S localhost -E
-```
+`SQLServer/container-init.sql` creates database `MyCo`, login `test` with
+`CHECK_POLICY` off, and schema `Business` as that login's default schema.
+The load runs `sqlcmd` from the image with `-C`.
 
-```
-CREATE DATABASE MyCo;
-GO
-exec sp_configure 'contained database authentication', 1
-GO
-Reconfigure
-GO
-USE [master]
-GO
-ALTER DATABASE [MyCo] SET CONTAINMENT = PARTIAL
-GO
-USE [MyCo];
-GO
-CREATE SCHEMA Business
-GO
-CREATE USER test WITH PASSWORD = '<password>', DEFAULT_SCHEMA = Business;
-GO
-GRANT CONTROL ON schema :: dbo TO test;
-GO
-GRANT CONTROL ON schema :: Business TO test;
-QUIT
-```
-
-Verify login:
+In the Makefile:
 
 ```
-sqlcmd -S localhost -U test -P <password> -d MyCo
-```
-
-Create the Business schema:
-
-```
-sqlcmd -S localhost -E -d MyCo -i schema.sqlserver
-sqlcmd -S localhost -E -d MyCo -i SQLServer\Statics.sql
-```
-
-Windows link:
-
-```
-mklink /D <dbfit install directory>\FitNesseRoot\BusinessSchema <git root>\Business\DbFit\BusinessSchema
+SQLServerServer = 127.0.0.1
 ```
 
 ```
-cd <dbfit install directory>
-./startFitnesse.bat
+cd <git root>/Business
+make sqlserverdb
 ```
 
-http://localhost:8085/BusinessSchema
+Direct login:
+
+```
+podman exec business-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U test -P dbfit -d MyCo
+```
+
+There is no SQL Server FitNesse suite.

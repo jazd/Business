@@ -13,15 +13,22 @@ ifeq (,$(wildcard /usr/local/bin/sqlt))
 	SQLT := podman run --rm -v $(CURDIR):/app:Z jazd/sqlt:dev sqlt
 endif
 
-# 127.0.0.1 and localhost start business-pgsql and business-mysql.
+# 127.0.0.1 and localhost start business-pgsql, business-mysql, and business-mssql.
 # Any other host is used as given.
 PostgreSQLServer = 127.0.0.1
 
 MySQLServer = 127.0.0.1
 MySQLPassword = -pdbfit
 
+SQLServerServer = 127.0.0.1
+# sa password meets the image policy. Login test uses dbfit with CHECK_POLICY off.
+MSSQL_SA_PASSWORD = Dbfit_sa1
+
 PGSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(PostgreSQLServer))
 MYSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(MySQLServer))
+MSSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(SQLServerServer))
+# sqlcmd in the 2022 image. -C trusts the container certificate.
+SQLCMD = podman exec -w /work business-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -b
 ifneq ($(PGSQL_IS_CONTAINER),)
 PSQL_AUTH = PGPASSWORD=dbfit
 else
@@ -96,7 +103,7 @@ schema.sqlserver: schema.xml sqlt-cmd
 	@echo Creating SQLServer file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	$(SQLT) -f XML-SQLFairy -t SQLServer $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "s/\[exit\]/ZexitZ/g" | sed -e "s/\[schema\]/ZschemaZ/g" | tr -d [] | sed -e "s/ZexitZ/\[exit\]/g" | sed -e "s/ZschemaZ/\[schema\]/g" | sed -e "s/NOW()/GETUTCDATE()/g" | sed -e "s/timestamp/datetime/g" | sed -e "s/false/'false'/g" | sed -e "s/datetime WITHOUT TIME ZONE/datetime2(6)/g" | sed -e "s/time WITHOUT TIME ZONE/time/g" | sed -e "s/interval/decimal(4,2)/g" | sed -e "s/bytea/varbinary/g" | sed -e "s/inet/varchar/g" | sed -e "s/boolean/bit/g" >> $@
+	$(SQLT) -f XML-SQLFairy -t SQLServer $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "s/\[exit\]/ZexitZ/g" | sed -e "s/\[schema\]/ZschemaZ/g" | tr -d [] | sed -e "s/ZexitZ/\[exit\]/g" | sed -e "s/ZschemaZ/\[schema\]/g" | sed -e "s/NOW()/GETUTCDATE()/g" | sed -e "s/timestamp/datetime/g" | sed -e "s/false/0/g" | sed -e "s/datetime WITHOUT TIME ZONE/datetime2(6)/g" | sed -e "s/time WITHOUT TIME ZONE/time/g" | sed -e "s/interval/decimal(4,2)/g" | sed -e "s/bytea/varbinary/g" | sed -e "s/inet/varchar/g" | sed -e "s/boolean/bit/g" | sed -e "s/config integer NULL/config bigint NULL/" | sed -e "s/integer integer/[integer] integer/g" | sed -e "s/float float/[float] float/g" | sed -e "s/varchar NULL/varchar(max) NULL/g" | sed -e "s/varchar NOT NULL/varchar(max) NOT NULL/g" | sed -E "s/WHERE name = ([A-Za-z0-9_]+) AND type = U/WHERE name = '\1' AND type = 'U'/g" | sed -e '/^CREATE TABLE Part (/,/^);/ s/serial varchar(max)/serial varchar(800)/' | awk 'match($$0, /ADD CONSTRAINT ([^ ]+) FOREIGN KEY \(([^)]+)\)/, m) { name=m[1]; col=m[2]; if (seen[name]++) sub("ADD CONSTRAINT " name " ", "ADD CONSTRAINT " name "_" col " ") } { print }' >> $@
 	chmod -w $@
 
 schema.oracle: schema.xml sqlt-cmd
@@ -149,12 +156,25 @@ pgsqldb: touch-xml schema.pgsql PostgreSQL/procedures.sql
 
 sqlserverdb: export DROP_TABLE = --add-drop-table
 sqlserverdb: touch-xml schema.sqlserver
-	@echo To Create new SQLServer Database with $@
-	@echo sqlcmd -S localhost -E -d MyCo -i schema.sqlserver
-	@echo sqlcmd -S localhost -E -d MyCo -i SQLServer/Statics.sql
-	@echo sqlcmd -S localhost -E -d MyCo -i SQLServer/views.sql
-	@echo sqlcmd -S localhost -E -d MyCo -i SQLServer/procedures.sql
-	@echo sqlcmd -S localhost -E -d MyCo -i SQLServer/post.sql
+	@if [ -n "$(MSSQL_IS_CONTAINER)" ]; then \
+	  podman compose -f compose.dbfit.yml up -d --wait business-mssql && \
+	  $(SQLCMD) -U sa -P $(MSSQL_SA_PASSWORD) -i /work/SQLServer/container-init.sql && \
+	  echo Creating new SQLServer database with $@ && \
+	  $(SQLCMD) -U test -P dbfit -d MyCo -i /work/SQLServer/drop-fks.sql && \
+	  $(SQLCMD) -U test -P dbfit -d MyCo -i /work/schema.sqlserver && \
+	  $(SQLCMD) -U test -P dbfit -d MyCo -i /work/SQLServer/Statics.sql && \
+	  $(SQLCMD) -U test -P dbfit -d MyCo -i /work/SQLServer/views.sql && \
+	  $(SQLCMD) -U test -P dbfit -d MyCo -i /work/SQLServer/pre.sql && \
+	  $(SQLCMD) -U test -P dbfit -d MyCo -i /work/SQLServer/procedures.sql && \
+	  $(SQLCMD) -U test -P dbfit -d MyCo -i /work/SQLServer/post.sql; \
+	else \
+	  echo To Create new SQLServer Database with $@; \
+	  echo sqlcmd -S localhost -E -d MyCo -i schema.sqlserver; \
+	  echo sqlcmd -S localhost -E -d MyCo -i SQLServer/Statics.sql; \
+	  echo sqlcmd -S localhost -E -d MyCo -i SQLServer/views.sql; \
+	  echo sqlcmd -S localhost -E -d MyCo -i SQLServer/procedures.sql; \
+	  echo sqlcmd -S localhost -E -d MyCo -i SQLServer/post.sql; \
+	fi
 
 mysqldb: export DROP_TABLE = --add-drop-table
 mysqldb: touch-xml schema.mysql
