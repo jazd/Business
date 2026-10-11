@@ -452,9 +452,9 @@ BEGIN
  SELECT AttrName.value,
   AttrValue.value
  FROM FormatAttribute
- LEFT JOIN I18NWord AS AttrName ON AttrName.id = FormatAttribute.name
- LEFT JOIN I18NWord AS AttrValue ON AttrValue.id = FormatAttribute.value
- LEFT JOIN I18NWord AS AttrTarget ON AttrTarget.id = FormatAttribute.target
+ JOIN Word AS AttrName ON AttrName.id = FormatAttribute.name AND AttrName.culture IS NULL
+ LEFT JOIN Word AS AttrValue ON AttrValue.id = FormatAttribute.value AND AttrValue.culture IS NULL
+ LEFT JOIN Word AS AttrTarget ON AttrTarget.id = FormatAttribute.target AND AttrTarget.culture IS NULL
  WHERE FormatAttribute.format = inFormat
   AND FormatAttribute.stop IS NULL
   AND (
@@ -470,7 +470,7 @@ BEGIN
      OR NOT EXISTS (
       SELECT 1
       FROM FormatAttribute AS specific
-      LEFT JOIN I18NWord AS SpecificTarget ON SpecificTarget.id = specific.target
+      JOIN Word AS SpecificTarget ON SpecificTarget.id = specific.target AND SpecificTarget.culture IS NULL
       WHERE specific.format = FormatAttribute.format
        AND specific.name = FormatAttribute.name
        AND specific.stop IS NULL
@@ -483,8 +483,83 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- ContentBody(content integer, target varchar, culture varchar).
+-- culture is Culture.name. NULL or an unknown name uses 1033.
+-- A missing translation uses the 1033 text of the same element id.
+-- Does not set the connection culture and does not write.
+CREATE OR REPLACE FUNCTION ContentBody (
+ inContent integer,
+ inTarget varchar,
+ inCulture varchar
+) RETURNS TABLE (
+ sequence integer,
+ kind varchar,
+ element integer,
+ value varchar,
+ format integer,
+ argument varchar,
+ name varchar,
+ attribute varchar,
+ identifier varchar,
+ identifierType varchar
+) AS $$
+DECLARE
+ culture_code integer;
+BEGIN
+ SELECT Culture.code INTO culture_code
+ FROM Culture
+ WHERE UPPER(Culture.name) = UPPER(inCulture)
+ LIMIT 1;
+ IF culture_code IS NULL THEN
+  culture_code := 1033;
+ END IF;
+ RETURN QUERY
+ SELECT ContentElement.sequence,
+  CASE
+   WHEN ContentElement.word IS NOT NULL THEN 'word'
+   WHEN ContentElement.sentence IS NOT NULL THEN 'sentence'
+   WHEN ContentElement.paragraph IS NOT NULL THEN 'paragraph'
+   WHEN ContentElement.name IS NOT NULL AND ContentElement.type IS NOT NULL THEN 'dynamic'
+   ELSE NULL
+  END::varchar,
+  COALESCE(ContentElement.word, ContentElement.sentence, ContentElement.paragraph),
+  CASE
+   WHEN ContentElement.word IS NOT NULL THEN COALESCE(WordTr.value, WordDef.value)
+   WHEN ContentElement.sentence IS NOT NULL THEN COALESCE(SentenceTr.value, SentenceDef.value)
+   WHEN ContentElement.paragraph IS NOT NULL THEN COALESCE(ParagraphTr.value, ParagraphDef.value)
+   ELSE NULL
+  END::varchar,
+  ContentElement.format,
+  COALESCE(ArgumentTr.value, ArgumentDef.value)::varchar,
+  winning.name,
+  winning.attribute,
+  IdentName.value::varchar,
+  IdentType.value::varchar
+ FROM ContentEdition
+ JOIN ContentElement ON ContentElement.edition = ContentEdition.id
+ LEFT JOIN Word AS WordDef ON WordDef.id = ContentElement.word AND WordDef.culture = 1033
+ LEFT JOIN Word AS WordTr ON WordTr.id = ContentElement.word AND WordTr.culture = culture_code
+ LEFT JOIN Sentence AS SentenceDef ON SentenceDef.id = ContentElement.sentence AND SentenceDef.culture = 1033
+ LEFT JOIN Sentence AS SentenceTr ON SentenceTr.id = ContentElement.sentence AND SentenceTr.culture = culture_code
+ LEFT JOIN Paragraph AS ParagraphDef ON ParagraphDef.id = ContentElement.paragraph AND ParagraphDef.culture = 1033
+ LEFT JOIN Paragraph AS ParagraphTr ON ParagraphTr.id = ContentElement.paragraph AND ParagraphTr.culture = culture_code
+ LEFT JOIN Word AS ArgumentDef ON ArgumentDef.id = ContentElement.argument AND ArgumentDef.culture = 1033
+ LEFT JOIN Word AS ArgumentTr ON ArgumentTr.id = ContentElement.argument AND ArgumentTr.culture = culture_code
+ LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
+ LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL
+ LEFT JOIN LATERAL (
+  SELECT FormatFor.name,
+   FormatFor.value AS attribute
+  FROM FormatFor(ContentElement.format, inTarget)
+ ) AS winning ON true
+ WHERE ContentEdition.content = inContent
+  AND ContentEdition.stop IS NULL
+ ORDER BY ContentElement.sequence, winning.name;
+END;
+$$ LANGUAGE plpgsql;
+
 -- ContentBody(content integer, target varchar).
--- Current edition. An element with no winning attribute is one row with a null name.
+-- Uses ClientCulture(). Does not write.
 CREATE OR REPLACE FUNCTION ContentBody (
  inContent integer,
  inTarget varchar
@@ -496,31 +571,62 @@ CREATE OR REPLACE FUNCTION ContentBody (
  format integer,
  argument varchar,
  name varchar,
- attribute varchar
+ attribute varchar,
+ identifier varchar,
+ identifierType varchar
 ) AS $$
 BEGIN
  RETURN QUERY
- SELECT ContentElements.sequence,
-  ContentElements.kind::varchar,
-  ContentElements.element,
-  ContentElements.value::varchar,
-  ContentElements.format,
-  ContentElements.argument::varchar,
-  winning.name,
-  winning.attribute
- FROM ContentElements
- LEFT JOIN LATERAL (
-  SELECT FormatFor.name,
-   FormatFor.value AS attribute
-  FROM FormatFor(ContentElements.format, inTarget)
- ) AS winning ON true
- WHERE ContentElements.content = inContent
- ORDER BY ContentElements.sequence, winning.name;
+ SELECT body.sequence, body.kind, body.element, body.value, body.format,
+  body.argument, body.name, body.attribute, body.identifier, body.identifierType
+ FROM ContentBody(inContent, inTarget, (
+  SELECT Culture.name FROM Culture WHERE Culture.code = ClientCulture() LIMIT 1
+ )) AS body;
 END;
 $$ LANGUAGE plpgsql;
 
--- SiteContent(site integer, target varchar).
+-- SiteContent(site integer, target varchar, culture varchar).
 -- Unstopped ContentSite rows, placement sequence then element sequence.
+-- Does not set the connection culture and does not write.
+CREATE OR REPLACE FUNCTION SiteContent (
+ inSite integer,
+ inTarget varchar,
+ inCulture varchar
+) RETURNS TABLE (
+ place integer,
+ content integer,
+ sequence integer,
+ kind varchar,
+ element integer,
+ value varchar,
+ format integer,
+ argument varchar,
+ name varchar,
+ attribute varchar,
+ identifier varchar,
+ identifierType varchar
+) AS $$
+BEGIN
+ RETURN QUERY
+ SELECT ContentSites.sequence,
+  ContentSites.content,
+  body.sequence,
+  body.kind,
+  body.element,
+  body.value,
+  body.format,
+  body.argument,
+  body.name,
+  body.attribute,
+  body.identifier,
+  body.identifierType
+ FROM ContentSites
+ JOIN LATERAL ContentBody(ContentSites.content, inTarget, inCulture) AS body ON true
+ WHERE ContentSites.site = inSite
+ ORDER BY ContentSites.sequence, body.sequence, body.name;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION SiteContent (
  inSite integer,
  inTarget varchar
@@ -534,32 +640,28 @@ CREATE OR REPLACE FUNCTION SiteContent (
  format integer,
  argument varchar,
  name varchar,
- attribute varchar
+ attribute varchar,
+ identifier varchar,
+ identifierType varchar
 ) AS $$
 BEGIN
  RETURN QUERY
- SELECT ContentSites.sequence,
-  ContentSites.content,
-  body.sequence,
-  body.kind,
-  body.element,
-  body.value,
-  body.format,
-  body.argument,
-  body.name,
-  body.attribute
- FROM ContentSites
- JOIN LATERAL ContentBody(ContentSites.content, inTarget) AS body ON true
- WHERE ContentSites.site = inSite
- ORDER BY ContentSites.sequence, body.sequence, body.name;
+ SELECT body.place, body.content, body.sequence, body.kind, body.element,
+  body.value, body.format, body.argument, body.name, body.attribute,
+  body.identifier, body.identifierType
+ FROM SiteContent(inSite, inTarget, (
+  SELECT Culture.name FROM Culture WHERE Culture.code = ClientCulture() LIMIT 1
+ )) AS body;
 END;
 $$ LANGUAGE plpgsql;
 
--- ListContent(list name varchar, target varchar).
+-- ListContent(list name varchar, target varchar, culture varchar).
 -- Unstopped ContentList rows for that list name. Does not create the word.
+-- Does not set the connection culture and does not write.
 CREATE OR REPLACE FUNCTION ListContent (
  inListName varchar,
- inTarget varchar
+ inTarget varchar,
+ inCulture varchar
 ) RETURNS TABLE (
  place integer,
  content integer,
@@ -570,7 +672,9 @@ CREATE OR REPLACE FUNCTION ListContent (
  format integer,
  argument varchar,
  name varchar,
- attribute varchar
+ attribute varchar,
+ identifier varchar,
+ identifierType varchar
 ) AS $$
 DECLARE
  list_id integer;
@@ -596,12 +700,42 @@ BEGIN
   body.format,
   body.argument,
   body.name,
-  body.attribute
+  body.attribute,
+  body.identifier,
+  body.identifierType
  FROM ContentList
- JOIN LATERAL ContentBody(ContentList.content, inTarget) AS body ON true
+ JOIN LATERAL ContentBody(ContentList.content, inTarget, inCulture) AS body ON true
  WHERE ContentList.listName = list_id
   AND ContentList.stop IS NULL
  ORDER BY ContentList.sequence, body.sequence, body.name;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ListContent (
+ inListName varchar,
+ inTarget varchar
+) RETURNS TABLE (
+ place integer,
+ content integer,
+ sequence integer,
+ kind varchar,
+ element integer,
+ value varchar,
+ format integer,
+ argument varchar,
+ name varchar,
+ attribute varchar,
+ identifier varchar,
+ identifierType varchar
+) AS $$
+BEGIN
+ RETURN QUERY
+ SELECT body.place, body.content, body.sequence, body.kind, body.element,
+  body.value, body.format, body.argument, body.name, body.attribute,
+  body.identifier, body.identifierType
+ FROM ListContent(inListName, inTarget, (
+  SELECT Culture.name FROM Culture WHERE Culture.code = ClientCulture() LIMIT 1
+ )) AS body;
 END;
 $$ LANGUAGE plpgsql;
 

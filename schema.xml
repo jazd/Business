@@ -2339,7 +2339,7 @@ WHERE NOT EXISTS (
  </view>
 
  <view name="FormatAttributes" fields="format,name,value,target,created">
- <comments>Unstopped format attributes. target NULL means every output.</comments>
+ <comments>Unstopped format attributes. Name, value, and target are culture-null words. target NULL means every output.</comments>
  <sql>
 SELECT FormatAttribute.format,
  Name.value AS name,
@@ -2347,15 +2347,15 @@ SELECT FormatAttribute.format,
  Target.value AS target,
  FormatAttribute.created
 FROM FormatAttribute
-LEFT JOIN I18NWord AS Name ON Name.id = FormatAttribute.name
-LEFT JOIN I18NWord AS Value ON Value.id = FormatAttribute.value
-LEFT JOIN I18NWord AS Target ON Target.id = FormatAttribute.target
+JOIN Word AS Name ON Name.id = FormatAttribute.name AND Name.culture IS NULL
+LEFT JOIN Word AS Value ON Value.id = FormatAttribute.value AND Value.culture IS NULL
+LEFT JOIN Word AS Target ON Target.id = FormatAttribute.target AND Target.culture IS NULL
 WHERE FormatAttribute.stop IS NULL
  </sql>
  </view>
 
- <view name="ContentElements" fields="content,edition,sequence,kind,element,value,format,created,argument">
- <comments>Current edition only. value follows ClientCulture(). argument is the count name for a pluralized word.</comments>
+ <view name="ContentElements" fields="content,edition,sequence,kind,element,value,format,created,argument,identifier,identifierType">
+ <comments>Current edition only. value follows ClientCulture(). argument is the count name for a pluralized word. identifier and identifierType are GetIdentifier words, culture null.</comments>
  <sql>
 SELECT ContentEdition.content,
  ContentEdition.id AS edition,
@@ -2363,24 +2363,30 @@ SELECT ContentEdition.content,
  CASE
   WHEN ContentElement.word IS NOT NULL THEN !apos;word!apos;
   WHEN ContentElement.sentence IS NOT NULL THEN !apos;sentence!apos;
-  ELSE !apos;paragraph!apos;
+  WHEN ContentElement.paragraph IS NOT NULL THEN !apos;paragraph!apos;
+  WHEN ContentElement.name IS NOT NULL AND ContentElement.type IS NOT NULL THEN !apos;dynamic!apos;
+  ELSE NULL
  END AS kind,
  COALESCE(ContentElement.word, ContentElement.sentence, ContentElement.paragraph) AS element,
  COALESCE(I18NWord.value, I18NSentence.value, I18NParagraph.value) AS value,
  ContentElement.format,
  ContentEdition.created,
- Argument.value AS argument
+ Argument.value AS argument,
+ IdentName.value AS identifier,
+ IdentType.value AS identifierType
 FROM ContentEdition
 JOIN ContentElement ON ContentElement.edition = ContentEdition.id
 LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
 LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
 LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
 LEFT JOIN I18NWord AS Argument ON Argument.id = ContentElement.argument
+LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
+LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL
 WHERE ContentEdition.stop IS NULL
  </sql>
  </view>
 
- <view name="ContentElementAttributes" fields="content,edition,sequence,kind,element,value,format,name,attribute,target">
+ <view name="ContentElementAttributes" fields="content,edition,sequence,kind,element,value,format,name,attribute,target,identifier,identifierType">
  <comments>Current edition. Unstopped attributes only. A null target applies to every output. A target row is that output only.</comments>
  <sql>
 SELECT ContentElements.content,
@@ -2392,13 +2398,15 @@ SELECT ContentElements.content,
  ContentElements.format,
  FormatAttributes.name,
  FormatAttributes.value AS attribute,
- FormatAttributes.target
+ FormatAttributes.target,
+ ContentElements.identifier,
+ ContentElements.identifierType
 FROM ContentElements
 JOIN FormatAttributes ON FormatAttributes.format = ContentElements.format
  </sql>
  </view>
 
- <view name="ContentHistory" fields="content,edition,sequence,kind,element,value,format,stop,created">
+ <view name="ContentHistory" fields="content,edition,sequence,kind,element,value,format,stop,created,identifier,identifierType">
  <comments>Every edition, including stopped ones.</comments>
  <sql>
 SELECT ContentEdition.content,
@@ -2407,18 +2415,24 @@ SELECT ContentEdition.content,
  CASE
   WHEN ContentElement.word IS NOT NULL THEN !apos;word!apos;
   WHEN ContentElement.sentence IS NOT NULL THEN !apos;sentence!apos;
-  ELSE !apos;paragraph!apos;
+  WHEN ContentElement.paragraph IS NOT NULL THEN !apos;paragraph!apos;
+  WHEN ContentElement.name IS NOT NULL AND ContentElement.type IS NOT NULL THEN !apos;dynamic!apos;
+  ELSE NULL
  END AS kind,
  COALESCE(ContentElement.word, ContentElement.sentence, ContentElement.paragraph) AS element,
  COALESCE(I18NWord.value, I18NSentence.value, I18NParagraph.value) AS value,
  ContentElement.format,
  ContentEdition.stop,
- ContentEdition.created
+ ContentEdition.created,
+ IdentName.value AS identifier,
+ IdentType.value AS identifierType
 FROM ContentEdition
 JOIN ContentElement ON ContentElement.edition = ContentEdition.id
 LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
 LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
 LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
+LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
+LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL
  </sql>
  </view>
 

@@ -80,4 +80,52 @@ attr=$(sqlite3 -separator '|' "$DB" "
 # culture null prints as empty before the first pipe
 [[ "$attr" == "|class|lede|html" ]] || fail "format attribute is [$attr]"
 
+shown=$(sqlite3 -separator '|' "$DB" "
+ SELECT name, value, COALESCE(target, '')
+ FROM FormatAttributes
+ WHERE format = $format;
+")
+[[ "$shown" == "class|lede|html" ]] || fail "FormatAttributes is [$shown]"
+
+read_content=$("$ROOT/Bash/sqlite/SetContent" "Read template")
+hello=$("$ROOT/Bash/sqlite/GetSentence" "Read hello")
+thanks=$("$ROOT/Bash/sqlite/GetSentence" "Read thanks")
+para=$("$ROOT/Bash/sqlite/GetParagraph" "Read paragraph")
+"$ROOT/Bash/sqlite/SetContentElement" "$read_content" 1 "" "" "$hello" "" "" >/dev/null
+"$ROOT/Bash/sqlite/SetContentElement" "$read_content" 2 "" "" "" "" "" link url >/dev/null
+"$ROOT/Bash/sqlite/SetContentElement" "$read_content" 3 "" "" "$thanks" "" "" >/dev/null
+"$ROOT/Bash/sqlite/SetContentElement" "$read_content" 4 "" "" "" "$para" "" >/dev/null
+lines=$(sqlite3 "$DB" "
+ SELECT sequence || '|' || COALESCE(kind, '') || '|' || COALESCE(value, '')
+  || '|' || COALESCE(identifier, '') || '|' || COALESCE(identifierType, '')
+  || '|' || COALESCE(argument, '')
+ FROM ContentElements
+ WHERE content = $read_content
+ ORDER BY sequence;
+")
+expected=$'1|sentence|Read hello|||\n2|dynamic||link|url|\n3|sentence|Read thanks|||\n4|paragraph|Read paragraph|||'
+[[ "$lines" == "$expected" ]] || fail "read edition is [$lines]"
+hist=$(sqlite3 "$DB" "
+ SELECT kind FROM ContentHistory
+ WHERE content = $read_content AND sequence = 2;
+")
+[[ "$hist" == "dynamic" ]] || fail "history kind is [$hist]"
+
+word_line=$(sqlite3 "$DB" "
+ SELECT kind || '|' || COALESCE(value, '') || '|' || COALESCE(identifier, '')
+  || '|' || COALESCE(identifierType, '') || '|' || COALESCE(argument, '')
+ FROM ContentElements
+ WHERE content = $content AND sequence = 2;
+")
+[[ "$word_line" == "word|subscription|||subscriptions" ]] || fail "word kind is [$word_line]"
+
+thankyou=$(sqlite3 "$DB" "
+ SELECT sequence || '|' || kind || '|' || COALESCE(identifier, '')
+  || '|' || COALESCE(identifierType, '')
+ FROM ContentElements
+ WHERE content = 10
+ ORDER BY sequence;
+")
+[[ "$thankyou" == $'1|sentence||\n2|word||' ]] || fail "content 10 is [$thankyou]"
+
 echo "Content writers ok ($SRC)"

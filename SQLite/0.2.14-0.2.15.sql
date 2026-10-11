@@ -32,6 +32,11 @@
 --     together, and only when word, sentence, and paragraph are all null.
 --     Bash SetContentElement stores them. SetFormatAttribute and
 --     StopFormatAttribute store name, value, and target with GetIdentifier.
+--  4) ContentElements, ContentHistory, ContentElementAttributes, and
+--     FormatAttributes read those identifier words from Word where
+--     culture is null. Kind dynamic is a name and type with no word,
+--     sentence, or paragraph. Text stays on culture 1033 through the
+--     I18N views. SQLite has no ContentBody.
 --
 -- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
 -- after this file runs successfully (Business 0.2.15) when STAMP_VERSION=1.
@@ -155,3 +160,90 @@ GROUP BY ledger,
 ) AS LedgerReportLines
 ORDER BY ledger, sortTotal, sequence
 LIMIT -1;
+
+DROP VIEW IF EXISTS ContentElementAttributes;
+DROP VIEW IF EXISTS ContentElements;
+DROP VIEW IF EXISTS ContentHistory;
+DROP VIEW IF EXISTS FormatAttributes;
+
+CREATE VIEW FormatAttributes AS
+SELECT FormatAttribute.format,
+ Name.value AS name,
+ Value.value AS value,
+ Target.value AS target,
+ FormatAttribute.created
+FROM FormatAttribute
+JOIN Word AS Name ON Name.id = FormatAttribute.name AND Name.culture IS NULL
+LEFT JOIN Word AS Value ON Value.id = FormatAttribute.value AND Value.culture IS NULL
+LEFT JOIN Word AS Target ON Target.id = FormatAttribute.target AND Target.culture IS NULL
+WHERE FormatAttribute.stop IS NULL;
+
+CREATE VIEW ContentElements AS
+SELECT ContentEdition.content,
+ ContentEdition.id AS edition,
+ ContentElement.sequence,
+ CASE
+  WHEN ContentElement.word IS NOT NULL THEN 'word'
+  WHEN ContentElement.sentence IS NOT NULL THEN 'sentence'
+  WHEN ContentElement.paragraph IS NOT NULL THEN 'paragraph'
+  WHEN ContentElement.name IS NOT NULL AND ContentElement.type IS NOT NULL THEN 'dynamic'
+  ELSE NULL
+ END AS kind,
+ COALESCE(ContentElement.word, ContentElement.sentence, ContentElement.paragraph) AS element,
+ COALESCE(I18NWord.value, I18NSentence.value, I18NParagraph.value) AS value,
+ ContentElement.format,
+ ContentEdition.created,
+ Argument.value AS argument,
+ IdentName.value AS identifier,
+ IdentType.value AS identifierType
+FROM ContentEdition
+JOIN ContentElement ON ContentElement.edition = ContentEdition.id
+LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
+LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
+LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
+LEFT JOIN I18NWord AS Argument ON Argument.id = ContentElement.argument
+LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
+LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL
+WHERE ContentEdition.stop IS NULL;
+
+CREATE VIEW ContentElementAttributes AS
+SELECT ContentElements.content,
+ ContentElements.edition,
+ ContentElements.sequence,
+ ContentElements.kind,
+ ContentElements.element,
+ ContentElements.value,
+ ContentElements.format,
+ FormatAttributes.name,
+ FormatAttributes.value AS attribute,
+ FormatAttributes.target,
+ ContentElements.identifier,
+ ContentElements.identifierType
+FROM ContentElements
+JOIN FormatAttributes ON FormatAttributes.format = ContentElements.format;
+
+CREATE VIEW ContentHistory AS
+SELECT ContentEdition.content,
+ ContentEdition.id AS edition,
+ ContentElement.sequence,
+ CASE
+  WHEN ContentElement.word IS NOT NULL THEN 'word'
+  WHEN ContentElement.sentence IS NOT NULL THEN 'sentence'
+  WHEN ContentElement.paragraph IS NOT NULL THEN 'paragraph'
+  WHEN ContentElement.name IS NOT NULL AND ContentElement.type IS NOT NULL THEN 'dynamic'
+  ELSE NULL
+ END AS kind,
+ COALESCE(ContentElement.word, ContentElement.sentence, ContentElement.paragraph) AS element,
+ COALESCE(I18NWord.value, I18NSentence.value, I18NParagraph.value) AS value,
+ ContentElement.format,
+ ContentEdition.stop,
+ ContentEdition.created,
+ IdentName.value AS identifier,
+ IdentType.value AS identifierType
+FROM ContentEdition
+JOIN ContentElement ON ContentElement.edition = ContentEdition.id
+LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
+LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
+LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
+LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
+LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL;

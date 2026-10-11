@@ -48,7 +48,7 @@ SELECT ClientCulture(NULL);
 
 A person's chosen language is `Credential.culture`. A visitor's choice is `Session.culture` (NULL means en-US). `SetSessionCulture(session, 'es-MX')` sets it. `SetSessionCulture(session, NULL)` clears it. `SetSession` does not change it. `IndividualSessions.culture` is that code.
 
-`ContentCultures` lists cultures that can show every element of the current edition. 1033 is always included. A site language menu is that view for the content on the site. Call `ClientCulture` with the chosen name before `SiteContent`, `ListContent`, or `ContentBody`. Do not copy translated text into a second content id.
+`ContentCultures` lists cultures that can show every element of the current edition. 1033 is always included. A site language menu is that view for the content on the site. Set `ClientCulture` before `ContentElements` or the two-argument `ContentBody`, `SiteContent`, and `ListContent`. Pass `Culture.name` as the third argument to read that culture and leave `ClientCulture` unchanged. A null or unknown name reads culture 1033. A missing translation keeps the element and uses the 1033 text of the same id. Do not copy translated text into a second content id. SQLite reads `ContentElements`. That text is culture 1033.
 
 ## Format
 
@@ -56,7 +56,7 @@ A person's chosen language is `Credential.culture`. A visitor's choice is `Sessi
 
 `SetFormatAttribute(format, name, value, target)` — `target` NULL is global (every output). A target (`txt`, `document`, `html`, `mime`) is that output only. Name, value, and target are `GetIdentifier` words: one row, `culture` null. `StopFormatAttribute` ends that row only.
 
-`class` is the attribute name. The value is the token a stylesheet or a template already knows (`lede`, `heading`). A target row wins over the null-target row with the same name. `FormatFor(format, target)` returns the winning name and value. HTML, MIME, and the document file stay in the application.
+`class` is the attribute name. The value is the token a stylesheet or a template already knows (`lede`, `heading`). A target row wins over the null-target row with the same name. `FormatFor(format, target)` returns the winning name and value. `FormatAttributes` and `FormatFor` read name, value, and target from `Word` where `culture` is null. HTML, MIME, and the document file stay in the application.
 
 `FormatAttributes` is the unstopped list, including both a null target and a specific target. `ContentElementAttributes` places those rows on the current edition.
 
@@ -90,9 +90,9 @@ The count is not stored on the element. Name the count with `argument` (`items`,
 
 | View | Rows |
 |------|------|
-| `ContentElements` | Current edition, `sequence` order, `value` in the client culture |
+| `ContentElements` | Current edition, `sequence` order. `value` follows `ClientCulture()`. `identifier` and `identifierType` are the dynamic name and type. |
 | `ContentElementAttributes` | That edition plus every unstopped attribute (null target and specific target) |
-| `ContentHistory` | Every edition, including `stop` |
+| `ContentHistory` | Every edition, including `stop`, with the same kind and identifier columns |
 | `ContentSites` | Unstopped site placements, `sequence` order |
 | `ContentLists` | Unstopped list placements (notification bodies tied to a list name) |
 
@@ -107,26 +107,20 @@ SELECT StopContentList('Example', contentId);
 
 A second `SetContentSite` for the same pair does not move `sequence`. Stop it and set it again to place it in a new slot.
 
-Page for a site, in the session language. `name` and `attribute` are the winning token for that target. An element with no format has a null attribute.
+Kind is `word`, `sentence`, `paragraph`, or `dynamic`. A word with `argument` is kind `word`. A dynamic row has a null `value`. `name` and `attribute` are the winning token for that target. An element with no format has a null attribute.
 
 ```sql
-SELECT ClientCulture(cultureName);
-SELECT place, content, sequence, kind, element, value, format, argument, name, attribute
-FROM SiteContent(siteId, 'html');
-```
+SELECT place, content, sequence, kind, element, value, format, argument,
+ name, attribute, identifier, identifierType
+FROM SiteContent(siteId, 'html', cultureName);
 
-One content id, without a site placement:
+SELECT sequence, kind, element, value, format, argument, name, attribute,
+ identifier, identifierType
+FROM ContentBody(contentId, 'html', 'fr-FR');
 
-```sql
-SELECT sequence, kind, element, value, format, argument, name, attribute
-FROM ContentBody(contentId, 'html');
-```
-
-Notification body or document body for a list:
-
-```sql
-SELECT place, content, sequence, kind, element, value, format, argument, name, attribute
-FROM ListContent('Example', 'txt');
+SELECT place, content, sequence, kind, element, value, format, argument,
+ name, attribute, identifier, identifierType
+FROM ListContent('Example', 'txt', 'fr-FR');
 ```
 
 `argument` is the count name. The count is not stored. Pass it to `PluralWord(element, count)` when `kind` is `word`.
