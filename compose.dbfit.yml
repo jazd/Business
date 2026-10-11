@@ -75,6 +75,8 @@ services:
         condition: service_healthy
       business-mysql:
         condition: service_healthy
+      business-mssql:
+        condition: service_healthy
 
 volumes:
   business-pgsql-data:

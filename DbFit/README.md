@@ -12,9 +12,10 @@ podman build -f Containerfile.dbfit -t localhost/jazd/dbfit:dev .
 podman compose -f compose.dbfit.yml up -d business-dbfit
 ```
 
-`make dbfit` builds that image and starts the service. `make dbfit-stop` stops
-every service in `compose.dbfit.yml` and leaves the named database volumes in
-place.
+`make dbfit` builds that image and starts the service. That start also
+brings up `business-pgsql`, `business-mysql`, and `business-mssql` when they
+are down, and does not reload `MyCo`. `make dbfit-stop` stops every service
+in `compose.dbfit.yml` and leaves the named database volumes in place.
 
 Compose mounts `DbFit/BusinessSchema` at the image's `FitNesseRoot/BusinessSchema`.
 The PostgreSQL suite connects to `business-pgsql`. The MySQL suite connects to

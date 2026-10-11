@@ -35,16 +35,21 @@ on `127.0.0.1:8085`. The image contains the FitNesse install: DbFit 3.2.0,
 Connector/J 5.1.49, PostgreSQL JDBC 42.2.5, Microsoft JDBC
 `mssql-jdbc-12.10.2.jre11.jar`, `lib/postgres.jar` linked to the PostgreSQL
 jar, and `FitNesseRoot/lib` linked to `/dbfit/lib`. That start also brings
-up `business-pgsql` and `business-mysql` when they are down. Load the schema
-with the targets above. Start SQL Server with `make mssql-start` when
-`MyCo` is already loaded, or `make sqlserverdb` to drop and reload it.
+up `business-pgsql`, `business-mysql`, and `business-mssql` when they are
+down. It does not reload `MyCo`. Load the schema with the targets above.
 `make mssql` still writes `schema.sqlserver` and does not start a container.
 
 Suites:
 
-- http://127.0.0.1:8085/BusinessSchema.PostgreSqlSuite?suite
-- http://127.0.0.1:8085/BusinessSchema.MySqlSuite?suite
-- http://127.0.0.1:8085/BusinessSchema.SqlServerSuite?suite
+```
+http://127.0.0.1:8085/BusinessSchema.PostgreSqlSuite?suite
+http://127.0.0.1:8085/BusinessSchema.MySqlSuite?suite
+http://127.0.0.1:8085/BusinessSchema.SqlServerSuite?suite
+```
+
+The query is `suite` with nothing after it. FitNesse treats the whole query
+as the responder name, so a trailing period asks for a responder named
+`suite.` and answers `No responder for suite.`
 
 The FitNesse container connects as user `test`, password `dbfit`, database
 `MyCo`. PostgreSQL uses compose service `business-pgsql`. MySQL uses
