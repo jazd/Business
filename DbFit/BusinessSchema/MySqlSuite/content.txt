@@ -1,2 +1,4 @@
+!path lib/*.jar
+
 !1 Test suite MySQL
 !contents -R2 -g -p -f -h

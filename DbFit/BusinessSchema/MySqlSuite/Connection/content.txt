@@ -1,0 +1,3 @@
+!|Query|SELECT VERSION() AS version|
+|version?|
+|>>mysqlVersion|
