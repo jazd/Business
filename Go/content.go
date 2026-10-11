@@ -78,9 +78,10 @@ func (d *DB) StopContent(ctx context.Context, content int) (int, error) {
 
 // SetContentElement writes one element on the open edition.
 // Exactly one of word, sentence, or paragraph is set. argument is the count name for a word.
-func (d *DB) SetContentElement(ctx context.Context, content, sequence int, format, word, sentence, paragraph *int, argument string) (int, error) {
-	return d.queryInt(ctx, `SELECT SetContentElement($1, $2, $3, $4, $5, $6, $7)`,
-		content, sequence, nullInt(format), nullInt(word), nullInt(sentence), nullInt(paragraph), nullStr(argument))
+// squash empty stores null. Any other string is a GetIdentifier name.
+func (d *DB) SetContentElement(ctx context.Context, content, sequence int, format, word, sentence, paragraph *int, argument, squash string) (int, error) {
+	return d.queryInt(ctx, `SELECT SetContentElement($1, $2, $3, $4, $5, $6, $7, NULL, NULL, $8)`,
+		content, sequence, nullInt(format), nullInt(word), nullInt(sentence), nullInt(paragraph), nullStr(argument), nullStr(squash))
 }
 
 // SetContentSite places content on a site. A nil sequence uses the next place.

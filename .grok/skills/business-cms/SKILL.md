@@ -66,7 +66,7 @@ A person's chosen language is `Credential.culture`. A visitor's choice is `Sessi
 
 `SetContentElement(content, sequence, format, word, sentence, paragraph, argument)` writes the open edition, or opens one. Exactly one of word, sentence, or paragraph is set. The same sequence on that edition is a no-op. `argument` is optional and only stored on a word element, through `GetWord`.
 
-A dynamic element passes no word, sentence, or paragraph, and passes a name and a type. Both are `GetIdentifier` values, stored on `ContentElement.name` and `ContentElement.type`. `GetIdentifier` runs on that write only. The nine-argument form is `SetContentElement(content, sequence, format, word, sentence, paragraph, argument, name, type)`. The older forms pass null identifiers.
+A dynamic element passes no word, sentence, or paragraph, and passes a name and a type. Both are `GetIdentifier` values, stored on `ContentElement.name` and `ContentElement.type`. `GetIdentifier` runs on that write only. The ten-argument form is `SetContentElement(content, sequence, format, word, sentence, paragraph, argument, name, type, squash)`. `squash` null stores null. Any other string is a `GetIdentifier` word on `ContentElement.squash`. The older forms pass null for `squash`.
 
 ## Plurals
 

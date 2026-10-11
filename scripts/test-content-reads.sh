@@ -77,7 +77,7 @@ BEGIN
  );
  PERFORM SetContentElement(content_id, 1, NULL, NULL, sent_id, NULL, NULL, NULL, NULL);
  PERFORM SetContentElement(content_id, 2, NULL, NULL, NULL, NULL, NULL, 'link', 'url');
- PERFORM SetContentElement(content_id, 3, NULL, NULL, sent2_id, NULL, NULL, NULL, NULL);
+ PERFORM SetContentElement(content_id, 3, NULL, NULL, sent2_id, NULL, NULL, NULL, NULL, 'space');
  PERFORM SetContentElement(content_id, 4, NULL, word_id, NULL, NULL, 'phase3items', NULL, NULL);
  PERFORM SetContentElement(content_id, 5, NULL, NULL, NULL, para_id, NULL, NULL, NULL);
  format_id := SetFormat('Phase three body');
@@ -190,6 +190,26 @@ BEGIN
  WHERE content = content_id AND sequence = 2;
  IF got IS DISTINCT FROM 'dynamic' THEN
   RAISE EXCEPTION 'history [%]', got;
+ END IF;
+ SELECT w.value INTO got
+ FROM ContentElement AS el
+ JOIN Word AS w ON w.id = el.squash AND w.culture IS NULL
+ WHERE el.sequence = 3
+  AND el.edition = (
+   SELECT id FROM ContentEdition WHERE content = content_id AND stop IS NULL
+  );
+ IF got IS DISTINCT FROM 'space' THEN
+  RAISE EXCEPTION 'squash [%]', got;
+ END IF;
+ IF EXISTS (
+  SELECT 1 FROM ContentElement AS el
+  WHERE el.sequence = 1
+   AND el.squash IS NOT NULL
+   AND el.edition = (
+    SELECT id FROM ContentEdition WHERE content = content_id AND stop IS NULL
+   )
+ ) THEN
+  RAISE EXCEPTION 'unsquashed element stored squash';
  END IF;
 
  SELECT string_agg(kind, ',' ORDER BY sequence) INTO got

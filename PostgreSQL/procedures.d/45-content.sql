@@ -183,7 +183,8 @@ CREATE OR REPLACE FUNCTION SetContentElement (
  inParagraph integer,
  inArgument varchar,
  inName varchar,
- inType varchar
+ inType varchar,
+ inSquash varchar
 ) RETURNS integer AS $$
 DECLARE
  edition_id integer;
@@ -191,6 +192,7 @@ DECLARE
  argument_id integer;
  name_id integer;
  type_id integer;
+ squash_id integer;
  dynamic boolean;
 BEGIN
  atom_count := (inWord IS NOT NULL)::integer
@@ -211,6 +213,9 @@ BEGIN
    (atom_count = 1 AND inName IS NULL AND inType IS NULL)
    OR (dynamic AND name_id IS NOT NULL AND type_id IS NOT NULL)
   ) THEN
+  IF inSquash IS NOT NULL AND inSquash <> '' THEN
+   squash_id := (SELECT GetIdentifier(inSquash));
+  END IF;
   PERFORM pg_advisory_lock(inContent);
   BEGIN
    SELECT id INTO edition_id
@@ -234,10 +239,10 @@ BEGIN
     LIMIT 1;
    END IF;
    INSERT INTO ContentElement (
-    edition, sequence, word, sentence, paragraph, format, argument, name, type
+    edition, sequence, word, sentence, paragraph, format, argument, name, type, squash
    ) (
     SELECT edition_id, inSequence, inWord, inSentence, inParagraph,
-     inFormat, argument_id, name_id, type_id
+     inFormat, argument_id, name_id, type_id, squash_id
     FROM Dual
     LEFT JOIN ContentElement AS exists ON exists.edition = edition_id
      AND exists.sequence = inSequence
@@ -252,6 +257,25 @@ BEGIN
   END;
  END IF;
  RETURN inContent;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetContentElement (
+ inContent integer,
+ inSequence integer,
+ inFormat integer,
+ inWord integer,
+ inSentence integer,
+ inParagraph integer,
+ inArgument varchar,
+ inName varchar,
+ inType varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT SetContentElement(
+  inContent, inSequence, inFormat, inWord, inSentence, inParagraph,
+  inArgument, inName, inType, NULL
+ ));
 END;
 $$ LANGUAGE plpgsql;
 

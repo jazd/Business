@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-# Usage: SetContentElement <content_id> <sequence> <format_id> <word_id> <sentence_id> <paragraph_id> [argument] [name] [type]
+# Usage: SetContentElement <content_id> <sequence> <format_id> <word_id> <sentence_id> <paragraph_id> [argument] [name] [type] [squash]
 # Empty atom args are NULL. One of word, sentence, or paragraph, or both name and type.
 # argument is a GetWord name for a render-time count. Only stored when word_id is set.
 # name and type are GetIdentifier values. Stored together only when no atom is set.
+# squash is a GetIdentifier name. Empty stores null.
 # Opens an edition when none is current. Repeated sequence on that edition is a no-op.
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -18,6 +19,7 @@ PARAGRAPH="${6:-}"
 ARGUMENT="${7:-}"
 IDENT_NAME="${8:-}"
 IDENT_TYPE="${9:-}"
+SQUASH="${10:-}"
 
 if [[ -z "$CONTENT" || -z "$SEQUENCE" ]]; then
  echo "Usage: SetContentElement <content_id> <sequence> <format_id> <word_id> <sentence_id> <paragraph_id>" >&2
@@ -36,6 +38,7 @@ format_sql=$(sql_int_or_null "$FORMAT")
 argument_sql="NULL"
 name_sql="NULL"
 type_sql="NULL"
+squash_sql="NULL"
 if [[ "$atoms" -eq 1 && -z "$IDENT_NAME" && -z "$IDENT_TYPE" ]]; then
  if [[ -n "$WORD" && -n "$ARGUMENT" ]]; then
   argument_sql=$("$HERE/GetWord" "$ARGUMENT")
@@ -51,6 +54,13 @@ else
  echo ""
  exit 0
 fi
+if [[ -n "$SQUASH" ]]; then
+ squash_sql=$("$HERE/GetIdentifier" "$SQUASH")
+ if [[ -z "$squash_sql" ]]; then
+  echo ""
+  exit 0
+ fi
+fi
 
 edition=$(sqlite_query_one "SELECT id FROM ContentEdition WHERE content = $CONTENT AND stop IS NULL LIMIT 1;")
 if [[ -z "$edition" ]]; then
@@ -61,8 +71,8 @@ fi
 exists=$(sqlite_query_one "SELECT 1 FROM ContentElement WHERE edition = $edition AND sequence = $SEQUENCE LIMIT 1;")
 if [[ -z "$exists" ]]; then
  sqlite_run "
-  INSERT INTO ContentElement (edition, sequence, word, sentence, paragraph, format, argument, name, type)
-  VALUES ($edition, $SEQUENCE, $word_sql, $sentence_sql, $paragraph_sql, $format_sql, $argument_sql, $name_sql, $type_sql);
+  INSERT INTO ContentElement (edition, sequence, word, sentence, paragraph, format, argument, name, type, squash)
+  VALUES ($edition, $SEQUENCE, $word_sql, $sentence_sql, $paragraph_sql, $format_sql, $argument_sql, $name_sql, $type_sql, $squash_sql);
  " >/dev/null
 fi
 echo "$CONTENT"

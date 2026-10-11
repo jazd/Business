@@ -66,6 +66,26 @@ idents=$(sqlite3 "$DB" "
   AND edition = (SELECT id FROM ContentEdition WHERE content = $content AND stop IS NULL);
 ")
 [[ "$idents" == "|" ]] || fail "word element stored identifiers $idents"
+plain=$(sqlite3 "$DB" "
+ SELECT COALESCE(squash, '')
+ FROM ContentElement
+ WHERE sequence = 2
+  AND edition = (SELECT id FROM ContentEdition WHERE content = $content AND stop IS NULL);
+")
+[[ "$plain" == "" ]] || fail "unsquashed word stored squash $plain"
+
+sent=$("$ROOT/Bash/sqlite/GetSentence" "Squash line")
+"$ROOT/Bash/sqlite/SetContentElement" "$content" 3 "" "" "$sent" "" "" "" "" space >/dev/null
+squash=$(sqlite3 "$DB" "
+ SELECT COALESCE(culture, 'null') || '|' || value
+ FROM Word
+ WHERE id = (
+  SELECT squash FROM ContentElement
+  WHERE sequence = 3
+   AND edition = (SELECT id FROM ContentEdition WHERE content = $content AND stop IS NULL)
+ );
+")
+[[ "$squash" == "null|space" ]] || fail "squash word is $squash"
 
 format=$("$ROOT/Bash/sqlite/SetFormat" "Body copy")
 "$ROOT/Bash/sqlite/SetFormatAttribute" "$format" class lede html >/dev/null

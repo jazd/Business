@@ -40,8 +40,8 @@
 --  5) Notice sentences gain es-MX text on the same ids as en-US, when
 --     those English sentences are already stored.
 --  6) ContentElement.squash is a nullable integer. Null means the element
---     renders alone. A non-null value is a GetIdentifier id (Word.culture
---     is null) naming a squash type. Writers do not store it yet.
+--     renders alone. Bash SetContentElement stores GetIdentifier of the
+--     tenth argument when that string is set.
 --
 -- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
 -- after this file runs successfully (Business 0.2.15) when STAMP_VERSION=1.
