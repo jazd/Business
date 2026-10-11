@@ -525,7 +525,8 @@ CREATE OR REPLACE FUNCTION ContentBody (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 DECLARE
  culture_code integer;
@@ -558,7 +559,8 @@ BEGIN
   winning.name,
   winning.attribute,
   IdentName.value::varchar,
-  IdentType.value::varchar
+  IdentType.value::varchar,
+  SquashWord.value::varchar
  FROM ContentEdition
  JOIN ContentElement ON ContentElement.edition = ContentEdition.id
  LEFT JOIN Word AS WordDef ON WordDef.id = ContentElement.word AND WordDef.culture = 1033
@@ -571,6 +573,7 @@ BEGIN
  LEFT JOIN Word AS ArgumentTr ON ArgumentTr.id = ContentElement.argument AND ArgumentTr.culture = culture_code
  LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
  LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL
+ LEFT JOIN Word AS SquashWord ON SquashWord.id = ContentElement.squash AND SquashWord.culture IS NULL
  LEFT JOIN LATERAL (
   SELECT FormatFor.name,
    FormatFor.value AS attribute
@@ -597,12 +600,13 @@ CREATE OR REPLACE FUNCTION ContentBody (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 BEGIN
  RETURN QUERY
  SELECT body.sequence, body.kind, body.element, body.value, body.format,
-  body.argument, body.name, body.attribute, body.identifier, body.identifierType
+  body.argument, body.name, body.attribute, body.identifier, body.identifierType, body.squash
  FROM ContentBody(inContent, inTarget, (
   SELECT Culture.name FROM Culture WHERE Culture.code = ClientCulture() LIMIT 1
  )) AS body;
@@ -628,7 +632,8 @@ CREATE OR REPLACE FUNCTION SiteContent (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 BEGIN
  RETURN QUERY
@@ -643,7 +648,7 @@ BEGIN
   body.name,
   body.attribute,
   body.identifier,
-  body.identifierType
+  body.identifierType, body.squash
  FROM ContentSites
  JOIN LATERAL ContentBody(ContentSites.content, inTarget, inCulture) AS body ON true
  WHERE ContentSites.site = inSite
@@ -666,13 +671,14 @@ CREATE OR REPLACE FUNCTION SiteContent (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 BEGIN
  RETURN QUERY
  SELECT body.place, body.content, body.sequence, body.kind, body.element,
   body.value, body.format, body.argument, body.name, body.attribute,
-  body.identifier, body.identifierType
+  body.identifier, body.identifierType, body.squash
  FROM SiteContent(inSite, inTarget, (
   SELECT Culture.name FROM Culture WHERE Culture.code = ClientCulture() LIMIT 1
  )) AS body;
@@ -698,7 +704,8 @@ CREATE OR REPLACE FUNCTION ListContent (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 DECLARE
  list_id integer;
@@ -726,7 +733,7 @@ BEGIN
   body.name,
   body.attribute,
   body.identifier,
-  body.identifierType
+  body.identifierType, body.squash
  FROM ContentList
  JOIN LATERAL ContentBody(ContentList.content, inTarget, inCulture) AS body ON true
  WHERE ContentList.listName = list_id
@@ -750,13 +757,14 @@ CREATE OR REPLACE FUNCTION ListContent (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 BEGIN
  RETURN QUERY
  SELECT body.place, body.content, body.sequence, body.kind, body.element,
   body.value, body.format, body.argument, body.name, body.attribute,
-  body.identifier, body.identifierType
+  body.identifier, body.identifierType, body.squash
  FROM ListContent(inListName, inTarget, (
   SELECT Culture.name FROM Culture WHERE Culture.code = ClientCulture() LIMIT 1
  )) AS body;

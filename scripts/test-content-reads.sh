@@ -201,6 +201,14 @@ BEGIN
  IF got IS DISTINCT FROM 'space' THEN
   RAISE EXCEPTION 'squash [%]', got;
  END IF;
+ SELECT squash INTO got FROM ContentBody(content_id, 'html', 'en-US') WHERE sequence = 3;
+ IF got IS DISTINCT FROM 'space' THEN
+  RAISE EXCEPTION 'body squash [%]', got;
+ END IF;
+ SELECT squash INTO got FROM ContentBody(content_id, 'html') WHERE sequence = 1;
+ IF got IS NOT NULL THEN
+  RAISE EXCEPTION 'body unsquashed [%]', got;
+ END IF;
  IF EXISTS (
   SELECT 1 FROM ContentElement AS el
   WHERE el.sequence = 1

@@ -41,7 +41,8 @@
 --     those English sentences are already stored.
 --  6) ContentElement.squash is a nullable integer. Null means the element
 --     renders alone. Bash SetContentElement stores GetIdentifier of the
---     tenth argument when that string is set.
+--     tenth argument when that string is set. ContentElements and
+--     ContentHistory return that culture-null word. Null stays null.
 --
 -- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
 -- after this file runs successfully (Business 0.2.15) when STAMP_VERSION=1.
@@ -201,7 +202,8 @@ SELECT ContentEdition.content,
  ContentEdition.created,
  Argument.value AS argument,
  IdentName.value AS identifier,
- IdentType.value AS identifierType
+ IdentType.value AS identifierType,
+ SquashWord.value AS squash
 FROM ContentEdition
 JOIN ContentElement ON ContentElement.edition = ContentEdition.id
 LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
@@ -210,6 +212,7 @@ LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
 LEFT JOIN I18NWord AS Argument ON Argument.id = ContentElement.argument
 LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
 LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL
+LEFT JOIN Word AS SquashWord ON SquashWord.id = ContentElement.squash AND SquashWord.culture IS NULL
 WHERE ContentEdition.stop IS NULL;
 
 CREATE VIEW ContentElementAttributes AS
@@ -224,7 +227,8 @@ SELECT ContentElements.content,
  FormatAttributes.value AS attribute,
  FormatAttributes.target,
  ContentElements.identifier,
- ContentElements.identifierType
+ ContentElements.identifierType,
+ ContentElements.squash
 FROM ContentElements
 JOIN FormatAttributes ON FormatAttributes.format = ContentElements.format;
 
@@ -245,14 +249,16 @@ SELECT ContentEdition.content,
  ContentEdition.stop,
  ContentEdition.created,
  IdentName.value AS identifier,
- IdentType.value AS identifierType
+ IdentType.value AS identifierType,
+ SquashWord.value AS squash
 FROM ContentEdition
 JOIN ContentElement ON ContentElement.edition = ContentEdition.id
 LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
 LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
 LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
 LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
-LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL;
+LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL
+LEFT JOIN Word AS SquashWord ON SquashWord.id = ContentElement.squash AND SquashWord.culture IS NULL;
 
 INSERT INTO Sentence (id, culture, value, length)
 SELECT s.id, 2058, 'Aquí está el aviso', length('Aquí está el aviso')

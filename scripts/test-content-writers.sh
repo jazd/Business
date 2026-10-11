@@ -86,6 +86,18 @@ squash=$(sqlite3 "$DB" "
  );
 ")
 [[ "$squash" == "null|space" ]] || fail "squash word is $squash"
+shown=$(sqlite3 "$DB" "
+ SELECT COALESCE(squash, '')
+ FROM ContentElements
+ WHERE content = $content AND sequence = 3;
+")
+[[ "$shown" == "space" ]] || fail "ContentElements squash is $shown"
+bare=$(sqlite3 "$DB" "
+ SELECT COALESCE(squash, '')
+ FROM ContentElements
+ WHERE content = $content AND sequence = 2;
+")
+[[ "$bare" == "" ]] || fail "unsquashed ContentElements squash is $bare"
 
 format=$("$ROOT/Bash/sqlite/SetFormat" "Body copy")
 "$ROOT/Bash/sqlite/SetFormatAttribute" "$format" class lede html >/dev/null

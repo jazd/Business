@@ -41,6 +41,8 @@
 --  6) ContentElement.squash is a nullable integer. Null means the element
 --     renders alone. The 10-argument SetContentElement stores GetIdentifier
 --     of inSquash when that string is set. The shorter forms pass null.
+--     ContentElements, ContentHistory, ContentBody, SiteContent, and
+--     ListContent return that culture-null word. Null stays null.
 --
 -- Version stamp stays commented until 0.2.15 is released.
 --
@@ -322,6 +324,9 @@ $$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS SiteContent(integer, varchar);
 DROP FUNCTION IF EXISTS ListContent(varchar, varchar);
 DROP FUNCTION IF EXISTS ContentBody(integer, varchar);
+DROP FUNCTION IF EXISTS SiteContent(integer, varchar, varchar);
+DROP FUNCTION IF EXISTS ListContent(varchar, varchar, varchar);
+DROP FUNCTION IF EXISTS ContentBody(integer, varchar, varchar);
 
 -- FormatFor(format integer, target varchar).
 -- A row whose target word matches inTarget wins over a null target of the same name.
@@ -389,7 +394,8 @@ CREATE OR REPLACE FUNCTION ContentBody (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 DECLARE
  culture_code integer;
@@ -422,7 +428,8 @@ BEGIN
   winning.name,
   winning.attribute,
   IdentName.value::varchar,
-  IdentType.value::varchar
+  IdentType.value::varchar,
+  SquashWord.value::varchar
  FROM ContentEdition
  JOIN ContentElement ON ContentElement.edition = ContentEdition.id
  LEFT JOIN Word AS WordDef ON WordDef.id = ContentElement.word AND WordDef.culture = 1033
@@ -435,6 +442,7 @@ BEGIN
  LEFT JOIN Word AS ArgumentTr ON ArgumentTr.id = ContentElement.argument AND ArgumentTr.culture = culture_code
  LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
  LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL
+ LEFT JOIN Word AS SquashWord ON SquashWord.id = ContentElement.squash AND SquashWord.culture IS NULL
  LEFT JOIN LATERAL (
   SELECT FormatFor.name,
    FormatFor.value AS attribute
@@ -461,12 +469,13 @@ CREATE OR REPLACE FUNCTION ContentBody (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 BEGIN
  RETURN QUERY
  SELECT body.sequence, body.kind, body.element, body.value, body.format,
-  body.argument, body.name, body.attribute, body.identifier, body.identifierType
+  body.argument, body.name, body.attribute, body.identifier, body.identifierType, body.squash
  FROM ContentBody(inContent, inTarget, (
   SELECT Culture.name FROM Culture WHERE Culture.code = ClientCulture() LIMIT 1
  )) AS body;
@@ -492,7 +501,8 @@ CREATE OR REPLACE FUNCTION SiteContent (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 BEGIN
  RETURN QUERY
@@ -507,7 +517,7 @@ BEGIN
   body.name,
   body.attribute,
   body.identifier,
-  body.identifierType
+  body.identifierType, body.squash
  FROM ContentSites
  JOIN LATERAL ContentBody(ContentSites.content, inTarget, inCulture) AS body ON true
  WHERE ContentSites.site = inSite
@@ -530,13 +540,14 @@ CREATE OR REPLACE FUNCTION SiteContent (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 BEGIN
  RETURN QUERY
  SELECT body.place, body.content, body.sequence, body.kind, body.element,
   body.value, body.format, body.argument, body.name, body.attribute,
-  body.identifier, body.identifierType
+  body.identifier, body.identifierType, body.squash
  FROM SiteContent(inSite, inTarget, (
   SELECT Culture.name FROM Culture WHERE Culture.code = ClientCulture() LIMIT 1
  )) AS body;
@@ -562,7 +573,8 @@ CREATE OR REPLACE FUNCTION ListContent (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 DECLARE
  list_id integer;
@@ -590,7 +602,7 @@ BEGIN
   body.name,
   body.attribute,
   body.identifier,
-  body.identifierType
+  body.identifierType, body.squash
  FROM ContentList
  JOIN LATERAL ContentBody(ContentList.content, inTarget, inCulture) AS body ON true
  WHERE ContentList.listName = list_id
@@ -614,13 +626,14 @@ CREATE OR REPLACE FUNCTION ListContent (
  name varchar,
  attribute varchar,
  identifier varchar,
- identifierType varchar
+ identifierType varchar,
+ squash varchar
 ) AS $$
 BEGIN
  RETURN QUERY
  SELECT body.place, body.content, body.sequence, body.kind, body.element,
   body.value, body.format, body.argument, body.name, body.attribute,
-  body.identifier, body.identifierType
+  body.identifier, body.identifierType, body.squash
  FROM ListContent(inListName, inTarget, (
   SELECT Culture.name FROM Culture WHERE Culture.code = ClientCulture() LIMIT 1
  )) AS body;
@@ -656,7 +669,8 @@ SELECT ContentEdition.content,
  ContentEdition.created,
  Argument.value AS argument,
  IdentName.value AS identifier,
- IdentType.value AS identifierType
+ IdentType.value AS identifierType,
+ SquashWord.value AS squash
 FROM ContentEdition
 JOIN ContentElement ON ContentElement.edition = ContentEdition.id
 LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
@@ -665,6 +679,7 @@ LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
 LEFT JOIN I18NWord AS Argument ON Argument.id = ContentElement.argument
 LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
 LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL
+LEFT JOIN Word AS SquashWord ON SquashWord.id = ContentElement.squash AND SquashWord.culture IS NULL
 WHERE ContentEdition.stop IS NULL;
 
 CREATE OR REPLACE VIEW ContentElementAttributes AS
@@ -679,7 +694,8 @@ SELECT ContentElements.content,
  FormatAttributes.value AS attribute,
  FormatAttributes.target,
  ContentElements.identifier,
- ContentElements.identifierType
+ ContentElements.identifierType,
+ ContentElements.squash
 FROM ContentElements
 JOIN FormatAttributes ON FormatAttributes.format = ContentElements.format;
 
@@ -700,14 +716,16 @@ SELECT ContentEdition.content,
  ContentEdition.stop,
  ContentEdition.created,
  IdentName.value AS identifier,
- IdentType.value AS identifierType
+ IdentType.value AS identifierType,
+ SquashWord.value AS squash
 FROM ContentEdition
 JOIN ContentElement ON ContentElement.edition = ContentEdition.id
 LEFT JOIN I18NWord ON I18NWord.id = ContentElement.word
 LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
 LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
 LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
-LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL;
+LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL
+LEFT JOIN Word AS SquashWord ON SquashWord.id = ContentElement.squash AND SquashWord.culture IS NULL;
 
 -- es-MX for the notice sentences, on the same ids as en-US and fr-FR.
 INSERT INTO Sentence (id, culture, value, length)

@@ -92,7 +92,7 @@ The count is not stored on the element. Name the count with `argument` (`items`,
 
 | View | Rows |
 |------|------|
-| `ContentElements` | Current edition, `sequence` order. `value` follows `ClientCulture()`. `identifier` and `identifierType` are the dynamic name and type. |
+| `ContentElements` | Current edition, `sequence` order. `value` follows `ClientCulture()`. `identifier` and `identifierType` are the dynamic name and type. `squash` is the culture-null word, or null when the element renders alone. |
 | `ContentElementAttributes` | That edition plus every unstopped attribute (null target and specific target) |
 | `ContentHistory` | Every edition, including `stop`, with the same kind and identifier columns |
 | `ContentSites` | Unstopped site placements, `sequence` order |
