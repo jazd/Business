@@ -89,8 +89,8 @@ manual `cp` instructions unless bootstrap fails).
      ```bash
      mkdir -p "$HOME/business-shop/snapshots"
      cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3"
-     test -f "$HOME/business-shop/business.sqlite3.pristine-0.2.15" \
-       || cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3.pristine-0.2.15"
+     test -f "$HOME/business-shop/business.sqlite3.pristine-0.2.14" \
+       || cp -a "$TEMPLATE" "$HOME/business-shop/business.sqlite3.pristine-0.2.14"
      export SQLITE_DB=$HOME/business-shop/business.sqlite3
      ```
    - **Do not overwrite** an existing `~/business-shop/business.sqlite3`.
@@ -422,7 +422,7 @@ cp -a "$SNAP_DIR/latest.sqlite3" "$SQLITE_DB"
 - Do not delete old snapshots unless the user asks; if the directory grows
   large, suggest pruning with their OK (e.g. keep last 20 or last 7 days).
 - Distinguish **pristine release image**
-  (`business.sqlite3.pristine-0.2.15`) from **session snapshots**. After copying a release `business.sqlite3`, read `SchemaVersions` where `stop` is null. The `value` column is the release. A file from the 0.2.14 download can still show 0.2.11; `./scripts/upgrade-sqlite.sh 0.2.14 0.2.15` accepts that file when `Entitlement` and `SchemaVersions` are already there.
+  (`business.sqlite3.pristine-0.2.14`) from **session snapshots**. After copying a release `business.sqlite3`, read `SchemaVersions` where `stop` is null. The published release is 0.2.14. A file built from this tree can show 0.2.15; that version is not released. A file from the 0.2.14 download can still show 0.2.11; `./scripts/upgrade-sqlite.sh 0.2.14 0.2.15` accepts that file when `Entitlement` and `SchemaVersions` are already there.
 
 ## Agent workflow (every request)
 

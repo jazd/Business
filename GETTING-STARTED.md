@@ -83,7 +83,7 @@ export SQLITE_DB=$HOME/business-shop/business.sqlite3
 sqlite3 "$SQLITE_DB" "SELECT value FROM SchemaVersions WHERE stop IS NULL;"
 ```
 
-`value` is the release on that file. A file from the 0.2.14 download can still show `0.2.11`. `./scripts/upgrade-sqlite.sh 0.2.14 0.2.15` accepts that file when `Entitlement` and `SchemaVersions` are already present.
+`value` is the version on that file. The published release is 0.2.14. A file built from this tree can show 0.2.15; that version is not released. A file from the 0.2.14 download can still show `0.2.11`. `./scripts/upgrade-sqlite.sh 0.2.14 0.2.15` accepts that file when `Entitlement` and `SchemaVersions` are already present.
 
 Bash helpers:
 
@@ -269,7 +269,7 @@ ago” tool-especially after experiments or CSV imports.
 ```text
 ~/business-shop/
   business.sqlite3                 # live books
-  business.sqlite3.pristine-0.2.15  # release template restore (optional)
+  business.sqlite3.pristine-0.2.14  # last published release template (optional)
   snapshots/
     20260805-141502-session-start.sqlite3
     20260805-142230-pre-csv.sqlite3
