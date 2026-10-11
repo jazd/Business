@@ -39,6 +39,9 @@
 --     I18N views. SQLite has no ContentBody.
 --  5) Notice sentences gain es-MX text on the same ids as en-US, when
 --     those English sentences are already stored.
+--  6) ContentElement.squash is a nullable integer. Null means the element
+--     renders alone. A non-null value is a GetIdentifier id (Word.culture
+--     is null) naming a squash type. Writers do not store it yet.
 --
 -- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
 -- after this file runs successfully (Business 0.2.15) when STAMP_VERSION=1.
@@ -50,6 +53,7 @@ PRAGMA foreign_keys = ON;
 
 ALTER TABLE ContentElement ADD COLUMN name integer;
 ALTER TABLE ContentElement ADD COLUMN type integer;
+ALTER TABLE ContentElement ADD COLUMN squash integer;
 
 DROP VIEW IF EXISTS EntitlementCurrent;
 CREATE VIEW EntitlementCurrent AS

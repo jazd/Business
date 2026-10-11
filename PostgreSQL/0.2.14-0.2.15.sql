@@ -38,6 +38,9 @@
 --     Culture.name. The two-argument calls use ClientCulture().
 --  5) Notice sentences gain es-MX text on the same ids as en-US, when
 --     those English sentences are already stored.
+--  6) ContentElement.squash is a nullable integer. Null means the element
+--     renders alone. A non-null value is a GetIdentifier id (Word.culture
+--     is null) naming a squash type. Writers do not store it yet.
 --
 -- Version stamp stays commented until 0.2.15 is released.
 --
@@ -71,6 +74,7 @@ END $$;
 
 ALTER TABLE contentelement ADD COLUMN IF NOT EXISTS name integer;
 ALTER TABLE contentelement ADD COLUMN IF NOT EXISTS type integer;
+ALTER TABLE contentelement ADD COLUMN IF NOT EXISTS squash integer;
 
 CREATE OR REPLACE FUNCTION GetSite (
  inName varchar
