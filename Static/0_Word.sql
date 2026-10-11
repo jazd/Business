@@ -221,3 +221,13 @@ INSERT INTO Word (id,culture,value) VALUES (80111,1036,'abonnements');
 INSERT INTO Word (id,culture,value) VALUES (80111,1045,'subskrypcje');
 INSERT INTO Word (id,culture,value) VALUES (80111,2058,'suscripciones');
 INSERT INTO Word (id,culture,value) VALUES (80112,1045,'subskrypcji');
+
+-- Notice template identifiers. culture null. One row per word.
+INSERT INTO Word (id,culture,value) VALUES (80120,NULL,'class');
+INSERT INTO Word (id,culture,value) VALUES (80121,NULL,'heading');
+INSERT INTO Word (id,culture,value) VALUES (80122,NULL,'lede');
+INSERT INTO Word (id,culture,value) VALUES (80123,NULL,'note');
+INSERT INTO Word (id,culture,value) VALUES (80124,NULL,'link');
+INSERT INTO Word (id,culture,value) VALUES (80125,NULL,'url');
+INSERT INTO Word (id,culture,value) VALUES (80126,NULL,'count');
+INSERT INTO Word (id,culture,value) VALUES (80127,NULL,'number');

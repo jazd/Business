@@ -36,6 +36,8 @@
 --     FormatAttributes and FormatFor read name, value, and target the
 --     same way. ContentBody, SiteContent, and ListContent take
 --     Culture.name. The two-argument calls use ClientCulture().
+--  5) Notice sentences gain es-MX text on the same ids as en-US, when
+--     those English sentences are already stored.
 --
 -- Version stamp stays commented until 0.2.15 is released.
 --
@@ -678,6 +680,24 @@ LEFT JOIN I18NSentence ON I18NSentence.id = ContentElement.sentence
 LEFT JOIN I18NParagraph ON I18NParagraph.id = ContentElement.paragraph
 LEFT JOIN Word AS IdentName ON IdentName.id = ContentElement.name AND IdentName.culture IS NULL
 LEFT JOIN Word AS IdentType ON IdentType.id = ContentElement.type AND IdentType.culture IS NULL;
+
+-- es-MX for the notice sentences, on the same ids as en-US and fr-FR.
+INSERT INTO Sentence (id, culture, value, length)
+SELECT s.id, 2058, 'Aquí está el aviso', char_length('Aquí está el aviso')
+FROM Sentence AS s
+WHERE s.culture = 1033
+ AND s.value = 'Here is the notice'
+ AND NOT EXISTS (
+  SELECT 1 FROM Sentence AS t WHERE t.id = s.id AND t.culture = 2058
+ );
+INSERT INTO Sentence (id, culture, value, length)
+SELECT s.id, 2058, 'Artículos listos', char_length('Artículos listos')
+FROM Sentence AS s
+WHERE s.culture = 1033
+ AND s.value = 'Items ready'
+ AND NOT EXISTS (
+  SELECT 1 FROM Sentence AS t WHERE t.id = s.id AND t.culture = 2058
+ );
 
 -- Mark schema upgraded to 0.2.15 when the hop body is ready for the release.
 -- SELECT SetSchemaVersion('Business', '0', '2', '15');

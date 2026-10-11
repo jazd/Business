@@ -1,6 +1,6 @@
 -- Notice template. One content id.
 -- The open edition is a heading sentence, a link, a lede sentence, and a count.
--- fr-FR is stored on the two sentences only.
+-- fr-FR and es-MX are stored on the two sentences only.
 -- class heading, lede, and note have a null target, so html and mime both receive them.
 -- ExampleFill returns the link URL and the count.
 
@@ -35,6 +35,16 @@ BEGIN
  WHERE NOT EXISTS (
   SELECT 1 FROM Sentence WHERE id = sent2 AND culture = 1036
  );
+ INSERT INTO Sentence (id, culture, value, length)
+ SELECT sent1, 2058, 'Aquí está el aviso', char_length('Aquí está el aviso')
+ WHERE NOT EXISTS (
+  SELECT 1 FROM Sentence WHERE id = sent1 AND culture = 2058
+ );
+ INSERT INTO Sentence (id, culture, value, length)
+ SELECT sent2, 2058, 'Artículos listos', char_length('Artículos listos')
+ WHERE NOT EXISTS (
+  SELECT 1 FROM Sentence WHERE id = sent2 AND culture = 2058
+ );
 
  PERFORM SetContentElement(content_id, 1, heading_id, NULL, sent1, NULL, NULL, NULL, NULL);
  PERFORM SetContentElement(content_id, 2, note_id, NULL, NULL, NULL, NULL, 'link', 'url');
@@ -54,4 +64,18 @@ FROM ContentBody(
  ),
  'html',
  'fr-FR'
+);
+
+SELECT sequence, kind, value, name, attribute, identifier, identifierType
+FROM ContentBody(
+ (
+  SELECT Content.id
+  FROM Content
+  JOIN Sentence ON Sentence.id = Content.name
+   AND Sentence.culture = 1033
+   AND Sentence.value = 'Notice'
+  LIMIT 1
+ ),
+ 'html',
+ 'es-MX'
 );

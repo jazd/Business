@@ -210,6 +210,18 @@ INSERT INTO Sentence (id,culture,value,length) VALUES (80130,1033,'Thank you',9)
 INSERT INTO Sentence (id,culture,value,length) VALUES (80130,1036,'Merci',5);
 INSERT INTO Sentence (id,culture,value,length) VALUES (80130,1045,'Dziękuję',8);
 INSERT INTO Sentence (id,culture,value,length) VALUES (80130,2058,'Gracias',7);
+
+-- Notice template. Same ids in en-US, fr-FR, and es-MX.
+INSERT INTO Sentence (id,culture,value,length) VALUES (80140,1033,'Here is the notice',18);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80140,1036,'Voici l''avis',12);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80140,2058,'Aquí está el aviso',18);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80141,1033,'Items ready',11);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80141,1036,'Articles prêts',14);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80141,2058,'Artículos listos',16);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80142,1033,'Notice',6);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80143,1033,'Notice heading',14);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80144,1033,'Notice lede',11);
+INSERT INTO Sentence (id,culture,value,length) VALUES (80145,1033,'Notice note',11);
 INSERT INTO Sentence (id,culture,value,length) VALUES (211,1033,'Sale John Doe',13);
 INSERT INTO Sentence (id,culture,value,length) VALUES (211,1036,'Vente John Doe',14);
 INSERT INTO Sentence (id,culture,value,length) VALUES (211,2058,'Venta John Doe',14);

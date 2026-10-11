@@ -41,6 +41,7 @@ database `MyCo`, the same server `make pgsqldb` and DbFit use. `PGHOST`,
 ```
 go run ./cmd/render -content 10
 go run ./cmd/render -content Notice -target html -culture fr-FR
+go run ./cmd/render -content Notice -target html -culture es-MX
 go run ./cmd/render -list Example -target txt
 ```
 

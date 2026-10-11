@@ -86,7 +86,7 @@ The count is not stored on the element. Name the count with `argument` (`items`,
 
 "Thank you for your subscription" is two elements, not one sentence with a brace. See `Sample/SQL/Content/thank-you.sql` and `Static/6_Content.sql` (content id 10). Element 1 is sentence 80110. Element 2 is word 80110 (`subscription`) with argument 80111 (`subscriptions`). Cultures on those ids: en-US, fr-FR, pl-PL, es-MX. That edition stays a sentence plus a word.
 
-`Sample/SQL/Content/notice.sql` is a second template on its own content id. The edition is a heading sentence, a dynamic `link`, a lede sentence, and a dynamic `count`. fr-FR is stored on the two sentences only. Running it again closes the open edition and writes this edition.
+`Sample/SQL/Content/notice.sql` is a second template on its own content id. The edition is a heading sentence, a dynamic `link`, a lede sentence, and a dynamic `count`. fr-FR and es-MX are stored on the two sentences only. The same rows are in `Static/1_Sentence.sql` and `Static/6_Content.sql` (content id 11). Running it again closes the open edition and writes this edition.
 
 `StopContent(content)` closes the edition. The next `SetContentElement` starts a new edition. Old elements stay on the stopped edition.
 
