@@ -53,7 +53,7 @@ A paid period is `EntitlementCurrent` (`/business-sites`). It does not add a per
 
 ## Language
 
-Render with `/business-cms`. For a known person, set `inject_culture` from `Credential.culture`. For the browser, use `Session.culture` (`SetSessionCulture`). Then read `ContentElements`. The content id does not change per language. `ContentCultures` is the language menu. Missing translation falls back to en-US (1033). The thank-you sample is content id 10 in `Static/6_Content.sql`.
+Render with `/business-cms`. `ComposeContent` walks one content id. Pass `Culture.name`, or leave it empty to use `ClientCulture`. For a known person that name comes from `Credential.culture`. For the browser it comes from `Session.culture` (`SetSessionCulture`). A missing translation keeps the element and uses the 1033 text. The content id does not change per language. `ContentCultures` is the language menu. Thank-you is content id 10. The notice, including the squashed lede, is content id 11. The join rule is in `/business-cms`.
 
 ## Start and stop
 

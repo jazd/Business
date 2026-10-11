@@ -27,8 +27,11 @@ three-argument read. A dynamic element calls the function
 for `html`, `MIME` for `mime`, and newline-joined text for `txt`. `HTML`
 and `MIME` are exported. `HTML` reads the class tokens `heading`, `lede`,
 and `note`. `MIME` is multipart/alternative: `text/plain`, then that HTML.
-A piece with `Squash` set joins with the next piece when the class matches
-and the sequences are consecutive. The join is one space. CSS stays with the caller.
+A piece with `Squash` set joins with the next piece when the class token
+matches, the sequences are consecutive, and place and content match. Any
+squash word is a space for now. The texts join with one space. A custom
+renderer receives the pieces still separate. An empty result writes nothing.
+CSS stays with the caller.
 
 `Sample/SQL/Content/notice.sql` stores a heading, a `link`, an unsquashed
 lede and `count`, then that pair with `squash` `space`. `ExampleFill`
@@ -41,11 +44,14 @@ database `MyCo`, the same server `make pgsqldb` and DbFit use. `PGHOST`,
 `PGPORT`, `PGUSER`, `PGPASSWORD`, and `PGDATABASE` override those values.
 
 ```
-go run ./cmd/render -content 10
+go run ./cmd/render -content Notice -target html
 go run ./cmd/render -content Notice -target html -culture fr-FR
 go run ./cmd/render -content Notice -target html -culture es-MX
+go run ./cmd/render -content 10
 go run ./cmd/render -list Example -target txt
 ```
+
+Leave off `-culture` for en-US. `-list Example` writes nothing when that list has no rows.
 
 `EntitlementGrant` returns the current period for one individual, list, set,
 and source. `EntitlementSet` stops that row with reason `replaced` and inserts

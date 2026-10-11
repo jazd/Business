@@ -96,7 +96,16 @@ PGPASSWORD=dbfit psql -h 127.0.0.1 -U test MyCo
 ```
 
 `Go/cmd/render` uses that same login and prints one rendered content, site,
-or list. From `Go/`: `go run ./cmd/render -content 10`.
+or list. From `Go/`:
+
+```
+go run ./cmd/render -content Notice -target html
+go run ./cmd/render -content Notice -target html -culture fr-FR
+go run ./cmd/render -content Notice -target html -culture es-MX
+```
+
+Leave off `-culture` for en-US. An empty result writes nothing. The command
+list is in `Go/README.md`.
 
 ### MySQL
 

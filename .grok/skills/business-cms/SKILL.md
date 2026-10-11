@@ -93,8 +93,8 @@ The count is not stored on the element. Name the count with `argument` (`items`,
 | View | Rows |
 |------|------|
 | `ContentElements` | Current edition, `sequence` order. `value` follows `ClientCulture()`. `identifier` and `identifierType` are the dynamic name and type. `squash` is the culture-null word, or null when the element renders alone. |
-| `ContentElementAttributes` | That edition plus every unstopped attribute (null target and specific target) |
-| `ContentHistory` | Every edition, including `stop`, with the same kind and identifier columns |
+| `ContentElementAttributes` | That edition plus every unstopped attribute (null target and specific target), including `squash` |
+| `ContentHistory` | Every edition, including `stop`, with the same kind, identifier, and `squash` columns |
 | `ContentSites` | Unstopped site placements, `sequence` order |
 | `ContentLists` | Unstopped list placements (notification bodies tied to a list name) |
 
@@ -157,7 +157,13 @@ A dynamic piece uses the same tags. The text inside the tag is the function's te
 
 `Squash` on a piece is the culture-null word. Empty means the element renders alone. `Sequence`, `Place`, and `Content` are the join key. `Place` and `Content` are 0 for one content id. The default `HTML`, `MIME`, and `txt` renderers join a run when every piece has squash set, the class token is the same, the sequences are consecutive, and place and content match. The texts join with one space, in sequence order, inside that one class. Any squash word is a space for now. A marked piece with no partner stays its own tag.
 
-From `Go/`, `go run ./cmd/render -content Notice -target html -culture fr-FR` prints the rendering. With no flags for the server, it uses host `127.0.0.1`, port `5432`, user `test`, password `dbfit`, and database `MyCo`, the same server `make pgsqldb` and DbFit use.
+From `Go/`, these print the notice. With no flags for the server, the command uses host `127.0.0.1`, port `5432`, user `test`, password `dbfit`, and database `MyCo`, the same server `make pgsqldb` and DbFit use. Leave off `-culture` for en-US. An empty result writes nothing.
+
+```
+go run ./cmd/render -content Notice -target html
+go run ./cmd/render -content Notice -target html -culture fr-FR
+go run ./cmd/render -content Notice -target html -culture es-MX
+```
 
 `ExampleFill` is the notice fill-in. The command uses it. It matches the identifier and the type:
 
