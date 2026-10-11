@@ -1,0 +1,2 @@
+# The Containerfiles install tools only. The work tree is mounted at run time.
+*

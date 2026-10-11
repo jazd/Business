@@ -6,7 +6,7 @@
 # Generating graphics takes a little more. build jazd/sqlt-diagram:dev for that
 # podman build -t jazd/sqlt-diagram:dev -f Containerfile.sqlt-diagram .
 # e.g.
-# podman run -v $(pwd):/app jazd/sqlt-diagram:dev sqlt-diagram --title "All" --gutter=50 --db=XML -o all.png schema.xml
+# podman run --rm -v $(pwd):/app:Z --userns=keep-id jazd/sqlt-diagram:dev sqlt-diagram --title "All" --gutter=50 --db=XML -o all.png schema.xml
 
 if [ -f /usr/local/bin/sqlt-diagram ]
 then
@@ -15,8 +15,8 @@ then
 else
 	podman build -t jazd/sqlt:dev -f Containerfile.sqlt .
 	podman build -t jazd/sqlt-diagram:dev -f Containerfile.sqlt-diagram .
-	SQLTDIAGRAM="podman run -v $(pwd):/app:Z --userns=keep-id jazd/sqlt-diagram:dev sqlt-diagram"
-	EXTRACTTABLE="podman run -v $(pwd):/app:Z --userns=keep-id jazd/sqlt-diagram:dev scripts/extractTable.pl"
+	SQLTDIAGRAM="podman run --rm -v $(pwd):/app:Z --userns=keep-id jazd/sqlt-diagram:dev sqlt-diagram"
+	EXTRACTTABLE="podman run --rm -v $(pwd):/app:Z --userns=keep-id jazd/sqlt-diagram:dev scripts/extractTable.pl"
 fi
 
 mkdir -p diagrams

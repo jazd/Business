@@ -10,7 +10,7 @@ SQLTBUILD :=
 
 ifeq (,$(wildcard /usr/local/bin/sqlt))
 	SQLTBUILD := podman build -t jazd/sqlt:dev -f Containerfile.sqlt .
-	SQLT := podman run -v $(CURDIR):/app:Z jazd/sqlt:dev sqlt
+	SQLT := podman run --rm -v $(CURDIR):/app:Z jazd/sqlt:dev sqlt
 endif
 
 PostgreSQLServer = localhost
@@ -44,7 +44,7 @@ mssql: schema.sqlserver
 oracle: schema.oracle
 sybase: schema.sybase
 
-schema.pgsql: schema.xml container
+schema.pgsql: schema.xml sqlt-cmd
 	@echo Creating PostgreSQL file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
@@ -52,7 +52,7 @@ schema.pgsql: schema.xml container
 	chmod -w $@
 
 MYSQL_UNSUPORTED_VIEWS = People PeopleEvent Entities IndividualURL URL Sessions File TimePeriod Accounts Ledgers Books LedgerBalance LedgerReport EdgeIndividuals IndividualURL IndividualEmailAddress MaxSpan
-schema.mysql: schema.xml container
+schema.mysql: schema.xml sqlt-cmd
 	@echo Creating MySQL file $@
 	scripts/excludeView.pl $< $(MYSQL_UNSUPORTED_VIEWS) > $<.excludeSomeViews
 	if [[ -e $@ ]]; then chmod +w $@; fi
@@ -62,7 +62,7 @@ schema.mysql: schema.xml container
 	rm -f $<.excludeSomeViews
 
 SQLITE_UNSUPORTED_VIEWS = TimePeriod Certificates
-schema.sqlite: schema.xml container
+schema.sqlite: schema.xml sqlt-cmd
 	@echo Creating SQLite file $@
 	scripts/excludeView.pl $< $(SQLITE_UNSUPORTED_VIEWS) > $<.excludeSomeViews
 	if [[ -e $@ ]]; then chmod +w $@; fi
@@ -75,28 +75,28 @@ schema.sqlite: schema.xml container
 	chmod -w $@
 	rm -f $<.excludeSomeViews
 
-schema.db2: schema.xml container
+schema.db2: schema.xml sqlt-cmd
 	@echo Creating DB2 file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
 	$(SQLT) -f XML-SQLFairy -t DB2 $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
 	chmod -w $@
 
-schema.sqlserver: schema.xml container
+schema.sqlserver: schema.xml sqlt-cmd
 	@echo Creating SQLServer file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
 	$(SQLT) -f XML-SQLFairy -t SQLServer $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -e "s/\[exit\]/ZexitZ/g" | sed -e "s/\[schema\]/ZschemaZ/g" | tr -d [] | sed -e "s/ZexitZ/\[exit\]/g" | sed -e "s/ZschemaZ/\[schema\]/g" | sed -e "s/NOW()/GETUTCDATE()/g" | sed -e "s/timestamp/datetime/g" | sed -e "s/false/'false'/g" | sed -e "s/datetime WITHOUT TIME ZONE/datetime2(6)/g" | sed -e "s/time WITHOUT TIME ZONE/time/g" | sed -e "s/interval/decimal(4,2)/g" | sed -e "s/bytea/varbinary/g" | sed -e "s/inet/varchar/g" | sed -e "s/boolean/bit/g" >> $@
 	chmod -w $@
 
-schema.oracle: schema.xml container
+schema.oracle: schema.xml sqlt-cmd
 	@echo Creating Oracle file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
 	$(SQLT) -f XML-SQLFairy -t Oracle $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
 	chmod -w $@
 
-schema.sybase: schema.xml container
+schema.sybase: schema.xml sqlt-cmd
 	@echo Creating Sybase file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
@@ -111,8 +111,15 @@ touch-xml:
 	@echo Force re-make of schema files
 	@touch schema.xml
 
-container: Containerfile.sqlt
+# sqlt-cmd builds the image only when /usr/local/bin/sqlt is absent.
+sqlt-cmd:
 	$(SQLTBUILD)
+
+container: Containerfile.sqlt
+	podman build -t jazd/sqlt:dev -f Containerfile.sqlt .
+
+container-diagram: Containerfile.sqlt-diagram container
+	podman build -t jazd/sqlt-diagram:dev -f Containerfile.sqlt-diagram .
 
 # PL/pgSQL sources live in PostgreSQL/procedures.d/ (ordered 00-99); assemble into procedures.sql
 .PHONY: procedures

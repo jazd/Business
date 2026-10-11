@@ -1,11 +1,12 @@
 # podman build -t jazd/sqlt-diagram:dev -f Containerfile.sqlt-diagram .
 FROM jazd/sqlt:dev
-# Install Dependencies
-RUN apt-get update
-RUN apt-get install --yes libgd-dev
+
+# GD is required by sqlt-diagram. The work tree is mounted at /app.
+RUN apt-get update \
+ && apt-get install --yes --no-install-recommends libgd-dev \
+ && rm -rf /var/lib/apt/lists/*
 RUN cpanm Test::Fork GD GD::Text
 RUN cpanm --force GD::Graph
 
-ADD . /app
 WORKDIR /app
 

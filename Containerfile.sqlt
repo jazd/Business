@@ -1,9 +1,11 @@
 # podman build -t jazd/sqlt:dev -f Containerfile.sqlt .
-FROM docker.io/library/perl:5.36.0
+FROM docker.io/library/perl:5.40-bookworm
 
-# Install Dependencies
+# SQL::Translator provides sqlt. The work tree is mounted at /app.
+RUN apt-get update \
+ && apt-get install --yes --no-install-recommends libxml2-dev \
+ && rm -rf /var/lib/apt/lists/*
 RUN cpanm XML::LibXML XML::Twig SQL::Translator
 
-ADD . /app
 WORKDIR /app
 
