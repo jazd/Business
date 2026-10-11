@@ -15,6 +15,10 @@ endif
 
 PostgreSQLServer = localhost
 
+MySQLServer = localhost
+MySQLPassword = -pdbfit
+
+
 ifeq ($(MySQLServer),)
 MySQLServer = localhost
 endif
