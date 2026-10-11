@@ -99,8 +99,55 @@ services:
       retries: 80
       start_period: 90s
 
+  business-db2:
+    image: icr.io/db2_community/db2:12.1.5.0
+    container_name: business-db2
+    hostname: business-db2
+    # db2sysc exits if /dev/shm stays at the 64MB default.
+    shm_size: "2gb"
+    # These four are the instance controller. The container is not privileged.
+    cap_add:
+      - IPC_LOCK
+      - IPC_OWNER
+      - SYS_NICE
+      - SYS_RESOURCE
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "127.0.0.1:50000:50000"
+    environment:
+      LICENSE: accept
+      DB2INSTANCE: db2inst1
+      DB2INST1_PASSWORD: Dbfit_db21
+      DBNAME: MYCO
+      BLU: "false"
+      TO_CREATE_SAMPLEDB: "false"
+      ENABLE_ORACLE_COMPATIBILITY: "false"
+      UPDATEAVAIL: "NO"
+      REPODB: "false"
+      IS_OSXFS: "false"
+      # Instance home stays on the container filesystem. Db2 program files
+      # must be allowed to run setuid, and the data volume is mounted nosuid.
+      PERSISTENT_HOME: "false"
+      HADR_ENABLED: "false"
+      ARCHIVE_LOGS: "false"
+    volumes:
+      - business-db2-data:/database
+      - ./schema.db2:/work/schema.db2:Z
+      - ./DB2:/work/DB2:Z
+      - ./Static:/work/Static:Z
+    healthcheck:
+      test: ["CMD-SHELL", "su - db2inst1 -c 'db2 connect to MYCO'"]
+      interval: 20s
+      timeout: 20s
+      retries: 60
+      start_period: 120s
+
 volumes:
   business-pgsql-data:
   business-mysql-data:
   business-mssql-data:
   business-oracle-data:
+  business-db2-data:

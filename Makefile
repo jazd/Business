@@ -14,7 +14,8 @@ ifeq (,$(wildcard /usr/local/bin/sqlt))
 endif
 
 # 127.0.0.1 and localhost start business-pgsql, business-mysql, business-mssql,
-# and, for oracledb, business-oracle. Any other host is used as given.
+# and, for oracledb and db2db, business-oracle and business-db2.
+# Any other host is used as given.
 PostgreSQLServer = 127.0.0.1
 
 MySQLServer = 127.0.0.1
@@ -27,10 +28,14 @@ MSSQL_SA_PASSWORD = Dbfit_sa1
 # business-oracle service FREEPDB1. User test uses dbfit. SYS and SYSTEM use Dbfit_oracle1.
 OracleServer = 127.0.0.1
 
+# business-db2 database MYCO. User test uses dbfit. Instance owner db2inst1 uses Dbfit_db21.
+DB2Server = 127.0.0.1
+
 PGSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(PostgreSQLServer))
 MYSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(MySQLServer))
 MSSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(SQLServerServer))
 ORACLE_IS_CONTAINER := $(filter localhost 127.0.0.1,$(OracleServer))
+DB2_IS_CONTAINER := $(filter localhost 127.0.0.1,$(DB2Server))
 # sqlcmd in the 2022 image. -C trusts the container certificate.
 SQLCMD = podman exec -w /work business-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -b
 
@@ -101,7 +106,7 @@ schema.db2: schema.xml sqlt-cmd
 	@echo Creating DB2 file $@
 	if [[ -e $@ ]]; then chmod +w $@; fi
 	sed 's/^/-- /' LICENSE.txt > $@
-	$(SQLT) -f XML-SQLFairy -t DB2 $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" >> $@
+	$(SQLT) -f XML-SQLFairy -t DB2 $(DROP_TABLE) $< | sed -e 's|["'\'']||g' | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | awk -f scripts/db2-ddl.awk >> $@
 	chmod -w $@
 
 schema.sqlserver: schema.xml sqlt-cmd
@@ -149,7 +154,7 @@ dbfit: Containerfile.dbfit
 
 # Stops every service in compose.dbfit.yml. Named volumes stay.
 # mssql stays the schema.sqlserver alias. mssql-start only brings the container up.
-.PHONY: dbfit-stop mssql-start sqlcmd oracle-start sqlplus
+.PHONY: dbfit-stop mssql-start sqlcmd oracle-start sqlplus db2-start db2clp
 dbfit-stop:
 	podman compose -f compose.dbfit.yml stop
 
@@ -168,6 +173,14 @@ oracle-start:
 # Interactive sqlplus in business-oracle, service FREEPDB1.
 sqlplus: oracle-start
 	podman exec -it business-oracle sqlplus test/dbfit@//localhost/FREEPDB1
+
+# Starts business-db2 and does not reload MYCO.
+db2-start:
+	podman compose -f compose.dbfit.yml up -d --wait business-db2
+
+# Interactive shell as the instance owner. db2 is on PATH after the login profile.
+db2clp: db2-start
+	podman exec -it business-db2 bash -lc 'exec su - db2inst1'
 
 # PL/pgSQL sources live in PostgreSQL/procedures.d/ (ordered 00-99); assemble into procedures.sql
 .PHONY: procedures
@@ -228,6 +241,28 @@ oracledb: touch-xml schema.oracle
 	  echo To create the Oracle schema with $@; \
 	  echo sqlplus test/dbfit@//$(OracleServer)/FREEPDB1; \
 	  echo Oracle/pre.sql, schema.oracle without CREATE VIEW, $(ORACLE_STATIC), Oracle/post.sql; \
+	fi
+
+# Plain INSERT seeds. GetAddress, GetSentence, and GetInterval stay out.
+DB2_STATIC = Static/0_Family.sql Static/0_Given.sql Static/0_Culture.sql Static/0_Word.sql \
+	Static/1_Country.sql Static/1_Entity.sql Static/1_Name.sql Static/1_Sentence.sql Static/1_Word_agent.sql \
+	Static/3_Email.sql Static/3_Individual.sql Static/3_Path.sql \
+	Static/4_IndividualEmail.sql Static/4_IndividualPath.sql Static/4_ListIndividual.sql Static/4_ListIndividualName.sql \
+	Static/4_Phone.sql
+
+db2db: touch-xml schema.db2
+	@if [ -n "$(DB2_IS_CONTAINER)" ]; then \
+	  podman compose -f compose.dbfit.yml up -d --wait business-db2 && \
+	  podman exec -u root business-db2 bash /work/DB2/prepare.sh && \
+	  podman exec -u db2inst1 business-db2 bash /work/DB2/wipe.sh && \
+	  { awk -f scripts/db2-skip-views.awk schema.db2; \
+	    sed -e 's/, false)/, 0)/g' -e 's/, true)/, 1)/g' -e 's/[[:space:]]*--.*$$//' $(DB2_STATIC); \
+	    cat DB2/post.sql; \
+	  } | podman exec -i -u db2inst1 business-db2 bash -lc 'set -e; . ~/sqllib/db2profile; cat > /tmp/business-load.sql; db2 connect to MYCO user test using dbfit; db2 -stvf /tmp/business-load.sql'; \
+	else \
+	  echo To create the Db2 schema with $@; \
+	  echo db2 connect to MYCO user test using dbfit; \
+	  echo schema.db2 without CREATE VIEW, $(DB2_STATIC), DB2/post.sql; \
 	fi
 
 mysqldb: export DROP_TABLE = --add-drop-table

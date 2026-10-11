@@ -1,0 +1,5 @@
+!4 Verify SessionPath table exists
+Has no static records
+!|Query Stats                                              |
+|query                                |row count?|is empty?|
+|SELECT "SESSION" FROM SessionPath FETCH FIRST 1 ROW ONLY|0       |true     |

@@ -1,3 +1,5 @@
 !path lib/*.jar
 !|dbfit.DB2Test|
-!|Connect|localhost|test|dbfit|MyCo|
+Compose service business-db2, user test, password dbfit, database MYCO.
+
+!|Connect|business-db2:50000|test|dbfit|MyCo|

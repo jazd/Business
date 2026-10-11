@@ -1,0 +1,5 @@
+!4 Verify IndividualAddress table exists
+Has no static records
+!|Query Stats                                                         |
+|query                                           |row count?|is empty?|
+|SELECT individual FROM IndividualAddress FETCH FIRST 1 ROW ONLY|0         |true     |

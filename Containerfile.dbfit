@@ -77,5 +77,17 @@ RUN apt-get update \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* /tmp/ora-add
 
+# JCC 12.1.5.0. DbFit loads com.ibm.db2.jcc.DB2Driver.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl ca-certificates \
+ && curl -fsSL -o /dbfit/lib/jcc-12.1.5.0.jar \
+      https://repo1.maven.org/maven2/com/ibm/db2/jcc/12.1.5.0/jcc-12.1.5.0.jar \
+ && echo 'f549d8e6f78dff153eebec2ed5e67e41744bb690  /dbfit/lib/jcc-12.1.5.0.jar' | sha1sum -c - \
+ && test -f /dbfit/lib/ojdbc8-21.9.0.0.jar \
+ && test -f /dbfit/lib/mssql-jdbc-12.10.2.jre11.jar \
+ && apt-get purge -y curl \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 8085
 CMD ["./startFitnesse.sh"]
