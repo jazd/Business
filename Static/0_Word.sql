@@ -231,3 +231,4 @@ INSERT INTO Word (id,culture,value) VALUES (80124,NULL,'link');
 INSERT INTO Word (id,culture,value) VALUES (80125,NULL,'url');
 INSERT INTO Word (id,culture,value) VALUES (80126,NULL,'count');
 INSERT INTO Word (id,culture,value) VALUES (80127,NULL,'number');
+INSERT INTO Word (id,culture,value) VALUES (80128,NULL,'space');

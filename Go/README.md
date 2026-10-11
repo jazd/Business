@@ -30,9 +30,10 @@ and `note`. `MIME` is multipart/alternative: `text/plain`, then that HTML.
 A piece with `Squash` set joins with the next piece when the class matches
 and the sequences are consecutive. The join is one space. CSS stays with the caller.
 
-`Sample/SQL/Content/notice.sql` stores a heading sentence, a `link`, a lede
-sentence, and a `count`. `ExampleFill` returns a fixed URL for `link`/`url`
-and `2` for `count`/`number`.
+`Sample/SQL/Content/notice.sql` stores a heading, a `link`, an unsquashed
+lede and `count`, then that pair with `squash` `space`. `ExampleFill`
+returns a fixed URL for `link`/`url` and `2` for `count`/`number`. The
+marked pair renders as one line, `2` then the sentence.
 
 From this directory, `go run ./cmd/render` prints that rendering. The default
 connection is host `127.0.0.1`, port `5432`, user `test`, password `dbfit`,

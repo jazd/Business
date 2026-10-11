@@ -1,6 +1,7 @@
 -- Notice template. One content id.
--- The open edition is a heading sentence, a link, a lede sentence, and a count.
--- fr-FR and es-MX are stored on the two sentences only.
+-- The open edition is a heading, a link, an unsquashed lede and count,
+-- then the same pair with squash space.
+-- fr-FR and es-MX are stored on the sentences only.
 -- class heading, lede, and note have a null target, so html and mime both receive them.
 -- ExampleFill returns the link URL and the count.
 
@@ -46,13 +47,15 @@ BEGIN
   SELECT 1 FROM Sentence WHERE id = sent2 AND culture = 2058
  );
 
- PERFORM SetContentElement(content_id, 1, heading_id, NULL, sent1, NULL, NULL, NULL, NULL);
- PERFORM SetContentElement(content_id, 2, note_id, NULL, NULL, NULL, NULL, 'link', 'url');
- PERFORM SetContentElement(content_id, 3, lede_id, NULL, sent2, NULL, NULL, NULL, NULL);
- PERFORM SetContentElement(content_id, 4, NULL, NULL, NULL, NULL, NULL, 'count', 'number');
+ PERFORM SetContentElement(content_id, 1, heading_id, NULL, sent1, NULL, NULL, NULL, NULL, NULL);
+ PERFORM SetContentElement(content_id, 2, note_id, NULL, NULL, NULL, NULL, 'link', 'url', NULL);
+ PERFORM SetContentElement(content_id, 3, lede_id, NULL, sent2, NULL, NULL, NULL, NULL, NULL);
+ PERFORM SetContentElement(content_id, 4, NULL, NULL, NULL, NULL, NULL, 'count', 'number', NULL);
+ PERFORM SetContentElement(content_id, 5, lede_id, NULL, NULL, NULL, NULL, 'count', 'number', 'space');
+ PERFORM SetContentElement(content_id, 6, lede_id, NULL, sent2, NULL, NULL, NULL, NULL, 'space');
 END $$;
 
-SELECT sequence, kind, value, name, attribute, identifier, identifierType
+SELECT sequence, kind, value, name, attribute, identifier, identifierType, squash
 FROM ContentBody(
  (
   SELECT Content.id
@@ -66,7 +69,7 @@ FROM ContentBody(
  'fr-FR'
 );
 
-SELECT sequence, kind, value, name, attribute, identifier, identifierType
+SELECT sequence, kind, value, name, attribute, identifier, identifierType, squash
 FROM ContentBody(
  (
   SELECT Content.id

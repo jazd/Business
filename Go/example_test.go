@@ -28,6 +28,8 @@ func TestExampleNoticeHTMLAndMIME(t *testing.T) {
 		{Sequence: 2, Kind: "dynamic", Name: "class", Attribute: "note", Identifier: "link", IdentifierType: "url"},
 		{Sequence: 3, Kind: "sentence", Value: "Items ready", Name: "class", Attribute: "lede"},
 		{Sequence: 4, Kind: "dynamic", Identifier: "count", IdentifierType: "number"},
+		{Sequence: 5, Kind: "dynamic", Name: "class", Attribute: "lede", Identifier: "count", IdentifierType: "number", Squash: "space"},
+		{Sequence: 6, Kind: "sentence", Value: "Items ready", Name: "class", Attribute: "lede", Squash: "space"},
 	}
 	pieces := piecesFromElements(rows, ExampleFill)
 	page, err := HTML(pieces)
@@ -39,6 +41,7 @@ func TestExampleNoticeHTMLAndMIME(t *testing.T) {
 		`<p class="note">https://example.test/notice</p>`,
 		`<p class="lede">Items ready</p>`,
 		`<p>2</p>`,
+		`<p class="lede">2 Items ready</p>`,
 	}, "\n")
 	if page != want {
 		t.Fatalf("html\n%s", page)
@@ -48,7 +51,7 @@ func TestExampleNoticeHTMLAndMIME(t *testing.T) {
 		t.Fatal(err)
 	}
 	plain := joinText(pieces)
-	if plain != "Here is the notice\nhttps://example.test/notice\nItems ready\n2" {
+	if plain != "Here is the notice\nhttps://example.test/notice\nItems ready\n2\n2 Items ready" {
 		t.Fatalf("plain %q", plain)
 	}
 	if !strings.Contains(body, "multipart/alternative") ||
