@@ -22,23 +22,31 @@ http://localhost:8085/BusinessSchema
 
 # PostgreSQL
 
-Test server:
+`make pgsqldb` drops and reloads the Business schema in database `MyCo`.
+The default host is `127.0.0.1`. That host, and `localhost`, start compose
+service `business-pgsql` from `compose.dbfit.yml`, wait until it is healthy,
+and then load. A different `PostgreSQLServer` is used as given, and the
+Makefile leaves the containers alone.
 
 | | |
 |---|---|
-| Host | `postgres` |
+| Host | `127.0.0.1` |
+| Image | `docker.io/library/postgres:17` |
 | Database | `MyCo` |
 | User | `test` |
 | Password | `dbfit` |
-| Schema | `Business` |
+| Schema | `business` |
 
-In the Makefile set:
+The image creates the user and the database. `PostgreSQL/container-init.sql`
+creates schema `business` and sets `search_path` to `business, public`.
+`PostgreSQL/pre.sql` begins with `SET search_path TO Business`. The Makefile
+applies `container-init.sql` before each load of a container host.
+
+In the Makefile:
 
 ```
-PostgreSQLServer = postgres
+PostgreSQLServer = 127.0.0.1
 ```
-
-`make pgsqldb` drops and reloads the Business schema on that server.
 
 ```
 cd <git root>/Business
@@ -48,14 +56,14 @@ make pgsqldb
 Direct login:
 
 ```
-psql -h postgres -U test MyCo
+PGPASSWORD=dbfit psql -h 127.0.0.1 -U test MyCo
 ```
 
 Suite setup is `DbFit/BusinessSchema/PostgreSqlSuite/SetUp/content.txt`:
 
 ```
 !|dbfit.PostgresTest|
-!|Connect|postgres|test|dbfit|MyCo|
+!|Connect|localhost|test|dbfit|MyCo|
 ```
 
 http://localhost:8085/BusinessSchema.PostgreSqlSuite?suite
@@ -63,52 +71,29 @@ http://localhost:8085/BusinessSchema.PostgreSqlSuite?suite
 A page that does not inherit that setup needs the same `Connect` row, plus
 `!path lib/*.jar`.
 
-## PostgreSQL container
-
-This is a separate server from the `postgres` host. Pass `PostgreSQLServer=localhost`
-so `make pgsqldb` does not load the VM.
-
-```
-podman pull docker.io/library/postgres:latest
-podman run -d --name my-postgres \
-  -e POSTGRES_USER=admin \
-  -e POSTGRES_DB=MyCo \
-  -e POSTGRES_PASSWORD=dbfit \
-  -p 5432:5432 \
-  docker.io/library/postgres:latest
-```
-
-```
-PGPASSWORD=dbfit psql -h localhost -U admin MyCo
-```
-
-```
-CREATE USER test WITH PASSWORD 'dbfit';
-ALTER ROLE test WITH LOGIN;
-CREATE SCHEMA Business;
-GRANT ALL ON SCHEMA Business TO test;
-ALTER USER test SET search_path TO Business;
-```
-
-```
-cd <git root>/Business
-PGPASSWORD=dbfit make pgsqldb PostgreSQLServer=localhost
-```
-
 # MySQL
 
-Test server:
+`make mysqldb` drops and reloads the Business tables in MySQL `MyCo`. The
+default host is `127.0.0.1`. That host, and `localhost`, start compose
+service `business-mysql` from `compose.dbfit.yml`, wait until it is healthy,
+and then load. A different `MySQLServer` is used as given, and the Makefile
+leaves the containers alone. This load does not touch the PostgreSQL server.
 
 | | |
 |---|---|
-| Host | `mysql8` |
-| Server | MySQL 8 |
+| Host | `127.0.0.1` |
+| Image | `docker.io/library/mysql:8.0` |
 | Database | `MyCo` |
 | Character set | `utf8mb4` / `utf8mb4_unicode_ci` |
-| User | `test`@`%` |
+| User | `test` |
 | Password | `dbfit` |
+| Authentication | `mysql_native_password` |
 
-Create the database and account as an administrator:
+The service starts with `log_bin_trust_function_creators=1`. `ClientCulture`
+and `GetSentence` need that while binary logging is on.
+
+On a MySQL server that this Makefile does not start, create the database and
+account as an administrator:
 
 ```
 CREATE DATABASE MyCo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -138,18 +123,15 @@ log in with `caching_sha2_password`, which is why the account uses
 Check the login:
 
 ```
-mysql -h mysql8 -u test -pdbfit MyCo
+mysql -h 127.0.0.1 -u test -pdbfit MyCo
 ```
 
-In the Makefile set:
+In the Makefile:
 
 ```
-MySQLServer = mysql8
+MySQLServer = 127.0.0.1
 MySQLPassword = -pdbfit
 ```
-
-`make mysqldb` drops and reloads the Business tables in MySQL `MyCo`. It does
-not touch the PostgreSQL server.
 
 ```
 cd <git root>/Business
@@ -164,7 +146,7 @@ Suite setup is `DbFit/BusinessSchema/MySqlSuite/SetUp/content.txt`:
 
 ```
 !|dbfit.MySqlTest|
-!|Connect|mysql8|test|dbfit|MyCo|
+!|Connect|localhost|test|dbfit|MyCo|
 ```
 
 http://localhost:8085/BusinessSchema.MySqlSuite?suite

@@ -13,10 +13,20 @@ ifeq (,$(wildcard /usr/local/bin/sqlt))
 	SQLT := podman run --rm -v $(CURDIR):/app:Z jazd/sqlt:dev sqlt
 endif
 
-PostgreSQLServer = localhost
+# 127.0.0.1 and localhost start business-pgsql and business-mysql.
+# Any other host is used as given.
+PostgreSQLServer = 127.0.0.1
 
-MySQLServer = localhost
+MySQLServer = 127.0.0.1
 MySQLPassword = -pdbfit
+
+PGSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(PostgreSQLServer))
+MYSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(MySQLServer))
+ifneq ($(PGSQL_IS_CONTAINER),)
+PSQL_AUTH = PGPASSWORD=dbfit
+else
+PSQL_AUTH =
+endif
 
 
 ifeq ($(MySQLServer),)
@@ -130,11 +140,12 @@ PostgreSQL/procedures.sql: $(wildcard PostgreSQL/procedures.d/*.sql) scripts/ass
 
 pgsqldb: export DROP_TABLE = --add-drop-table
 pgsqldb: touch-xml schema.pgsql PostgreSQL/procedures.sql
+	@if [ -n "$(PGSQL_IS_CONTAINER)" ]; then podman compose -f compose.dbfit.yml up -d --wait business-pgsql; $(PSQL_AUTH) psql -h $(PostgreSQLServer) -U test -d MyCo -v ON_ERROR_STOP=1 -f PostgreSQL/container-init.sql; fi
 	@echo Creating new PostgreSQL database with $@
-	cat PostgreSQL/pre.sql schema.pgsql PostgreSQL/procedures.sql PostgreSQL/post.sql | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true
-	cat Static/[01]_* | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
-	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
-	cat Static/[23456789]_* | psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
+	cat PostgreSQL/pre.sql schema.pgsql PostgreSQL/procedures.sql PostgreSQL/post.sql | $(PSQL_AUTH) psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null | grep ERROR || true
+	cat Static/[01]_* | $(PSQL_AUTH) psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
+	awk -f scripts/USZip.awk Static/GeoNamesUSZipSample.tsv | awk -f scripts/PostalImportPostgreSQL.awk | $(PSQL_AUTH) psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
+	cat Static/[23456789]_* | $(PSQL_AUTH) psql -h $(PostgreSQLServer) -U test MyCo 3>&1 1>&2 2>&3 3>&- 1>/dev/null
 
 sqlserverdb: export DROP_TABLE = --add-drop-table
 sqlserverdb: touch-xml schema.sqlserver
@@ -147,6 +158,7 @@ sqlserverdb: touch-xml schema.sqlserver
 
 mysqldb: export DROP_TABLE = --add-drop-table
 mysqldb: touch-xml schema.mysql
+	@if [ -n "$(MYSQL_IS_CONTAINER)" ]; then podman compose -f compose.dbfit.yml up -d --wait business-mysql; fi
 	@echo Creating new MySQL database with $@
 	cat MySQL/pre.sql schema.mysql MySQL/procedures.sql MySQL/post.sql | mysql -h $(MySQLServer) -u test $(MySQLPassword) MyCo
 	cat MySQL/0_TimeZone.sql |  mysql -h $(MySQLServer) -u test $(MySQLPassword) MyCo

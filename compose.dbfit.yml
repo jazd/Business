@@ -1,30 +1,47 @@
-version: '3.8'
-
 services:
-  pgsql:
-    image: docker.io/postgres:17-bookworm
-    container_name: pgsql
+  business-pgsql:
+    image: docker.io/library/postgres:17
+    container_name: business-pgsql
     environment:
       POSTGRES_DB: MyCo
       POSTGRES_USER: test
-      POSTGRES_PASSWORD: test
+      POSTGRES_PASSWORD: dbfit
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - business-pgsql-data:/var/lib/postgresql/data
+      - ./PostgreSQL/container-init.sql:/docker-entrypoint-initdb.d/01-business.sql:Z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U test -d MyCo"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 5
-    tmpfs:
-      - /var/lib/postgresql/data
+      retries: 20
+      start_period: 10s
 
-  dbfit:
-    image: docker.io/thinkwhere/dbfit:latest
+  business-mysql:
+    image: docker.io/library/mysql:8.0
+    container_name: business-mysql
+    environment:
+      MYSQL_DATABASE: MyCo
+      MYSQL_USER: test
+      MYSQL_PASSWORD: dbfit
+      MYSQL_ROOT_PASSWORD: dbfit
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --log-bin-trust-function-creators=1
     ports:
-      - "8085:8085"
+      - "127.0.0.1:3306:3306"
     volumes:
-     - ./DbFit:/dbfit/FitNesseRoot/DbFit:z
-    depends_on:
-      pgsql:
-        condition: service_healthy
+      - business-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-utest", "-pdbfit", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
 
+volumes:
+  business-pgsql-data:
+  business-mysql-data:
