@@ -55,6 +55,7 @@ schema.mysql: schema.xml container
 	sed 's/^/-- /' LICENSE.txt > $@
 	$(SQLT) -f XML-SQLFairy -t MySQL $(DROP_TABLE) $<.excludeSomeViews | sed -e "s/\`//g" | sed -e "s/\!apos;/\'/g" | sed -e "s/\!lt;/\</g" | sed -e "s/\!gt;/\>/g" | sed -e "s/!amp;/\&/g" | sed -E 's|([^_])exit|\1`exit`|g' | sed -e "s/'NOW()'/CURRENT_TIMESTAMP/g" | sed -e 's|lock|`lock`|g' | sed -E 's|([ \(])release([^_])|\1`release`\2|g' | sed -E 's/\sRelease([^_])/ `Release`\1/g' | sed -e 's|get text|`get` text|g' | sed -e "s/'false'/'0'/g" | sed -e "s/ interval / float /g" | sed -e 's|inet|varchar|g' | sed -e 's/WITHOUT TIME ZONE//g' | sed -e 's/integer integer/`integer` integer/g' | sed -e 's/float float/`float` float/g' | sed -e 's| schema | `schema` |g' | sed -e 's/get varchar/`get` varchar/g' | sed -e '/sentence_id_culture_value/ s/value)/value(256))/' | sed -e '/paragraph_id_culture_value/ s/value)/value(256))/' >> $@
 	chmod -w $@
+	rm -f $<.excludeSomeViews
 
 SQLITE_UNSUPORTED_VIEWS = TimePeriod Certificates
 schema.sqlite: schema.xml container
@@ -136,10 +137,10 @@ sqlserverdb: touch-xml schema.sqlserver
 mysqldb: export DROP_TABLE = --add-drop-table
 mysqldb: touch-xml schema.mysql
 	@echo Creating new MySQL database with $@
-	cat MySQL/pre.sql schema.mysql MySQL/procedures.sql | mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
-	cat MySQL/0_TimeZone.sql |  mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
-	cat Static/[01]_[^T]* |  mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
-	cat Static/[23456789]_* | grep -v GetAddress | mysql -h $(MySQLServer) -u test $(MySQLPassword) Business
+	cat MySQL/pre.sql schema.mysql MySQL/procedures.sql MySQL/post.sql | mysql -h $(MySQLServer) -u test $(MySQLPassword) MyCo
+	cat MySQL/0_TimeZone.sql |  mysql -h $(MySQLServer) -u test $(MySQLPassword) MyCo
+	cat Static/[01]_[^T]* |  mysql -h $(MySQLServer) -u test $(MySQLPassword) MyCo
+	cat Static/[23456789]_* | grep -v GetAddress | mysql -h $(MySQLServer) -u test $(MySQLPassword) MyCo
 
 # SQLite release template: same seed story as pgsqldb (Static + GeoNames sample)
 # without PL/pgSQL. See scripts/build-business-sqlite3.sh.

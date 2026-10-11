@@ -3,7 +3,7 @@
 --
 -- MySQL Does not support FUNCTION overloading :-(
 
-USE Business;
+USE MyCo;
 
 DROP FUNCTION IF EXISTS GetSentenceCulture;
 DELIMITER $$
