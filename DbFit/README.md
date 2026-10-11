@@ -2,23 +2,21 @@ dbfit http://dbfit.github.io/dbfit/
 
 # FitNesse
 
-Link the schema pages into the FitNesse root. The install directory is the
-directory that contains `startFitnesse.sh` and `FitNesseRoot`, not a nested
-`dbfit/` folder.
+`business-dbfit` serves the suites on `127.0.0.1:8085`. The image is built
+from the local FitNesse install. That directory contains `startFitnesse.sh`,
+`plugins.properties` (`Port=8085`), and `lib/mysql-connector-java-5.1.49.jar`.
+Connector/J 5.1.36 stays out of `lib/`.
 
 ```
-ln -s <git root>/Business/DbFit/BusinessSchema \
-  <dbfit install directory>/FitNesseRoot/BusinessSchema
+podman build -f Containerfile.dbfit -t localhost/jazd/dbfit:dev <dbfit install directory>
+podman compose -f compose.dbfit.yml up -d business-dbfit
 ```
 
-```
-cd <dbfit install directory>
-./startFitnesse.sh
-```
+Compose mounts `DbFit/BusinessSchema` at the image's `FitNesseRoot/BusinessSchema`.
+The PostgreSQL suite connects to `business-pgsql`. The MySQL suite connects to
+`business-mysql`. Both use `test` / `dbfit` / `MyCo`.
 
-FitNesse listens on port 8085.
-
-http://localhost:8085/BusinessSchema
+http://127.0.0.1:8085/BusinessSchema
 
 # PostgreSQL
 
@@ -63,10 +61,10 @@ Suite setup is `DbFit/BusinessSchema/PostgreSqlSuite/SetUp/content.txt`:
 
 ```
 !|dbfit.PostgresTest|
-!|Connect|localhost|test|dbfit|MyCo|
+!|Connect|business-pgsql|test|dbfit|MyCo|
 ```
 
-http://localhost:8085/BusinessSchema.PostgreSqlSuite?suite
+http://127.0.0.1:8085/BusinessSchema.PostgreSqlSuite?suite
 
 A page that does not inherit that setup needs the same `Connect` row, plus
 `!path lib/*.jar`.
@@ -146,16 +144,16 @@ Suite setup is `DbFit/BusinessSchema/MySqlSuite/SetUp/content.txt`:
 
 ```
 !|dbfit.MySqlTest|
-!|Connect|localhost|test|dbfit|MyCo|
+!|Connect|business-mysql|test|dbfit|MyCo|
 ```
 
-http://localhost:8085/BusinessSchema.MySqlSuite?suite
+http://127.0.0.1:8085/BusinessSchema.MySqlSuite?suite
 
 `MySqlSuite` links each `TableTests` page that passes on this load. It does not link `ProcedureTests`, `ViewTests`, or `XcepteionRequired`. These table pages stay unlinked: `Address` and `Postal` (the load does not create `GetAddress` or `GetPostal`), `Dual`, `Path`, `Release`, and `SchemaVersion` (MySQL reserved names), and `Entity`, `Family`, `Given`, `Sentence`, and `Word` (case-sensitive text, or an explicit id of 0).
 
 The connection page reads `VERSION()` and does not need the tables:
 
-http://localhost:8085/BusinessSchema.MySqlSuite.Connection
+http://127.0.0.1:8085/BusinessSchema.MySqlSuite.Connection
 
 # SQL Server
 

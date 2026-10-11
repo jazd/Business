@@ -2,7 +2,7 @@
 !path lib/*.jar
 !|dbfit.PostgresTest|
 http://dbfit.github.io/dbfit/docs/reference.html#connect
-compose database server is pgsql, test, test, MyCo
+Compose service business-pgsql, user test, password dbfit, database MyCo.
 
 Server, Username, password ,database name
-!|Connect|localhost|test|dbfit|MyCo|
+!|Connect|business-pgsql|test|dbfit|MyCo|

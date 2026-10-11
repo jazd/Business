@@ -63,6 +63,19 @@ services:
       retries: 40
       start_period: 20s
 
+  business-dbfit:
+    image: localhost/jazd/dbfit:dev
+    container_name: business-dbfit
+    ports:
+      - "127.0.0.1:8085:8085"
+    volumes:
+      - ./DbFit/BusinessSchema:/dbfit/FitNesseRoot/BusinessSchema:Z
+    depends_on:
+      business-pgsql:
+        condition: service_healthy
+      business-mysql:
+        condition: service_healthy
+
 volumes:
   business-pgsql-data:
   business-mysql-data:

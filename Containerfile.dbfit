@@ -1,0 +1,26 @@
+# Local FitNesse image for the Business suites.
+# Build context is the FitNesse install that contains startFitnesse.sh.
+#   podman build -f Containerfile.dbfit -t localhost/jazd/dbfit:dev <dbfit install directory>
+FROM docker.io/library/eclipse-temurin:25-jre
+
+WORKDIR /dbfit
+
+COPY lib/*.jar /dbfit/lib/
+COPY plugins.properties /dbfit/plugins.properties
+COPY startFitnesse.sh /dbfit/startFitnesse.sh
+COPY FitNesseRoot/content.txt /dbfit/FitNesseRoot/content.txt
+COPY FitNesseRoot/properties /dbfit/FitNesseRoot/properties
+COPY FitNesseRoot/properties.xml /dbfit/FitNesseRoot/properties.xml
+COPY FitNesseRoot/FrontPage/ /dbfit/FitNesseRoot/FrontPage/
+COPY FitNesseRoot/PageFooter/ /dbfit/FitNesseRoot/PageFooter/
+COPY FitNesseRoot/files/css/ /dbfit/FitNesseRoot/files/css/
+COPY FitNesseRoot/files/javascript/ /dbfit/FitNesseRoot/files/javascript/
+COPY FitNesseRoot/files/images/ /dbfit/FitNesseRoot/files/images/
+COPY FitNesseRoot/files/data/ /dbfit/FitNesseRoot/files/data/
+
+RUN mkdir -p /dbfit/FitNesseRoot/BusinessSchema \
+ && ln -s /dbfit/lib /dbfit/FitNesseRoot/lib \
+ && chmod +x /dbfit/startFitnesse.sh
+
+EXPOSE 8085
+CMD ["./startFitnesse.sh"]

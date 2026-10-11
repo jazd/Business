@@ -29,6 +29,9 @@ MYSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(MySQLServer))
 MSSQL_IS_CONTAINER := $(filter localhost 127.0.0.1,$(SQLServerServer))
 # sqlcmd in the 2022 image. -C trusts the container certificate.
 SQLCMD = podman exec -w /work business-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -b
+
+# FitNesse install used as the business-dbfit build context.
+DBFIT_HOME ?= $(HOME)/dbfit
 ifneq ($(PGSQL_IS_CONTAINER),)
 PSQL_AUTH = PGPASSWORD=dbfit
 else
@@ -137,6 +140,10 @@ container: Containerfile.sqlt
 
 container-diagram: Containerfile.sqlt-diagram container
 	podman build -t jazd/sqlt-diagram:dev -f Containerfile.sqlt-diagram .
+
+dbfit: Containerfile.dbfit
+	podman build -f Containerfile.dbfit -t localhost/jazd/dbfit:dev $(DBFIT_HOME)
+	podman compose -f compose.dbfit.yml up -d business-dbfit
 
 # PL/pgSQL sources live in PostgreSQL/procedures.d/ (ordered 00-99); assemble into procedures.sql
 .PHONY: procedures
