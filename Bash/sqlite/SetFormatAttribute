@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Usage: SetFormatAttribute <format_id> <name> [value] [target]
-# target empty means every output. Parity with PG SetFormatAttribute.
+# target empty means every output. name, value, and target are GetIdentifier values.
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 source "$HERE/common"
@@ -16,14 +16,14 @@ if [[ -z "$FORMAT" || -z "$NAME" ]]; then
  exit 1
 fi
 
-name_id=$("$HERE/GetWord" "$NAME")
+name_id=$("$HERE/GetIdentifier" "$NAME")
 value_sql="NULL"
 target_sql="NULL"
 if [[ -n "$VALUE" ]]; then
- value_sql=$("$HERE/GetWord" "$VALUE")
+ value_sql=$("$HERE/GetIdentifier" "$VALUE")
 fi
 if [[ -n "$TARGET" ]]; then
- target_sql=$("$HERE/GetWord" "$TARGET")
+ target_sql=$("$HERE/GetIdentifier" "$TARGET")
 fi
 
 exists=$(sqlite_query_one "

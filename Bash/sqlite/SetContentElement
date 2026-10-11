@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-# Usage: SetContentElement <content_id> <sequence> <format_id> <word_id> <sentence_id> <paragraph_id> [argument]
-# Empty atom args are NULL. Exactly one of word, sentence, paragraph must be set.
-# argument is a Word name for a render-time count. Only stored when word_id is set.
+# Usage: SetContentElement <content_id> <sequence> <format_id> <word_id> <sentence_id> <paragraph_id> [argument] [name] [type]
+# Empty atom args are NULL. One of word, sentence, or paragraph, or both name and type.
+# argument is a GetWord name for a render-time count. Only stored when word_id is set.
+# name and type are GetIdentifier values. Stored together only when no atom is set.
 # Opens an edition when none is current. Repeated sequence on that edition is a no-op.
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -15,6 +16,8 @@ WORD="${4:-}"
 SENTENCE="${5:-}"
 PARAGRAPH="${6:-}"
 ARGUMENT="${7:-}"
+IDENT_NAME="${8:-}"
+IDENT_TYPE="${9:-}"
 
 if [[ -z "$CONTENT" || -z "$SEQUENCE" ]]; then
  echo "Usage: SetContentElement <content_id> <sequence> <format_id> <word_id> <sentence_id> <paragraph_id>" >&2
@@ -25,18 +28,28 @@ atoms=0
 [[ -n "$WORD" ]] && atoms=$((atoms+1))
 [[ -n "$SENTENCE" ]] && atoms=$((atoms+1))
 [[ -n "$PARAGRAPH" ]] && atoms=$((atoms+1))
-if [[ "$atoms" -ne 1 ]]; then
- echo ""
- exit 0
-fi
 
 word_sql=$(sql_int_or_null "$WORD")
 sentence_sql=$(sql_int_or_null "$SENTENCE")
 paragraph_sql=$(sql_int_or_null "$PARAGRAPH")
 format_sql=$(sql_int_or_null "$FORMAT")
 argument_sql="NULL"
-if [[ -n "$WORD" && -n "$ARGUMENT" ]]; then
- argument_sql=$("$HERE/GetWord" "$ARGUMENT")
+name_sql="NULL"
+type_sql="NULL"
+if [[ "$atoms" -eq 1 && -z "$IDENT_NAME" && -z "$IDENT_TYPE" ]]; then
+ if [[ -n "$WORD" && -n "$ARGUMENT" ]]; then
+  argument_sql=$("$HERE/GetWord" "$ARGUMENT")
+ fi
+elif [[ "$atoms" -eq 0 && -n "$IDENT_NAME" && -n "$IDENT_TYPE" ]]; then
+ name_sql=$("$HERE/GetIdentifier" "$IDENT_NAME")
+ type_sql=$("$HERE/GetIdentifier" "$IDENT_TYPE")
+ if [[ -z "$name_sql" || -z "$type_sql" ]]; then
+  echo ""
+  exit 0
+ fi
+else
+ echo ""
+ exit 0
 fi
 
 edition=$(sqlite_query_one "SELECT id FROM ContentEdition WHERE content = $CONTENT AND stop IS NULL LIMIT 1;")
@@ -48,8 +61,8 @@ fi
 exists=$(sqlite_query_one "SELECT 1 FROM ContentElement WHERE edition = $edition AND sequence = $SEQUENCE LIMIT 1;")
 if [[ -z "$exists" ]]; then
  sqlite_run "
-  INSERT INTO ContentElement (edition, sequence, word, sentence, paragraph, format, argument)
-  VALUES ($edition, $SEQUENCE, $word_sql, $sentence_sql, $paragraph_sql, $format_sql, $argument_sql);
+  INSERT INTO ContentElement (edition, sequence, word, sentence, paragraph, format, argument, name, type)
+  VALUES ($edition, $SEQUENCE, $word_sql, $sentence_sql, $paragraph_sql, $format_sql, $argument_sql, $name_sql, $type_sql);
  " >/dev/null
 fi
 echo "$CONTENT"

@@ -54,7 +54,7 @@ A person's chosen language is `Credential.culture`. A visitor's choice is `Sessi
 
 `SetFormat('Body copy')` returns a format id (sentence name).
 
-`SetFormatAttribute(format, name, value, target)` — `target` NULL is global (every output). A target Word (`txt`, `document`, `html`) is that output only. `StopFormatAttribute` ends that row only.
+`SetFormatAttribute(format, name, value, target)` — `target` NULL is global (every output). A target (`txt`, `document`, `html`, `mime`) is that output only. Name, value, and target are `GetIdentifier` words: one row, `culture` null. `StopFormatAttribute` ends that row only.
 
 `class` is the attribute name. The value is the token a stylesheet or a template already knows (`lede`, `heading`). A target row wins over the null-target row with the same name. `FormatFor(format, target)` returns the winning name and value. HTML, MIME, and the document file stay in the application.
 
@@ -64,7 +64,9 @@ A person's chosen language is `Credential.culture`. A visitor's choice is `Sessi
 
 `SetContent('Home page')` is the stable id. Sites and lists keep that id.
 
-`SetContentElement(content, sequence, format, word, sentence, paragraph, argument)` writes the open edition, or opens one. Exactly one of word, sentence, paragraph is set. The same sequence on that edition is a no-op. `argument` is optional and only stored on a word element.
+`SetContentElement(content, sequence, format, word, sentence, paragraph, argument)` writes the open edition, or opens one. Exactly one of word, sentence, or paragraph is set. The same sequence on that edition is a no-op. `argument` is optional and only stored on a word element, through `GetWord`.
+
+A dynamic element passes no word, sentence, or paragraph, and passes a name and a type. Both are `GetIdentifier` values, stored on `ContentElement.name` and `ContentElement.type`. `GetIdentifier` runs on that write only. The nine-argument form is `SetContentElement(content, sequence, format, word, sentence, paragraph, argument, name, type)`. The older forms pass null identifiers.
 
 ## Plurals
 

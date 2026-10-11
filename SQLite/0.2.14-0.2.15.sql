@@ -30,7 +30,8 @@
 --  3) ContentElement.name and ContentElement.type are integer columns.
 --     Each is a GetIdentifier id (Word.culture is null). They are set
 --     together, and only when word, sentence, and paragraph are all null.
---     This hop adds the columns. It does not write them yet.
+--     Bash SetContentElement stores them. SetFormatAttribute and
+--     StopFormatAttribute store name, value, and target with GetIdentifier.
 --
 -- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
 -- after this file runs successfully (Business 0.2.15) when STAMP_VERSION=1.

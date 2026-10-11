@@ -15,11 +15,11 @@ if [[ -z "$FORMAT" || -z "$NAME" ]]; then
  exit 1
 fi
 
-name_id=$("$HERE/GetWord" "$NAME")
+name_id=$("$HERE/GetIdentifier" "$NAME")
 value_sql="NULL"
 target_sql="NULL"
-[[ -n "$VALUE" ]] && value_sql=$("$HERE/GetWord" "$VALUE")
-[[ -n "$TARGET" ]] && target_sql=$("$HERE/GetWord" "$TARGET")
+[[ -n "$VALUE" ]] && value_sql=$("$HERE/GetIdentifier" "$VALUE")
+[[ -n "$TARGET" ]] && target_sql=$("$HERE/GetIdentifier" "$TARGET")
 
 sqlite_run "
  UPDATE FormatAttribute

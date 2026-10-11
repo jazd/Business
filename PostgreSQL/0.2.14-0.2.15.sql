@@ -28,7 +28,9 @@
 --  2) ContentElement.name and ContentElement.type are integer columns.
 --     Each is a GetIdentifier id (Word.culture is null). They are set
 --     together, and only when word, sentence, and paragraph are all null.
---     This hop adds the columns. It does not write them yet.
+--  3) SetContentElement stores those identifiers on that write.
+--     SetFormatAttribute and StopFormatAttribute store name, value, and
+--     target with GetIdentifier. argument on a word stays GetWord.
 --
 -- Version stamp stays commented until 0.2.15 is released.
 --
@@ -107,6 +109,177 @@ BEGIN
   END IF;
  END IF;
  RETURN site_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetFormatAttribute (
+ inFormat integer,
+ inName varchar,
+ inValue varchar,
+ inTarget varchar
+) RETURNS integer AS $$
+DECLARE
+ name_id integer;
+ value_id integer;
+ target_id integer;
+BEGIN
+ IF inFormat IS NOT NULL AND inName IS NOT NULL THEN
+  name_id := (SELECT GetIdentifier(inName));
+  value_id := (SELECT GetIdentifier(inValue));
+  target_id := (SELECT GetIdentifier(inTarget));
+  PERFORM pg_advisory_lock(inFormat);
+  BEGIN
+   INSERT INTO FormatAttribute (format, name, value, target) (
+    SELECT inFormat, name_id, value_id, target_id
+    FROM Dual
+    LEFT JOIN FormatAttribute AS exists ON exists.format = inFormat
+     AND exists.name = name_id
+     AND ((exists.value = value_id) OR (exists.value IS NULL AND value_id IS NULL))
+     AND ((exists.target = target_id) OR (exists.target IS NULL AND target_id IS NULL))
+     AND exists.stop IS NULL
+    WHERE exists.format IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inFormat);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inFormat);
+    RAISE;
+  END;
+ END IF;
+ RETURN inFormat;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION StopFormatAttribute (
+ inFormat integer,
+ inName varchar,
+ inValue varchar,
+ inTarget varchar
+) RETURNS integer AS $$
+DECLARE
+ name_id integer;
+ value_id integer;
+ target_id integer;
+BEGIN
+ IF inFormat IS NOT NULL AND inName IS NOT NULL THEN
+  name_id := (SELECT GetIdentifier(inName));
+  value_id := (SELECT GetIdentifier(inValue));
+  target_id := (SELECT GetIdentifier(inTarget));
+  PERFORM pg_advisory_lock(inFormat);
+  BEGIN
+   UPDATE FormatAttribute
+   SET stop = NOW()
+   WHERE format = inFormat
+    AND name = name_id
+    AND ((value = value_id) OR (value IS NULL AND value_id IS NULL))
+    AND ((target = target_id) OR (target IS NULL AND target_id IS NULL))
+    AND stop IS NULL;
+   PERFORM pg_advisory_unlock(inFormat);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inFormat);
+    RAISE;
+  END;
+ END IF;
+ RETURN inFormat;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetContentElement (
+ inContent integer,
+ inSequence integer,
+ inFormat integer,
+ inWord integer,
+ inSentence integer,
+ inParagraph integer,
+ inArgument varchar,
+ inName varchar,
+ inType varchar
+) RETURNS integer AS $$
+DECLARE
+ edition_id integer;
+ atom_count integer;
+ argument_id integer;
+ name_id integer;
+ type_id integer;
+ dynamic boolean;
+BEGIN
+ atom_count := (inWord IS NOT NULL)::integer
+  + (inSentence IS NOT NULL)::integer
+  + (inParagraph IS NOT NULL)::integer;
+ dynamic := atom_count = 0
+  AND inName IS NOT NULL
+  AND inType IS NOT NULL;
+ IF dynamic THEN
+  name_id := (SELECT GetIdentifier(inName));
+  type_id := (SELECT GetIdentifier(inType));
+ ELSIF atom_count = 1 AND inWord IS NOT NULL THEN
+  argument_id := (SELECT GetWord(inArgument));
+ END IF;
+ IF inContent IS NOT NULL
+  AND inSequence IS NOT NULL
+  AND (
+   (atom_count = 1 AND inName IS NULL AND inType IS NULL)
+   OR (dynamic AND name_id IS NOT NULL AND type_id IS NOT NULL)
+  ) THEN
+  PERFORM pg_advisory_lock(inContent);
+  BEGIN
+   SELECT id INTO edition_id
+   FROM ContentEdition
+   WHERE content = inContent
+    AND stop IS NULL
+   LIMIT 1;
+   IF edition_id IS NULL THEN
+    INSERT INTO ContentEdition (content) (
+     SELECT inContent
+     FROM Dual
+     LEFT JOIN ContentEdition AS exists ON exists.content = inContent
+      AND exists.stop IS NULL
+     WHERE exists.id IS NULL
+     LIMIT 1
+    );
+    SELECT id INTO edition_id
+    FROM ContentEdition
+    WHERE content = inContent
+     AND stop IS NULL
+    LIMIT 1;
+   END IF;
+   INSERT INTO ContentElement (
+    edition, sequence, word, sentence, paragraph, format, argument, name, type
+   ) (
+    SELECT edition_id, inSequence, inWord, inSentence, inParagraph,
+     inFormat, argument_id, name_id, type_id
+    FROM Dual
+    LEFT JOIN ContentElement AS exists ON exists.edition = edition_id
+     AND exists.sequence = inSequence
+    WHERE exists.edition IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inContent);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(inContent);
+    RAISE;
+  END;
+ END IF;
+ RETURN inContent;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetContentElement (
+ inContent integer,
+ inSequence integer,
+ inFormat integer,
+ inWord integer,
+ inSentence integer,
+ inParagraph integer,
+ inArgument varchar
+) RETURNS integer AS $$
+BEGIN
+ RETURN (SELECT SetContentElement(
+  inContent, inSequence, inFormat, inWord, inSentence, inParagraph, inArgument, NULL, NULL
+ ));
 END;
 $$ LANGUAGE plpgsql;
 
