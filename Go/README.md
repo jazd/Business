@@ -33,6 +33,17 @@ CSS stays with the caller.
 sentence, and a `count`. `ExampleFill` returns a fixed URL for `link`/`url`
 and `2` for `count`/`number`.
 
+From this directory, `go run ./cmd/render` prints that rendering. The default
+connection is host `127.0.0.1`, port `5432`, user `test`, password `dbfit`,
+database `MyCo`, the same server `make pgsqldb` and DbFit use. `PGHOST`,
+`PGPORT`, `PGUSER`, `PGPASSWORD`, and `PGDATABASE` override those values.
+
+```
+go run ./cmd/render -content 10
+go run ./cmd/render -content Notice -target html -culture fr-FR
+go run ./cmd/render -list Example -target txt
+```
+
 `EntitlementGrant` returns the current period for one individual, list, set,
 and source. `EntitlementSet` stops that row with reason `replaced` and inserts
 the next version. `EntitlementReference` stores an outside id on one version.

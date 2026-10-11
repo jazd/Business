@@ -155,7 +155,9 @@ A nil renderer uses the target identifier:
 
 A dynamic piece uses the same tags. The text inside the tag is the function's text, escaped. `MIME` is `multipart/alternative`. The first part is `text/plain`. The second part is `text/html` from `HTML`, so it uses the same `class` tokens. `MIME` sets no subject and no address. `HTML` and `MIME` are exported. Pass either one, or another function. That function receives the pieces, and its return value is the result.
 
-`ExampleFill` is the notice fill-in. It matches the identifier and the type:
+From `Go/`, `go run ./cmd/render -content Notice -target html -culture fr-FR` prints the rendering. With no flags for the server, it uses host `127.0.0.1`, port `5432`, user `test`, password `dbfit`, and database `MyCo`, the same server `make pgsqldb` and DbFit use.
+
+`ExampleFill` is the notice fill-in. The command uses it. It matches the identifier and the type:
 
 | Identifier | Type | Text |
 |------------|------|------|

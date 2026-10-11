@@ -95,6 +95,9 @@ names, because those names resolve on the compose network.
 PGPASSWORD=dbfit psql -h 127.0.0.1 -U test MyCo
 ```
 
+`Go/cmd/render` uses that same login and prints one rendered content, site,
+or list. From `Go/`: `go run ./cmd/render -content 10`.
+
 ### MySQL
 
 `business-mysql` is `mysql:8.0` on `127.0.0.1:3306`. Database `MyCo`, user
