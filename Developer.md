@@ -32,20 +32,25 @@ make dbfit
 
 `make dbfit` builds `localhost/jazd/dbfit:dev` and starts `business-dbfit`
 on `127.0.0.1:8085`. The image contains the FitNesse install: DbFit 3.2.0,
-Connector/J 5.1.49, PostgreSQL JDBC 42.2.5, `lib/postgres.jar` linked to
-that jar, and `FitNesseRoot/lib` linked to `/dbfit/lib`. That start also
-brings up `business-pgsql` and `business-mysql` when they are down. Load
-the schema with the targets above. Start SQL Server with `make sqlserverdb`
-or with the compose command below.
+Connector/J 5.1.49, PostgreSQL JDBC 42.2.5, Microsoft JDBC
+`mssql-jdbc-12.10.2.jre11.jar`, `lib/postgres.jar` linked to the PostgreSQL
+jar, and `FitNesseRoot/lib` linked to `/dbfit/lib`. That start also brings
+up `business-pgsql` and `business-mysql` when they are down. Load the schema
+with the targets above. Start SQL Server with `make mssql-start` when
+`MyCo` is already loaded, or `make sqlserverdb` to drop and reload it.
+`make mssql` still writes `schema.sqlserver` and does not start a container.
 
 Suites:
 
 - http://127.0.0.1:8085/BusinessSchema.PostgreSqlSuite?suite
 - http://127.0.0.1:8085/BusinessSchema.MySqlSuite?suite
+- http://127.0.0.1:8085/BusinessSchema.SqlServerSuite?suite
 
-The FitNesse container connects to compose service `business-pgsql` or
-`business-mysql`, user `test`, password `dbfit`, database `MyCo`. SQL Server
-has no FitNesse suite.
+The FitNesse container connects as user `test`, password `dbfit`, database
+`MyCo`. PostgreSQL uses compose service `business-pgsql`. MySQL uses
+`business-mysql`. SQL Server uses `business-mssql` and sets
+`trustServerCertificate` because the container certificate is not in the
+Java trust store.
 
 ## Start again
 
@@ -95,10 +100,24 @@ mysql -h 127.0.0.1 -u test -pdbfit MyCo
 login `test`, password `dbfit`, schema `Business`. The `sa` password is
 `Dbfit_sa1`.
 
-The image includes `sqlcmd`:
+`make mssql-start` starts the container and does not reload `MyCo`.
+`make sqlcmd` opens `sqlcmd` in that container as `test`.
+
+```
+make mssql-start
+make sqlcmd
+```
+
+The same client from the shell:
 
 ```
 podman exec -it business-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U test -P dbfit -d MyCo
+```
+
+A shell in the container with `sqlcmd` on `PATH`:
+
+```
+podman exec -it business-mssql bash -lc 'PATH="/opt/mssql-tools18/bin:$PATH" exec bash'
 ```
 
 `-C` trusts the container certificate. A `sqlcmd` on the host uses the same
@@ -122,7 +141,8 @@ reloads `MyCo` on that host.
 under `/dbfit`. A FitNesse process on the host can listen on 8085 after
 that stop.
 
-The committed suite `Connect` rows use `business-pgsql` and `business-mysql`.
+The committed suite `Connect` rows use `business-pgsql`, `business-mysql`,
+and `business-mssql`.
 A FitNesse process outside the compose network needs a host it can resolve.
 `127.0.0.1` reaches the published container ports. Leave machine-specific
 hostnames out of the committed `SetUp` files.

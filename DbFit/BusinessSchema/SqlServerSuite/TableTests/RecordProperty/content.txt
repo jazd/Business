@@ -1,0 +1,5 @@
+!4 Verify RecordProperty table exists
+Has no static records
+!|Query Stats                                                    |
+|query                                      |row count?|is empty?|
+|SELECT TOP 1 property FROM RecordProperty|0         |true     |

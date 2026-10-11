@@ -1,0 +1,5 @@
+!4 Verify PartDescription table exists
+Has no static records
+!|Query Stats                                                 |
+|query                                   |row count?|is empty?|
+|SELECT TOP 1 part FROM PartDescription|0         |true     |

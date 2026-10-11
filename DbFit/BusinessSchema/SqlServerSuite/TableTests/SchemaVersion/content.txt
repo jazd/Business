@@ -1,0 +1,5 @@
+!4 Verify SchemaVersion table exists
+Has no static records
+!|Query Stats                                                 |
+|query                                   |row count?|is empty?|
+|SELECT TOP 1 [schema] FROM SchemaVersion|0         |true     |

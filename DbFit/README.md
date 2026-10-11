@@ -193,10 +193,42 @@ cd <git root>/Business
 make sqlserverdb
 ```
 
-Direct login:
+`make mssql-start` starts the container and does not reload `MyCo`.
+`make mssql` still writes `schema.sqlserver`. `make sqlcmd` opens `sqlcmd`
+in that container as `test`.
 
 ```
-podman exec business-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U test -P dbfit -d MyCo
+podman exec -it business-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U test -P dbfit -d MyCo
 ```
 
-There is no SQL Server FitNesse suite.
+A shell in the container with `sqlcmd` on `PATH`:
+
+```
+podman exec -it business-mssql bash -lc 'PATH="/opt/mssql-tools18/bin:$PATH" exec bash'
+```
+
+`-C` trusts the container certificate.
+
+Suite setup is `DbFit/BusinessSchema/SqlServerSuite/SetUp/content.txt`:
+
+```
+!|dbfit.SqlServerTest|
+!|Connect|business-mssql;trustServerCertificate=true|test|dbfit|MyCo|
+```
+
+http://127.0.0.1:8085/BusinessSchema.SqlServerSuite?suite
+
+The image includes `mssql-jdbc-12.10.2.jre11.jar`. `trustServerCertificate`
+is set because the container certificate is not in the Java trust store.
+
+`SqlServerSuite/TableTests` runs the shared table pages whose SQL already
+works, and local copies of the pages that used `LIMIT 1`. Those copies use
+`SELECT TOP 1`. `SchemaVersion` quotes `[schema]`. `PeriodName` and
+`ListIndividualName` keep the insert and omit the check that expects a
+static row. These pages stay out: `Address`, `DayOfWeek`, `Month`,
+`MonthDay`, `Period`, `Postal`, `TimeOfDay`, and `Timezone` (this load has
+no rows), and `Entity`, `Family`, `Given`, `Sentence`, and `Word`
+(case-sensitive text, or an explicit id on an identity column).
+
+`SQLServer/post.sql` reseeds those identity columns to the same floors as
+the PostgreSQL sequences.

@@ -1,0 +1,8 @@
+!|Insert|PeriodName|
+|name|period?|
+|29|>>periodid|
+
+First inserted period should be >= 1000
+!|Query| SELECT period FROM PeriodName WHERE period >= 1000 AND name = 29|
+|period|
+|<<periodid|

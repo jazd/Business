@@ -144,9 +144,18 @@ dbfit: Containerfile.dbfit
 	podman compose -f compose.dbfit.yml up -d business-dbfit
 
 # Stops every service in compose.dbfit.yml. Named volumes stay.
-.PHONY: dbfit-stop
+# mssql stays the schema.sqlserver alias. mssql-start only brings the container up.
+.PHONY: dbfit-stop mssql-start sqlcmd
 dbfit-stop:
 	podman compose -f compose.dbfit.yml stop
+
+# Starts business-mssql and does not reload MyCo.
+mssql-start:
+	podman compose -f compose.dbfit.yml up -d --wait business-mssql
+
+# Interactive sqlcmd in business-mssql. -C trusts the container certificate.
+sqlcmd: mssql-start
+	podman exec -it business-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U test -P dbfit -d MyCo
 
 # PL/pgSQL sources live in PostgreSQL/procedures.d/ (ordered 00-99); assemble into procedures.sql
 .PHONY: procedures

@@ -1,0 +1,5 @@
+!4 Verify AssemblyPart table exists
+Has no static records
+!|Query Stats                                                  |
+|query                                    |row count?|is empty?|
+|SELECT TOP 1 assembly FROM AssemblyPart|0         |true     |

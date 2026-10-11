@@ -1,3 +1,6 @@
 !path lib/*.jar
 !|dbfit.SqlServerTest|
-!|Connect|localhost|test|password|MyCo|
+Compose service business-mssql, user test, password dbfit, database MyCo.
+trustServerCertificate is set because the container certificate is not in the Java trust store.
+
+!|Connect|business-mssql;trustServerCertificate=true|test|dbfit|MyCo|

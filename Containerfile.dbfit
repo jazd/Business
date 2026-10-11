@@ -20,6 +20,9 @@ RUN apt-get update \
  && curl -fsSL -o /dbfit/lib/postgresql-42.2.5.jar \
       https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.5/postgresql-42.2.5.jar \
  && echo '951b7eda125f3137538a94e2cbdcf744088ad4c2  /dbfit/lib/postgresql-42.2.5.jar' | sha1sum -c - \
+ && curl -fsSL -o /dbfit/lib/mssql-jdbc-12.10.2.jre11.jar \
+      https://repo1.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/12.10.2.jre11/mssql-jdbc-12.10.2.jre11.jar \
+ && echo 'ee97088ca7c42afa6f38b457b76845207ca50a9d  /dbfit/lib/mssql-jdbc-12.10.2.jre11.jar' | sha1sum -c - \
  && ln -s postgresql-42.2.5.jar /dbfit/lib/postgres.jar \
  && chmod +x /dbfit/startFitnesse.sh \
  && apt-get purge -y curl unzip \
