@@ -1,0 +1,25 @@
+-- =============================================================================
+-- Business schema upgrade: 0.2.15 -> 0.2.16 (SQLite shop)
+-- =============================================================================
+--
+-- Living upgrade path while 0.2.16 is unreleased. Apply to a shop DB that was
+-- built or upgraded to 0.2.15.
+--
+-- Fresh shops: make business.sqlite3 / make rebuild-business-sqlite3.
+-- Do not use this script for a greenfield create.
+--
+-- PRECONDITIONS (enforced by scripts/upgrade-sqlite.sh)
+--   * SQLITE_DB points at the live shop file
+--   * Active SchemaVersion is Business 0.2.15 (stop IS NULL)
+--
+-- HOW TO RUN
+--   export SQLITE_DB=$HOME/business-shop/business.sqlite3
+--   ./scripts/upgrade-sqlite.sh 0.2.15 0.2.16
+--
+-- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
+-- after this file runs successfully (Business 0.2.16) when STAMP_VERSION=1.
+-- Leave STAMP_VERSION unset until that release.
+--
+-- =============================================================================
+
+PRAGMA foreign_keys = ON;

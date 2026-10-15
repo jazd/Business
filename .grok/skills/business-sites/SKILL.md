@@ -23,7 +23,7 @@ ClaimSession, SessionToken.type, Path.port, PathPassword, or the report
 views below. The current schema also has `Email.username` and `Email.plus`
 at `varchar(64)`, view `SchemaVersions`, and the entitlement objects below.
 A database still on 0.2.13 gets those from `PostgreSQL/0.2.13-0.2.14.sql`.
-That hop stamps Business 0.2.14. `PostgreSQL/0.2.14-0.2.15.sql` stamps Business 0.2.15.
+That hop stamps Business 0.2.14. `PostgreSQL/0.2.14-0.2.15.sql` stamps Business 0.2.15. The next hop is `PostgreSQL/0.2.15-0.2.16.sql`. Its `SetSchemaVersion` line stays commented until 0.2.16 is released.
 
 **PostgreSQL only** for the session join (`SetSession`, `ClaimSession`,
 `AnonymousSession`). SQLite has Bash helpers for Path / IndividualPath /

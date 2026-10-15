@@ -34,7 +34,7 @@ otherwise print exact commands.
 | Work branch | Create/use a **feature branch** - never commit on `master` |
 | Style | Match existing code; NoCRUD: procedures write, views read; no drive-by refactors |
 | NoCRUD | Do not introduce silent DELETE of history or classical CRUD overwrites |
-| Upgrade script | If procedures/DDL/static changed for an unreleased version, update the **living** hop (`PostgreSQL/0.2.14-0.2.15.sql`, and `SQLite/0.2.14-0.2.15.sql` when the shop file changes) in the same PR. Leave `SetSchemaVersion` commented. |
+| Upgrade script | If procedures/DDL/static changed for an unreleased version, update the **living** hop (`PostgreSQL/0.2.15-0.2.16.sql`, and `SQLite/0.2.15-0.2.16.sql` when the shop file changes) in the same PR. Leave `SetSchemaVersion` commented. |
 | DbFit pages | `DbFit/.gitignore` ignores `content.txt` / `properties.xml` - **`git add -f`** new test pages |
 | Do not commit | Local host overrides (`PostgreSQLServer = postgres`, DbFit Connect host), secrets, `business.sqlite3` shop data, `tmp/`, `*~`, generated `PostgreSQL/procedures.sql` and `schema.pgsql` / `schema.mysql` / `schema.sqlserver` / `schema.oracle` / `schema.db2` when gitignored |
 | Vendored | Do not change `sql-translator/`, `ua-parser/` without explicit user ask |

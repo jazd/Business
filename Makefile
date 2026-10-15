@@ -293,7 +293,7 @@ rebuild-business-sqlite3: schema.sqlite
 # Shop SQLite hop. 0.2.14 -> 0.2.15 stamps. The living hop does not.
 #   SQLITE_DB=$$HOME/business-shop/business.sqlite3 make upgrade-sqlite-0.2.14-0.2.15
 # Stamp that hop when it is complete: STAMP_VERSION=1 make ...
-.PHONY: upgrade-sqlite-0.2.10-0.2.11 upgrade-sqlite-0.2.11-0.2.12 upgrade-sqlite-0.2.12-0.2.13 upgrade-sqlite-0.2.13-0.2.14 upgrade-sqlite-0.2.14-0.2.15
+.PHONY: upgrade-sqlite-0.2.10-0.2.11 upgrade-sqlite-0.2.11-0.2.12 upgrade-sqlite-0.2.12-0.2.13 upgrade-sqlite-0.2.13-0.2.14 upgrade-sqlite-0.2.14-0.2.15 upgrade-sqlite-0.2.15-0.2.16
 upgrade-sqlite-0.2.10-0.2.11:
 	./scripts/upgrade-sqlite.sh 0.2.10 0.2.11
 upgrade-sqlite-0.2.11-0.2.12:
@@ -304,3 +304,5 @@ upgrade-sqlite-0.2.13-0.2.14:
 	./scripts/upgrade-sqlite.sh 0.2.13 0.2.14
 upgrade-sqlite-0.2.14-0.2.15:
 	./scripts/upgrade-sqlite.sh 0.2.14 0.2.15
+upgrade-sqlite-0.2.15-0.2.16:
+	./scripts/upgrade-sqlite.sh 0.2.15 0.2.16

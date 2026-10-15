@@ -83,7 +83,7 @@ export SQLITE_DB=$HOME/business-shop/business.sqlite3
 sqlite3 "$SQLITE_DB" "SELECT value FROM SchemaVersions WHERE stop IS NULL;"
 ```
 
-`value` is the version on that file. The published release is 0.2.15. A file from the 0.2.14 download can still show `0.2.11`. `./scripts/upgrade-sqlite.sh 0.2.14 0.2.15` accepts that file when `Entitlement` and `SchemaVersions` are already present, restamps 0.2.14, and stamps 0.2.15.
+`value` is the version on that file. The published release is 0.2.15. A file built from this tree can show 0.2.16; that version is not released. A file from the 0.2.14 download can still show `0.2.11`. `./scripts/upgrade-sqlite.sh 0.2.14 0.2.15` accepts that file when `Entitlement` and `SchemaVersions` are already present, restamps 0.2.14, and stamps 0.2.15.
 
 Bash helpers:
 
