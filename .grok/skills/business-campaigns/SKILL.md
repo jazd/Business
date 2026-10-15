@@ -23,6 +23,7 @@ Build the body with `/business-cms` (`SetContent`, `SetContentElement`). Subscri
 
 ```sql
 SELECT SetCampaign('Spring note', 'Example', 'Pro', 'email', NULL);
+-- channel is a culture-null word (GetIdentifier). email and mail are channels.
 -- name, list name, optional list set, channel (email or mail), optional period id
 SELECT SetCampaignContent(campaignId, contentId);   -- append
 SELECT SetCampaignContent(campaignId, contentId, 1);

@@ -3270,7 +3270,7 @@ JOIN Session ON Session.id = SessionCredential.session
 JOIN Credential ON Credential.id = SessionCredential.credential
  AND Credential.revoked IS NULL
 LEFT JOIN SessionToken ON SessionToken.session = Session.id
-LEFT JOIN I18NWord AS Type ON Type.id = SessionToken.type
+LEFT JOIN Word AS Type ON Type.id = SessionToken.type AND Type.culture IS NULL
 LEFT JOIN SiteApplicationRelease ON SiteApplicationRelease.id = SessionToken.siteApplicationRelease
 LEFT JOIN Site ON Site.id = SiteApplicationRelease.site
 LEFT JOIN I18NSentence AS SiteName ON SiteName.id = Site.name

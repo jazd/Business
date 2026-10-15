@@ -789,7 +789,7 @@ BEGIN
   name_id := (SELECT GetSentence(inName));
   list_id := (SELECT GetWord(inListName));
   set_id := (SELECT GetWord(inListSet));
-  channel_id := (SELECT GetWord(inChannel));
+  channel_id := (SELECT GetIdentifier(inChannel));
   PERFORM pg_advisory_lock(name_id);
   BEGIN
    SELECT id INTO campaign_id

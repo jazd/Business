@@ -493,7 +493,7 @@ DECLARE
  session_credential_id bigint;
 BEGIN
  IF inSessionToken IS NOT NULL THEN
-  type_id = (SELECT GetWord(inType));
+  type_id = (SELECT GetIdentifier(inType));
   -- Does a session already exist for this token and site application release
   existingSession := (
    SELECT session

@@ -43,6 +43,9 @@
 --     of inSquash when that string is set. The shorter forms pass null.
 --     ContentElements, ContentHistory, ContentBody, SiteContent, and
 --     ListContent return that culture-null word. Null stays null.
+--  7) SetSession stores the token type with GetIdentifier. SetCampaign
+--     stores the channel with GetIdentifier. IndividualSessions.tokenType
+--     reads Word where culture is null.
 --
 -- Version stamp stays commented until 0.2.15 is released.
 --
@@ -744,6 +747,193 @@ WHERE s.culture = 1033
  AND NOT EXISTS (
   SELECT 1 FROM Sentence AS t WHERE t.id = s.id AND t.culture = 2058
  );
+
+CREATE OR REPLACE FUNCTION SetSession (
+ inSessionToken varchar,
+ inSiteApplicationRelease integer,
+ inAgentString integer,
+ inCredential integer,
+ inReferring integer,
+ inIPAddress inet,
+ inLocation integer,
+ inStart timestamp,
+ inType varchar
+) RETURNS bigint AS $$
+DECLARE
+ newSession bigint;
+ existingSession bigint;
+ type_id integer;
+ session_credential_id bigint;
+BEGIN
+ IF inSessionToken IS NOT NULL THEN
+  type_id = (SELECT GetIdentifier(inType));
+  existingSession := (
+   SELECT session
+   FROM SessionToken
+   WHERE token = inSessionToken
+    AND (
+     (siteApplicationRelease = inSiteApplicationRelease)
+      OR (siteApplicationRelease IS NULL AND inSiteApplicationRelease IS NULL)
+    )
+   LIMIT 1
+  );
+
+  IF existingSession IS NULL THEN
+   PERFORM pg_advisory_lock(hashtext(inSessionToken));
+   BEGIN
+   INSERT INTO Session (lock) VALUES (0) RETURNING id INTO existingSession;
+   INSERT INTO SessionToken (session,token,type,siteApplicationRelease,created) (
+    SELECT existingSession, inSessionToken, type_id, inSiteApplicationRelease, COALESCE(inStart, NOW()) AS created
+   );
+   PERFORM pg_advisory_unlock(hashtext(inSessionToken));
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(hashtext(inSessionToken));
+     RAISE;
+   END;
+  ELSE
+   UPDATE Session SET touched = NOW() WHERE id = existingSession;
+  END IF;
+
+  PERFORM pg_advisory_lock(existingSession);
+  BEGIN
+  INSERT INTO SessionCredential (session, agentString, credential, referring, fromAddress, location) (
+   SELECT existingSession, inAgentString, inCredential, inReferring, inIPAddress, inLocation
+   FROM Dual
+   LEFT JOIN SessionCredential AS exists ON exists.session = existingSession
+    AND ((agentString = inAgentString) OR (agentString IS NULL AND inAgentString IS NULL))
+    AND ((credential = inCredential) OR (credential IS NULL AND inCredential IS NULL))
+    AND ((referring = inReferring) OR (referring IS NULL AND inReferring IS NULL))
+    AND ((fromAddress = inIPAddress) OR (fromAddress IS NULL AND inIPAddress IS NULL))
+    AND ((location = inLocation) OR (location IS NULL AND inLocation IS NULL))
+   WHERE exists.id IS NULL
+   LIMIT 1
+  );
+  SELECT id INTO session_credential_id
+  FROM SessionCredential
+  WHERE session = existingSession
+   AND ((agentString = inAgentString) OR (agentString IS NULL AND inAgentString IS NULL))
+   AND ((credential = inCredential) OR (credential IS NULL AND inCredential IS NULL))
+   AND ((referring = inReferring) OR (referring IS NULL AND inReferring IS NULL))
+   AND ((fromAddress = inIPAddress) OR (fromAddress IS NULL AND inIPAddress IS NULL))
+   AND ((location = inLocation) OR (location IS NULL AND inLocation IS NULL))
+  LIMIT 1;
+  IF inCredential IS NOT NULL AND session_credential_id IS NOT NULL THEN
+   INSERT INTO IndividualSessionCreated (individual, sessionCredential) (
+    SELECT cred.individual, session_credential_id
+    FROM Credential AS cred
+    LEFT JOIN IndividualSessionCreated AS exists
+     ON exists.individual = cred.individual
+     AND exists.sessionCredential = session_credential_id
+    WHERE cred.id = inCredential
+     AND cred.individual IS NOT NULL
+     AND exists.individual IS NULL
+    LIMIT 1
+   );
+  END IF;
+  PERFORM pg_advisory_unlock(existingSession);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(existingSession);
+    RAISE;
+  END;
+
+ END IF;
+ RETURN existingSession;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION SetCampaign (
+ inName varchar,
+ inListName varchar,
+ inListSet varchar,
+ inChannel varchar,
+ inPeriod integer
+) RETURNS integer AS $$
+DECLARE
+ name_id integer;
+ list_id integer;
+ set_id integer;
+ channel_id integer;
+ campaign_id integer;
+BEGIN
+ IF inName IS NOT NULL AND inListName IS NOT NULL THEN
+  name_id := (SELECT GetSentence(inName));
+  list_id := (SELECT GetWord(inListName));
+  set_id := (SELECT GetWord(inListSet));
+  channel_id := (SELECT GetIdentifier(inChannel));
+  PERFORM pg_advisory_lock(name_id);
+  BEGIN
+   SELECT id INTO campaign_id
+   FROM Campaign
+   WHERE name = name_id
+   LIMIT 1;
+   IF campaign_id IS NULL THEN
+    INSERT INTO Campaign (name, listName, listSet, channel, period) (
+     SELECT name_id, list_id, set_id, channel_id, inPeriod
+     FROM Dual
+     LEFT JOIN Campaign AS exists ON exists.name = name_id
+     WHERE exists.id IS NULL
+     LIMIT 1
+    );
+    SELECT id INTO campaign_id
+    FROM Campaign
+    WHERE name = name_id
+    LIMIT 1;
+   END IF;
+   PERFORM pg_advisory_unlock(name_id);
+  EXCEPTION
+   WHEN OTHERS THEN
+    PERFORM pg_advisory_unlock(name_id);
+    RAISE;
+  END;
+ END IF;
+ RETURN campaign_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE VIEW IndividualSessions AS
+WITH bound (individual, sessionCredential, bound) AS (
+ SELECT individual, sessionCredential, created
+ FROM IndividualSessionCreated
+ UNION
+ SELECT Credential.individual, SessionCredential.id, SessionCredential.created
+ FROM SessionCredential
+ JOIN Credential ON Credential.id = SessionCredential.credential
+  AND Credential.revoked IS NULL
+  AND Credential.individual IS NOT NULL
+)
+SELECT
+ bound.individual,
+ COALESCE(People.fullName, Entities.name) AS individualName,
+ Session.id AS session,
+ SessionToken.token,
+ Type.value AS tokenType,
+ SessionToken.siteApplicationRelease,
+ Site.id AS site,
+ SessionCredential.id AS sessionCredential,
+ SessionCredential.credential,
+ Credential.username,
+ EmailAddress.value AS email,
+ bound.bound,
+ Session.touched,
+ COALESCE(SessionToken.created, Session.created) AS created,
+ SiteName.value AS siteName,
+ Session.culture,
+ SessionToken.timeout
+FROM bound
+JOIN SessionCredential ON SessionCredential.id = bound.sessionCredential
+JOIN Session ON Session.id = SessionCredential.session
+JOIN Credential ON Credential.id = SessionCredential.credential
+ AND Credential.revoked IS NULL
+LEFT JOIN SessionToken ON SessionToken.session = Session.id
+LEFT JOIN Word AS Type ON Type.id = SessionToken.type AND Type.culture IS NULL
+LEFT JOIN SiteApplicationRelease ON SiteApplicationRelease.id = SessionToken.siteApplicationRelease
+LEFT JOIN Site ON Site.id = SiteApplicationRelease.site
+LEFT JOIN I18NSentence AS SiteName ON SiteName.id = Site.name
+LEFT JOIN People ON People.individual = bound.individual
+LEFT JOIN Entities ON Entities.individual = bound.individual
+LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email;
 
 -- Mark schema upgraded to 0.2.15 when the hop body is ready for the release.
 -- SELECT SetSchemaVersion('Business', '0', '2', '15');

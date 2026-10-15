@@ -43,6 +43,8 @@
 --     renders alone. Bash SetContentElement stores GetIdentifier of the
 --     tenth argument when that string is set. ContentElements and
 --     ContentHistory return that culture-null word. Null stays null.
+--  7) IndividualSessions.tokenType reads Word where culture is null.
+--     Bash SetCampaign stores the channel with GetIdentifier.
 --
 -- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
 -- after this file runs successfully (Business 0.2.15) when STAMP_VERSION=1.
@@ -276,3 +278,46 @@ WHERE s.culture = 1033
  AND NOT EXISTS (
   SELECT 1 FROM Sentence AS t WHERE t.id = s.id AND t.culture = 2058
  );
+
+DROP VIEW IF EXISTS IndividualSessions;
+CREATE VIEW IndividualSessions AS
+WITH bound (individual, sessionCredential, bound) AS (
+ SELECT individual, sessionCredential, created
+ FROM IndividualSessionCreated
+ UNION
+ SELECT Credential.individual, SessionCredential.id, SessionCredential.created
+ FROM SessionCredential
+ JOIN Credential ON Credential.id = SessionCredential.credential
+  AND Credential.revoked IS NULL
+  AND Credential.individual IS NOT NULL
+)
+SELECT
+ bound.individual,
+ COALESCE(People.fullName, Entities.name) AS individualName,
+ Session.id AS session,
+ SessionToken.token,
+ Type.value AS tokenType,
+ SessionToken.siteApplicationRelease,
+ Site.id AS site,
+ SessionCredential.id AS sessionCredential,
+ SessionCredential.credential,
+ Credential.username,
+ EmailAddress.value AS email,
+ bound.bound,
+ Session.touched,
+ COALESCE(SessionToken.created, Session.created) AS created,
+ SiteName.value AS siteName,
+ Session.culture
+FROM bound
+JOIN SessionCredential ON SessionCredential.id = bound.sessionCredential
+JOIN Session ON Session.id = SessionCredential.session
+JOIN Credential ON Credential.id = SessionCredential.credential
+ AND Credential.revoked IS NULL
+LEFT JOIN SessionToken ON SessionToken.session = Session.id
+LEFT JOIN Word AS Type ON Type.id = SessionToken.type AND Type.culture IS NULL
+LEFT JOIN SiteApplicationRelease ON SiteApplicationRelease.id = SessionToken.siteApplicationRelease
+LEFT JOIN Site ON Site.id = SiteApplicationRelease.site
+LEFT JOIN I18NSentence AS SiteName ON SiteName.id = Site.name
+LEFT JOIN People ON People.individual = bound.individual
+LEFT JOIN Entities ON Entities.individual = bound.individual
+LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email;

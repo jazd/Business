@@ -170,8 +170,7 @@ what Business stores.
 | 19 | `mail` | Mailed restore link. Prefer `timeout` NULL (does not expire). |
 | 20 | `trial` | Time-limited mailed token. `SetSessionTimeout` fills seconds from `created`. |
 
-`checkout` is another SessionToken type when a public reference is needed.
-`SetSession` creates that Word. There is no seeded id for it.
+These three words have a null culture. `SetSession` stores the type with `GetIdentifier`. `IndividualSessions.tokenType` reads that word. `checkout` is another type when a public reference is needed. `GetIdentifier` creates it. There is no seeded id for it. A path type such as `Home` stays `GetWord`.
 
 Pass `inType` on **insert** of a new token (`SetSession(..., inType)`). An
 existing token is not rewritten; `SetSession` only touches `Session.touched`
