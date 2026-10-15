@@ -17,7 +17,8 @@ type SetSessionInput struct {
 	Referring              *int64
 	IP                     string
 	Location               *int
-	// Type is SessionToken.type. Empty is NULL.
+	// Type is the SessionToken type name: session, mail, or trial.
+	// Empty is NULL. SetSession stores it with GetIdentifier.
 	Type string
 }
 

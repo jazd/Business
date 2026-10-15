@@ -10,6 +10,12 @@ func (d *DB) GetWord(ctx context.Context, value string) (int, error) {
 	return d.queryInt(ctx, `SELECT GetWord($1)`, value)
 }
 
+// GetIdentifier returns the Word id whose culture is null.
+// Session token types and campaign channels use this, not GetWord.
+func (d *DB) GetIdentifier(ctx context.Context, value string) (int, error) {
+	return d.queryInt(ctx, `SELECT GetIdentifier($1)`, value)
+}
+
 // GetSentence returns the Sentence id for value.
 func (d *DB) GetSentence(ctx context.Context, value string) (int, error) {
 	return d.queryInt(ctx, `SELECT GetSentence($1)`, value)

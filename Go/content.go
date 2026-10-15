@@ -67,6 +67,14 @@ func (d *DB) StopFormatAttribute(ctx context.Context, format int, name, value, t
 	return d.queryInt(ctx, `SELECT StopFormatAttribute($1, $2, $3, $4)`, format, name, nullStr(value), nullStr(target))
 }
 
+// SetCampaign finds or inserts a campaign by name.
+// channel is a culture-null word (email, mail). List name and list set stay GetWord.
+// An empty set or channel stores null. A nil period stores null.
+func (d *DB) SetCampaign(ctx context.Context, name, list, set, channel string, period *int) (int, error) {
+	return d.queryInt(ctx, `SELECT SetCampaign($1, $2, $3, $4, $5)`,
+		name, list, nullStr(set), nullStr(channel), nullInt(period))
+}
+
 // SetContent returns the stable content id for a sentence name.
 func (d *DB) SetContent(ctx context.Context, name string) (int, error) {
 	return d.queryInt(ctx, `SELECT SetContent($1)`, name)

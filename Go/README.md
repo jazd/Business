@@ -1,6 +1,6 @@
 # Go client for the Business schema
 
-PostgreSQL helpers with the same names as `Bash/sqlite` (`GetWord`, `GetEmail`,
+PostgreSQL helpers with the same names as `Bash/sqlite` (`GetWord`, `GetIdentifier`, `GetEmail`,
 `GetIndividualEmail`, `SetSession`, and the rest). Each method is
 `SELECT SomeProcedure(...)`. The procedures find-or-insert, stop, or fill a
 NULL. This package does not write tables.

@@ -2,6 +2,7 @@
 
 # Usage: SetCampaign <name> <list_name> [list_set] [channel] [period_id]
 # Find-or-insert by name. Later calls do not change list, channel, or period.
+# channel is a culture-null word (GetIdentifier). List name and list set stay GetWord.
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 source "$HERE/common"

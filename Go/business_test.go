@@ -11,6 +11,50 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
+func TestGetIdentifierCallsProcedure(t *testing.T) {
+	sqldb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer sqldb.Close()
+	mock.ExpectQuery(`SELECT GetIdentifier\(\$1\)`).
+		WithArgs("mail").
+		WillReturnRows(sqlmock.NewRows([]string{"getidentifier"}).AddRow(19))
+	d := &DB{SQL: sqldb}
+	id, err := d.GetIdentifier(context.Background(), "mail")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if id != 19 {
+		t.Fatalf("id=%d", id)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSetCampaignPassesChannelToProcedure(t *testing.T) {
+	sqldb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer sqldb.Close()
+	mock.ExpectQuery(`SELECT SetCampaign\(\$1, \$2, \$3, \$4, \$5\)`).
+		WithArgs("Spring note", "Example", "Pro", "mail", nil).
+		WillReturnRows(sqlmock.NewRows([]string{"setcampaign"}).AddRow(4))
+	d := &DB{SQL: sqldb}
+	id, err := d.SetCampaign(context.Background(), "Spring note", "Example", "Pro", "mail", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if id != 4 {
+		t.Fatalf("id=%d", id)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestGetSiteCallsProcedure(t *testing.T) {
 	sqldb, mock, err := sqlmock.New()
 	if err != nil {
