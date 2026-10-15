@@ -2,8 +2,9 @@
 -- Business schema upgrade: 0.2.14 -> 0.2.15 (PostgreSQL)
 -- =============================================================================
 --
--- Living upgrade path while 0.2.15 is unreleased. A database installed at
--- 0.2.14 reaches the GetSite lookup below.
+-- Released hop 0.2.14 -> 0.2.15. A database installed at
+-- 0.2.14 reaches the same content and session reads as a fresh 0.2.15 build.
+-- Living work for the next version is PostgreSQL/0.2.15-0.2.16.sql.
 --
 -- Fresh installs: make pgsqldb (pre + schema + procedures + post + Static).
 -- Do not use this script for a greenfield install.
@@ -47,7 +48,7 @@
 --     stores the channel with GetIdentifier. IndividualSessions.tokenType
 --     reads Word where culture is null.
 --
--- Version stamp stays commented until 0.2.15 is released.
+-- This hop stamps Business 0.2.15.
 --
 -- =============================================================================
 
@@ -936,6 +937,6 @@ LEFT JOIN Entities ON Entities.individual = bound.individual
 LEFT JOIN EmailAddress ON EmailAddress.email = Credential.email;
 
 -- Mark schema upgraded to 0.2.15 when the hop body is ready for the release.
--- SELECT SetSchemaVersion('Business', '0', '2', '15');
+SELECT SetSchemaVersion('Business', '0', '2', '15');
 
 COMMIT;

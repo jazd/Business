@@ -106,10 +106,10 @@ fi
 echo "Applying $HOP ..."
 sqlite3 "$SQLITE_DB" < "$HOP"
 
-# Released hops record Business <to>. The living 0.2.14 -> 0.2.15 hop does not
-# until STAMP_VERSION=1.
+# Released hops record Business <to>. The living hop does not until
+# STAMP_VERSION=1.
 if [[ -z "${STAMP_VERSION+x}" ]]; then
-  if [[ "$FROM" == "0.2.14" && "$TO" == "0.2.15" ]]; then
+  if [[ "$FROM" == "0.2.15" && "$TO" == "0.2.16" ]]; then
     STAMP_VERSION=0
   else
     STAMP_VERSION=1

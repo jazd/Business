@@ -290,7 +290,7 @@ rebuild-business-sqlite3: schema.sqlite
 	@echo Rebuilding business.sqlite3 from schema + Static + GeoNames sample
 	FORCE=1 ./scripts/build-business-sqlite3.sh business.sqlite3
 
-# Shop SQLite hop. The 0.2.14 -> 0.2.15 hop stays unstamped until release.
+# Shop SQLite hop. 0.2.14 -> 0.2.15 stamps. The living hop does not.
 #   SQLITE_DB=$$HOME/business-shop/business.sqlite3 make upgrade-sqlite-0.2.14-0.2.15
 # Stamp that hop when it is complete: STAMP_VERSION=1 make ...
 .PHONY: upgrade-sqlite-0.2.10-0.2.11 upgrade-sqlite-0.2.11-0.2.12 upgrade-sqlite-0.2.12-0.2.13 upgrade-sqlite-0.2.13-0.2.14 upgrade-sqlite-0.2.14-0.2.15
