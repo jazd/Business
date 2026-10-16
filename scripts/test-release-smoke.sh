@@ -26,8 +26,6 @@ trap 'rm -rf "$TMP"' EXIT
 DB="$TMP/business.sqlite3"
 cp -a "$SRC" "$DB"
 
-sqlite3 "$DB" < "$ROOT/SQLite/0.2.12-0.2.13.sql"
-
 existing=$(sqlite3 "$DB" "SELECT COUNT(*) FROM JournalEntry;")
 if [[ "$existing" != "0" ]]; then
   fail "shop already has $existing journal lines; this smoke uses an empty journal"

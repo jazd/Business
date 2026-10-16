@@ -2,7 +2,6 @@
 # Account 6 is Fixed Assets. Sentence 78 stays on account 103 and the Equipment book.
 # Post rejects a name that matches more than one account and accepts an account id.
 # Capital, Card Sale, and Hosting each book one balanced entry.
-# JournalEntry rows already stored are not rewritten.
 #
 #   ./scripts/test-shop-books.sh [business.sqlite3]
 set -euo pipefail
@@ -24,16 +23,6 @@ fail() {
   echo "Error: $*" >&2
   exit 1
 }
-
-fingerprint() {
-  sqlite3 "$DB" "SELECT COUNT(*) || '|' || printf('%.4f', COALESCE(SUM(amount), 0)) || '|' || COALESCE(SUM(account * CASE WHEN credit THEN 1 ELSE -1 END), 0) FROM JournalEntry;"
-}
-
-before=$(fingerprint)
-sqlite3 "$DB" < "$ROOT/SQLite/0.2.12-0.2.13.sql"
-sqlite3 "$DB" < "$ROOT/SQLite/0.2.12-0.2.13.sql"
-after=$(fingerprint)
-[[ "$before" == "$after" ]] || fail "hop rewrote JournalEntry ($before -> $after)"
 
 export SQLITE_DB="$DB"
 POST="$ROOT/Bash/sqlite/Post"

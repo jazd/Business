@@ -23,8 +23,6 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 DB="$TMP/business.sqlite3"
 cp -a "$SRC" "$DB"
-sqlite3 "$DB" < "$ROOT/SQLite/0.2.13-0.2.14.sql"
-sqlite3 "$DB" < "$ROOT/SQLite/0.2.14-0.2.15.sql"
 
 export SQLITE_DB="$DB"
 export PATH="$ROOT/Bash/sqlite:${PATH:-}"

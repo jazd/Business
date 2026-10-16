@@ -19,7 +19,6 @@ trap 'rm -rf "$TMP"' EXIT
 DB="$TMP/business.sqlite3"
 cp -a "$SRC" "$DB"
 
-sqlite3 "$DB" < "$ROOT/SQLite/0.2.12-0.2.13.sql"
 sqlite3 "$DB" "DELETE FROM JournalEntry;"
 
 export SQLITE_DB="$DB"

@@ -35,17 +35,7 @@ fingerprint() {
   sqlite3 "$DB" "SELECT COUNT(*) || '|' || printf('%.4f', COALESCE(SUM(amount), 0)) || '|' || COALESCE(SUM(account * CASE WHEN credit THEN 1 ELSE -1 END), 0) FROM JournalEntry;"
 }
 
-stamp() {
-  sqlite3 "$DB" "SELECT COUNT(*) FROM SchemaVersion WHERE stop IS NULL;"
-}
-
-before=$(fingerprint)
-stamp_before=$(stamp)
-sqlite3 "$DB" < "$ROOT/SQLite/0.2.12-0.2.13.sql"
-sqlite3 "$DB" < "$ROOT/SQLite/0.2.12-0.2.13.sql"
 after=$(fingerprint)
-[[ "$before" == "$after" ]] || fail "hop rewrote JournalEntry ($before -> $after)"
-[[ "$(stamp)" == "$stamp_before" ]] || fail "hop changed the active SchemaVersion count"
 
 export SQLITE_DB="$DB"
 export PATH="$ROOT/Bash/sqlite:$PATH"

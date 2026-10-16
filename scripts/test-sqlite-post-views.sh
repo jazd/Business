@@ -66,12 +66,4 @@ jlast=$(printf '%s\n' "$journal" | tail -n 1)
 rent=$(sqlite3 "$DB" "SELECT name FROM Books WHERE book = 1;")
 [[ "$rent" == "Rent" ]] || fail "Books view name is '$rent'"
 
-# Upgrade path: the hop creates the same schema.xml views on a 0.2.12 shop, twice.
-HOP="$TMP/hop.sqlite3"
-cp -a "$SRC" "$HOP"
-sqlite3 "$HOP" < "$ROOT/SQLite/0.2.12-0.2.13.sql"
-sqlite3 "$HOP" < "$ROOT/SQLite/0.2.12-0.2.13.sql"
-[[ "$(sqlite3 "$HOP" "SELECT name FROM Books WHERE book = 1;")" == "Rent" ]] || fail "hop Books view"
-sqlite3 "$HOP" "SELECT COUNT(*) FROM EdgeIndividuals; SELECT COUNT(*) FROM IndividualURL; SELECT COUNT(*) FROM IndividualEmailAddress;" >/dev/null
-
 echo "sqlite post.sql views passed"

@@ -69,11 +69,22 @@ sqlite3 "$OUT" < "${ROOT}/SQLite/seed-addresses.sql"
 
 sqlite3 "$OUT" < "${ROOT}/SQLite/post.sql"
 
-# Stamp template schema version for this release.
+# Record the active Business version on the new file. This tree stamps the open patch.
+maj=0
+min=2
+pat=16
 export SQLITE_DB="$OUT"
 export PATH="$ROOT/Bash/sqlite:${PATH:-}"
-if [[ -x "$ROOT/Bash/sqlite/SetSchemaVersion" ]]; then
-  SetSchemaVersion Business 0 2 16 >/dev/null || true
+if [[ ! -x "$ROOT/Bash/sqlite/SetSchemaVersion" ]]; then
+  echo "Error: $ROOT/Bash/sqlite/SetSchemaVersion is not executable" >&2
+  exit 1
+fi
+SetSchemaVersion Business "$maj" "$min" "$pat" >/dev/null
+stamped=$(sqlite3 "$OUT" "SELECT value FROM SchemaVersions WHERE stop IS NULL;")
+expect="${maj}.${min}.${pat}"
+if [[ "$stamped" != "$expect" ]]; then
+  echo "Error: SchemaVersions value is '${stamped:-missing}', expected $expect" >&2
+  exit 1
 fi
 
 # Quick counts for operators

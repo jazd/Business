@@ -10,7 +10,7 @@
 # A downloaded 0.2.14 business.sqlite3 can still report 0.2.11. When
 # Entitlement and SchemaVersions exist, this script treats that file as 0.2.14.
 # A downloaded 0.2.13 file that reports 0.2.11 needs ALLOW_MISSTAMP=1.
-# Released hops stamp <to>. The living 0.2.14 -> 0.2.15 hop does not,
+# Released hops stamp <to>. The living 0.2.15 -> 0.2.16 hop does not,
 # unless STAMP_VERSION=1.
 # Optional backup: UPGRADE_BACKUP=1 (default) writes SQLITE_DB.bak.<timestamp>
 set -euo pipefail
@@ -106,8 +106,8 @@ fi
 echo "Applying $HOP ..."
 sqlite3 "$SQLITE_DB" < "$HOP"
 
-# Released hops record Business <to>. The living hop does not until
-# STAMP_VERSION=1.
+# Released hops record Business <to>. The 0.2.15 -> 0.2.16 hop does not
+# until STAMP_VERSION=1.
 if [[ -z "${STAMP_VERSION+x}" ]]; then
   if [[ "$FROM" == "0.2.15" && "$TO" == "0.2.16" ]]; then
     STAMP_VERSION=0
