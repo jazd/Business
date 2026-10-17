@@ -71,6 +71,17 @@ service in `compose.dbfit.yml` and keeps the volumes:
 podman compose -f compose.dbfit.yml up -d
 ```
 
+`business-db2` keeps database `MYCO` on the volume. The login user `test`
+is created inside the container. A new container does not have that user.
+`compose up` creates a new container when `business-db2` is missing,
+including after `compose down`. Run this once for that new container. It
+does not reload `MYCO`. A later `compose up` that only starts the existing
+container does not need it.
+
+```
+podman exec -u root business-db2 bash /work/DB2/prepare.sh
+```
+
 ## Stop
 
 ```
@@ -177,8 +188,11 @@ not privileged. The first start initializes the instance and takes several
 minutes. `make dbfit` does not start this service.
 
 `make db2-start` starts the container and does not reload the schema.
-`make db2db` loads tables. `make db2` still writes `schema.db2`.
-`make db2clp` opens a shell as `db2inst1`, with `db2` on `PATH`.
+`make db2db` loads tables. That load runs `DB2/prepare.sh` first, which
+creates user `test` and grants it access to `MYCO`. `make db2` still writes
+`schema.db2`. `make db2clp` opens a shell as `db2inst1`, with `db2` on
+`PATH`. A new container needs `DB2/prepare.sh` before the suite can log in.
+See [Start again](#start-again).
 
 ```
 make db2-start
