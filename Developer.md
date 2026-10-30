@@ -30,7 +30,10 @@ database `MyCo` on the server they are pointed at. `make oracledb` drops and
 reloads the tables for user `test` in service `FREEPDB1`. `make db2db` drops
 and reloads the tables for user `test` in database `MYCO`. The committed host
 is `127.0.0.1`. That host, and `localhost`, start the matching container,
-wait until it is healthy, and then load.
+wait until it is healthy, and then load. Schema generation mounts this
+tree with a shared SELinux label. A private label on the whole tree stops
+FitNesse from reading `DbFit/BusinessSchema`, and each suite then shows only
+a null array error.
 
 ```
 make pgsqldb

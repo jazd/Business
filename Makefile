@@ -10,7 +10,8 @@ SQLTBUILD :=
 
 ifeq (,$(wildcard /usr/local/bin/sqlt))
 	SQLTBUILD := podman build -t jazd/sqlt:dev -f Containerfile.sqlt .
-	SQLT := podman run --rm -v $(CURDIR):/app:Z jazd/sqlt:dev sqlt
+	# Shared label. A private label on the whole tree blocks business-dbfit from reading the wiki.
+	SQLT := podman run --rm -v $(CURDIR):/app:z jazd/sqlt:dev sqlt
 endif
 
 # 127.0.0.1 and localhost start business-pgsql, business-mysql, business-mssql,
