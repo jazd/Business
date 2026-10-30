@@ -39,6 +39,14 @@ DB2_IS_CONTAINER := $(filter localhost 127.0.0.1,$(DB2Server))
 # sqlcmd in the 2022 image. -C trusts the container certificate.
 SQLCMD = podman exec -w /work business-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -b
 
+# business-mysql uses mysql_native_password. A host MySQL 9 client has no
+# plugin for that, so a container load uses the 8.0 client in the image.
+ifneq ($(MYSQL_IS_CONTAINER),)
+MYSQL = podman exec -i business-mysql mysql -u test -pdbfit
+else
+MYSQL = mysql -h $(MySQLServer) -u test $(MySQLPassword)
+endif
+
 ifneq ($(PGSQL_IS_CONTAINER),)
 PSQL_AUTH = PGPASSWORD=dbfit
 else
@@ -269,10 +277,10 @@ mysqldb: export DROP_TABLE = --add-drop-table
 mysqldb: touch-xml schema.mysql
 	@if [ -n "$(MYSQL_IS_CONTAINER)" ]; then podman compose -f compose.dbfit.yml up -d --wait business-mysql; fi
 	@echo Creating new MySQL database with $@
-	cat MySQL/pre.sql schema.mysql MySQL/procedures.sql MySQL/post.sql | mysql -h $(MySQLServer) -u test $(MySQLPassword) MyCo
-	cat MySQL/0_TimeZone.sql |  mysql -h $(MySQLServer) -u test $(MySQLPassword) MyCo
-	cat Static/[01]_[^T]* | sed -E 's/^--+[[:space:]]*/-- /' | sed -e "s/, false)/, '0')/g" -e "s/, true)/, '1')/g" | mysql -h $(MySQLServer) -u test $(MySQLPassword) MyCo
-	cat Static/[23456789]_* | grep -v GetAddress | sed -E 's/^--+[[:space:]]*/-- /' | sed -e "s/, false)/, '0')/g" -e "s/, true)/, '1')/g" | mysql -h $(MySQLServer) -u test $(MySQLPassword) MyCo
+	cat MySQL/pre.sql schema.mysql MySQL/procedures.sql MySQL/post.sql | $(MYSQL) MyCo
+	cat MySQL/0_TimeZone.sql | $(MYSQL) MyCo
+	cat Static/[01]_[^T]* | sed -E 's/^--+[[:space:]]*/-- /' | sed -e "s/, false)/, '0')/g" -e "s/, true)/, '1')/g" | $(MYSQL) MyCo
+	cat Static/[23456789]_* | grep -v GetAddress | sed -E 's/^--+[[:space:]]*/-- /' | sed -e "s/, false)/, '0')/g" -e "s/, true)/, '1')/g" | $(MYSQL) MyCo
 
 # SQLite release template: same seed story as pgsqldb (Static + GeoNames sample)
 # without PL/pgSQL. See scripts/build-business-sqlite3.sh.

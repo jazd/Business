@@ -9,7 +9,8 @@ Suite page notes are in [DbFit/README.md](./DbFit/README.md).
 ## Requirements
 
 - podman, and `podman compose`
-- `psql` and the `mysql` client (`make pgsqldb` and `make mysqldb` use them)
+- `psql` (`make pgsqldb` uses it). `make mysqldb` against the container uses
+  the `mysql` client inside `business-mysql`.
 
 `podman compose` calls the Docker Compose plugin. The plugin uses the Podman
 API socket. On Fedora, `/etc/profile.d/podman-docker.sh` sets `DOCKER_HOST`
@@ -132,10 +133,13 @@ list is in `Go/README.md`.
 ### MySQL
 
 `business-mysql` is `mysql:8.0` on `127.0.0.1:3306`. Database `MyCo`, user
-`test`, password `dbfit`.
+`test`, password `dbfit`. The server uses `mysql_native_password`. A host
+MySQL 9 client has no plugin for that and fails with error 2059.
+`make mysqldb` uses the client in the container. The same client from the
+shell:
 
 ```
-mysql -h 127.0.0.1 -u test -pdbfit MyCo
+podman exec -it business-mysql mysql -u test -pdbfit MyCo
 ```
 
 ### SQL Server
