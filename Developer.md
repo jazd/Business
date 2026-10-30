@@ -11,6 +11,17 @@ Suite page notes are in [DbFit/README.md](./DbFit/README.md).
 - podman, and `podman compose`
 - `psql` and the `mysql` client (`make pgsqldb` and `make mysqldb` use them)
 
+`podman compose` calls the Docker Compose plugin. The plugin uses the Podman
+API socket. On Fedora, `/etc/profile.d/podman-docker.sh` sets `DOCKER_HOST`
+to `unix://$XDG_RUNTIME_DIR/podman/podman.sock` for a normal user. The user
+unit `podman.socket` creates that file. A new machine leaves the unit
+inactive. `make dbfit` then builds the image and stops with
+`connect: no such file or directory`. Enable the socket once for this user:
+
+```
+systemctl --user enable --now podman.socket
+```
+
 ## First load
 
 `make pgsqldb`, `make mysqldb`, and `make sqlserverdb` drop and reload
