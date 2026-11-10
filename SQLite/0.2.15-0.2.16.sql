@@ -2,8 +2,9 @@
 -- Business schema upgrade: 0.2.15 -> 0.2.16 (SQLite shop)
 -- =============================================================================
 --
--- Living upgrade path while 0.2.16 is unreleased. Apply to a shop DB that was
--- built or upgraded to 0.2.15.
+-- Released hop 0.2.15 -> 0.2.16. Apply to a shop DB that was
+-- built or upgraded to 0.2.15. Living work for the next version is
+-- SQLite/0.2.16-0.2.17.sql.
 --
 -- Fresh shops: make business.sqlite3 / make rebuild-business-sqlite3.
 -- Do not use this script for a greenfield create.
@@ -17,8 +18,7 @@
 --   ./scripts/upgrade-sqlite.sh 0.2.15 0.2.16
 --
 -- Version stamp is performed by scripts/upgrade-sqlite.sh via SetSchemaVersion
--- after this file runs successfully (Business 0.2.16) when STAMP_VERSION=1.
--- Leave STAMP_VERSION unset until that release.
+-- after this file runs successfully (Business 0.2.16).
 --
 -- =============================================================================
 

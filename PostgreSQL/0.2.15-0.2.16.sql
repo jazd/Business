@@ -2,8 +2,8 @@
 -- Business schema upgrade: 0.2.15 -> 0.2.16 (PostgreSQL)
 -- =============================================================================
 --
--- Living upgrade path while 0.2.16 is unreleased. Apply to a database
--- installed at 0.2.15.
+-- Released hop 0.2.15 -> 0.2.16. Apply to a database installed at 0.2.15.
+-- Living work for the next version is PostgreSQL/0.2.16-0.2.17.sql.
 --
 -- Fresh installs: make pgsqldb (pre + schema + procedures + post + Static).
 -- Do not use this script for a greenfield install.
@@ -18,7 +18,7 @@
 --
 -- The script is one transaction. A failed statement rolls the change back.
 --
--- Version stamp stays commented until 0.2.16 is released.
+-- This hop stamps Business 0.2.16.
 --
 -- =============================================================================
 
@@ -428,6 +428,6 @@ JOIN Release ON Release.id = ApplicationRelease.release
 JOIN Versions ON Versions.version = Release.version
 JOIN Word AS Build ON Build.id = Release.build;
 
--- SELECT SetSchemaVersion('Business', '0', '2', '16');
+SELECT SetSchemaVersion('Business', '0', '2', '16');
 
 COMMIT;
