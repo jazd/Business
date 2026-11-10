@@ -48,7 +48,7 @@ Canonical product examples live in sibling **`Business.wiki`**
 |-------|------|
 | **SQLite + `Bash/sqlite/`** | Default local shop (`SQLITE_DB`). Put `Bash/sqlite` on `PATH`; each helper finds siblings beside itself. `~/bin/sqlite` is an optional link. |
 | **PostgreSQL procedures** | Same semantics when the user points at a live Business DB. A local server is `make pgsqldb` (`Developer.md`). That is not the shop file. |
-| **Views** | `LineItems`, `BillDocuments`, `InvoiceLineDetail`, `PartyAddresses`, `PartyPhones`, `BillReferences`, `JournalReport`, `LedgerReport`, `People`, `Entities`, `List`, `Parts`, `Assemblies`, … |
+| **Views** | `LineItems`, `BillDocuments`, `InvoiceLineDetail`, `PartyAddresses`, `PartyPhones`, `BillReferences`, `JournalReport`, `LedgerReport`, `EntryDescriptions`, `EntryReferences`, `People`, `Entities`, `List`, `Parts`, `Assemblies`, … |
 
 ### Database location: defaults work with zero user setup; overrides always win
 
@@ -205,6 +205,8 @@ on cargo/`LineItems` + assembly views.
 | User says | Approach |
 |-----------|----------|
 | Record a simple book entry | `Book <name> <amount> [YYYY-MM-DD] [time_zone]` (bash) or `Book('Name', amount)` / `Book('Name', amount, date, zone)` (SQL). An omitted date is today in that zone (local if omitted; session TimeZone on PostgreSQL). Stored as YYYY-MM-DD with no time. Zone only: `Book Rent 100 '' America/New_York` or `Book('Rent', 100, NULL, 'America/New_York')`. |
+| Memo on that entry | `SetEntryDescription <entry> 'October rent'`. The text is a sentence. One open sentence per entry. A different sentence stops the previous row. Read **EntryDescriptions**. |
+| Check number on that entry | `SetEntryReference <entry> check 1042`. The type is a culture-null word. The value is the printed number. One open value of each type. A different value stops the previous row. Read **EntryReferences**. |
 | What books exist? | `ListBooks` - Rent, Sale, Sales Credit, Equipment/Return, Loan/Payment, Salary, Supply/Return, Petty Cash, AR Sale/Credit/Payment, commission books, Capital, Card Sale, Hosting, … |
 | Split / commission style | `Book 'Sale Jane Doe' 1000` when seeded |
 | Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` - debit left, credit right. A name on more than one account is an error. An all-digit argument is the account id. |
@@ -286,7 +288,8 @@ When the user wants CSV import/reconcile (not fully productized yet):
    Post(debit, credit) pair; create missing accounts only via schema-legal
    paths (GetWord/Sentence + AccountName/Book if procedures exist-otherwise
    plan + stop for approval).
-3. Prefer **import as Book/Post rows** with a clear source memo; do not
+3. Prefer **import as Book/Post rows** with `SetEntryDescription` for the
+   memo and `SetEntryReference` for a check or trace number. Do not
    overwrite prior journal lines.
 4. Offer dry-run (parse + proposed entries) before write.
 5. If tooling is incomplete, produce a reviewable SQL/script plan rather than
@@ -458,7 +461,7 @@ When `Bash/sqlite` is on `PATH` (each helper finds siblings beside itself; a `~/
 | Parts/BOM | `GetPart*`, `GetPartbySerial`, `PutAssemblyPart`, `RemoveAssemblyPart`, `DocumentBOM` |
 | Commerce | `CreateBill`, `GetOutstandingBill`, `AddCargo`, `MoveCargo`, `MoveCargoToChild`, `GetBillReference` |
 | Pricing | `GetJob`, `GetSchedule`, `SetSchedule`, `GetIndividualJobSchedule`, `SetPrice`, `PutAssemblyJobPrice` |
-| Accounting | `Book`, `BookBalance`, `Post`, `ListBooks`, `JournalReport`, `LedgerReport`, `AccountLedger` |
+| Accounting | `Book`, `BookBalance`, `Post`, `ListBooks`, `JournalReport`, `LedgerReport`, `AccountLedger`, `SetEntryDescription`, `SetEntryReference` |
 | Documents | `DocumentLineItems`, `DocumentBOM`, `DocumentParty`, **`InvoicePDF`** |
 | EST | `PutAssemblyPublicKey`, `PutCertificateSigningRequest`, `PutAssemblyCertificateSigningRequest`, `PutCertificate` |
 

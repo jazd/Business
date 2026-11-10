@@ -60,6 +60,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS campaigncontent_campaign_content_open
  ON CampaignContent (campaign, content)
  WHERE stop IS NULL;
 
+-- One open description per journal entry. Stopped rows stay.
+CREATE UNIQUE INDEX entrydescription_entry_open
+ ON EntryDescription (entry)
+ WHERE stop IS NULL;
+
+-- One open reference of each type per journal entry. Stopped rows stay.
+CREATE UNIQUE INDEX entryreference_entry_type_open
+ ON EntryReference (entry, type)
+ WHERE stop IS NULL;
+
 -- One current entitlement per individual, list name, list set, and source.
 -- A null list set is its own key.
 CREATE UNIQUE INDEX IF NOT EXISTS entitlement_current_set

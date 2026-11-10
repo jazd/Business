@@ -238,6 +238,122 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- One open sentence for an entry. A different sentence stops the open row.
+CREATE OR REPLACE FUNCTION SetEntryDescription (
+ inEntry integer,
+ inDescription varchar
+) RETURNS integer AS $$
+DECLARE
+ sentence_id integer;
+ description_id integer;
+BEGIN
+ IF inEntry IS NULL OR inDescription IS NULL OR btrim(inDescription) = '' THEN
+  RETURN NULL;
+ END IF;
+
+ sentence_id := GetSentence(inDescription);
+
+ PERFORM pg_advisory_lock(inEntry);
+ BEGIN
+  UPDATE EntryDescription
+  SET stop = NOW()
+  WHERE entry = inEntry
+   AND description <> sentence_id
+   AND stop IS NULL;
+
+  INSERT INTO EntryDescription (entry, description)
+  SELECT inEntry, sentence_id
+  WHERE NOT EXISTS (
+   SELECT 1
+   FROM EntryDescription
+   WHERE entry = inEntry
+    AND description = sentence_id
+    AND stop IS NULL
+  );
+
+  SELECT id INTO description_id
+  FROM EntryDescription
+  WHERE entry = inEntry
+   AND description = sentence_id
+   AND stop IS NULL
+  LIMIT 1;
+
+  PERFORM pg_advisory_unlock(inEntry);
+ EXCEPTION
+  WHEN OTHERS THEN
+   PERFORM pg_advisory_unlock(inEntry);
+   RAISE;
+ END;
+
+ RETURN description_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- One open reference of each type for an entry. value is the printed number.
+-- A different value stops the open row of that type.
+CREATE OR REPLACE FUNCTION SetEntryReference (
+ inEntry integer,
+ inType varchar,
+ inValue varchar,
+ inSequence smallint DEFAULT NULL
+) RETURNS integer AS $$
+DECLARE
+ type_id integer;
+ reference_id integer;
+BEGIN
+ IF inEntry IS NULL OR inType IS NULL OR btrim(inType) = ''
+  OR inValue IS NULL OR btrim(inValue) = '' THEN
+  RETURN NULL;
+ END IF;
+
+ type_id := GetIdentifier(inType);
+
+ PERFORM pg_advisory_lock(inEntry);
+ BEGIN
+  UPDATE EntryReference
+  SET stop = NOW()
+  WHERE entry = inEntry
+   AND type = type_id
+   AND value <> inValue
+   AND stop IS NULL;
+
+  INSERT INTO EntryReference (entry, type, value, sequence)
+  SELECT inEntry, type_id, inValue, inSequence
+  WHERE NOT EXISTS (
+   SELECT 1
+   FROM EntryReference
+   WHERE entry = inEntry
+    AND type = type_id
+    AND value = inValue
+    AND stop IS NULL
+  );
+
+  SELECT id INTO reference_id
+  FROM EntryReference
+  WHERE entry = inEntry
+   AND type = type_id
+   AND value = inValue
+   AND stop IS NULL
+  LIMIT 1;
+
+  IF inSequence IS NOT NULL THEN
+   UPDATE EntryReference
+   SET sequence = inSequence
+   WHERE id = reference_id
+    AND sequence IS DISTINCT FROM inSequence;
+  END IF;
+
+  PERFORM pg_advisory_unlock(inEntry);
+ EXCEPTION
+  WHEN OTHERS THEN
+   PERFORM pg_advisory_unlock(inEntry);
+   RAISE;
+ END;
+
+ RETURN reference_id;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Post a balanced General Journal entry.
 -- A name matches Sentence.value in any culture.
 -- More than one account with that name raises invalid_parameter_value and writes nothing.

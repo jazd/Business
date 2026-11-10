@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# Usage: SetEntryDescription <entry_id> <sentence>
+# Parity with PostgreSQL SetEntryDescription.
+# Stores GetSentence. A different open sentence for this entry is stopped.
+# Prints the EntryDescription id.
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
+
+ENTRY="${1:-}"
+TEXT="${2:-}"
+
+if [[ -z "$ENTRY" || -z "$TEXT" ]]; then
+  echo "Usage: SetEntryDescription <entry_id> <sentence>" >&2
+  exit 1
+fi
+
+TEXT=$(echo "$TEXT" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+if [[ -z "$TEXT" ]]; then
+  echo ""
+  exit 0
+fi
+
+sentence_id=$("$HERE/GetSentence" "$TEXT")
+if [[ -z "$sentence_id" ]]; then
+  echo "Error: could not resolve sentence" >&2
+  exit 1
+fi
+
+sqlite_run "
+ UPDATE EntryDescription
+ SET stop = datetime('now')
+ WHERE entry = $ENTRY
+  AND description != $sentence_id
+  AND stop IS NULL;
+" >/dev/null
+
+sqlite_run "
+ INSERT INTO EntryDescription (entry, description)
+ SELECT $ENTRY, $sentence_id
+ WHERE NOT EXISTS (
+  SELECT 1 FROM EntryDescription
+  WHERE entry = $ENTRY
+   AND description = $sentence_id
+   AND stop IS NULL
+ );
+" >/dev/null
+
+sqlite_query_one "
+ SELECT id FROM EntryDescription
+ WHERE entry = $ENTRY
+  AND description = $sentence_id
+  AND stop IS NULL
+ LIMIT 1;
+"

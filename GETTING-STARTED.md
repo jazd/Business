@@ -203,6 +203,7 @@ Ship / bill of lading headings in the wiki are still stubs - track fulfilment vi
 - Named **books** (e.g. Rent, Sale) post balanced journal lines.
 - **Book** and **BookBalance** take an optional date and time zone after the amount. An omitted date is today in that zone, or the local zone. A new line stores `YYYY-MM-DD` with no time. `Book Rent 100` still works.
 - **JournalReport** / **LedgerReport** for statements. Amounts print with two decimal places. The total adds those cent amounts.
+- A journal entry can carry one sentence and one printed reference number. `SetEntryDescription <entry> 'October rent'` and `SetEntryReference <entry> check 1042`. Read them from **EntryDescriptions** and **EntryReferences**. A replacement stops the previous row.
 - **AccountLedger** lists every unposted line for that account. A Book line and a Post line both appear.
 - **BookBalance** prints each amount with two decimal places.
 - French/Spanish labels: culture inject (es-MX / fr-FR) then the same report views.

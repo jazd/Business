@@ -1962,6 +1962,52 @@ Tables below are unfinished and are mostly place holders or note taking.  These 
 </constraints>
 </table>
 
+<table name="EntryDescription" order="902">
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="entry" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="description" data_type="integer" size="" is_nullable="0" order="3">
+  <comments>Sentence for this entry.</comments>
+ </field>
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer the description for this entry. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="entrydescription_entry" type="FOREIGN KEY" fields="entry" reference_table="Entry" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="description" reference_table="Sentence" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
+<table name="EntryReference" order="902">
+<fields>
+ <field name="id" data_type="integer" size="" is_nullable="0" is_auto_increment="1" is_primary_key="1" is_foreign_key="0" order="1" />
+ <field name="entry" data_type="integer" size="" is_nullable="0" order="2" />
+ <field name="type" data_type="integer" size="" is_nullable="1" order="3">
+  <comments>Culture-null word naming the reference, for example check.</comments>
+ </field>
+ <field name="value" data_type="varchar" size="80" is_nullable="0" order="4">
+  <comments>Printed reference number, like check number</comments>
+ </field>
+ <field name="sequence" data_type="smallint" size="5" order="5">
+  <comments>Order in a displayed list.</comments>
+ </field>
+ <field name="stop" data_type="timestamp" size="0" is_nullable="1" order="10">
+  <comments>No longer a reference for this entry. Used instead of DELETE.</comments>
+ </field>
+ <field name="created" data_type="timestamp" size="0" is_nullable="0" default_value="NOW()" order="99" />
+</fields>
+<indices>
+</indices>
+<constraints>
+ <constraint name="entryreference_entry" type="FOREIGN KEY" fields="entry" reference_table="Entry" reference_fields="id" deferrable="1" />
+ <comments invalid=""><constraint name="invalid0" type="FOREIGN KEY" fields="type" reference_table="Word" reference_fields="id" deferrable="1" /></comments>
+</constraints>
+</table>
+
 <table name="IndividualAssemblyCost" order="901">
 <comments>untested</comments>
 <fields>
@@ -3662,6 +3708,36 @@ FROM JournalEntries
 WHERE posted IS NULL
 ) AS JournalReportLines
 ORDER BY sortTotal, entry, rightSide
+  </sql>
+ </view>
+
+ <view name="EntryDescriptions" fields="id,entry,description,created" order="36">
+  <sql>
+SELECT
+ EntryDescription.id,
+ EntryDescription.entry,
+ I18NSentence.value AS description,
+ EntryDescription.created
+FROM EntryDescription
+JOIN I18NSentence ON I18NSentence.id = EntryDescription.description
+WHERE EntryDescription.stop IS NULL
+  </sql>
+ </view>
+
+ <view name="EntryReferences" fields="id,entry,referenceType,value,sequence,created" order="37">
+  <sql>
+SELECT
+ EntryReference.id,
+ EntryReference.entry,
+ COALESCE(RefIdent.value, RefWord.value) AS referenceType,
+ EntryReference.value,
+ EntryReference.sequence,
+ EntryReference.created
+FROM EntryReference
+LEFT JOIN Word AS RefIdent ON RefIdent.id = EntryReference.type
+ AND RefIdent.culture IS NULL
+LEFT JOIN I18NWord AS RefWord ON RefWord.id = EntryReference.type
+WHERE EntryReference.stop IS NULL
   </sql>
  </view>
 

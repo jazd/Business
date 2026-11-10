@@ -94,7 +94,12 @@ Book Hosting 25
 Post Cash 500 Sales 2024-01-10   # manual General journal
 BookBalance Sale 50              # Book + show lines for that entry
 JournalReport
+entry=$(Book Rent 100)
+SetEntryDescription "$entry" 'October rent'
+SetEntryReference "$entry" check 1042
 ```
+
+`Book` prints the entry id. `SetEntryDescription` stores that sentence on the entry. `SetEntryReference` stores a culture-null type word and the printed number. One description is open, and one reference of each type is open. A replacement sets `stop` on the previous row. Read **EntryDescriptions** and **EntryReferences**.
 
 **Returns / credits (honest):**
 

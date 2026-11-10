@@ -35,6 +35,7 @@ Wiki: `Business.wiki/Examples.md` (**Parts**, **Inventory Movement**).
 | Invoice PDF (QB-style) | `InvoicePDF <bill_id>` -> `~/business-shop/invoices/` |
 | List named books | `ListBooks` |
 | Paid rent / cash sale / … | `Book Rent\|Sale\|… <amt> [YYYY-MM-DD] [zone]` |
+| Memo / check number | `SetEntryDescription <entry> 'October rent'` / `SetEntryReference <entry> check 1042` |
 | Credit / return (books) | `Sales Credit`, `AR Sale Credit`, `Equipment Return`, `Supply Return` |
 | Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` |
 | Grokipedia cash ledger | three `Post` lines below, then `AccountLedger Cash` |

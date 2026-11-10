@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+# Usage: SetEntryReference <entry_id> <type> <value> [sequence]
+# Parity with PostgreSQL SetEntryReference.
+# type is GetIdentifier. value is the printed number.
+# A different open value of this type is stopped.
+# Prints the EntryReference id.
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
+
+ENTRY="${1:-}"
+TYPE="${2:-}"
+VALUE="${3:-}"
+SEQ="${4-}"
+
+if [[ -z "$ENTRY" || -z "$TYPE" || -z "$VALUE" ]]; then
+  echo "Usage: SetEntryReference <entry_id> <type> <value> [sequence]" >&2
+  exit 1
+fi
+
+VALUE=$(echo "$VALUE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+TYPE=$(echo "$TYPE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+if [[ -z "$VALUE" || -z "$TYPE" ]]; then
+  echo ""
+  exit 0
+fi
+
+type_id=$("$HERE/GetIdentifier" "$TYPE")
+if [[ -z "$type_id" ]]; then
+  echo "Error: could not resolve reference type '$TYPE'" >&2
+  exit 1
+fi
+
+esc=$(sql_escape "$VALUE")
+
+sqlite_run "
+ UPDATE EntryReference
+ SET stop = datetime('now')
+ WHERE entry = $ENTRY
+  AND type = $type_id
+  AND value != '$esc'
+  AND stop IS NULL;
+" >/dev/null
+
+seq_sql=$(sql_int_or_null "$SEQ")
+sqlite_run "
+ INSERT INTO EntryReference (entry, type, value, sequence)
+ SELECT $ENTRY, $type_id, '$esc', $seq_sql
+ WHERE NOT EXISTS (
+  SELECT 1 FROM EntryReference
+  WHERE entry = $ENTRY
+   AND type = $type_id
+   AND value = '$esc'
+   AND stop IS NULL
+ );
+" >/dev/null
+
+if [[ -n "$SEQ" ]]; then
+  sqlite_run "
+   UPDATE EntryReference
+   SET sequence = $SEQ
+   WHERE entry = $ENTRY
+    AND type = $type_id
+    AND value = '$esc'
+    AND stop IS NULL
+    AND (sequence IS NULL OR sequence != $SEQ);
+  " >/dev/null
+fi
+
+sqlite_query_one "
+ SELECT id FROM EntryReference
+ WHERE entry = $ENTRY
+  AND type = $type_id
+  AND value = '$esc'
+  AND stop IS NULL
+ LIMIT 1;
+"
