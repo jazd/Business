@@ -18,21 +18,29 @@ if [[ -z "$SCHEMA_NAME" || -z "$MAJOR" || -z "$MINOR" || -z "$PATCH" ]]; then
 fi
 
 schema_id=$("$HERE/GetWord" "$SCHEMA_NAME")
-major_id=$("$HERE/GetWord" "$MAJOR")
-minor_id=$("$HERE/GetWord" "$MINOR")
-patch_id=$("$HERE/GetWord" "$PATCH")
+major_id=$("$HERE/GetIdentifier" "$MAJOR")
+minor_id=$("$HERE/GetIdentifier" "$MINOR")
+patch_id=$("$HERE/GetIdentifier" "$PATCH")
 
 if [[ -z "$schema_id" || -z "$major_id" || -z "$minor_id" || -z "$patch_id" ]]; then
   echo "Error: could not resolve schema/version words" >&2
   exit 1
 fi
 
+major_esc=$(sql_escape "$MAJOR")
+minor_esc=$(sql_escape "$MINOR")
+patch_esc=$(sql_escape "$PATCH")
 version_id=$(sqlite_query_one "
- SELECT id FROM Version
- WHERE name IS NULL
-  AND major = $major_id
-  AND minor = $minor_id
-  AND patch = $patch_id
+ SELECT Version.id
+ FROM Version
+ JOIN Word AS maj ON maj.id = Version.major
+ JOIN Word AS minr ON minr.id = Version.minor
+ JOIN Word AS pat ON pat.id = Version.patch
+ WHERE Version.name IS NULL
+  AND UPPER(maj.value) = UPPER('$major_esc')
+  AND UPPER(minr.value) = UPPER('$minor_esc')
+  AND UPPER(pat.value) = UPPER('$patch_esc')
+ ORDER BY Version.id
  LIMIT 1;
 ")
 
@@ -42,11 +50,16 @@ if [[ -z "$version_id" ]]; then
    VALUES (NULL, $major_id, $minor_id, $patch_id);
   " >/dev/null
   version_id=$(sqlite_query_one "
-   SELECT id FROM Version
-   WHERE name IS NULL
-    AND major = $major_id
-    AND minor = $minor_id
-    AND patch = $patch_id
+   SELECT Version.id
+   FROM Version
+   JOIN Word AS maj ON maj.id = Version.major
+   JOIN Word AS minr ON minr.id = Version.minor
+   JOIN Word AS pat ON pat.id = Version.patch
+   WHERE Version.name IS NULL
+    AND UPPER(maj.value) = UPPER('$major_esc')
+    AND UPPER(minr.value) = UPPER('$minor_esc')
+    AND UPPER(pat.value) = UPPER('$patch_esc')
+   ORDER BY Version.id
    LIMIT 1;
   ")
 fi

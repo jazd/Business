@@ -12,16 +12,18 @@ DECLARE
  patch_id integer;
  version_id integer;
 BEGIN
- major_id := (SELECT GetWord(inMajor));
+ major_id := (SELECT GetIdentifier(inMajor));
  IF major_id IS NOT NULL THEN
-  minor_id := (SELECT GetWord(inMinor));
-  patch_id := (SELECT GetWord(inPatch));
+  minor_id := (SELECT GetIdentifier(inMinor));
+  patch_id := (SELECT GetIdentifier(inPatch));
+  -- Match a version stored against any Word with the same text, including a culture word.
   SELECT id INTO version_id
   FROM Version
-  WHERE major = major_id
-   AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
-   AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
-   AND name IS NULL
+  WHERE name IS NULL
+   AND major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor))
+   AND ((inMinor IS NULL AND minor IS NULL) OR minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+   AND ((inPatch IS NULL AND patch IS NULL) OR patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
+  ORDER BY id
   LIMIT 1;
   IF version_id IS NULL THEN
    -- Be sure to process any single version one at a time without the need of a transaction or locking Version table
@@ -30,9 +32,10 @@ BEGIN
    INSERT INTO Version (major, minor, patch) (
     SELECT major_id, minor_id, patch_id
     FROM Dual
-    LEFT JOIN Version AS exists ON exists.major = major_id
-     AND ((exists.minor = minor_id) OR (exists.minor IS NULL AND minor_id IS NULL))
-     AND ((exists.patch = patch_id) OR (exists.patch IS NULL AND patch_id IS NULL))
+    LEFT JOIN Version AS exists ON exists.name IS NULL
+     AND exists.major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor))
+     AND ((inMinor IS NULL AND exists.minor IS NULL) OR exists.minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+     AND ((inPatch IS NULL AND exists.patch IS NULL) OR exists.patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
     WHERE exists.id IS NULL
     LIMIT 1
    );
@@ -44,10 +47,11 @@ BEGIN
    END;
    SELECT id INTO version_id
    FROM Version
-   WHERE major = major_id
-    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
-    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
-    AND name IS NULL
+   WHERE name IS NULL
+    AND major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor))
+    AND ((inMinor IS NULL AND minor IS NULL) OR minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+    AND ((inPatch IS NULL AND patch IS NULL) OR patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
+   ORDER BY id
    LIMIT 1;
   END IF;
  END IF;
@@ -69,16 +73,18 @@ DECLARE
  version_id integer;
 BEGIN
  IF inName IS NOT NULL THEN
-  name_id := (SELECT GetWord(inName));
-  major_id := (SELECT GetWord(inMajor));
-  minor_id := (SELECT GetWord(inMinor));
-  patch_id := (SELECT GetWord(inPatch));
+  name_id := (SELECT GetIdentifier(inName));
+  major_id := (SELECT GetIdentifier(inMajor));
+  minor_id := (SELECT GetIdentifier(inMinor));
+  patch_id := (SELECT GetIdentifier(inPatch));
+  -- Match a version stored against any Word with the same text, including a culture word.
   SELECT id INTO version_id
   FROM Version
-  WHERE name = name_id
-   AND ((major = major_id) OR (major IS NULL AND major_id IS NULL))
-   AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
-   AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
+  WHERE name IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inName))
+   AND ((inMajor IS NULL AND major IS NULL) OR major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor)))
+   AND ((inMinor IS NULL AND minor IS NULL) OR minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+   AND ((inPatch IS NULL AND patch IS NULL) OR patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
+  ORDER BY id
   LIMIT 1;
   IF version_id IS NULL THEN
    -- Be sure to process any single version name one at a time without the need of a transaction or locking Version table
@@ -87,10 +93,10 @@ BEGIN
    INSERT INTO Version (name, major, minor, patch) (
     SELECT name_id, major_id, minor_id, patch_id
     FROM Dual
-    LEFT JOIN Version AS exists ON exists.name = name_id
-     AND ((exists.major = major_id) OR (exists.major IS NULL AND major_id IS NULL))
-     AND ((exists.minor = minor_id) OR (exists.minor IS NULL AND minor_id IS NULL))
-     AND ((exists.patch = patch_id) OR (exists.patch IS NULL AND patch_id IS NULL))
+    LEFT JOIN Version AS exists ON exists.name IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inName))
+     AND ((inMajor IS NULL AND exists.major IS NULL) OR exists.major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor)))
+     AND ((inMinor IS NULL AND exists.minor IS NULL) OR exists.minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+     AND ((inPatch IS NULL AND exists.patch IS NULL) OR exists.patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
     WHERE exists.id IS NULL
     LIMIT 1
    );
@@ -102,10 +108,11 @@ BEGIN
    END;
    SELECT id INTO version_id
    FROM Version
-   WHERE name = name_id
-    AND ((major = major_id) OR (major IS NULL AND major_id IS NULL))
-    AND ((minor = minor_id) OR (minor IS NULL AND minor_id IS NULL))
-    AND ((patch = patch_id) OR (patch IS NULL AND patch_id IS NULL))
+   WHERE name IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inName))
+    AND ((inMajor IS NULL AND major IS NULL) OR major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor)))
+    AND ((inMinor IS NULL AND minor IS NULL) OR minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+    AND ((inPatch IS NULL AND patch IS NULL) OR patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
+   ORDER BY id
    LIMIT 1;
   END IF;
  END IF;
@@ -132,11 +139,13 @@ DECLARE
  release_id integer;
 BEGIN
  IF inVersion IS NOT NULL THEN
-  build_id := (SELECT GetWord(inBuild));
+  build_id := (SELECT GetIdentifier(inBuild));
+  -- Match a build stored against any Word with the same text, including a culture word.
   SELECT id INTO release_id
   FROM Release
   WHERE version = inVersion
-   AND ((build = build_id) OR (build IS NULL AND build_id IS NULL))
+   AND ((inBuild IS NULL AND build IS NULL) OR build IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inBuild)))
+  ORDER BY id
   LIMIT 1;
   IF release_id IS NULL THEN
    -- Be sure to process any single version build one at a time without the need of a transaction or locking Release table
@@ -146,7 +155,7 @@ BEGIN
     SELECT build_id AS build, inVersion AS version
     FROM Dual
     LEFT JOIN Release AS exists ON exists.version = inVersion
-     AND ((exists.build = build_id) OR (exists.build IS NULL AND build_id IS NULL))
+     AND ((inBuild IS NULL AND exists.build IS NULL) OR exists.build IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inBuild)))
     WHERE exists.id IS NULL
     LIMIT 1
    );
@@ -159,7 +168,8 @@ BEGIN
    SELECT id INTO release_id
    FROM Release
    WHERE version = inVersion
-    AND ((build = build_id) OR (build IS NULL AND build_id IS NULL))
+    AND ((inBuild IS NULL AND build IS NULL) OR build IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inBuild)))
+   ORDER BY id
    LIMIT 1;
   END IF;
  END IF;

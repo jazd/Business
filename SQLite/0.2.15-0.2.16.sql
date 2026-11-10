@@ -116,3 +116,82 @@ BEGIN
     )
     WHERE rowid = new.rowid;
 END;
+
+DROP VIEW IF EXISTS ParsedAgentString;
+DROP VIEW IF EXISTS Parts;
+DROP VIEW IF EXISTS ApplicationReleases;
+DROP VIEW IF EXISTS SchemaVersions;
+DROP VIEW IF EXISTS Versions;
+CREATE VIEW Versions AS
+SELECT Version.id AS version, name.value AS name,
+ major.value ||
+  COALESCE('.' || minor.value, '') ||
+  COALESCE('.' || patch.value, '')
+ AS value,
+ major.value AS major,
+ minor.value AS minor,
+ patch.value AS patch
+FROM Version
+LEFT JOIN Word AS name ON name.id = Version.name
+LEFT JOIN Word AS major ON major.id = Version.major
+LEFT JOIN Word AS minor ON minor.id = Version.minor
+LEFT JOIN Word AS patch ON patch.id = Version.patch;
+
+CREATE VIEW SchemaVersions AS
+SELECT SchemaVersion.build,
+ SchemaVersion.schema,
+ SchemaName.value AS schemaName,
+ SchemaVersion.version,
+ SchemaVersion.stop,
+ SchemaVersion.created,
+ Versions.name,
+ Versions.value,
+ Versions.major,
+ Versions.minor,
+ Versions.patch
+FROM SchemaVersion
+JOIN Versions ON SchemaVersion.version = Versions.version
+LEFT JOIN I18NWord AS SchemaName ON SchemaName.id = SchemaVersion.schema;
+
+CREATE VIEW ApplicationReleases AS
+SELECT ApplicationRelease.id AS applicationRelease,
+ ApplicationRelease.application,
+ ApplicationRelease.release,
+ Applications.name,
+ Applications.goesBy,
+ Applications.path AS applicationPath,
+ Release.version AS versionId,
+ Release.build AS buildId,
+ Versions.value as versionName,
+ Build.value as buildName
+FROM ApplicationRelease
+JOIN Applications ON Applications.application = ApplicationRelease.application
+JOIN Release ON Release.id = ApplicationRelease.release
+JOIN Versions ON Versions.version = Release.version
+JOIN Word AS Build ON Build.id = Release.build;
+
+CREATE VIEW Parts AS
+SELECT Part.id AS part, Part.parent,
+ I18NSentence.value AS name, Part.name AS nameId,
+ CASE WHEN (Versions.name IS NOT NULL) THEN Versions.name ELSE '' END ||
+ CASE WHEN (Versions.name IS NOT NULL) THEN ' ' ELSE '' END ||
+ CASE WHEN (Versions.value IS NOT NULL) THEN Versions.value ELSE '' END AS version,
+ Part.version AS versionId,
+ Part.serial, Part.created
+FROM Part
+JOIN I18NSentence ON I18NSentence.id = Part.name
+LEFT JOIN Versions ON Versions.version = Part.version;
+
+CREATE VIEW ParsedAgentString AS
+SELECT agentstring,
+ deviceid, deviceversion, device, deviceversionname.value as deviceersionname,
+ osid, OSRelease.version AS osversion, os, OSVersion.value AS osversionname,
+ agentid, AgentVersion.version AS agentversion, agent, AgentVersion.value agentversionname
+FROM ParsedAgentStringShort
+JOIN ApplicationRelease AS OSApplicatonRelease ON OSApplicatonRelease.id = osapplicationrelease
+JOIN ApplicationRelease AS AgentApplicationRelease ON AgentApplicationRelease.id = agentApplicationRelease
+LEFT JOIN Versions AS deviceversionname ON deviceversionname.version = deviceversion
+LEFT JOIN Release AS OSRelease ON OSRelease.id = OSApplicatonRelease.release
+LEFT JOIN Versions AS OSVersion ON OSVersion.version = OSRelease.version
+LEFT JOIN Release AS AgentRelease ON AgentRelease.id = AgentApplicationRelease.release
+LEFT JOIN Versions AS AgentVersion ON AgentVersion.version = AgentRelease.version;

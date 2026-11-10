@@ -13,25 +13,42 @@ if [[ -z "$NAME" ]]; then
  exit 0
 fi
 
-# Get word IDs
-name_id=$("$HERE/GetWord" "$NAME")
-major_id=$( [[ -n "$MAJOR" ]] && "$HERE/GetWord" "$MAJOR" || echo "" )
-minor_id=$( [[ -n "$MINOR" ]] && "$HERE/GetWord" "$MINOR" || echo "" )
-patch_id=$( [[ -n "$PATCH" ]] && "$HERE/GetWord" "$PATCH" || echo "" )
+# New rows store culture-null words. An existing row may point at a culture word
+# with the same text, and that row is the one returned.
+name_id=$("$HERE/GetIdentifier" "$NAME")
+major_id=$( [[ -n "$MAJOR" ]] && "$HERE/GetIdentifier" "$MAJOR" || echo "" )
+minor_id=$( [[ -n "$MINOR" ]] && "$HERE/GetIdentifier" "$MINOR" || echo "" )
+patch_id=$( [[ -n "$PATCH" ]] && "$HERE/GetIdentifier" "$PATCH" || echo "" )
 
-# Build dynamic WHERE conditions for NULL handling
-major_cond="major $( [[ -n "$major_id" ]] && echo "= $major_id" || echo "IS NULL" )"
-minor_cond="minor $( [[ -n "$minor_id" ]] && echo "= $minor_id" || echo "IS NULL" )"
-patch_cond="patch $( [[ -n "$patch_id" ]] && echo "= $patch_id" || echo "IS NULL" )"
+name_esc=$(sql_escape "$NAME")
+if [[ -n "$MAJOR" ]]; then
+  major_cond="UPPER(maj.value) = UPPER('$(sql_escape "$MAJOR")')"
+else
+  major_cond="Version.major IS NULL"
+fi
+if [[ -n "$MINOR" ]]; then
+  minor_cond="UPPER(minr.value) = UPPER('$(sql_escape "$MINOR")')"
+else
+  minor_cond="Version.minor IS NULL"
+fi
+if [[ -n "$PATCH" ]]; then
+  patch_cond="UPPER(pat.value) = UPPER('$(sql_escape "$PATCH")')"
+else
+  patch_cond="Version.patch IS NULL"
+fi
 
-# Try to find existing version
 version_id=$(sqlite_query_one "
- SELECT id
+ SELECT Version.id
  FROM Version
- WHERE name = $name_id
+ JOIN Word AS n ON n.id = Version.name
+ LEFT JOIN Word AS maj ON maj.id = Version.major
+ LEFT JOIN Word AS minr ON minr.id = Version.minor
+ LEFT JOIN Word AS pat ON pat.id = Version.patch
+ WHERE UPPER(n.value) = UPPER('$name_esc')
   AND $major_cond
   AND $minor_cond
   AND $patch_cond
+ ORDER BY Version.id
  LIMIT 1;
 ")
 
@@ -50,12 +67,17 @@ insert_result=$(sqlite_run "
 
 # Fetch the id
 version_id=$(sqlite_query_one "
- SELECT id
+ SELECT Version.id
  FROM Version
- WHERE name = $name_id
+ JOIN Word AS n ON n.id = Version.name
+ LEFT JOIN Word AS maj ON maj.id = Version.major
+ LEFT JOIN Word AS minr ON minr.id = Version.minor
+ LEFT JOIN Word AS pat ON pat.id = Version.patch
+ WHERE UPPER(n.value) = UPPER('$name_esc')
   AND $major_cond
   AND $minor_cond
   AND $patch_cond
+ ORDER BY Version.id
  LIMIT 1;
 ")
 

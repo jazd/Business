@@ -3154,10 +3154,10 @@ SELECT Version.id AS version, name.value AS name,
  minor.value AS minor,
  patch.value AS patch
 FROM Version
-LEFT JOIN I18NWord AS name ON name.id = Version.name
-LEFT JOIN I18NWord AS major ON major.id = Version.major
-LEFT JOIN I18NWord AS minor ON minor.id = Version.minor
-LEFT JOIN I18NWord AS patch ON patch.id = Version.patch
+LEFT JOIN Word AS name ON name.id = Version.name
+LEFT JOIN Word AS major ON major.id = Version.major
+LEFT JOIN Word AS minor ON minor.id = Version.minor
+LEFT JOIN Word AS patch ON patch.id = Version.patch
   </sql>
  </view>
 
@@ -3208,7 +3208,7 @@ LEFT JOIN I18NWord AS SchemaName ON SchemaName.id = SchemaVersion.schema
    JOIN Applications ON Applications.application = ApplicationRelease.application
    JOIN Release ON Release.id = ApplicationRelease.release
    JOIN Versions ON Versions.version = Release.version
-   JOIN I18NWord AS Build ON Build.id = Release.build
+   JOIN Word AS Build ON Build.id = Release.build
   </sql>
  </view>
 

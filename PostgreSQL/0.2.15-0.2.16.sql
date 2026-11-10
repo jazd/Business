@@ -218,6 +218,216 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION GetVersion (
+ inMajor varchar,
+ inMinor varchar,
+ inPatch varchar
+) RETURNS integer AS $$
+DECLARE
+ major_id integer;
+ minor_id integer;
+ patch_id integer;
+ version_id integer;
+BEGIN
+ major_id := (SELECT GetIdentifier(inMajor));
+ IF major_id IS NOT NULL THEN
+  minor_id := (SELECT GetIdentifier(inMinor));
+  patch_id := (SELECT GetIdentifier(inPatch));
+  -- Match a version stored against any Word with the same text, including a culture word.
+  SELECT id INTO version_id
+  FROM Version
+  WHERE name IS NULL
+   AND major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor))
+   AND ((inMinor IS NULL AND minor IS NULL) OR minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+   AND ((inPatch IS NULL AND patch IS NULL) OR patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
+  ORDER BY id
+  LIMIT 1;
+  IF version_id IS NULL THEN
+   -- Be sure to process any single version one at a time without the need of a transaction or locking Version table
+   PERFORM pg_advisory_lock(major_id);
+   BEGIN
+   INSERT INTO Version (major, minor, patch) (
+    SELECT major_id, minor_id, patch_id
+    FROM Dual
+    LEFT JOIN Version AS exists ON exists.name IS NULL
+     AND exists.major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor))
+     AND ((inMinor IS NULL AND exists.minor IS NULL) OR exists.minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+     AND ((inPatch IS NULL AND exists.patch IS NULL) OR exists.patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(major_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(major_id);
+     RAISE;
+   END;
+   SELECT id INTO version_id
+   FROM Version
+   WHERE name IS NULL
+    AND major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor))
+    AND ((inMinor IS NULL AND minor IS NULL) OR minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+    AND ((inPatch IS NULL AND patch IS NULL) OR patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
+   ORDER BY id
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN version_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetVersionName (
+ inName varchar,
+ inMajor varchar,
+ inMinor varchar,
+ inPatch varchar
+) RETURNS integer AS $$
+DECLARE
+ name_id integer;
+ major_id integer;
+ minor_id integer;
+ patch_id integer;
+ version_id integer;
+BEGIN
+ IF inName IS NOT NULL THEN
+  name_id := (SELECT GetIdentifier(inName));
+  major_id := (SELECT GetIdentifier(inMajor));
+  minor_id := (SELECT GetIdentifier(inMinor));
+  patch_id := (SELECT GetIdentifier(inPatch));
+  -- Match a version stored against any Word with the same text, including a culture word.
+  SELECT id INTO version_id
+  FROM Version
+  WHERE name IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inName))
+   AND ((inMajor IS NULL AND major IS NULL) OR major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor)))
+   AND ((inMinor IS NULL AND minor IS NULL) OR minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+   AND ((inPatch IS NULL AND patch IS NULL) OR patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
+  ORDER BY id
+  LIMIT 1;
+  IF version_id IS NULL THEN
+   -- Be sure to process any single version name one at a time without the need of a transaction or locking Version table
+   PERFORM pg_advisory_lock(name_id);
+   BEGIN
+   INSERT INTO Version (name, major, minor, patch) (
+    SELECT name_id, major_id, minor_id, patch_id
+    FROM Dual
+    LEFT JOIN Version AS exists ON exists.name IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inName))
+     AND ((inMajor IS NULL AND exists.major IS NULL) OR exists.major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor)))
+     AND ((inMinor IS NULL AND exists.minor IS NULL) OR exists.minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+     AND ((inPatch IS NULL AND exists.patch IS NULL) OR exists.patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(name_id);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(name_id);
+     RAISE;
+   END;
+   SELECT id INTO version_id
+   FROM Version
+   WHERE name IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inName))
+    AND ((inMajor IS NULL AND major IS NULL) OR major IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMajor)))
+    AND ((inMinor IS NULL AND minor IS NULL) OR minor IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inMinor)))
+    AND ((inPatch IS NULL AND patch IS NULL) OR patch IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inPatch)))
+   ORDER BY id
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN version_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION GetVersionName (
+ inName varchar
+) RETURNS integer AS $$
+DECLARE
+BEGIN
+ RETURN (SELECT GetVersionName(inName, NULL, NULL, NULL));
+END;
+$$ LANGUAGE plpgsql;
+
+-- GetRelease(version integer, build char)
+CREATE OR REPLACE FUNCTION GetRelease (
+ inVersion integer,
+ inBuild varchar
+) RETURNS integer AS $$
+DECLARE
+ build_id integer;
+ release_id integer;
+BEGIN
+ IF inVersion IS NOT NULL THEN
+  build_id := (SELECT GetIdentifier(inBuild));
+  -- Match a build stored against any Word with the same text, including a culture word.
+  SELECT id INTO release_id
+  FROM Release
+  WHERE version = inVersion
+   AND ((inBuild IS NULL AND build IS NULL) OR build IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inBuild)))
+  ORDER BY id
+  LIMIT 1;
+  IF release_id IS NULL THEN
+   -- Be sure to process any single version build one at a time without the need of a transaction or locking Release table
+   PERFORM pg_advisory_lock(inVersion);
+   BEGIN
+   INSERT INTO Release (build, version) (
+    SELECT build_id AS build, inVersion AS version
+    FROM Dual
+    LEFT JOIN Release AS exists ON exists.version = inVersion
+     AND ((inBuild IS NULL AND exists.build IS NULL) OR exists.build IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inBuild)))
+    WHERE exists.id IS NULL
+    LIMIT 1
+   );
+   PERFORM pg_advisory_unlock(inVersion);
+   EXCEPTION
+    WHEN OTHERS THEN
+     PERFORM pg_advisory_unlock(inVersion);
+     RAISE;
+   END;
+   SELECT id INTO release_id
+   FROM Release
+   WHERE version = inVersion
+    AND ((inBuild IS NULL AND build IS NULL) OR build IN (SELECT id FROM Word WHERE UPPER(value) = UPPER(inBuild)))
+   ORDER BY id
+   LIMIT 1;
+  END IF;
+ END IF;
+ RETURN release_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+CREATE OR REPLACE VIEW Versions AS
+SELECT Version.id AS version, name.value AS name,
+ major.value ||
+  COALESCE('.' || minor.value, '') ||
+  COALESCE('.' || patch.value, '')
+ AS value,
+ major.value AS major,
+ minor.value AS minor,
+ patch.value AS patch
+FROM Version
+LEFT JOIN Word AS name ON name.id = Version.name
+LEFT JOIN Word AS major ON major.id = Version.major
+LEFT JOIN Word AS minor ON minor.id = Version.minor
+LEFT JOIN Word AS patch ON patch.id = Version.patch;
+
+CREATE OR REPLACE VIEW ApplicationReleases AS
+SELECT ApplicationRelease.id AS applicationRelease,
+ ApplicationRelease.application,
+ ApplicationRelease.release,
+ Applications.name,
+ Applications.goesBy,
+ Applications.path AS applicationPath,
+ Release.version AS versionId,
+ Release.build AS buildId,
+ Versions.value as versionName,
+ Build.value as buildName
+FROM ApplicationRelease
+JOIN Applications ON Applications.application = ApplicationRelease.application
+JOIN Release ON Release.id = ApplicationRelease.release
+JOIN Versions ON Versions.version = Release.version
+JOIN Word AS Build ON Build.id = Release.build;
+
 -- SELECT SetSchemaVersion('Business', '0', '2', '16');
 
 COMMIT;
