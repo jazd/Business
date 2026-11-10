@@ -77,3 +77,42 @@ LEFT JOIN Word AS RefIdent ON RefIdent.id = EntryReference.type
  AND RefIdent.culture IS NULL
 LEFT JOIN I18NWord AS RefWord ON RefWord.id = EntryReference.type
 WHERE EntryReference.stop IS NULL;
+
+-- Triggers for Word, Sentence and Paragraph.
+-- id is not the primary key, so a new row defaults to 0.
+-- The next id is at least 2000000, and above any id already stored.
+DROP TRIGGER IF EXISTS auto_increment_sequence_word;
+CREATE TRIGGER auto_increment_sequence_word
+AFTER INSERT ON word
+WHEN new.id = 0
+BEGIN
+    UPDATE word
+    SET id = (
+      SELECT MAX(IFNULL(MAX(id), 0) + 1, 2000000) FROM word
+    )
+    WHERE rowid = new.rowid;
+END;
+
+DROP TRIGGER IF EXISTS auto_increment_sequence_sentence;
+CREATE TRIGGER auto_increment_sequence_sentence
+AFTER INSERT ON sentence
+WHEN new.id = 0
+BEGIN
+    UPDATE sentence
+    SET id = (
+      SELECT MAX(IFNULL(MAX(id), 0) + 1, 2000000) FROM sentence
+    )
+    WHERE rowid = new.rowid;
+END;
+
+DROP TRIGGER IF EXISTS auto_increment_sequence_paragraph;
+CREATE TRIGGER auto_increment_sequence_paragraph
+AFTER INSERT ON paragraph
+WHEN new.id = 0
+BEGIN
+    UPDATE paragraph
+    SET id = (
+      SELECT MAX(IFNULL(MAX(id), 0) + 1, 2000000) FROM paragraph
+    )
+    WHERE rowid = new.rowid;
+END;
