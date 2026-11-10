@@ -72,7 +72,7 @@ sqlite3 "$OUT" < "${ROOT}/SQLite/post.sql"
 # Record the active Business version on the new file. This tree stamps the open patch.
 maj=0
 min=2
-pat=16
+pat=17
 export SQLITE_DB="$OUT"
 export PATH="$ROOT/Bash/sqlite:${PATH:-}"
 if [[ ! -x "$ROOT/Bash/sqlite/SetSchemaVersion" ]]; then
