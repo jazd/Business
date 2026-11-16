@@ -49,21 +49,45 @@ sqlite3 "$DB" "DELETE FROM JournalEntry WHERE journal = $general;"
 
 python3 - "$TMP/ledger.txt" <<'PY'
 import sys
+
+def is_date_header(line):
+    return line.lstrip().startswith("date")
+
+def table_rows(lines, names):
+    header = next(line for line in lines if is_date_header(line))
+    # sqlite3 3.54 -header -column pads the header line only.
+    # Column names are located on the header with that pad removed.
+    columns = header.lstrip()
+    starts = [columns.index(name) for name in names]
+    starts.append(len(columns) + 8)
+
+    def fields(line):
+        padded = line.ljust(starts[-1])
+        return [padded[starts[i]:starts[i + 1]].strip() for i in range(len(names))]
+
+    rows = []
+    for line in lines:
+        if not line.strip() or is_date_header(line) or set(line.strip()) <= set("- "):
+            continue
+        rows.append(fields(line))
+    return rows
+
+def self_check():
+    samples = [
+        " date    details\n Jan 1   Equity\n",
+        "date    details\nJan 1   Equity\n",
+    ]
+    for sample in samples:
+        rows = table_rows(sample.splitlines(), ["date", "details"])
+        if rows != [["Jan 1", "Equity"]]:
+            print("Error: header self-check failed", rows, file=sys.stderr)
+            sys.exit(1)
+
+self_check()
+
 text = open(sys.argv[1], encoding="utf-8").read().splitlines()
-header = next(line for line in text if line.startswith("date"))
 names = ["date", "details", "debit", "credit", "balance"]
-starts = [header.index(name) for name in names]
-starts.append(len(header) + 8)
-
-def fields(line):
-    padded = line.ljust(starts[-1])
-    return [padded[starts[i]:starts[i + 1]].strip() for i in range(len(names))]
-
-rows = []
-for line in text:
-    if not line.strip() or line.startswith("date") or set(line.strip()) <= set("- "):
-        continue
-    rows.append(fields(line))
+rows = table_rows(text, names)
 
 expect = [
     ["Jan 1", "Equity", "10000.00", "", "10000.00"],

@@ -3,8 +3,11 @@
 #
 # Usage:
 #   export SQLITE_DB=$HOME/business-shop/business.sqlite3
-#   ./scripts/upgrade-sqlite.sh 0.2.13 0.2.14
-#   ./scripts/upgrade-sqlite.sh 0.2.14 0.2.15
+#   ./scripts/upgrade-sqlite.sh <from> <to>
+#
+# One hop at a time. The hop file is SQLite/<from>-<to>.sql.
+# Current released hop:
+#   ./scripts/upgrade-sqlite.sh 0.2.15 0.2.16
 #
 # Preconditions: active SchemaVersion Business = <from>.
 # A downloaded 0.2.14 business.sqlite3 can still report 0.2.11. When
@@ -22,8 +25,15 @@ TO="${2:-}"
 : "${UPGRADE_BACKUP:=1}"
 
 if [[ -z "$FROM" || -z "$TO" ]]; then
-  echo "Usage: SQLITE_DB=... $0 <from_version> <to_version>" >&2
-  echo "Example: $0 0.2.11 0.2.12" >&2
+  echo "Usage: SQLITE_DB=... $0 <from> <to>" >&2
+  echo "One hop at a time. Hop file: SQLite/<from>-<to>.sql" >&2
+  echo "Example: $0 0.2.15 0.2.16" >&2
+  echo "Available hops:" >&2
+  shopt -s nullglob
+  for hop in "$ROOT"/SQLite/*-*.sql; do
+    echo "  $(basename "$hop" .sql)" >&2
+  done
+  shopt -u nullglob
   exit 1
 fi
 
