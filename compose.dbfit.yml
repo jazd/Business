@@ -1,7 +1,10 @@
 services:
+  # This session runs at oom score 200. An exec that asks for 0 is rejected,
+  # and the health check is an exec. Keep the container score at 200.
   business-pgsql:
     image: docker.io/library/postgres:17
     container_name: business-pgsql
+    oom_score_adj: 200
     environment:
       POSTGRES_DB: MyCo
       POSTGRES_USER: test
@@ -21,6 +24,7 @@ services:
   business-mysql:
     image: docker.io/library/mysql:8.0
     container_name: business-mysql
+    oom_score_adj: 200
     environment:
       MYSQL_DATABASE: MyCo
       MYSQL_USER: test
@@ -45,6 +49,7 @@ services:
   business-mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: business-mssql
+    oom_score_adj: 200
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_PID: Developer
@@ -66,6 +71,7 @@ services:
   business-dbfit:
     image: localhost/jazd/dbfit:dev
     container_name: business-dbfit
+    oom_score_adj: 200
     ports:
       - "127.0.0.1:8085:8085"
     volumes:
@@ -81,6 +87,7 @@ services:
   business-oracle:
     image: docker.io/gvenzl/oracle-free:23.26.3-slim
     container_name: business-oracle
+    oom_score_adj: 200
     ports:
       - "127.0.0.1:1521:1521"
     environment:
@@ -102,6 +109,7 @@ services:
   business-db2:
     image: icr.io/db2_community/db2:12.1.5.0
     container_name: business-db2
+    oom_score_adj: 200
     hostname: business-db2
     # db2sysc exits if /dev/shm stays at the 64MB default.
     shm_size: "2gb"
