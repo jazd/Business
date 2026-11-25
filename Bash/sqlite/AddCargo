@@ -3,7 +3,7 @@
 # Usage:
 #   AddCargo <bill> <assembly> [<count>]
 #   AddCargo <bill> <assembly> <count> <individual_job|''> <from_cargo|''> <book|''>
-#   AddCargo --unit <bill> <assembly> <count> <unit_price> [<job|''>] [<from|''>] [<book|''>]
+#   AddCargo --unit <bill> <assembly> <count> <unit_price> <job|''> <from|''> <book>
 #
 # Parity with PG AddCargo overloads (procedures.d/95-inventory.sql).
 # Prints: cargo_id
@@ -27,7 +27,7 @@ ARG7="${7-}"
 
 if [[ -z "$BILL" || -z "$ASM" ]]; then
   echo "Usage: AddCargo <bill> <assembly> [<count>] [job] [fromCargo] [book]" >&2
-  echo "       AddCargo --unit <bill> <assembly> <count> <unit> [job] [from] [book]" >&2
+  echo "       AddCargo --unit <bill> <assembly> <count> <unit> <job|''> <from|''> <book>" >&2
   exit 1
 fi
 
@@ -39,6 +39,10 @@ if [[ "$UNIT_MODE" -eq 1 ]]; then
   BOOK="${ARG7-}"
   if [[ -z "$UNIT" ]]; then
     echo "Error: --unit requires unit price" >&2
+    exit 1
+  fi
+  if [[ -z "$BOOK" ]]; then
+    echo "Error: --unit requires a book name. The unit price is booked on that book." >&2
     exit 1
   fi
 else
