@@ -15,27 +15,49 @@
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 source "$HERE/common"
 
-# GNU date exits 0 for an unknown TZ. A zone counts only when it is a regular
-# file under /usr/share/zoneinfo.
+# A zone counts only when it is a regular file under /usr/share/zoneinfo.
+# cd -P follows the macOS zoneinfo symlink. readlink follows a zone symlink.
 zone_today() {
-  local zone="$1" root zpath
+  local zone="$1" root cur dir link i
   if [[ -z "$zone" || "$zone" == /* || "$zone" == *..* ]]; then
     echo "Error: unknown time zone '$zone'" >&2
     return 1
   fi
-  root=$(realpath -e /usr/share/zoneinfo 2>/dev/null) || {
+  root=$(cd -P /usr/share/zoneinfo 2>/dev/null && pwd -P) || {
     echo "Error: unknown time zone '$zone'" >&2
     return 1
   }
-  zpath=$(realpath -e "$root/$zone" 2>/dev/null) || {
-    echo "Error: unknown time zone '$zone'" >&2
-    return 1
-  }
-  if [[ ! -f "$zpath" ]]; then
+  cur="$root/$zone"
+  if [[ ! -e "$cur" && ! -L "$cur" ]]; then
     echo "Error: unknown time zone '$zone'" >&2
     return 1
   fi
-  case "$zpath" in
+  i=0
+  while [[ -L "$cur" ]]; do
+    i=$((i + 1))
+    if [[ "$i" -gt 20 ]]; then
+      echo "Error: unknown time zone '$zone'" >&2
+      return 1
+    fi
+    link=$(readlink "$cur") || {
+      echo "Error: unknown time zone '$zone'" >&2
+      return 1
+    }
+    if [[ "$link" == /* ]]; then
+      cur=$link
+    else
+      dir=$(cd -P "$(dirname "$cur")" 2>/dev/null && pwd -P) || {
+        echo "Error: unknown time zone '$zone'" >&2
+        return 1
+      }
+      cur="$dir/$link"
+    fi
+  done
+  if [[ ! -f "$cur" ]]; then
+    echo "Error: unknown time zone '$zone'" >&2
+    return 1
+  fi
+  case "$cur" in
     "$root"/*) ;;
     *)
       echo "Error: unknown time zone '$zone'" >&2
@@ -72,12 +94,9 @@ if [[ -n "$WHEN" ]]; then
     echo "Error: date must be YYYY-MM-DD" >&2
     exit 1
   fi
-  norm=$(date -d "$WHEN" +%Y-%m-%d 2>/dev/null) || {
+  norm=$(sqlite3 :memory: "SELECT CASE WHEN date('$WHEN') = '$WHEN' THEN 1 ELSE 0 END;")
+  if [[ "$norm" != "1" ]]; then
     echo "Error: date must be YYYY-MM-DD" >&2
-    exit 1
-  }
-  if [[ "$norm" != "$WHEN" ]]; then
-    echo "Error: date is not a calendar day ($WHEN)" >&2
     exit 1
   fi
   ENTRY_DATE="$WHEN"

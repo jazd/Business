@@ -109,19 +109,43 @@ shared=$(sqlite3 "$DB" "
 lines=$(sqlite3 "$DB" "SELECT COUNT(*) FROM JournalEntry WHERE entry IN ($new_entries);")
 [[ "$lines" -ge 18 ]] || fail "expected a pair of lines on each entry, got $lines"
 
-before=$(count_rows)
-if "$BOOK" Rent 1 2026-02-31 >/dev/null 2>&1; then
-  fail "invalid date 2026-02-31 was accepted"
-fi
-if "$BOOK" Rent 1 not-a-date >/dev/null 2>&1; then
-  fail "invalid date not-a-date was accepted"
-fi
-if "$BOOK" Rent 1 '' Not/AZone >/dev/null 2>&1; then
+reject_date() {
+  local when="$1" rows
+  rows=$(count_rows)
+  if "$BOOK" Rent 1 "$when" >/dev/null 2>"$TMP/err"; then
+    fail "invalid date $when was accepted"
+  fi
+  grep -q 'Error: date must be YYYY-MM-DD' "$TMP/err" || fail "date $when error was: $(cat "$TMP/err")"
+  [[ "$(count_rows)" == "$rows" ]] || fail "rejected date $when wrote a journal row"
+}
+
+e_leap=$("$BOOK" Rent 1 2024-02-29)
+[[ "$(dates_for "$e_leap")" == "2024-02-29" ]] || fail "leap day stored $(dates_for "$e_leap")"
+reject_date 2023-02-29
+reject_date 2026-13-01
+reject_date 2026-04-31
+reject_date 2026-02-31
+reject_date not-a-date
+reject_date 2026-02-31abc
+if "$BOOK" Rent 1 '' Not/AZone >/dev/null 2>"$TMP/err"; then
   fail "invalid zone was accepted"
 fi
+grep -q "Error: unknown time zone" "$TMP/err" || fail "zone error was: $(cat "$TMP/err")"
 if "$BOOK" Rent 1 '' ../Etc/passwd >/dev/null 2>&1; then
   fail "zone path escape was accepted"
 fi
+if "$BOOK" Rent 1 '' /etc/localtime >/dev/null 2>&1; then
+  fail "absolute zone path was accepted"
+fi
+if [[ -f /usr/share/zoneinfo/US/Eastern || -L /usr/share/zoneinfo/US/Eastern ]]; then
+  e_east=$("$BOOK" Rent 1 '' US/Eastern)
+  [[ "$(dates_for "$e_east")" == "$(TZ=US/Eastern date +%Y-%m-%d)" ]] || fail "US/Eastern stored $(dates_for "$e_east")"
+fi
+e_ny=$("$BOOK" Rent 1 '' America/New_York)
+[[ "$(dates_for "$e_ny")" == "$(TZ=America/New_York date +%Y-%m-%d)" ]] || fail "America/New_York stored $(dates_for "$e_ny")"
+e_blank=$("$BOOK" Rent 1 '' '   ')
+[[ "$(dates_for "$e_blank")" == "$local_today" ]] || fail "blank zone stored $(dates_for "$e_blank")"
+before=$(count_rows)
 if "$BOOK" Rent 100 extra nope also >/dev/null 2>&1; then
   fail "extra arguments were accepted"
 fi
