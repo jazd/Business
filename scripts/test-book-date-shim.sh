@@ -18,19 +18,25 @@ trap 'rm -rf "$TMP"' EXIT
 DB="$TMP/business.sqlite3"
 cp -a "$SRC" "$DB"
 
+REAL_DATE=$(command -v date)
+if [[ -z "$REAL_DATE" || ! -x "$REAL_DATE" ]]; then
+  echo "Error: date was not found" >&2
+  exit 1
+fi
+
 mkdir -p "$TMP/bin"
-cat > "$TMP/bin/date" << 'EOF'
+cat > "$TMP/bin/date" << EOF
 #!/bin/sh
-real=/usr/bin/date
-for arg in "$@"; do
-  case "$arg" in
+real=$REAL_DATE
+for arg in "\$@"; do
+  case "\$arg" in
     -d|--date|-d*)
       echo "date: invalid option" >&2
       exit 1
       ;;
   esac
 done
-exec "$real" "$@"
+exec "\$real" "\$@"
 EOF
 cat > "$TMP/bin/realpath" << 'EOF'
 #!/bin/sh
@@ -75,7 +81,7 @@ fi
 grep -q 'Error: date must be YYYY-MM-DD' "$TMP/err" || fail "leap error was: $(cat "$TMP/err")"
 [[ "$(count_rows)" == "$((rows + 2))" ]] || fail "rejected leap day wrote a row"
 
-ny=$(TZ=America/New_York /usr/bin/date +%Y-%m-%d)
+ny=$(TZ=America/New_York "$REAL_DATE" +%Y-%m-%d)
 e_ny=$("$BOOK" Rent 1 '' America/New_York)
 [[ "$(dates_for "$e_ny")" == "$ny" ]] || fail "zone today stored $(dates_for "$e_ny"), want $ny"
 
@@ -95,7 +101,7 @@ e_bal=$("$BALANCE" Rent 2 1999-12-31 | tail -n 1)
 if grep -R -i -n 'localtime' "$ROOT/SQLite" "$ROOT/Bash/sqlite" >/dev/null; then
   fail "localtime appeared in SQLite or Bash/sqlite"
 fi
-utc_now=$(/usr/bin/date -u +%Y-%m-%dT%H:%M)
+utc_now=$("$REAL_DATE" -u +%Y-%m-%dT%H:%M)
 for zone in Pacific/Kiritimati Etc/GMT+12; do
   got=$(TZ="$zone" sqlite3 :memory: "SELECT strftime('%Y-%m-%dT%H:%M', datetime('now'));")
   [[ "$got" == "$utc_now" ]] || fail "datetime('now') in $zone is $got, UTC minute is $utc_now"
