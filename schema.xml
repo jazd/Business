@@ -3351,6 +3351,7 @@ SELECT DISTINCT AssemblyPart.assembly, Parent.name AS parentName,
 FROM AssemblyPart
 JOIN Parts AS Assemblies ON Assemblies.part = AssemblyPart.assembly
 JOIN Parts AS Parent ON Parent.part = Assemblies.parent
+WHERE AssemblyPart.stop IS NULL
   </sql>
  </view>
 
@@ -3555,6 +3556,7 @@ SELECT LedgerName.ledger,
 FROM LedgerName
 JOIN I18NSentence ON I18NSentence.id = LedgerName.name
 JOIN LedgerAccount ON LedgerAccount.ledger = LedgerName.ledger
+ AND LedgerAccount.stop IS NULL
 JOIN Accounts ON Accounts.account = LedgerAccount.account
   </sql>
  </view>
@@ -3595,6 +3597,7 @@ FROM BookName
 JOIN I18NSentence ON I18NSentence.id = BookName.name
 JOIN Journals ON Journals.journal = BookName.journal
 JOIN BookAccount ON BookAccount.book = BookName.book
+ AND BookAccount.stop IS NULL
 LEFT JOIN Accounts AS Increase ON Increase.account = BookAccount.increase
 LEFT JOIN Accounts AS Decrease  ON Decrease.account  = BookAccount.decrease
   </sql>
@@ -3807,11 +3810,13 @@ JOIN VertexName AS StopVertexName ON StopVertexName.vertex = Edge.stop
 LEFT JOIN I18NSentence AS StartVertexNameString ON StartVertexNameString.id = StartVertexName.name
 LEFT JOIN I18NSentence AS StopVertexNameString ON StopVertexNameString.id = StopVertexName.name
 LEFT JOIN IndividualVertex AS StartIndividualVertex ON StartIndividualVertex.vertex = Edge.start
+ AND StartIndividualVertex.stop IS NULL
 LEFT JOIN People AS StartPeople ON StartPeople.individual = StartIndividualVertex.individual
 LEFT JOIN Entities AS StartEntities ON StartEntities.individual = StartIndividualVertex.individual
 LEFT JOIN Word AS StartType ON StartType.id = StartIndividualVertex.type
  AND StartType.culture IS NULL
 LEFT JOIN IndividualVertex AS StopIndividualVertex ON StopIndividualVertex.vertex = Edge.stop
+ AND StopIndividualVertex.stop IS NULL
 LEFT JOIN People AS StopPeople ON StopPeople.individual = StopIndividualVertex.individual
 LEFT JOIN Entities AS StopEntities ON StopEntities.individual = StopIndividualVertex.individual
 LEFT JOIN Word AS StopType ON StopType.id = StopIndividualVertex.type
@@ -4185,6 +4190,7 @@ JOIN I18NWord AS Type ON Type.id = Certificate.type
 JOIN CAPolicy ON CAPolicy.id = Certificate.CAPolicy
 JOIN CA ON CA.id = CAPolicy.ca
 LEFT JOIN CACertificate ON CACertificate.certificate = Certificate.id
+ AND CACertificate.stop IS NULL
    </sql>
  </view>
  <view name="EntitlementHistory" fields="id,individual,listName,listNameValue,listSet,listSetValue,source,sourceValue,status,statusValue,stopReason,stopReasonValue,starts,ends,batch,batchValue,stopped,created">
