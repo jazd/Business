@@ -21,11 +21,14 @@ fail() {
   exit 1
 }
 
-mapfile -t post_views < <(sed -n 's/^CREATE VIEW \([A-Za-z0-9_]*\).*/\1/p' "$ROOT/SQLite/post.sql")
-[[ ${#post_views[@]} -gt 0 ]] || fail "SQLite/post.sql creates no views"
-for name in "${post_views[@]}"; do
+post_views=$(sed -n 's/^CREATE VIEW \([A-Za-z0-9_]*\).*/\1/p' "$ROOT/SQLite/post.sql")
+[[ -n "$post_views" ]] || fail "SQLite/post.sql creates no views"
+while IFS= read -r name; do
+  [[ -z "$name" ]] && continue
   grep -q "<view name=\"$name\"" "$ROOT/schema.xml" || fail "$name is in SQLite/post.sql and not in schema.xml"
-done
+done <<EOF
+$post_views
+EOF
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
