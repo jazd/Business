@@ -14,9 +14,10 @@ fi
 
 escaped=$(sql_escape "$NAME")
 NAME_UPPER=$(echo "$NAME" | tr '[:lower:]' '[:upper:]')
+esc_name=$(sql_escape "$NAME_UPPER")
 
 id=$(sqlite_query_one "
- SELECT id FROM Entity WHERE UPPER(name) = '$NAME_UPPER' LIMIT 1;
+ SELECT id FROM Entity WHERE UPPER(name) = '$esc_name' LIMIT 1;
 ")
 if [[ -n "$id" ]]; then
   echo "$id"
@@ -24,4 +25,4 @@ if [[ -n "$id" ]]; then
 fi
 
 sqlite_run "INSERT INTO Entity (name) VALUES ('$escaped');" >/dev/null
-sqlite_query_one "SELECT id FROM Entity WHERE UPPER(name) = '$NAME_UPPER' LIMIT 1;"
+sqlite_query_one "SELECT id FROM Entity WHERE UPPER(name) = '$esc_name' LIMIT 1;"

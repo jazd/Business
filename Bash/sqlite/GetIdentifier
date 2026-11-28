@@ -16,10 +16,11 @@ fi
 
 VALUE_UPPER=$(echo "$VALUE" | tr '[:lower:]' '[:upper:]')
 escaped=$(sql_escape "$VALUE")
+esc_value=$(sql_escape "$VALUE_UPPER")
 
 ident_id=$(sqlite_query_one "
  SELECT id FROM Word
- WHERE UPPER(value) = '$VALUE_UPPER'
+ WHERE UPPER(value) = '$esc_value'
   AND culture IS NULL
  LIMIT 1;
 ")
@@ -33,13 +34,13 @@ sqlite_run "
  INSERT OR IGNORE INTO Word (value, culture)
  SELECT '$escaped', NULL
  WHERE NOT EXISTS (
-  SELECT 1 FROM Word WHERE UPPER(value) = '$VALUE_UPPER' AND culture IS NULL
+  SELECT 1 FROM Word WHERE UPPER(value) = '$esc_value' AND culture IS NULL
  );
 " >/dev/null
 
 sqlite_query_one "
  SELECT id FROM Word
- WHERE UPPER(value) = '$VALUE_UPPER'
+ WHERE UPPER(value) = '$esc_value'
   AND culture IS NULL
  LIMIT 1;
 "

@@ -477,13 +477,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Debit is the first account. Credit is the third. The date is omitted.
 CREATE OR REPLACE FUNCTION Post (
  inDebitAccount varchar,
  inAmount numeric,
  inCreditAccount varchar
 ) RETURNS JournalEntryResult AS $$
 BEGIN
- RETURN Post(inCreditAccount, inAmount, inDebitAccount, NULL);
+ RETURN Post(inDebitAccount, inAmount, inCreditAccount, NULL);
 END;
 $$ LANGUAGE plpgsql;
 

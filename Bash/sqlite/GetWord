@@ -16,13 +16,15 @@ fi
 # Normalize to UPPER for comparison
 WORD_UPPER=$(echo "$WORD_VALUE" | tr '[:lower:]' '[:upper:]')
 CULTURE_UPPER=$(echo "$CULTURE" | tr '[:lower:]' '[:upper:]')
+esc_word=$(sql_escape "$WORD_UPPER")
+esc_culture=$(sql_escape "$CULTURE_UPPER")
 
 # Try to find existing (case-insensitive match)
 word_id=$(sqlite_query_one "
  SELECT Word.id
  FROM Word
- JOIN Culture ON UPPER(Culture.name) = '$CULTURE_UPPER'
- WHERE UPPER(Word.value) = '$WORD_UPPER'
+ JOIN Culture ON UPPER(Culture.name) = '$esc_culture'
+ WHERE UPPER(Word.value) = '$esc_word'
   AND Word.culture = Culture.code
  LIMIT 1;
 ")
@@ -38,7 +40,7 @@ insert_result=$(sqlite_run "
  INSERT OR IGNORE INTO Word (value, culture)
  SELECT '$escaped_value', Culture.code
  FROM Culture
- WHERE UPPER(Culture.name) = '$CULTURE_UPPER'
+ WHERE UPPER(Culture.name) = '$esc_culture'
  LIMIT 1;
 ")
 
@@ -46,8 +48,8 @@ insert_result=$(sqlite_run "
 word_id=$(sqlite_query_one "
  SELECT Word.id
  FROM Word
- JOIN Culture ON UPPER(Culture.name) = '$CULTURE_UPPER'
- WHERE UPPER(Word.value) = '$WORD_UPPER'
+ JOIN Culture ON UPPER(Culture.name) = '$esc_culture'
+ WHERE UPPER(Word.value) = '$esc_word'
   AND Word.culture = Culture.code
  LIMIT 1;
 ")
