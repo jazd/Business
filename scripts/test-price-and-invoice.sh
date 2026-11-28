@@ -185,6 +185,11 @@ q "INSERT INTO PartDescription (part, description) VALUES ($widget, $text_id);"
 [[ "$(desc_of Widget-A)" == "Widget-A - A small widget" ]] || fail "Widget-A description is '$(desc_of Widget-A)'"
 [[ "$(q "SELECT product FROM InvoiceLineDetail WHERE bill = $quote AND line = (SELECT line FROM InvoiceLineDetail WHERE bill = $quote AND product = 'Widget-A');")" == "Widget-A" ]] || fail "product column changed"
 
+if ! python3 -c 'import reportlab' >/dev/null 2>&1; then
+  echo "Warning: python3 cannot import reportlab. scripts/invoice_pdf.py needs that package to read the invoice lines. Install reportlab for this python3, then run this test again." >&2
+  fail "invoice description check needs reportlab"
+fi
+
 python3 - "$DB" "$quote" "$ROOT/scripts" <<'PY'
 import sqlite3, sys
 sys.path.insert(0, sys.argv[3])
