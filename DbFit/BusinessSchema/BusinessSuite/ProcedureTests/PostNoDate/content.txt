@@ -1,0 +1,12 @@
+Three-argument Post omits the date.
+
+Debit is the first account. Credit is the third.
+
+!|Query|SELECT (Post('Cash', 100, 'Sales')).entry AS entry|
+|entry?|
+|>>eid|
+
+!|Query|SELECT s.value AS name, CASE WHEN je.credit THEN 'credit' ELSE 'debit' END AS side FROM JournalEntry je JOIN AccountName an ON an.account = je.account JOIN Sentence s ON s.id = an.name AND s.culture = 1033 WHERE je.entry = _:eid::INT ORDER BY je.credit, s.value|
+|name|side|
+|Cash|debit|
+|Sales|credit|
