@@ -80,7 +80,7 @@ Now in Spanish                  -> JournalReport es
 Now in French                   -> JournalReport fr
 # Total debit 21350 = credit 21350 (true double-entry, all three languages)
 
-# Grokipedia cash ledger (wiki Post to General Journal). Capital prints as Equity.
+# Grokipedia cash ledger (wiki Post to General Journal). With no en-US Capital account, Capital posts to Equity and prints as Equity.
 Post Cash 10000 Capital 2024-01-01
 Post Equipment 2000 Cash 2024-01-05
 Post Cash 500 Sales 2024-01-10

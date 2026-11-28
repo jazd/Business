@@ -209,7 +209,7 @@ on cargo/`LineItems` + assembly views.
 | Check number on that entry | `SetEntryReference <entry> check 1042`. The type is a culture-null word. The value is the printed number. One open value of each type. A different value stops the previous row. Read **EntryReferences**. |
 | What books exist? | `ListBooks` - Rent, Sale, Sales Credit, Equipment/Return, Loan/Payment, Salary, Supply/Return, Petty Cash, AR Sale/Credit/Payment, commission books, Capital, Card Sale, Hosting, … |
 | Split / commission style | `Book 'Sale Jane Doe' 1000` when seeded |
-| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` - debit left, credit right. A name on more than one account is an error. An all-digit argument is the account id. |
+| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` - debit left, credit right. A name matches the en-US sentence first. On PostgreSQL the first match uses `ClientCulture()`. No match in that culture uses any culture. More than one account in the culture that matched is an error. An all-digit argument is the account id. |
 | Grokipedia cash ledger | `AccountLedger Cash` after the three `Post` lines in the section below |
 | Book + show lines | `BookBalance <name> <amount> [YYYY-MM-DD] [time_zone]` (same trailing date and zone as Book) |
 | Return / credit memo (books) | `Sales Credit`, `AR Sale Credit`, `Equipment Return`, `Supply Return` - not free-form DELETE |
@@ -219,6 +219,7 @@ on cargo/`LineItems` + assembly views.
 | Sale paid on credit then cash | Invoice + Receipt + **`AR Payment`** book |
 
 Prefer **named books** from static General Ledger (`ListBooks`) over inventing account ids.
+A new account is `GetAccount <name> <type> [contra]`. A new book is `GetBook <name> <journal> <increase> <decrease>`. A translation of an existing sentence is `SetSentenceCulture <id or en-US name> <culture> <text>`.
 See **`references/parties-contacts-books.md`**.
 
 ### Demo: Grok Build as your small business bookkeeper
@@ -261,7 +262,7 @@ Do **not** make the user say “debit expense credit cash”; translate plain la
 
 Wiki **Post to General Journal** is the cash ledger in [Grokipedia - Ledger Posting and Balancing](https://grokipedia.com/page/Double-entry_bookkeeping#ledger-posting-and-balancing). Use `Post`, then `AccountLedger`. Do not paste the wiki `SELECT Post(...)` into SQLite.
 
-Debit is the first name, credit is the third. Dates are `YYYY-MM-DD`. The article's Capital account is Equity: the en-US sentence is Equity and the es-MX sentence is Capital. `Post` accepts either name. `AccountLedger` prints the en-US contra name, so that line's details cell is Equity.
+Debit is the first name, credit is the third. Dates are `YYYY-MM-DD`. The article's Capital account is Equity: the en-US sentence is Equity and the es-MX sentence is Capital. On a shop with no en-US account named Capital, `Post` accepts either name and the credit is account 5. `AccountLedger` prints the en-US contra name, so that line's details cell is Equity. After `GetAccount Capital Equity`, `Post Cash ... Capital` posts to that new account. `Equity` and `5` still post to account 5.
 
 ```text
 Post Cash 10000 Capital 2024-01-01
@@ -285,9 +286,9 @@ When the user wants CSV import/reconcile (not fully productized yet):
 
 1. Inspect CSV headers; map date, amount, payee, memo.
 2. Propose **chart mapping**: each distinct payee/memo class -> Book name or
-   Post(debit, credit) pair; create missing accounts only via schema-legal
-   paths (GetWord/Sentence + AccountName/Book if procedures exist-otherwise
-   plan + stop for approval).
+   Post(debit, credit) pair. Create a missing account with `GetAccount` and a
+   missing book with `GetBook`. Both find an existing row of the same shape
+   before inserting.
 3. Prefer **import as Book/Post rows** with `SetEntryDescription` for the
    memo and `SetEntryReference` for a check or trace number. Do not
    overwrite prior journal lines.
@@ -461,7 +462,7 @@ When `Bash/sqlite` is on `PATH` (each helper finds siblings beside itself; a `~/
 | Parts/BOM | `GetPart*`, `GetPartbySerial`, `PutAssemblyPart`, `RemoveAssemblyPart`, `DocumentBOM` |
 | Commerce | `CreateBill`, `GetOutstandingBill`, `AddCargo`, `MoveCargo`, `MoveCargoToChild`, `GetBillReference` |
 | Pricing | `GetJob`, `GetSchedule`, `SetSchedule`, `GetIndividualJobSchedule`, `SetPrice`, `PutAssemblyJobPrice` |
-| Accounting | `Book`, `BookBalance`, `Post`, `ListBooks`, `JournalReport`, `LedgerReport`, `AccountLedger`, `SetEntryDescription`, `SetEntryReference` |
+| Accounting | `GetAccount`, `GetBook`, `SetSentenceCulture`, `Book`, `BookBalance`, `Post`, `ListBooks`, `JournalReport`, `LedgerReport`, `AccountLedger`, `SetEntryDescription`, `SetEntryReference` |
 | Documents | `DocumentLineItems`, `DocumentBOM`, `DocumentParty`, **`InvoicePDF`** |
 | EST | `PutAssemblyPublicKey`, `PutCertificateSigningRequest`, `PutAssemblyCertificateSigningRequest`, `PutCertificate` |
 

@@ -23,9 +23,15 @@ sql_escape() {
  echo "${s//\'/''}"
 }
 
+# Quote a SQL string literal. sed keeps the apostrophe on bash 3.2 and bash 5.
+sql_quote() {
+ printf '%s' "$1" | sed "s/'/''/g"
+}
+
 # AccountName.account for a Post or AccountLedger argument.
 # An all-digit argument is the account id and is not also matched by name.
-# Any other argument matches Sentence.value in any culture.
+# Any other argument matches Sentence.value in culture 1033 first.
+# No en-US row falls back to Sentence.value in any culture.
 # One account may have several cultures. More than one account prints nothing and returns 2.
 lookup_account() {
  local name="$1"
@@ -34,7 +40,27 @@ lookup_account() {
   sqlite_query_one "SELECT account FROM AccountName WHERE account = $name LIMIT 1;"
   return 0
  fi
- esc=$(sql_escape "$name")
+ esc=$(sql_quote "$name")
+ count=$(sqlite_query_one "
+  SELECT COUNT(DISTINCT an.account)
+  FROM AccountName an
+  JOIN Sentence s ON s.id = an.name
+  WHERE s.value = '$esc' AND s.culture = 1033;
+ ")
+ if [[ "${count:-0}" -gt 1 ]]; then
+  return 2
+ fi
+ if [[ "${count:-0}" -eq 1 ]]; then
+  sqlite_query_one "
+   SELECT an.account
+   FROM AccountName an
+   JOIN Sentence s ON s.id = an.name
+   WHERE s.value = '$esc' AND s.culture = 1033
+   ORDER BY an.account
+   LIMIT 1;
+  "
+  return 0
+ fi
  count=$(sqlite_query_one "
   SELECT COUNT(DISTINCT an.account)
   FROM AccountName an
@@ -52,7 +78,7 @@ lookup_account() {
   FROM AccountName an
   JOIN Sentence s ON s.id = an.name
   WHERE s.value = '$esc'
-  ORDER BY CASE WHEN s.culture = 1033 THEN 0 ELSE 1 END, an.account
+  ORDER BY an.account
   LIMIT 1;
  "
 }

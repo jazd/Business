@@ -1,0 +1,270 @@
+#!/usr/bin/env bash
+
+# Usage: GetBook <name> <journal> <increase> <decrease>
+#        GetBook --split <name> <journal> increase <account> [share] decrease <account> <share> ...
+# Find or insert a book. Prints the book id.
+# The same journal and accounts return the existing id.
+# A different journal or different accounts exits and writes nothing.
+# A share contains a decimal point, such as 0.70 or 1.0.
+# Shares on a side add up to 1, or the helper writes nothing.
+# The book row and its BookAccount rows are one transaction.
+# A new id is at least 1000, or one past the current maximum when that is higher.
+# The name is an en-US sentence. GetSentence rejects an apostrophe in the name.
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
+
+die() {
+ echo "Error: $*" >&2
+ exit 1
+}
+
+usage() {
+ echo "Usage: GetBook <name> <journal> <increase> <decrease>" >&2
+ echo "       GetBook --split <name> <journal> increase <account> [share] decrease <account> <share> ..." >&2
+ exit 1
+}
+
+require_account() {
+ local label="$1"
+ local id
+ if ! id=$(lookup_account "$label"); then
+  die "account name '$label' matches more than one account"
+ fi
+ if [[ -z "$id" ]]; then
+  die "unknown account '$label'"
+ fi
+ printf '%s' "$id"
+}
+
+require_journal() {
+ local name="$1"
+ local id esc
+ if [[ "$name" =~ ^[0-9]+$ ]]; then
+  id=$(sqlite_query_one "SELECT journal FROM JournalName WHERE journal = $name LIMIT 1;")
+ else
+  esc=$(sql_quote "$name")
+  id=$(sqlite_query_one "
+   SELECT jn.journal
+   FROM JournalName jn
+   JOIN Sentence s ON s.id = jn.name
+   WHERE s.value = '$esc'
+   LIMIT 1;
+  ")
+ fi
+ if [[ -z "$id" ]]; then
+  die "unknown journal '$name'"
+ fi
+ printf '%s' "$id"
+}
+
+share_thousandths() {
+ local share="$1"
+ local th
+ if ! [[ "$share" =~ ^[0-9]*[.][0-9]+$ ]]; then
+  die "share must be a decimal such as 0.70"
+ fi
+ th=$(sqlite3 :memory: "SELECT CAST(ROUND($share * 1000) AS INTEGER);")
+ if [[ -z "$th" || "$th" -le 0 || "$th" -gt 1000 ]]; then
+  die "book shares must add up to 1"
+ fi
+ printf '%s' "$th"
+}
+
+# Rows are id|share, one per line. An empty share is the 100% side.
+side_keys() {
+ local kind="$1"
+ local rows="$2"
+ local id share th n=0 any_null=0 any_set=0 sum=0 line
+ if [[ -z "$rows" ]]; then
+  die "book needs an increase account and a decrease account"
+ fi
+ while IFS='|' read -r id share; do
+  [[ -z "$id" ]] && continue
+  n=$((n + 1))
+  if [[ -z "$share" ]]; then
+   any_null=1
+   th=""
+  else
+   any_set=1
+   th=$(share_thousandths "$share")
+   sum=$((sum + th))
+  fi
+  if [[ "$kind" == "increase" ]]; then
+   line="${id}||${th}"
+  else
+   line="|${id}|${th}"
+  fi
+  printf '%s\n' "$line"
+ done <<EOF
+$rows
+EOF
+ if [[ "$n" -eq 0 ]]; then
+  die "book needs an increase account and a decrease account"
+ fi
+ if [[ "$any_null" -eq 1 && "$any_set" -eq 1 ]]; then
+  die "book shares must add up to 1"
+ fi
+ if [[ "$any_null" -eq 1 && "$n" -ne 1 ]]; then
+  die "book shares must add up to 1"
+ fi
+ if [[ "$any_set" -eq 1 && "$sum" -ne 1000 ]]; then
+  die "book shares must add up to 1"
+ fi
+}
+
+shape_of() {
+ local bid="$1"
+ sqlite3 "$SQLITE_DB" "
+  SELECT COALESCE(increase, '') || '|' || COALESCE(decrease, '') || '|' ||
+   CASE WHEN split IS NULL THEN ''
+    ELSE CAST(CAST(ROUND(split * 1000) AS INTEGER) AS TEXT) END
+  FROM BookAccount
+  WHERE book = $bid AND stop IS NULL
+  ORDER BY 1;
+ "
+}
+
+split_mode=0
+if [[ "${1:-}" == "--split" ]]; then
+ split_mode=1
+ shift
+fi
+
+if [[ "$split_mode" -eq 0 ]]; then
+ if [[ $# -ne 4 ]]; then
+  usage
+ fi
+ NAME="$1"
+ JOURNAL="$2"
+ INC_LABEL="$3"
+ DEC_LABEL="$4"
+ journal_id=$(require_journal "$JOURNAL")
+ inc_id=$(require_account "$INC_LABEL")
+ dec_id=$(require_account "$DEC_LABEL")
+ expected="${inc_id}|${dec_id}|"
+ inc_rows=""
+ dec_rows=""
+else
+ if [[ $# -lt 4 ]]; then
+  usage
+ fi
+ NAME="$1"
+ JOURNAL="$2"
+ shift 2
+ journal_id=$(require_journal "$JOURNAL")
+ mode=""
+ inc_rows=""
+ dec_rows=""
+ while [[ $# -gt 0 ]]; do
+  case "$1" in
+   increase|decrease)
+    mode="$1"
+    shift
+    continue
+    ;;
+  esac
+  if [[ -z "$mode" ]]; then
+   usage
+  fi
+  acct=$(require_account "$1")
+  shift
+  share=""
+  if [[ $# -gt 0 && "$1" =~ ^[0-9]*[.][0-9]+$ ]]; then
+   share="$1"
+   shift
+  fi
+  if [[ "$mode" == "increase" ]]; then
+   inc_rows="${inc_rows}${acct}|${share}"$'\n'
+  else
+   dec_rows="${dec_rows}${acct}|${share}"$'\n'
+  fi
+ done
+ inc_keys=$(side_keys increase "$inc_rows") || exit 1
+ dec_keys=$(side_keys decrease "$dec_rows") || exit 1
+ expected=$(printf '%s\n%s\n' "$inc_keys" "$dec_keys" | sed '/^$/d' | sort)
+fi
+
+name_id=$("$HERE/GetSentence" "$NAME")
+if [[ -z "$name_id" ]]; then
+ die "unknown sentence '$NAME'"
+fi
+
+book_rows=$(sqlite3 "$SQLITE_DB" "SELECT book || '|' || journal FROM BookName WHERE name = $name_id ORDER BY book;")
+found=0
+match=""
+if [[ -n "$book_rows" ]]; then
+ while IFS='|' read -r bid jid; do
+  [[ -z "$bid" ]] && continue
+  found=1
+  actual=$(shape_of "$bid" | sed '/^$/d' | sort)
+  want=$(printf '%s\n' "$expected" | sed '/^$/d' | sort)
+  if [[ "$jid" == "$journal_id" && "$actual" == "$want" ]]; then
+   match="$bid"
+   break
+  fi
+ done <<EOF
+$book_rows
+EOF
+fi
+
+if [[ -n "$match" ]]; then
+ echo "$match"
+ exit 0
+fi
+if [[ "$found" -eq 1 ]]; then
+ die "book '$NAME' already exists with different accounts"
+fi
+
+sql="BEGIN;
+INSERT INTO BookName (book, name, journal)
+SELECT CASE WHEN (IFNULL(m, 0) + 1) > 1000 THEN (IFNULL(m, 0) + 1) ELSE 1000 END,
+ $name_id, $journal_id
+FROM (SELECT MAX(book) AS m FROM BookName);
+"
+if [[ "$split_mode" -eq 0 ]]; then
+ sql="${sql}INSERT INTO BookAccount (book, increase, decrease, split)
+SELECT book, $inc_id, $dec_id, NULL
+FROM BookName WHERE name = $name_id ORDER BY book DESC LIMIT 1;
+"
+else
+ while IFS='|' read -r id share; do
+  [[ -z "$id" ]] && continue
+  if [[ -z "$share" ]]; then
+   split_sql="NULL"
+  else
+   split_sql="$share"
+  fi
+  sql="${sql}INSERT INTO BookAccount (book, increase, decrease, split)
+SELECT book, $id, NULL, $split_sql
+FROM BookName WHERE name = $name_id ORDER BY book DESC LIMIT 1;
+"
+ done <<EOF
+$inc_rows
+EOF
+ while IFS='|' read -r id share; do
+  [[ -z "$id" ]] && continue
+  if [[ -z "$share" ]]; then
+   split_sql="NULL"
+  else
+   split_sql="$share"
+  fi
+  sql="${sql}INSERT INTO BookAccount (book, increase, decrease, split)
+SELECT book, NULL, $id, $split_sql
+FROM BookName WHERE name = $name_id ORDER BY book DESC LIMIT 1;
+"
+ done <<EOF
+$dec_rows
+EOF
+fi
+sql="${sql}COMMIT;
+SELECT book FROM BookName WHERE name = $name_id ORDER BY book DESC LIMIT 1;
+"
+
+if ! book_id=$(sqlite3 "$SQLITE_DB" "$sql"); then
+ die "book '$NAME' was not written"
+fi
+if [[ -z "$book_id" ]]; then
+ die "book '$NAME' was not written"
+fi
+echo "$book_id"

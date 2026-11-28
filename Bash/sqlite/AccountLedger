@@ -3,7 +3,8 @@
 # Usage: AccountLedger <account_name_or_id>
 # Running balance of one account on every journal (posted IS NULL).
 # Details are the other account on the same entry, en-US name.
-# A name matches Sentence.value in any culture. More than one account exits non-zero.
+# A name matches the en-US sentence first. No en-US match uses any culture.
+# More than one account in that match exits non-zero.
 # An all-digit argument is the account id.
 # Amounts print with two decimal places. An empty side is blank. Total is last.
 

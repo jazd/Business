@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+# Usage: SetSentenceCulture <sentence_id_or_en-US_name> <culture> <text>
+# Insert one Sentence row for an existing id and culture. Prints the sentence id.
+# An all-digit argument is the sentence id. Any other argument is the en-US text.
+# A second row for that id and culture is refused.
+# An unknown culture or an unknown id is refused.
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
+
+die() {
+ echo "Error: $*" >&2
+ exit 1
+}
+
+if [[ $# -ne 3 ]]; then
+ echo "Usage: SetSentenceCulture <sentence_id_or_en-US_name> <culture> <text>" >&2
+ exit 1
+fi
+
+KEY="$1"
+CULTURE="$2"
+TEXT="$3"
+
+if [[ -z "$KEY" || -z "$CULTURE" || -z "$TEXT" ]]; then
+ die "sentence, culture, and text are required"
+fi
+
+esc_culture=$(sql_quote "$CULTURE")
+code=$(sqlite_query_one "
+ SELECT code FROM Culture
+ WHERE UPPER(name) = UPPER('$esc_culture')
+ LIMIT 1;
+")
+if [[ -z "$code" ]]; then
+ die "unknown culture '$CULTURE'"
+fi
+
+if [[ "$KEY" =~ ^[0-9]+$ ]]; then
+ sentence_id="$KEY"
+ have=$(sqlite_query_one "SELECT id FROM Sentence WHERE id = $sentence_id LIMIT 1;")
+ if [[ -z "$have" ]]; then
+  die "unknown sentence '$KEY'"
+ fi
+else
+ sentence_id=$("$HERE/GetSentence" "$KEY")
+ if [[ -z "$sentence_id" ]]; then
+  die "unknown sentence '$KEY'"
+ fi
+fi
+
+have=$(sqlite_query_one "
+ SELECT COUNT(*) FROM Sentence
+ WHERE id = $sentence_id AND culture = $code;
+")
+if [[ "${have:-0}" -gt 0 ]]; then
+ die "sentence $sentence_id already has a $CULTURE row"
+fi
+
+esc_text=$(sql_quote "$TEXT")
+text_length=${#TEXT}
+sqlite_run "
+ INSERT INTO Sentence (id, culture, value, length)
+ VALUES ($sentence_id, $code, '$esc_text', $text_length);
+" >/dev/null
+
+echo "$sentence_id"

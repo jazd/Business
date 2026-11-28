@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+# Usage: GetAccount <name> <type> [contra]
+# Find or insert an account. Prints the account id.
+# type is Asset, Liability, Equity, Income, Expense, Dividend, Share, Retained, or that word id.
+# credit comes from the type. contra keeps the type and flips credit.
+# The same name, type, and credit returns the existing id.
+# A different type or credit exits and writes nothing.
+# A new id is at least 1000, or one past the current maximum when that is higher.
+# The name is an en-US sentence. GetSentence rejects an apostrophe in the name.
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$HERE/common"
+
+die() {
+ echo "Error: $*" >&2
+ exit 1
+}
+
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+ echo "Usage: GetAccount <name> <type> [contra]" >&2
+ exit 1
+fi
+
+NAME="$1"
+TYPE="$2"
+contra=0
+if [[ $# -eq 3 ]]; then
+ if [[ "$(printf '%s' "$3" | tr '[:upper:]' '[:lower:]')" != "contra" ]]; then
+  echo "Usage: GetAccount <name> <type> [contra]" >&2
+  exit 1
+ fi
+ contra=1
+fi
+
+if [[ -z "$NAME" || -z "$TYPE" ]]; then
+ die "account name and type are required"
+fi
+
+if [[ "$TYPE" =~ ^[0-9]+$ ]]; then
+ type_id="$TYPE"
+else
+ esc=$(sql_quote "$TYPE")
+ type_id=$(sqlite_query_one "
+  SELECT id FROM Word
+  WHERE culture = 1033
+   AND UPPER(value) = UPPER('$esc')
+   AND id IN (70000, 70001, 70002, 70003, 70004, 70005, 70006, 70007)
+  LIMIT 1;
+ ")
+fi
+
+case "${type_id:-}" in
+ 70000|70004|70005) credit=0 ;;
+ 70001|70002|70003|70006|70007) credit=1 ;;
+ *) die "unknown account type '$TYPE'" ;;
+esac
+
+if [[ "$contra" -eq 1 ]]; then
+ if [[ "$credit" -eq 1 ]]; then
+  credit=0
+ else
+  credit=1
+ fi
+fi
+
+name_id=$("$HERE/GetSentence" "$NAME")
+if [[ -z "$name_id" ]]; then
+ die "unknown sentence '$NAME'"
+fi
+
+rows=$(sqlite3 "$SQLITE_DB" "
+ SELECT account || '|' || type || '|' || credit
+ FROM AccountName
+ WHERE name = $name_id
+ ORDER BY account;
+")
+count=0
+if [[ -n "$rows" ]]; then
+ count=$(printf '%s\n' "$rows" | grep -c .)
+fi
+if [[ "$count" -gt 1 ]]; then
+ die "account name '$NAME' matches more than one account"
+fi
+if [[ "$count" -eq 1 ]]; then
+ IFS='|' read -r existing_id existing_type existing_credit <<EOF
+$rows
+EOF
+ if [[ "$existing_type" == "$type_id" && "$existing_credit" == "$credit" ]]; then
+  echo "$existing_id"
+  exit 0
+ fi
+ die "account '$NAME' already exists with a different type or credit"
+fi
+
+sqlite3 "$SQLITE_DB" "
+ INSERT INTO AccountName (account, name, type, credit)
+ SELECT CASE WHEN (IFNULL(m, 0) + 1) > 1000 THEN (IFNULL(m, 0) + 1) ELSE 1000 END,
+  $name_id, $type_id, $credit
+ FROM (SELECT MAX(account) AS m FROM AccountName);
+" >/dev/null
+
+sqlite_query_one "SELECT account FROM AccountName WHERE name = $name_id ORDER BY account DESC LIMIT 1;"

@@ -81,7 +81,7 @@ ListBooks
 | **AR Payment** | Customer paid AR (Cash / Receivable) - Receipt path |
 | **Sale Jane Doe** / **Sale John Doe** | Commission split sales (wiki complex books) |
 | **AP Donation** / **Donation Payment** | Donation AP path if used |
-| **Capital** | Owner cash in: debit Cash, credit Equity. `Post Capital` is the Equity account (es-MX name Capital), not this book. |
+| **Capital** | Owner cash in: debit Cash, credit Equity. With no en-US account named Capital, `Post Capital` is the Equity account (es-MX name Capital), not this book. |
 | **Card Sale** | Card receipt: debit Checking, credit Sales |
 | **Hosting** | Hosting paid from cash: debit Hosting, credit Cash |
 
@@ -99,7 +99,7 @@ SetEntryDescription "$entry" 'October rent'
 SetEntryReference "$entry" check 1042
 ```
 
-`Book` prints the entry id. `SetEntryDescription` stores that sentence on the entry. `SetEntryReference` stores a culture-null type word and the printed number. One description is open, and one reference of each type is open. A replacement sets `stop` on the previous row. Read **EntryDescriptions** and **EntryReferences**.
+`Book` prints the entry id. A new chart account is `GetAccount 'Credit Card' Liability` (types: Asset, Liability, Equity, Income, Expense, Dividend, Share, Retained, or the word id; `contra` keeps the type and flips credit). A new two-account book is `GetBook 'Card Charge' Payments Supply 'Credit Card'`. A split book is `GetBook --split 'Fee Split' Payments increase Cash decrease 'Stripe Fees' 0.70 decrease Supply 0.30`. Shares on a side add up to 1. The same shape returns the existing id. `SetSentenceCulture Capital es-MX Capital` adds one translation to that en-US sentence. A second row for that id and culture is refused. `SetEntryDescription` stores that sentence on the entry. `SetEntryReference` stores a culture-null type word and the printed number. One description is open, and one reference of each type is open. A replacement sets `stop` on the previous row. Read **EntryDescriptions** and **EntryReferences**.
 
 **Returns / credits (honest):**
 
