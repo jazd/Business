@@ -48,7 +48,7 @@ Canonical product examples live in sibling **`Business.wiki`**
 |-------|------|
 | **SQLite + `Bash/sqlite/`** | Default local shop (`SQLITE_DB`). Put `Bash/sqlite` on `PATH`; each helper finds siblings beside itself. `~/bin/sqlite` is an optional link. |
 | **PostgreSQL procedures** | Same semantics when the user points at a live Business DB. A local server is `make pgsqldb` (`Developer.md`). That is not the shop file. |
-| **Views** | `LineItems`, `BillDocuments`, `InvoiceLineDetail`, `PartyAddresses`, `PartyPhones`, `BillReferences`, `JournalReport`, `LedgerReport`, `EntryDescriptions`, `EntryReferences`, `People`, `Entities`, `List`, `Parts`, `Assemblies`, … |
+| **Views** | `LineItems`, `BillDocuments`, `InvoiceLineDetail`, `PartyAddresses`, `PartyPhones`, `BillReferences`, `JournalReport`, `LedgerReport`, `Books`, `Ledgers`, `EntryDescriptions`, `EntryReferences`, `People`, `Entities`, `List`, `Parts`, `Assemblies`, … |
 
 ### Database location: defaults work with zero user setup; overrides always win
 
@@ -112,7 +112,9 @@ matches wiki/procedure behavior; say what is unavailable.
 2. **History is append + `stop`**, not UPDATE of past truth (prices, emails, list membership).
 3. **Money** is `numeric(19,4)`, not integer cents. `Book` and `Post` round each new journal amount to 4 decimal places and write that text. Amounts already stored are left as written. `JournalReport` and `BookBalance` print two decimals. The report total adds those cent amounts. Quantities may stay float where the schema says so (`Cargo.count`, schedule rate bands).
 4. **Reads** go through **views** the wiki uses (`LineItems`, `JournalReport`, …).
-5. **Culture** for reports: `ClientCulture()` / `inject_culture` (1033 en-US, 2058 es-MX, 1036 fr-FR) - see wiki Accounting I18N.
+5. **Culture** for reports: `ClientCulture()` / `inject_culture` (1033 en-US, 2058 es-MX, 1036 fr-FR). Clear the inject after a Spanish or French report.
+6. **Timestamps are UTC.** Convert a local date and time to UTC before insert. Display converts that instant into the viewer's current zone, so the same row can show a different clock time or calendar day. 11:30 PM on March 1 in America/New_York (EST, UTC-5) is stored as `2026-03-02 04:30:00`. Shown in New York that is March 1 at 11:30 PM. Shown in UTC it is March 2 at 4:30 AM. A SQL date column stores the passed calendar day with no shift. `JournalEntry.created` is a timestamp, default `NOW()`, not a SQL date. If a clock time must stay the wall time of one place, store a Location with the UTC instant. The viewer's zone is not that Location. SQLite `datetime('now')` and `CURRENT_TIMESTAMP` are UTC. Do not add `localtime` or a `'utc'` modifier. `Book` and `Post` still store a civil `YYYY-MM-DD` and no time. A typed date is stored as given. An omitted date is civil today in the given zone, or the process local today when the zone is omitted. `AccountLedger` prints that stored month and day and does not convert zones. `BillDocuments.documentDate` is `DATE(Bill.created)`, the UTC calendar day. Do not shift bill dates into a local zone.
+7. **Names.** One word, sentence, or paragraph id has one row per culture. The same text may exist under several ids. `GetSentence` finds or inserts an en-US sentence (`LIMIT 1`, no `ORDER BY`). It does not add a translation to an existing id. `SetSentenceCulture` does, and it refuses a second row for that id and culture. `GetWord` is en-US. `GetIdentifier` stores a culture-NULL word and is not translated. `I18NWord`, `I18NSentence`, and `I18NParagraph` list only ids that already have an en-US row, then overlay the client culture. On PostgreSQL that overlay is `ClientCulture()` (1033 until set). On SQLite those views are fixed at 1033, so use `JournalReport` with a culture argument for Spanish or French. An apostrophe in a new name still fails inside `GetSentence`.
 
 ## Party model (customers & “you”)
 
@@ -151,7 +153,7 @@ Full SQL skeletons and AR books: **`references/inventory-bom-builds.md` § B1**.
 | Pay / receipt | Child **`Receipt`**; move cargo with book **`AR Payment`** |
 | Show lines / totals | `InvoiceLineDetail` / `LineItems` / `BillDocuments` for that bill |
 | Price list for a customer | `GetIndividualJobSchedule` + `SetSchedule` (count band) + `SetPrice` (quote unit price). `Schedule.rate` is not that unit price. |
-| Buy parts from a vendor | `CreateBill(vendor, shop, 'Order')` + `AddCargo` / `AddCargo --unit …` + `GetBillReference` for vendor SO/PO # |
+| Buy parts from a vendor | `CreateBill(vendor, shop, 'Order')` + `AddCargo`, or `AddCargo --unit <bill> <assembly> <count> <unit_price> <job\|''> <from\|''> <book>` + `GetBillReference` for vendor SO/PO #. `--unit` requires a book. The booked amount is count times unit price. With no book it writes nothing. |
 | Attach PO / tracking # | `GetBillReference(bill, 'Sales Order'\|'Tracking'\|…, value)` |
 
 **Bash commerce (SQLite shop):** `CreateBill`, `GetOutstandingBill`, `AddCargo`,
@@ -189,7 +191,7 @@ Load **`references/inventory-bom-builds.md`** for full playbooks and SQL.
 | BOM / designators (R1, U1, …) | `PutAssemblyPart` / `RemoveAssemblyPart`; list current BOM via **`AssemblyParts`** (`stop IS NULL`) |
 | “Natural” refdes order (R2 before R10) | PostgreSQL: optional `natural_sort_key(designator)` helper (see reference); else sort in the agent |
 | Serialized unit / build | `GetPartbySerial(assemblyVersion, serial)` then `PutAssemblyPart(id, GetPartbySerial(child, sn), designator, 1)` - **real serial required**, never `''` |
-| List builds | `Assemblies WHERE serial IS NOT NULL`; `AssemblyParts` filtered by assembly id |
+| List builds | `Assemblies WHERE serial IS NOT NULL`. `Assemblies` lists an assembly only while it has an open `AssemblyPart` row. `AssemblyParts` is already `stop IS NULL`. |
 | “On hand” / stock | Prefer **cargo on bills** (vendor Order, cart, build bills) + serial units; **never** silent DELETE of history or invented `on_hand` tables |
 | Wrong parent after GetPart | Prefer `GetPartWithParentNearest` / `GetPartWithAncestor` (PG) over DELETE of Part rows |
 | Firmware on a board version | Wiki Application Release + `GetAssemblyApplicationRelease` (advanced) |
@@ -209,7 +211,7 @@ on cargo/`LineItems` + assembly views.
 | Check number on that entry | `SetEntryReference <entry> check 1042`. The type is a culture-null word. The value is the printed number. One open value of each type. A different value stops the previous row. Read **EntryReferences**. |
 | What books exist? | `ListBooks` - Rent, Sale, Sales Credit, Equipment/Return, Loan/Payment, Salary, Supply/Return, Petty Cash, AR Sale/Credit/Payment, commission books, Capital, Card Sale, Hosting, … |
 | Split / commission style | `Book 'Sale Jane Doe' 1000` when seeded |
-| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` - debit left, credit right. A name matches the en-US sentence first. On PostgreSQL the first match uses `ClientCulture()`. No match in that culture uses any culture. More than one account in the culture that matched is an error. An all-digit argument is the account id. |
+| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` - debit left, credit right. A name matches the en-US sentence first. On PostgreSQL the first match uses `ClientCulture()`. No match in that culture uses any culture. More than one account in the culture that matched is an error. An all-digit argument is the account id. Call this four-argument form. The three-argument PostgreSQL `Post` passes the credit account as the debit. |
 | Grokipedia cash ledger | `AccountLedger Cash` after the three `Post` lines in the section below |
 | Book + show lines | `BookBalance <name> <amount> [YYYY-MM-DD] [time_zone]` (same trailing date and zone as Book) |
 | Return / credit memo (books) | `Sales Credit`, `AR Sale Credit`, `Equipment Return`, `Supply Return` - not free-form DELETE |
@@ -219,7 +221,15 @@ on cargo/`LineItems` + assembly views.
 | Sale paid on credit then cash | Invoice + Receipt + **`AR Payment`** book |
 
 Prefer **named books** from static General Ledger (`ListBooks`) over inventing account ids.
-A new account is `GetAccount <name> <type> [contra]`. A new book is `GetBook <name> <journal> <increase> <decrease>`. A translation of an existing sentence is `SetSentenceCulture <id or en-US name> <culture> <text>`.
+
+A new account is `GetAccount <name> <type> [contra]`. Types are Asset, Liability, Equity, Income, Expense, Dividend, Share, and Retained, or that word id. `contra` keeps the type and flips credit. The same name, type, and credit returns the existing id. A different type or credit writes nothing. A new id is at least 1000.
+
+A two-account book is `GetBook <name> <journal> <increase> <decrease>`. The journal must already exist. A split book is `GetBook --split <name> <journal> increase <account> [share] decrease <account> <share> ...`. Shares on a side add up to 1. An omitted share is the 100 percent side. The same journal and accounts return the existing id. A different shape writes nothing. The book row and its account rows are one transaction.
+
+`SetSentenceCulture <id or en-US name> <culture> <text>` adds one translation to an existing sentence. A second row for that id and culture is refused. es-MX `Capital` may be added to a new Capital sentence even though Equity's es-MX text is also Capital. That culture then matches two accounts, so the caller uses the account id.
+
+`GetAccount Capital Equity` reuses the en-US sentence that already names the Capital book. It does not use Equity's sentence. On a shop with no en-US account named Capital, `Post Cash ... Capital` still reaches Equity (account 5) through the es-MX sentence. After that account exists, the same post uses the new account. `Equity` and `5` still reach account 5. `Book Capital` still posts the Capital book. Book names match any culture. Account names match the lookup culture first. `Books` and `Ledgers` omit a stopped account link. A stopped book row does not post.
+
 See **`references/parties-contacts-books.md`**.
 
 ### Demo: Grok Build as your small business bookkeeper
@@ -347,7 +357,7 @@ Rebuild commerce GIF: `python3 scripts/build_invoice_commerce_demo_gif.py`
 
 - **Contacts:** see parties-contacts-books (GetPhone/Postal/Address + SetIndividual*).
 - **Holidays / “are we open”:** `TimePeriod` / Periods (wiki Period).
-- **Multi-language labels:** Word/Sentence + culture inject (not only accounting).
+- **Multi-language labels:** one id, one row per culture. en-US is required before `I18NSentence` or `I18NWord` will show the id. Add a translation with `SetSentenceCulture`, not a second `GetSentence`.
 - **Application / firmware on a device:** Application Release examples (advanced).
 - **Org chart / family graph:** DAG Edges (advanced; usually not micro-retail).
 - **Identity / certs for devices:** EST Put\* (PublicKey, CSR, Certificate)-only if user is in that product lane.
@@ -456,7 +466,7 @@ When `Bash/sqlite` is on `PATH` (each helper finds siblings beside itself; a `~/
 
 | Area | Scripts |
 |------|---------|
-| Words | `GetWord`, `GetSentence`, `GetIdentifier`, `GetVersionName` |
+| Words | `GetWord`, `GetSentence`, `SetSentenceCulture`, `GetIdentifier`, `GetVersionName` |
 | Parties | `GetIndividualEntity`, `GetIndividualPerson`, `GetEmail`, `GetIndividualEmail`, `SetIndividualEmail` |
 | Contacts | `GetPhone`, `GetPostal`, `GetAddress`, `SetIndividualPhone`, `SetIndividualAddress`, `DocumentParty` |
 | Parts/BOM | `GetPart*`, `GetPartbySerial`, `PutAssemblyPart`, `RemoveAssemblyPart`, `DocumentBOM` |
@@ -476,7 +486,9 @@ Default live DB: `SQLITE_DB` -> `$HOME/business-shop/business.sqlite3` (override
 - Empty serials on `GetPartbySerial` / treating serials as optional for unit tracking.
 - Inventing Ship / BOL / on_hand tables or claiming full logistics ERP.
 - Restoring a snapshot without telling the user, or writing snapshots over the pristine template.
-- Reporting in another language without culture inject.
+- Reporting in another language without culture inject on PostgreSQL, or without the culture argument to `JournalReport` on SQLite.
+- `AddCargo --unit` with no book. The unit price has nowhere to go, and the helper writes nothing.
+- Calling the three-argument PostgreSQL `Post`. Use debit, amount, credit, and the timestamp.
 - Claiming full ERP (payroll, tax filing, multi-entity consolidation) - stay micro-business.
 - Putting product-internal extension table names into customer-facing docs or skill copy.
 

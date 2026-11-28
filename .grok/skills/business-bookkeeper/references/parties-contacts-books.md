@@ -99,7 +99,13 @@ SetEntryDescription "$entry" 'October rent'
 SetEntryReference "$entry" check 1042
 ```
 
-`Book` prints the entry id. A new chart account is `GetAccount 'Credit Card' Liability` (types: Asset, Liability, Equity, Income, Expense, Dividend, Share, Retained, or the word id; `contra` keeps the type and flips credit). A new two-account book is `GetBook 'Card Charge' Payments Supply 'Credit Card'`. A split book is `GetBook --split 'Fee Split' Payments increase Cash decrease 'Stripe Fees' 0.70 decrease Supply 0.30`. Shares on a side add up to 1. The same shape returns the existing id. `SetSentenceCulture Capital es-MX Capital` adds one translation to that en-US sentence. A second row for that id and culture is refused. `SetEntryDescription` stores that sentence on the entry. `SetEntryReference` stores a culture-null type word and the printed number. One description is open, and one reference of each type is open. A replacement sets `stop` on the previous row. Read **EntryDescriptions** and **EntryReferences**.
+`Book` prints the entry id. It stores a civil `YYYY-MM-DD` and no time. A timestamp column is UTC. Show a timestamp in the viewer's current zone.
+
+A new chart account is `GetAccount 'Credit Card' Liability`. Types are Asset, Liability, Equity, Income, Expense, Dividend, Share, and Retained, or the word id. `contra` keeps the type and flips credit. The same name, type, and credit returns the existing id. A new id is at least 1000. `GetAccount Capital Equity` reuses the en-US sentence that names the Capital book. It does not use Equity's sentence. With no en-US Capital account, `Post Capital` still reaches Equity. After that account exists, `Post Capital` uses the new account. `Equity` and `5` still reach account 5. Account names match en-US first, then any culture. Book names match any culture.
+
+A new two-account book is `GetBook 'Card Charge' Payments Supply 'Credit Card'`. The journal must already exist. A split book is `GetBook --split 'Fee Split' Payments increase Cash decrease 'Stripe Fees' 0.70 decrease Supply 0.30`. Shares on a side add up to 1. The same journal and accounts return the existing id. A different shape writes nothing. An apostrophe in a new name still fails inside `GetSentence`.
+
+`SetSentenceCulture Capital es-MX Capital` adds one translation to that en-US sentence. A second row for that id and culture is refused. `SetEntryDescription` stores that sentence on the entry. `SetEntryReference` stores a culture-null type word and the printed number. One description is open, and one reference of each type is open. A replacement sets `stop` on the previous row. Read **EntryDescriptions** and **EntryReferences**. Call the four-argument `Post`. The three-argument PostgreSQL form passes the credit account as the debit.
 
 **Returns / credits (honest):**
 

@@ -30,17 +30,21 @@ Wiki: `Business.wiki/Examples.md` (**Parts**, **Inventory Movement**).
 | Show / export current BOM | `DocumentBOM` / `AssemblyParts` (`stop IS NULL`) |
 | Register built unit + chip serials | `GetPartbySerial` + `PutAssemblyPart` serial children |
 | Wish / cart / quote / order / invoice / pay | `CreateBill` + `AddCargo` / `MoveCargoToChild` (+ job price + **AR Sale** / **AR Payment**) |
-| Buy parts from vendor | `CreateBill(vendor, shop, Order)` + `AddCargo --unit` + `GetBillReference` |
+| Buy parts from vendor | `CreateBill(vendor, shop, Order)` + `AddCargo --unit … <book>` + `GetBillReference`. `--unit` requires a book. |
 | Export invoice lines | `DocumentLineItems <bill> tsv` |
 | Invoice PDF (QB-style) | `InvoicePDF <bill_id>` -> `~/business-shop/invoices/` |
 | List named books | `ListBooks` |
+| New account | `GetAccount 'Credit Card' Liability` (`contra` flips credit; same type returns the same id) |
+| New book | `GetBook 'Card Charge' Payments Supply 'Credit Card'` (journal must already exist) |
+| Split book | `GetBook --split <name> <journal> increase Cash decrease Fees 0.70 decrease Supply 0.30` |
+| Translate a name | `SetSentenceCulture Capital es-MX Capital` (one row per id and culture) |
 | Paid rent / cash sale / … | `Book Rent\|Sale\|… <amt> [YYYY-MM-DD] [zone]` |
 | Memo / check number | `SetEntryDescription <entry> 'October rent'` / `SetEntryReference <entry> check 1042` |
 | Credit / return (books) | `Sales Credit`, `AR Sale Credit`, `Equipment Return`, `Supply Return` |
-| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]` |
+| Manual journal | `Post <debit> <amount> <credit> [YYYY-MM-DD]`. en-US name first, then any culture. `Equity` and `5` stay account 5. |
 | Grokipedia cash ledger | three `Post` lines below, then `AccountLedger Cash` |
 | Show journal | `JournalReport` |
-| Report in French / Spanish | inject culture **1036** / **2058**; clear after |
+| Report in French / Spanish | SQLite: `JournalReport fr` or `JournalReport es`. PostgreSQL: inject **1036** / **2058**, then clear it. |
 | Mailing list on/off | `ListSubscribeEmail` / `ListUnSubscribe` |
 | Bank CSV (near-term) | dry-run map -> Book/Post; approve before write |
 
@@ -98,6 +102,7 @@ AccountLedger Cash
 | Bash helpers | `Bash/sqlite/` on `PATH` (`~/bin/sqlite` link optional) |
 | Postgres | procedures in `PostgreSQL/procedures.d/`; views in schema |
 | Money | decimal/`numeric` - not float pennies |
+| Dates | A timestamp is UTC. `Book` and `Post` store a civil `YYYY-MM-DD` with no time. |
 | History | append + `stop`; no DELETE “fixes” |
 
 ## Do / don’t

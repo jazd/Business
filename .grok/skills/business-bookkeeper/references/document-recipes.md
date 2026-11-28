@@ -14,7 +14,7 @@ Prefer these for invoice/PDF/SQL exports (added for commerce demos; portable SQL
 
 | View | Purpose |
 |------|---------|
-| **`BillDocuments`** | Wish…Receipt bills with entity **or person** names, `subtotal`, `invoiceNumber` (`INV-` + id) |
+| **`BillDocuments`** | Wish…Receipt bills with entity **or person** names, `subtotal`, `invoiceNumber` (`INV-` + id). `documentDate` is `DATE(Bill.created)`, the UTC calendar day. Do not shift it into a local zone. |
 | **`InvoiceLineDetail`** | Friendly `LineItems` projection. `description` is the part name, plus the part description when one is stored. It is not the part version. |
 | **`PartyAddresses`** | Active addresses per individual + type (Billing/Shipping/…) |
 | **`PartyPhones`** | Active phones per individual + type |
@@ -23,7 +23,7 @@ Prefer these for invoice/PDF/SQL exports (added for commerce demos; portable SQL
 Older **`Bills`** still **INNER JOIN Entities only** - person-only parties need **`BillDocuments`**.  
 `InvoicePDF` uses the new views when present, else falls back to Bills/LineItems joins.
 
-Fresh SQLite builds these views from `schema.xml` (`make rebuild-business-sqlite3`). An existing database applies `PostgreSQL/0.2.12-0.2.13.sql` or `SQLite/0.2.12-0.2.13.sql`.
+Fresh SQLite builds these views from `schema.xml` (`make rebuild-business-sqlite3`). They first shipped in the 0.2.12 to 0.2.13 hop. A shop on the current release already has them. The open hop is 0.2.16 to 0.2.17, and 0.2.17 is not released.
 
 ## Bash helpers
 

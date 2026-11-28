@@ -200,13 +200,13 @@ Ship / bill of lading headings in the wiki are still stubs - track fulfilment vi
 
 ### Accounting
 
-- Named **books** (e.g. Rent, Sale) post balanced journal lines.
-- **Book** and **BookBalance** take an optional date and time zone after the amount. An omitted date is today in that zone, or the local zone. A new line stores `YYYY-MM-DD` with no time. `Book Rent 100` still works.
+- Named **books** (e.g. Rent, Sale) post balanced journal lines. A new account is `GetAccount <name> <type> [contra]`. A new book is `GetBook <name> <journal> <increase> <decrease>`. The journal must already exist.
+- A timestamp in the database is UTC. Show it in the viewer's current zone. A SQL date stores the calendar day as given. **Book** and **Post** still store a civil `YYYY-MM-DD` and no time. An omitted date is today in the given zone, or the local zone. A typed date is stored as given. `Book Rent 100` still works.
 - **JournalReport** / **LedgerReport** for statements. Amounts print with two decimal places. The total adds those cent amounts.
 - A journal entry can carry one sentence and one printed reference number. `SetEntryDescription <entry> 'October rent'` and `SetEntryReference <entry> check 1042`. Read them from **EntryDescriptions** and **EntryReferences**. A replacement stops the previous row.
-- **AccountLedger** lists every unposted line for that account. A Book line and a Post line both appear.
+- **AccountLedger** lists every unposted line for that account. A Book line and a Post line both appear. It prints the stored month and day and does not convert zones.
 - **BookBalance** prints each amount with two decimal places.
-- French/Spanish labels: culture inject (es-MX / fr-FR) then the same report views.
+- One name id has one row per culture. en-US is the default. `SetSentenceCulture` adds a translation. On PostgreSQL, French/Spanish reports use culture inject (es-MX / fr-FR), then the same views. On SQLite the I18N views stay en-US, so pass the culture to `JournalReport`.
 
 ### Lists
 

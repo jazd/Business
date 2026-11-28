@@ -124,7 +124,7 @@ RemoveAssemblyPart(assembly [, part [, designator]])
 | `PutAssemblyPart` different part/qty on same designator | Sets `stop` on prior active designator row(s); inserts new row |
 | `RemoveAssemblyPart(assembly, part, designator)` | Sets `stop` on matching active row(s) |
 | `RemoveAssemblyPart(assembly)` | Sets `stop` on all active rows for assembly |
-| **`Assemblies` view** | Distinct assemblies that appear in `AssemblyPart` (any `stop` value) |
+| **`Assemblies` view** | Distinct assemblies that still have an open `AssemblyPart` row (`stop` is null) |
 
 ### Wiki Alarm Demo shape
 
@@ -417,7 +417,8 @@ VENDOR=$(GetIndividualEntity 'Mouser Electronics')
 SHOP=$(GetIndividualEntity 'My Shop')
 PO=$(CreateBill "$VENDOR" "$SHOP" Order)
 MPN=$(GetPartWithParent '4.7k' '1%' Resistor 0603)
-AddCargo --unit "$PO" "$MPN" 100 0.05
+# --unit requires a book. The booked amount is count times the unit price.
+AddCargo --unit "$PO" "$MPN" 100 0.05 '' '' Supply
 GetBillReference "$PO" 'Sales Order' '280825725'
 DocumentLineItems "$PO"
 ```
@@ -498,7 +499,7 @@ If the user needs a **customer-facing packing list / invoice PDF**, generate tha
 ### “Order parts from Digi-Key / Mouser”
 
 1. `CreateBill(vendor, shop, 'Order')`.  
-2. `AddCargo` lines for each MPN/qty/(cost).  
+2. `AddCargo` for qty only, or `AddCargo --unit` with a book that already exists. Without that book the unit price is refused and nothing is written.  
 3. Optional `GetBillReference` for vendor SO #.  
 4. Show lines; do not invent receiving BOL.
 
@@ -535,7 +536,7 @@ If the user needs a **customer-facing packing list / invoice PDF**, generate tha
 | Sales docs | `CreateBill`, `AddCargo`, `MoveCargo` / `MoveCargoToChild`, `GetOutstandingBill` |
 | PO / tracking | `GetBillReference` |
 | Prices | `GetJob`, `GetSchedule`, `SetSchedule`, `GetIndividualJobSchedule`, `SetPrice`, `PutAssemblyJobPrice` |
-| Books | `Book`, `ListBooks`, **`AR Sale`**, **`AR Payment`**, … |
+| Books | `GetAccount`, `GetBook`, `Book`, `ListBooks`, **`AR Sale`**, **`AR Payment`**, … |
 | Documents | `DocumentLineItems`, `DocumentBOM`, `DocumentParty` |
 | Reports | `LineItems`, `JournalReport`, `LedgerReport`, `Parts`, `Assemblies`, `AssemblyParts` |
 
